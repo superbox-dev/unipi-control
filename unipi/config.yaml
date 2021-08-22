@@ -1,0 +1,177 @@
+mqtt:
+  host: localhost
+  port: 1883
+observe:
+  di_2_01: utility_room/shading/up
+  di_2_02: utility_room/shading/down
+  di_2_03: kittchen/shading/up
+  di_2_04: kittchen/shading/down
+  di_2_05: panorama/shading/up
+  di_2_06: panorama/shading/down
+  di_2_07: dining_room/shading/up
+  di_2_08: dining_room/shading/down
+  di_2_09: terrace/shading/up
+  di_2_10: terrace/shading/down
+  di_2_11: living_room_south/shading/up
+  di_2_12: living_room_south/shading/down
+  di_2_13: living_room_west/shading/up
+  di_2_14: living_room_west/shading/down
+  di_2_15: workspace/shading/up
+  di_2_16: workspace/shading/down
+  di_3_01: group/shading/up
+  di_3_02: group/shading/down
+rules:
+  - name: "Utility room: shading up"
+    when:
+      circuit: di_2_01
+      event: long
+    then:
+      - circuit: ro_2_01
+        state: true
+  - name: "Utility_room: shading down"
+    when:
+      circuit: di_2_02
+      event: long
+    then:
+      - circuit: ro_2_02
+        state: true
+  - name: "Kittchen: shading up"
+    when:
+      circuit: di_2_03
+      event: long
+    then:
+      - circuit: ro_2_03
+        state: true
+  - name: "Kittchen: shading down"
+    when:
+      circuit: di_2_04
+      event: long
+    then:
+      - circuit: ro_2_04
+        state: true
+  - name: "Panorama: shading up"
+    when:
+      circuit: di_2_05
+      event: long
+    then:
+      - circuit: ro_2_05
+        state: true
+  - name: "Panorama: shading down"
+    when:
+      circuit: di_2_06
+      event: long
+    then:
+      - circuit: ro_2_06
+        state: true
+  - name: "Dining room: shading up"
+    when:
+      circuit: di_2_07
+      event: long
+    then:
+      - circuit: ro_2_07
+        state: true
+  - name: "Dining room: shading down"
+    when:
+      circuit: di_2_08
+      event: long
+    then:
+      - circuit: ro_2_08
+        state: true
+  - name: "Terrace: shading up"
+    when:
+      circuit: di_2_09
+      event: long
+    then:
+      - circuit: ro_2_09
+        state: true
+  - name: "Terrace: shading down"
+    when:
+      circuit: di_2_10
+      event: long
+    then:
+      - circuit: ro_2_10
+        state: true
+  - name: "Living room (south): shading up"
+    when:
+      circuit: di_2_11
+      event: long
+    then:
+      - circuit: ro_2_11
+        state: true
+  - name: "Living room (south): shading down"
+    when:
+      circuit: di_2_12
+      event: long
+    then:
+      - circuit: ro_2_12
+        state: true
+  - name: "Living room (west): shading up"
+    when:
+      circuit: di_2_13
+      event: long
+    then:
+      - circuit: ro_2_13
+        state: true
+  - name: "Living room (west): shading down"
+    when:
+      circuit: di_2_14
+      event: long
+    then:
+      - circuit: ro_2_14
+        state: true
+  - name: "Workspace: shading up"
+    when:
+      circuit: di_2_15
+      event: long
+    then:
+      - circuit: ro_2_15
+        state: true
+  - name: "Workspace: shading down"
+    when:
+      circuit: di_2_16
+      event: long
+    then:
+      - circuit: ro_2_16
+        state: true
+  - name: "Group: shading all up"
+    when:
+      circuit: di_3_01
+      event: long
+    then:
+      - circuit: ro_1_01
+        state: true
+      - circuit: ro_1_03
+        state: true
+      - circuit: ro_1_05
+        state: true
+      - circuit: ro_1_07
+        state: true
+      - circuit: ro_1_09
+        state: true
+      - circuit: ro_1_11
+        state: true
+      - circuit: ro_1_13
+        state: true
+      - circuit: ro_1_15
+        state: true
+  - name: "Group: shading all down"
+    when:
+      circuit: di_3_02
+      event: long
+    then:
+      - circuit: ro_1_02
+        state: true
+      - circuit: ro_1_04
+        state: true
+      - circuit: ro_1_06
+        state: true
+      - circuit: ro_1_08
+        state: true
+      - circuit: ro_1_10
+        state: true
+      - circuit: ro_1_12
+        state: true
+      - circuit: ro_1_14
+        state: true
+      - circuit: ro_1_16
+        state: true
