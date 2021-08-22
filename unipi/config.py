@@ -6,3 +6,7 @@ class Config:
     def config(self) -> dict:
         yaml_file = open("config.yaml", "r")
         return yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+    def get_topic(self, name: str) -> str:
+        return self.config["observe"].get(name)
+

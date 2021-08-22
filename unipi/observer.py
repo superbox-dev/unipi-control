@@ -18,12 +18,11 @@ SLEEP_INTERVAL: str = 250e-3
 SYSFS_ROOT: str = "/sys/devices/platform/unipi_plc"
 
 
-class DigitalInput(VerboseMixin):
+class DigitalInput(Config, VerboseMixin):
     FOLDER_REGEX = re.compile(r"di_\d_\d{2}")
 
-    def __init__(self, path: str, mqtt, mqttc, value: bool = False, verbose: bool = False):
+    def __init__(self, path: str, mqttc, value: bool = False, verbose: bool = False):
         self.path = path
-        self.mqtt = mqtt
         self.mqttc = mqttc
         self._verbose = verbose
         self._value = value
@@ -54,7 +53,7 @@ class DigitalInput(VerboseMixin):
         updated_value: bool = await self._observe() == "1\n"
 
         if updated_value != self._value:
-            topic: str = self.mqtt.get_topic(self.title)
+            topic: str = self.get_topic(self.title)
             ret = self.mqttc.publish(f"unipi/{topic}", updated_value)
 
             if ret[0] == 0:
@@ -70,8 +69,9 @@ class SysFS(Config):
         self.root = args.sysfs_root
         self._verbose = args.verbose
         self._di_to_observe: list = list(self.config["observe"].keys())
-        self.mqtt = Mqtt(client_id="unipi-sysfs", run_async=True, verbose=self._verbose)
-        self.mqttc = self.mqtt.run()
+        
+        mqtt = Mqtt(client_id="unipi-sysfs", run_async=True, verbose=self._verbose)
+        self.mqttc = mqtt.run()
 
     def listen(self):
         digital_inputs: list = self._enable_digital_inputs()
@@ -91,7 +91,7 @@ class SysFS(Config):
         for root, dirs, files in os.walk(self.root):
             for d in dirs:
                 if regex.match(d) is not None and d in self._di_to_observe:
-                    paths.append(DigitalInput(os.path.join(root, d), mqtt=self.mqtt, mqttc=self.mqttc, verbose=self._verbose))
+                    paths.append(DigitalInput(os.path.join(root, d), mqttc=self.mqttc, verbose=self._verbose))
 
         return paths
 

@@ -18,9 +18,6 @@ class Mqtt(Config, VerboseMixin):
     def topics(self) -> list:
         return [(f"unipi/{value}", 0) for key, value in self.config["observe"].items()]
 
-    def get_topic(self, name: str) -> str:
-        return self.config["observe"].get(name)
-
     def run(self):
         self.client = mqtt.Client(client_id=self.client_id)
 
