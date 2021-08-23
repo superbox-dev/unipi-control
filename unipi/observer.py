@@ -7,8 +7,8 @@ import re
 
 import aiofiles
 
-from config import Config
-from log import (
+from helpers import (
+    ConfigMixin,
     logger,
     VerboseMixin
 )
@@ -18,7 +18,7 @@ SLEEP_INTERVAL: str = 250e-3
 SYSFS_ROOT: str = "/sys/devices/platform/unipi_plc"
 
 
-class DigitalInput(Config, VerboseMixin):
+class DigitalInput(ConfigMixin, VerboseMixin):
     FOLDER_REGEX = re.compile(r"di_\d_\d{2}")
 
     def __init__(self, path: str, mqttc, value: bool = False, verbose: bool = False):
@@ -64,16 +64,24 @@ class DigitalInput(Config, VerboseMixin):
             self._value = updated_value
 
 
-class SysFS(Config):
+class PublisherMqtt(Mqtt):
+    def on_disconnect(self, client, userdata, rc=0) -> None:
+        super().on_disconnect(self, client, userdata, rc=0)
+        self.client.loop_stop()
+
+
+class SysFS(ConfigMixin):
     def __init__(self, args):
         self.root = args.sysfs_root
         self._verbose = args.verbose
         self._di_to_observe: list = list(self.config["observe"].keys())
         
-        mqtt = Mqtt(client_id="unipi-sysfs", run_async=True, verbose=self._verbose)
+        mqtt = Mqtt(client_id="unipi-sysfs",  verbose=self._verbose)
         self.mqttc = mqtt.run()
+        self.mqttc.connect_async(self.config["mqtt"]["host"], self.config["mqtt"]["port"])
 
     def listen(self):
+        self.mqttc.loop_start()
         digital_inputs: list = self._enable_digital_inputs()
         asyncio.run(self._poll(digital_inputs, SLEEP_INTERVAL))
 

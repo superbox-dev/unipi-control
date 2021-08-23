@@ -21,121 +21,104 @@ observe:
   di_3_01: group/shading/up
   di_3_02: group/shading/down
 rules:
-  - name: "Utility room: shading up"
-    when:
-      circuit: di_2_01
+  - when:
+      circuit: utility_room/shading/up
       event: long
     then:
       - circuit: ro_2_01
         state: true
-  - name: "Utility_room: shading down"
-    when:
-      circuit: di_2_02
+  - when:
+      circuit: utility_room/shading/down
       event: long
     then:
       - circuit: ro_2_02
         state: true
-  - name: "Kittchen: shading up"
-    when:
-      circuit: di_2_03
+  - when:
+      circuit: kittchen/shading/up
       event: long
     then:
       - circuit: ro_2_03
         state: true
-  - name: "Kittchen: shading down"
-    when:
-      circuit: di_2_04
+  - when:
+      circuit: kittchen/shading/down
       event: long
     then:
       - circuit: ro_2_04
         state: true
-  - name: "Panorama: shading up"
-    when:
-      circuit: di_2_05
+  - when:
+      circuit: panorama/shading/up
       event: long
     then:
       - circuit: ro_2_05
         state: true
-  - name: "Panorama: shading down"
-    when:
-      circuit: di_2_06
+  - when:
+      circuit: panorama/shading/down
       event: long
     then:
       - circuit: ro_2_06
         state: true
-  - name: "Dining room: shading up"
-    when:
-      circuit: di_2_07
+  - when:
+      circuit: dining_room/shading/up
       event: long
     then:
       - circuit: ro_2_07
         state: true
-  - name: "Dining room: shading down"
-    when:
-      circuit: di_2_08
+  - when:
+      circuit: dining_room/shading/down
       event: long
     then:
       - circuit: ro_2_08
         state: true
-  - name: "Terrace: shading up"
-    when:
-      circuit: di_2_09
+  - when:
+      circuit: terrace/shading/up
       event: long
     then:
       - circuit: ro_2_09
         state: true
-  - name: "Terrace: shading down"
-    when:
-      circuit: di_2_10
+  - when:
+      circuit: terrace/shading/down
       event: long
     then:
       - circuit: ro_2_10
         state: true
-  - name: "Living room (south): shading up"
-    when:
-      circuit: di_2_11
+  - when:
+      circuit: living_room_south/shading/up
       event: long
     then:
       - circuit: ro_2_11
         state: true
-  - name: "Living room (south): shading down"
-    when:
-      circuit: di_2_12
+  - when:
+      circuit: living_room_south/shading/down
       event: long
     then:
       - circuit: ro_2_12
         state: true
-  - name: "Living room (west): shading up"
-    when:
-      circuit: di_2_13
+  - when:
+      circuit: living_room_west/shading/up
       event: long
     then:
       - circuit: ro_2_13
         state: true
-  - name: "Living room (west): shading down"
-    when:
-      circuit: di_2_14
+  - when:
+      circuit: living_room_west/shading/down
       event: long
     then:
       - circuit: ro_2_14
         state: true
-  - name: "Workspace: shading up"
-    when:
-      circuit: di_2_15
+  - when:
+      circuit: workspace/shading/up
       event: long
     then:
       - circuit: ro_2_15
         state: true
-  - name: "Workspace: shading down"
-    when:
-      circuit: di_2_16
+  - when:
+      circuit: workspace/shading/down
       event: long
     then:
       - circuit: ro_2_16
         state: true
-  - name: "Group: shading all up"
-    when:
-      circuit: di_3_01
+  - when:
+      circuit: group/shading/up
       event: long
     then:
       - circuit: ro_1_01
@@ -154,9 +137,8 @@ rules:
         state: true
       - circuit: ro_1_15
         state: true
-  - name: "Group: shading all down"
-    when:
-      circuit: di_3_02
+  - when:
+      circuit: group/shading/down
       event: long
     then:
       - circuit: ro_1_02

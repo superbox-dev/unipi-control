@@ -2,8 +2,8 @@
 
 import argparse
 
-from config import Config
-from log import (
+from helpers import (
+    ConfigMixin,
     logger,
     VerboseMixin
 )
@@ -17,12 +17,13 @@ class ReceiverMqtt(Mqtt):
         print(self.config)
 
 
-class Controller(Config):
+class Controller(ConfigMixin):
     def __init__(self, args):
         self._verbose = args.verbose
         
-        mqtt = ReceiverMqtt(client_id="unipi-controller", run_async=False, verbose=args.verbose)
+        mqtt = ReceiverMqtt(client_id="unipi-controller", verbose=args.verbose)
         self.mqttc = mqtt.run()
+        self.mqttc.connect(self.config["mqtt"]["host"], self.config["mqtt"]["port"])
 
     def listen(self):
         self.mqttc.subscribe(self.topics)
