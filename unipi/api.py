@@ -92,13 +92,13 @@ class UnipiMqtt(MqttMixin):
                 device = DeviceRelay(device_path)
                 topic: str = f"unipi/{device.name}/{device.circuit}/set"
 
-                self.client.subscribe(topic)
+                self.client.subscribe(topic, qos=1)
                 logger.info(f"Subscribe circuit `{topic}`")
 
     def publish(self, device) -> None:
         topic: str = f"unipi/{device.name}/{device.circuit}/get"
         value: bool = device.value
-        result: tuple = self.client.publish(topic, value)
+        result: tuple = self.client.publish(topic, value, qos=1)
 
         if result[0] == 0:
             logger.info(f"Send `{value}` to topic `{topic}`")

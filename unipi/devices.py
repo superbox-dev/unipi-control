@@ -21,7 +21,7 @@ class DeviceMixin:
         self.device = namedtuple("Device", "name circuit value changed")
         self.device_path: str = device_path
         self._value: bool = False
-        self._file_handle = None
+        self._file_r = None
 
     @property
     def name(self) -> str:
@@ -41,12 +41,12 @@ class DeviceMixin:
 
     async def _read_value_file(self) -> str:
         """Read circuit value file and return file content."""
-        if self._file_handle is None:
-            self._file_handle = await aiofiles.open(self.value_path, "r")
+        if self._file_r is None:
+            self._file_r = await aiofiles.open(self.value_path, "r")
             logger.info(f"Observe circuit `{self.circuit}`")
 
-        await self._file_handle.seek(0)
-        return await self._file_handle.read()
+        await self._file_r.seek(0)
+        return await self._file_r.read()
 
     async def get(self) -> None:
         """Get circuit state."""
