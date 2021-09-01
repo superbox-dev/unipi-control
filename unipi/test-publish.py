@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
 
 import paho.mqtt.client as mqtt
 
@@ -16,10 +17,18 @@ class TestMqtt:
     def set(self, topic: str, value: str) -> None:
         topic: str = f"{topic}/set"
         
-        ret = self.client.publish(topic, value)
+        values: dict = {
+            "value": "0",
+        }
+
+        if value.lower() in ["t", "1", "true", "on"]:
+            values["value"] = "1"
+
+        payload: str = json.dumps(values)    
+        rc, mid = self.client.publish(topic, payload)
         
-        if ret[0] == 0:
-            print(f"Send `{value}` to topic `{topic}`")
+        if rc == mqtt.MQTT_ERR_SUCCESS:
+            print(f"Send `{payload}` to topic `{topic}`")
         else:
             print(f"Failed to send message to topic `{topic}`")
 

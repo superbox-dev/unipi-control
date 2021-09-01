@@ -12,7 +12,7 @@ CONFIG = load_config()
 
 logging.basicConfig(
     filename="/var/log/unipi.log",
-    level=logging.INFO,
+    level=logging.DEBUG,
     format=("[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s - %(message)s"),
 )
 

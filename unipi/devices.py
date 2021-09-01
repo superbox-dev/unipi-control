@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 import re
 from collections import namedtuple
-
-import aiofiles
+from functools import partial
 
 from settings import logger
 
@@ -18,13 +18,13 @@ class DeviceMixin:
         Args:
             device_path (str): SysFS path to the circuit file
         """
-        self.device = namedtuple("Device", "name circuit value changed")
+        self.device = namedtuple("Device", "dev circuit value changed")
         self.device_path: str = device_path
         self._value: bool = False
         self._file_r = None
 
     @property
-    def name(self) -> str:
+    def dev(self) -> str:
         return self.DEVICE
 
     @property
@@ -39,24 +39,32 @@ class DeviceMixin:
         """Get the circuit value file path."""
         return os.path.join(self.device_path, self.VALUE_FILENAME)
 
-    async def _read_value_file(self) -> str:
+    def _read_value_file(self) -> str:
         """Read circuit value file and return file content."""
         if self._file_r is None:
-            self._file_r = await aiofiles.open(self.value_path, "r")
+            self._file_r = open(self.value_path, "r")
+
             logger.info(f"Observe circuit `{self.circuit}`")
 
-        await self._file_r.seek(0)
-        return await self._file_r.read()
+        self._file_r.seek(0)
+        return self._file_r.read().rstrip()
 
     async def get(self) -> None:
         """Get circuit state."""
-        value: bool = await self._read_value_file() == "1\n"
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(None, self._read_value_file)
+        value: bool = result == "1"
         changed: bool = value != self._value
 
         if changed:
             self._value = value
 
-        return self.device(self.name, self.circuit, value, changed)
+        return self.device(
+            self.dev, 
+            self.circuit, 
+            result, 
+            changed,
+        )
 
 
 class DeviceRelay(DeviceMixin):
@@ -65,12 +73,15 @@ class DeviceRelay(DeviceMixin):
     DEVICE = "relay"
     FOLDER_REGEX = re.compile(r"ro_\d_\d{2}")
     VALUE_FILENAME = "ro_value"
-
-    def set(self, value: str) -> None:
-        value: str = "1" if value.lower() in ["true", "t", "1", "on"] else "0"
-
+    
+    def _write_value_file(self, value: str) -> None:
+        """Write circuit to value file."""
         with open(self.value_path, "w") as f:
             f.write(value)
+
+    async def set(self, payload: dict) -> None:
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, partial(self._write_value_file, payload["value"]))
 
 
 class DeviceDigitalInput(DeviceMixin):
