@@ -16,7 +16,7 @@ class DeviceMixin:
         """Initialize the device class.
 
         Args:
-            device_path (str): SysFS path to the circuit file
+            device_path (str): SysFS path to the circuit file.
         """
         self.device = namedtuple("Device", "dev circuit value changed")
         self.device_path: str = device_path
@@ -25,6 +25,7 @@ class DeviceMixin:
 
     @property
     def dev(self) -> str:
+        """Return device name."""
         return self.DEVICE
 
     @property
@@ -40,7 +41,7 @@ class DeviceMixin:
         return os.path.join(self.device_path, self.VALUE_FILENAME)
 
     def _read_value_file(self) -> str:
-        """Read circuit value file and return file content."""
+        """Read circuit state from value file and return."""
         if self._file_r is None:
             self._file_r = open(self.value_path, "r")
 
@@ -60,9 +61,9 @@ class DeviceMixin:
             self._value = value
 
         return self.device(
-            self.dev, 
-            self.circuit, 
-            result, 
+            self.dev,
+            self.circuit,
+            result,
             changed,
         )
 
@@ -73,13 +74,22 @@ class DeviceRelay(DeviceMixin):
     DEVICE = "relay"
     FOLDER_REGEX = re.compile(r"ro_\d_\d{2}")
     VALUE_FILENAME = "ro_value"
-    
+
     def _write_value_file(self, value: str) -> None:
-        """Write circuit to value file."""
+        """Write circuit state to value file.
+
+        Args:
+            value (str): Value can be 0 (False) or 1 (True).
+        """
         with open(self.value_path, "w") as f:
             f.write(value)
 
     async def set(self, payload: dict) -> None:
+        """Set cricuit state.
+
+        Args:
+            payload (dict): Settings like {"dev": "relay", "circuit": "ro_1_01", "value": "1"}
+        """
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, partial(self._write_value_file, payload["value"]))
 
