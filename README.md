@@ -22,6 +22,30 @@ $ sudo systemctl enable unipi-mqtt-api.service
 $ sudo systemctl start unipi-mqtt-api.service
 ```
 
+### Configuration
+
+You can set the mqtt broker and logger in the `config.yaml`
+
+Example:
+
+```yaml
+sysfs:
+  devices: /sys/bus/platform/devices
+mqtt:
+  host: localhost
+  port: 1883
+log:
+  systemd: True
+  file: /var/log/unipi.log
+```
+
+Key | Value
+------ | ------
+`mqtt/host` | mqtt broker host
+`mqtt/port` | mqtt broker port
+`log/systemd` | Enable systemd journal (`True`/`False`)
+`log/file` | path to the log file (Set `False` for disable file logging)
+
 ## Usage
 
 Available mqtt topics:
