@@ -23,3 +23,9 @@ $ sudo systemctl start unipi-mqtt-api.service
 ```
 
 ## Usage
+
+Available mqtt topics:
+
+Topic | Description
+------ | ------
+unipi/relay/ro_[1-9]_[0-9][0-9]/set   | Cell 
