@@ -28,4 +28,4 @@ Available mqtt topics:
 
 Topic | Message | Description
 ------ | ------ | ------
-`unipi/relay/ro_[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a *dict* with the value. Value can be *0 (False)* or *1 (True)*. | Enable/disable the selected relay
+`unipi/relay/ro_[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a **dict** with the value. Value can be **0 (False)** or **1 (True)**. | Enable/disable the selected relay
