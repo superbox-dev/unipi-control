@@ -37,4 +37,4 @@ Topic | Response | Description
 
 Topic | Request | Description
 ------ | ------ | ------
-`unipi/relay/ro_[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a **dict** with the value. Value (string) can be **"0" (False)** or **"1" (True)**. This enable or disable the selected relay.
+`unipi/relay/ro_[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a **dict**, as JSON string, with the value (string) to this topic. Value can be **"0" (False)** or **"1" (True)**. This enable or disable the selected relay.
