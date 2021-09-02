@@ -13,6 +13,7 @@ import paho.mqtt.client as mqtt
 
 from devices import (
     DeviceDigitalInput,
+    DeviceDigitalOutput,
     DeviceRelay,
 )
 from settings import (
@@ -85,11 +86,10 @@ class UnipiMqttAPI(MqttMixin):
 
         for circuit in os.listdir(CONFIG["sysfs"]["devices"]):
             device_path: str = os.path.join(CONFIG["sysfs"]["devices"], circuit)
-
-            if DeviceRelay.FOLDER_REGEX.match(circuit):
-                _devices[circuit] = DeviceRelay(device_path)
-            elif DeviceDigitalInput.FOLDER_REGEX.match(circuit):
-                _devices[circuit] = DeviceDigitalInput(device_path)
+            
+            for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
+                if device_class.FOLDER_REGEX.match(circuit):
+                    _devices[circuit] = device_class(device_path)
 
         return _devices
 
@@ -116,12 +116,13 @@ class UnipiMqttAPI(MqttMixin):
         self._subscribe_timer = timer()
 
         async def subscribe_cb(message):
-            match = DeviceRelay.FOLDER_REGEX.search(message.topic)
+            for device_class in [DeviceRelay, DeviceDigitalOutput]:
+                match = device_class.FOLDER_REGEX.search(message.topic)
 
-            if match:
-                await self.devices[match.group(0)].set(
-                    json.loads(message.payload.decode())
-                )
+                if match:
+                    await self.devices[match.group(0)].set(
+                        json.loads(message.payload.decode())
+                    )
 
         asyncio.run(subscribe_cb(message), debug=self.debug)
         logger.debug(f"Subscribe timer: {timer() - self._subscribe_timer}")
@@ -131,12 +132,13 @@ class UnipiMqttAPI(MqttMixin):
         for device_name in os.listdir(CONFIG["sysfs"]["devices"]):
             device_path: str = os.path.join(CONFIG["sysfs"]["devices"], device_name)
 
-            if DeviceRelay.FOLDER_REGEX.match(device_name):
-                device = DeviceRelay(device_path)
-                topic: str = f"unipi/{device.dev}/{device.circuit}/set"
+            for device_class in [DeviceRelay, DeviceDigitalOutput]:
+                if device_class.FOLDER_REGEX.match(device_name):
+                    device = device_class(device_path)
+                    topic: str = f"unipi/{device.dev}/{device.circuit}/set"
 
-                self._client.subscribe(topic, qos=1)
-                logger.info(f"Subscribe topic `{topic}`")
+                    self._client.subscribe(topic, qos=1)
+                    logger.info(f"Subscribe topic `{topic}`")
 
     def publish(self, device: namedtuple) -> None:
         """Publish topics for all devices.
@@ -146,7 +148,7 @@ class UnipiMqttAPI(MqttMixin):
         """
         topic: str = f"unipi/{device.dev}/{device.circuit}/get"
 
-        values: dict = dict(device._asdict())
+        values: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
         values.pop("changed")
 
         payload: str = json.dumps(values)

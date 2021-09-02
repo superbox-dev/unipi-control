@@ -5,6 +5,7 @@ import os
 import re
 from collections import namedtuple
 from functools import partial
+from typing import Optional
 
 from settings import logger
 
@@ -18,7 +19,7 @@ class DeviceMixin:
         Args:
             device_path (str): SysFS path to the circuit file.
         """
-        self.device = namedtuple("Device", "dev circuit value changed")
+        self.device = namedtuple("Device", "dev relay_type circuit value changed")
         self.device_path: str = device_path
         self._value: bool = False
         self._file_r = None
@@ -29,11 +30,18 @@ class DeviceMixin:
         return self.DEVICE
 
     @property
-    def circuit(self) -> str:
+    def relay_type(self) -> str:
+        """Return device name."""
+        return self.RELAY_TYPE
+
+    @property
+    def circuit(self) -> Optional[str]:
         """Get the circuit name."""
         match = self.FOLDER_REGEX.search(self.device_path)
-        start, end = match.span()
-        return self.device_path[start:end]
+
+        if match:
+            start, end = match.span()
+            return self.device_path[start:end]
 
     @property
     def value_path(self) -> str:
@@ -62,19 +70,14 @@ class DeviceMixin:
 
         return self.device(
             self.dev,
+            self.relay_type,
             self.circuit,
             result,
             changed,
         )
 
 
-class DeviceRelay(DeviceMixin):
-    """Observe relay output and publish with Mqtt."""
-
-    DEVICE = "relay"
-    FOLDER_REGEX = re.compile(r"ro_\d_\d{2}")
-    VALUE_FILENAME = "ro_value"
-
+class DeviceSetMixin(DeviceMixin):
     def _write_value_file(self, value: str) -> None:
         """Write circuit state to value file.
 
@@ -94,9 +97,28 @@ class DeviceRelay(DeviceMixin):
         await loop.run_in_executor(None, partial(self._write_value_file, payload["value"]))
 
 
+class DeviceRelay(DeviceSetMixin):
+    """Observe relay output and publish with Mqtt."""
+
+    DEVICE = "relay"
+    RELAY_TYPE = "physical"
+    FOLDER_REGEX = re.compile(r"ro_\d_\d{2}")
+    VALUE_FILENAME = "ro_value"
+
+
 class DeviceDigitalInput(DeviceMixin):
     """Observe digital input and publish with Mqtt."""
 
     DEVICE = "input"
+    RELAY_TYPE = None
     FOLDER_REGEX = re.compile(r"di_\d_\d{2}")
     VALUE_FILENAME = "di_value"
+
+
+class DeviceDigitalOutput(DeviceSetMixin):
+    """Observe digital output and publish with Mqtt."""
+
+    DEVICE = "relay"
+    RELAY_TYPE = "digital"
+    FOLDER_REGEX = re.compile(r"do_\d_\d{2}")
+    VALUE_FILENAME = "do_value"
