@@ -1,0 +1,4 @@
+- circuit: di_1_01
+  descripition: "Digital Input 1.1"
+  dev: input
+

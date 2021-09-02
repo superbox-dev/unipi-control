@@ -7,7 +7,7 @@ from collections import namedtuple
 from functools import partial
 from typing import Optional
 
-from settings import logger
+from api.settings import logger
 
 
 class DeviceMixin:
@@ -19,7 +19,7 @@ class DeviceMixin:
         Args:
             device_path (str): SysFS path to the circuit file.
         """
-        self.device = namedtuple("Device", "dev relay_type circuit value changed")
+        self.device = namedtuple("Device", "dev dev_type circuit value changed")
         self.device_path: str = device_path
         self._value: bool = False
         self._file_r = None
@@ -30,9 +30,9 @@ class DeviceMixin:
         return self.DEVICE
 
     @property
-    def relay_type(self) -> str:
+    def dev_type(self) -> str:
         """Return device name."""
-        return self.RELAY_TYPE
+        return self.DEVICE_TYPE
 
     @property
     def circuit(self) -> Optional[str]:
@@ -40,8 +40,7 @@ class DeviceMixin:
         match = self.FOLDER_REGEX.search(self.device_path)
 
         if match:
-            start, end = match.span()
-            return self.device_path[start:end]
+            return match.group(0)[3:]
 
     @property
     def value_path(self) -> str:
@@ -70,7 +69,7 @@ class DeviceMixin:
 
         return self.device(
             self.dev,
-            self.relay_type,
+            self.dev_type,
             self.circuit,
             result,
             changed,
@@ -101,7 +100,7 @@ class DeviceRelay(DeviceSetMixin):
     """Observe relay output and publish with Mqtt."""
 
     DEVICE = "relay"
-    RELAY_TYPE = "physical"
+    DEVICE_TYPE = "physical"
     FOLDER_REGEX = re.compile(r"ro_\d_\d{2}")
     VALUE_FILENAME = "ro_value"
 
@@ -110,7 +109,7 @@ class DeviceDigitalInput(DeviceMixin):
     """Observe digital input and publish with Mqtt."""
 
     DEVICE = "input"
-    RELAY_TYPE = None
+    DEVICE_TYPE = "digital"
     FOLDER_REGEX = re.compile(r"di_\d_\d{2}")
     VALUE_FILENAME = "di_value"
 
@@ -119,6 +118,6 @@ class DeviceDigitalOutput(DeviceSetMixin):
     """Observe digital output and publish with Mqtt."""
 
     DEVICE = "relay"
-    RELAY_TYPE = "digital"
+    DEVICE_TYPE = "digital"
     FOLDER_REGEX = re.compile(r"do_\d_\d{2}")
     VALUE_FILENAME = "do_value"

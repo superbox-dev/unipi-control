@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
-import json
 
 import paho.mqtt.client as mqtt
 
-from settings import CONFIG
+from api.settings import CONFIG
 
 
-class TestMqtt:
-    """Test class for publish to the /set topic."""
+class Mqtt:
+    """Publish to the topic."""
 
     def __init__(self):
         """Conect to the mqtt broker."""
@@ -17,23 +16,13 @@ class TestMqtt:
         self.client.connect(CONFIG["mqtt"]["host"], CONFIG["mqtt"]["port"])
         self.client.loop_start()
 
-    def set(self, topic: str, value: str) -> None:
-        """Publish to the /set topic.
+    def publish(self, topic: str, payload: str) -> None:
+        """Publish to the topic.
 
         Args:
             topic (str): Topic name
-            value (str): Value can be 0 (False) or 1 (True).
+            payload (str): Dict as JSON string.
         """
-        topic: str = f"{topic}/set"
-
-        values: dict = {
-            "value": "0",
-        }
-
-        if value.lower() in ["t", "1", "true", "on"]:
-            values["value"] = "1"
-
-        payload: str = json.dumps(values)
         rc, mid = self.client.publish(topic, payload, qos=1)
 
         if rc == mqtt.MQTT_ERR_SUCCESS:
@@ -45,8 +34,8 @@ class TestMqtt:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("topic", type=str, help="Topic")
-    parser.add_argument("value", type=str, help="Value")
+    parser.add_argument("payload", type=str, help="Payload")
 
     args = parser.parse_args()
 
-    TestMqtt().set(topic=args.topic, value=args.value)
+    Mqtt().publish(topic=args.topic, payload=args.payload)

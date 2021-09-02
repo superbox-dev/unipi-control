@@ -11,15 +11,25 @@ from timeit import default_timer as timer
 
 import paho.mqtt.client as mqtt
 
-from devices import (
+from api.devices import (
     DeviceDigitalInput,
     DeviceDigitalOutput,
     DeviceRelay,
 )
-from settings import (
+from api.settings import (
     CONFIG,
     logger,
 )
+
+
+class HomeAssistant:
+    def __init__(self, client):
+        self.client = client
+
+    def discovery(self):
+        logger.info("Disovery")
+        topic: str = "homeassistant/switch/unipi/ro_1_01/config"
+        self.client.subscribe(topic, qos=1)
 
 
 class MqttMixin:
@@ -74,7 +84,7 @@ class UnipiMqttAPI(MqttMixin):
         logger.info(f"Client ID: {client_id}")
 
         self.debug: bool = debug
-        self._client = self.connect(client_id)
+        self.client = self.connect(client_id)
         self._devices: dict = {}
         self._publish_timer = None
         self._subscribe_timer = None
@@ -86,10 +96,12 @@ class UnipiMqttAPI(MqttMixin):
 
         for circuit in os.listdir(CONFIG["sysfs"]["devices"]):
             device_path: str = os.path.join(CONFIG["sysfs"]["devices"], circuit)
-            
+      
             for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(circuit):
-                    _devices[circuit] = device_class(device_path)
+                    device = device_class(device_path)
+                    key: str = f"unipi/{device.dev}/{device.dev_type}/{device.circuit}"
+                    _devices[key] = device
 
         return _devices
 
@@ -116,13 +128,17 @@ class UnipiMqttAPI(MqttMixin):
         self._subscribe_timer = timer()
 
         async def subscribe_cb(message):
-            for device_class in [DeviceRelay, DeviceDigitalOutput]:
-                match = device_class.FOLDER_REGEX.search(message.topic)
+            key: str = message.topic.removesuffix("/set")
+            device = self.devices.get(key)
+            
+            if device:
+                func = getattr(device, "set", None)
 
-                if match:
-                    await self.devices[match.group(0)].set(
-                        json.loads(message.payload.decode())
-                    )
+                if func:
+                    await func(json.loads(message.payload.decode()))
+            else:
+                logger.info(message.topic)
+                logger.info(message.payload.decode())
 
         asyncio.run(subscribe_cb(message), debug=self.debug)
         logger.debug(f"Subscribe timer: {timer() - self._subscribe_timer}")
@@ -131,14 +147,16 @@ class UnipiMqttAPI(MqttMixin):
         """Subscribe topics for relay devices."""
         for device_name in os.listdir(CONFIG["sysfs"]["devices"]):
             device_path: str = os.path.join(CONFIG["sysfs"]["devices"], device_name)
-
+            
             for device_class in [DeviceRelay, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(device_name):
                     device = device_class(device_path)
-                    topic: str = f"unipi/{device.dev}/{device.circuit}/set"
+                    topic: str = f"unipi/{device.dev}/{device.dev_type}/{device.circuit}/set"
 
-                    self._client.subscribe(topic, qos=1)
+                    self.client.subscribe(topic, qos=1)
                     logger.info(f"Subscribe topic `{topic}`")
+
+        HomeAssistant(self.client).discovery()
 
     def publish(self, device: namedtuple) -> None:
         """Publish topics for all devices.
@@ -146,13 +164,12 @@ class UnipiMqttAPI(MqttMixin):
         Args:
             device (namedtuple): device infos from the device class."
         """
-        topic: str = f"unipi/{device.dev}/{device.circuit}/get"
-
+        topic: str = f"unipi/{device.dev}/{device.dev_type}/{device.circuit}/get"
         values: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
         values.pop("changed")
 
         payload: str = json.dumps(values)
-        rc, mid = self._client.publish(topic, payload, qos=1)
+        rc, mid = self.client.publish(topic, payload, qos=1)
         logger.debug(f"Publish timer: {timer() - self._publish_timer}")
 
         if rc == mqtt.MQTT_ERR_SUCCESS:

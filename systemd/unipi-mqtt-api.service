@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/opt/unipi/api.py
+ExecStart=/opt/unipi/run.py
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
 WorkingDirectory=/opt/unipi
