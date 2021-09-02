@@ -1,0 +1,13 @@
+[Unit]
+Description=Unipi mqtt service
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/opt/unipi/api.py
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+WorkingDirectory=/opt/unipi
+
+[Install]
+WantedBy=multi-user.target

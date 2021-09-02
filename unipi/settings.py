@@ -2,7 +2,6 @@ import logging
 
 import yaml
 
-
 def load_config() -> dict:
     yaml_file = open("config.yaml", "r")
     return yaml.load(yaml_file, Loader=yaml.FullLoader)

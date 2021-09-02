@@ -1,6 +1,5 @@
-aiofiles==0.7.0
-asyncio-mqtt=0.10.0
 flake8==3.9.2
 flake8_docstrings==1.6.0
 paho-mqtt==1.5.1
 pre_commit==2.14.0
+python-systemd-==0.0.9
