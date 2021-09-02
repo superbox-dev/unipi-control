@@ -28,4 +28,4 @@ Available mqtt topics:
 
 Topic | Description
 ------ | ------
-unipi/relay/ro_[1-9]_[0-9][0-9]/set   | Cell 
+`unipi/relay/ro_[1-9]_[0-9][0-9]/set`   | Cell 
