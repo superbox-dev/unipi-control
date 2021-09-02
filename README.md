@@ -26,8 +26,15 @@ $ sudo systemctl start unipi-mqtt-api.service
 
 Available mqtt topics:
 
-Topic | Message | Description
+### Subscribe
+
+Topic | Response | Description
 ------ | ------ | ------
-`unipi/relay/ro_[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a **dict** with the value. Value can be **0 (False)** or **1 (True)**. | Enable/disable the selected relay.
-`unipi/relay/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "circuit": "ro_1_01", "value": "1"}` | Get a **dict** with the device type, circuit name and value from the selected relay. Value can be **0 (False)** or **1 (True)**. | Get information about the relay status.
-`unipi/input/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "circuit": "di_1_01", "value": "1"}` | Get a **dict** with the device type, circuit name and value from the selected digital input. Value can be **0 (False)** or **1 (True)**. | Get information about the digital input status.
+`unipi/relay/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "circuit": "ro_1_01", "value": "1"}` | This topic contains the current status for the selected relay. Returns a dict with the dev (string), circuit (string) and value (string) from the selected digital input. Value can be **"0" (False)** or **"1" (True)**. 
+`unipi/input/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "circuit": "di_1_01", "value": "1"}` | This topic contains the current status for the selected inputs. Returns a dict with the dev (string), circuit (string) and value (string) from the selected digital input. Value can be **"0" (False)** or **"1" (True)**. 
+
+### Publish
+
+Topic | Request | Description
+------ | ------ | ------
+`unipi/relay/ro_[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a **dict** with the value. Value (string) can be **"0" (False)** or **"1" (True)**. This enable or disable the selected relay.
