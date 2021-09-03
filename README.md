@@ -34,17 +34,14 @@ sysfs:
 mqtt:
   host: localhost
   port: 1883
-log:
-  systemd: True
-  file: /var/log/unipi.log
+logger: "systemd"
 ```
 
 Key | Value
 ------ | ------
 `mqtt/host` | mqtt broker host
 `mqtt/port` | mqtt broker port
-`log/systemd` | Enable systemd journal (`True`/`False`)
-`log/file` | path to the log file (Set `False` for disable file logging)
+`logger` | `systemd` or `file`
 
 ## Usage
 
