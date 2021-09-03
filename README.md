@@ -34,7 +34,7 @@ sysfs:
 mqtt:
   host: localhost
   port: 1883
-logger: "systemd"
+logger: systemd
 ```
 
 Key | Value
