@@ -11,18 +11,15 @@ def load_config() -> dict:
 
 CONFIG = load_config()
 
-file_log: str = CONFIG["log"].get("file")
-systemd_log: bool = CONFIG["log"].get("systemd")
-
+logger_type: str = CONFIG["logger"]
 logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.DEBUG)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-if file_log:
-    fh = logging.FileHandler(file_log)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-
-if systemd_log:
+if logger_type == "systemd":
     logger.addHandler(journal.JournalHandler())
+    logger.setLevel(level=logging.DEBUG)
+elif logger_type == "file":
+    logging.basicConfig(
+        level=logging.DEBUG,
+        filename="/var/log/unipi.log",
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )

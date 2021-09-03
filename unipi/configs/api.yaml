@@ -3,6 +3,4 @@ sysfs:
 mqtt:
   host: localhost
   port: 1883
-log:
-  systemd: True
-  file: False 
+logger: systemd
