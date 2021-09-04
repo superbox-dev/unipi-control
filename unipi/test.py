@@ -4,7 +4,7 @@ import argparse
 
 import paho.mqtt.client as mqtt
 
-from api.settings import CONFIG
+from api.settings import API
 
 
 class Mqtt:
@@ -13,7 +13,7 @@ class Mqtt:
     def __init__(self):
         """Conect to the mqtt broker."""
         self.client = mqtt.Client(client_id="unipi-mqtt")
-        self.client.connect(CONFIG["mqtt"]["host"], CONFIG["mqtt"]["port"])
+        self.client.connect(API["mqtt"]["host"], API["mqtt"]["port"])
         self.client.loop_start()
 
     def publish(self, topic: str, payload: str) -> None:

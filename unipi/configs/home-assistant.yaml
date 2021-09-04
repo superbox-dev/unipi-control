@@ -1,4 +1,6 @@
-- circuit: di_1_01
-  descripition: "Digital Input 1.1"
-  dev: input
+discovery_prefix: "homeassistant"
+devices:
+  - circuit: di_1_01
+    description: "Digital Input 1.1"
+    dev: input
 

@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import json
 import os
-import _thread
 import uuid
 from collections import namedtuple
 from timeit import default_timer as timer
@@ -16,63 +15,16 @@ from api.devices import (
     DeviceDigitalOutput,
     DeviceRelay,
 )
+from api.homeassistant import HomeAssistant
+from api.mqtt import MqttMixin
 from api.settings import (
-    CONFIG,
+    API,
     logger,
 )
 
 
-class HomeAssistant:
-    def __init__(self, client):
-        self.client = client
-
-    def discovery(self):
-        logger.info("Disovery")
-        topic: str = "homeassistant/switch/unipi/ro_1_01/config"
-        self.client.subscribe(topic, qos=1)
-
-
-class MqttMixin:
-    """Mqtt mixin for connecting to Mqtt broker."""
-
-    def connect(self, client_id: str):
-        """Connect to mqtt broker.
-
-        Args:
-            client_id (str): unique client id
-        """
-        client = mqtt.Client(client_id)
-        client.on_connect = self.on_connect
-        client.on_disconnect = self.on_disconnect
-        client.on_message = self.on_message
-
-        client.connect(CONFIG["mqtt"]["host"], CONFIG["mqtt"]["port"])
-        client.loop_start()
-
-        return client
-
-    def on_connect(self, client, userdata, flags, rc: int) -> None:
-        """Subscribe topics on connect to mqtt broker."""
-        if rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"Connected to MQTT Broker at `{client._host}:{client._port}`")
-        else:
-            logger.error(f"Failed to connect, return code `{rc}`")
-
-        self.subscribe()
-
-    def on_disconnect(self, client, userdata, rc: int) -> None:
-        """Stop loop on disconnect from mqtt broker."""
-        logger.info(f"Disconnected result code `{rc}`")
-        client.loop_stop()
-
-    def on_message(self, client, userdata, message) -> None:
-        """Execude subscribe callback in a new thread."""
-        logger.debug(f"Received `{message.payload.decode()}` from topic `{message.topic}`")
-        _thread.start_new_thread(self.subscribe_thread, (message, ))
-
-
-class UnipiMqttAPI(MqttMixin):
-    """Unipi mqtt APi for read/write SysFS files and send topics."""
+class UnipiAPI(MqttMixin):
+    """Unipi API class for subscribe/publish topics."""
 
     def __init__(self, client_id: str, debug: bool):
         """Connect to mqtt broker.
@@ -89,13 +41,16 @@ class UnipiMqttAPI(MqttMixin):
         self._publish_timer = None
         self._subscribe_timer = None
 
+        # Init home assistant discovery
+        self._ha = HomeAssistant(client=self.client)
+
     @property
     def devices(self) -> dict:
         """Create devices dict with circuit as name and die device class as key."""
         _devices: dict = {}
 
-        for circuit in os.listdir(CONFIG["sysfs"]["devices"]):
-            device_path: str = os.path.join(CONFIG["sysfs"]["devices"], circuit)
+        for circuit in os.listdir(API["sysfs"]["devices"]):
+            device_path: str = os.path.join(API["sysfs"]["devices"], circuit)
       
             for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(circuit):
@@ -119,15 +74,22 @@ class UnipiMqttAPI(MqttMixin):
 
             await asyncio.sleep(250e-3)
 
-    def subscribe_thread(self, message):
-        """Run subscribe method in a thread.
+    def on_connect(self, client, userdata, flags, rc: int) -> None:
+        super().on_connect(client, userdata, flags, rc)
+        self.subscribe()
+        
+        # Subscribe home assistant discovery
+        self._ha.subscribe()
+
+    def on_message_thread(self, message):
+        """Run on_message method in a thread.
 
         Args:
             message (dict): message dict from the mqtt on_message method.
         """
         self._subscribe_timer = timer()
 
-        async def subscribe_cb(message):
+        async def on_message_cb(message):
             key: str = message.topic.removesuffix("/set")
             device = self.devices.get(key)
             
@@ -136,17 +98,17 @@ class UnipiMqttAPI(MqttMixin):
 
                 if func:
                     await func(json.loads(message.payload.decode()))
-            else:
-                logger.info(message.topic)
-                logger.info(message.payload.decode())
-
-        asyncio.run(subscribe_cb(message), debug=self.debug)
+        
+        asyncio.run(on_message_cb(message), debug=self.debug)
         logger.debug(f"Subscribe timer: {timer() - self._subscribe_timer}")
+
+        # Message callback for home assistant discovery
+        self._ha.on_message(message)
 
     def subscribe(self) -> None:
         """Subscribe topics for relay devices."""
-        for device_name in os.listdir(CONFIG["sysfs"]["devices"]):
-            device_path: str = os.path.join(CONFIG["sysfs"]["devices"], device_name)
+        for device_name in os.listdir(API["sysfs"]["devices"]):
+            device_path: str = os.path.join(API["sysfs"]["devices"], device_name)
             
             for device_class in [DeviceRelay, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(device_name):
@@ -155,8 +117,6 @@ class UnipiMqttAPI(MqttMixin):
 
                     self.client.subscribe(topic, qos=1)
                     logger.info(f"Subscribe topic `{topic}`")
-
-        HomeAssistant(self.client).discovery()
 
     def publish(self, device: namedtuple) -> None:
         """Publish topics for all devices.
@@ -183,10 +143,14 @@ if __name__ == "__main__":
     parser.add_argument("--debug", default=False, type=bool, help="Debug")
     args = parser.parse_args()
 
-    client_id: str = f"unipi-{uuid.uuid4()}"
-
     try:
-        asyncio.run(UnipiMqttAPI(client_id, debug=args.debug).run(), debug=args.debug)
+        asyncio.run(
+            UnipiAPI(
+                client_id=f"unipi-{uuid.uuid4()}", 
+                debug=args.debug
+            ).run(),
+            debug=args.debug,
+        )
     except KeyboardInterrupt:
         logger.info("Process interrupted")
     except Exception as e:
