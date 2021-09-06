@@ -42,7 +42,8 @@ class UnipiAPI(MqttMixin):
         self._subscribe_timer = None
 
         # Init home assistant discovery
-        self._ha = HomeAssistant(client=self.client)
+        self._ha = HomeAssistant(client=self.client, devices=self.devices)
+        self._ha.publish()
 
     @property
     def devices(self) -> dict:
@@ -51,7 +52,7 @@ class UnipiAPI(MqttMixin):
 
         for circuit in os.listdir(API["sysfs"]["devices"]):
             device_path: str = os.path.join(API["sysfs"]["devices"], circuit)
-      
+
             for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(circuit):
                     device = device_class(device_path)
@@ -78,9 +79,6 @@ class UnipiAPI(MqttMixin):
         super().on_connect(client, userdata, flags, rc)
         self.subscribe()
         
-        # Subscribe home assistant discovery
-        self._ha.subscribe()
-
     def on_message_thread(self, message):
         """Run on_message method in a thread.
 
@@ -97,13 +95,18 @@ class UnipiAPI(MqttMixin):
                 func = getattr(device, "set", None)
 
                 if func:
-                    await func(json.loads(message.payload.decode()))
+                    await func(message.payload.decode())
+
+                    # msg = message.payload.decode()
+                    # try:
+                    #     data: str = json.loads(msg)
+                    # except ValueError as e:
+                    #     logger.error(f"""Message `{msg}` is not a valid JSON - message not processed, error is "{e}".""")
+                    # else:    
+                    #     await func(json.loads(message.payload.decode()))
         
         asyncio.run(on_message_cb(message), debug=self.debug)
         logger.debug(f"Subscribe timer: {timer() - self._subscribe_timer}")
-
-        # Message callback for home assistant discovery
-        self._ha.on_message(message)
 
     def subscribe(self) -> None:
         """Subscribe topics for relay devices."""

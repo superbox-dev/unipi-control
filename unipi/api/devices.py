@@ -30,6 +30,12 @@ class DeviceMixin:
         return self.DEVICE
 
     @property
+    def dev_name(self) -> str:
+        """Return human readable device name."""
+        circuit = self.circuit[3:].replace("_", ".")
+        return f"{self.DEVICE_NAME} {circuit}"
+
+    @property
     def dev_type(self) -> str:
         """Return device name."""
         return self.DEVICE_TYPE
@@ -40,7 +46,7 @@ class DeviceMixin:
         match = self.FOLDER_REGEX.search(self.device_path)
 
         if match:
-            return match.group(0)[3:]
+            return match.group(0)
 
     @property
     def value_path(self) -> str:
@@ -86,20 +92,21 @@ class DeviceSetMixin(DeviceMixin):
         with open(self.value_path, "w") as f:
             f.write(value)
 
-    async def set(self, payload: dict) -> None:
+    async def set(self, payload: str) -> None:
         """Set cricuit state.
 
         Args:
-            payload (dict): Settings like {"dev": "relay", "circuit": "ro_1_01", "value": "1"}
+            payload (str): "0" or "1"
         """
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, partial(self._write_value_file, payload["value"]))
+        await loop.run_in_executor(None, partial(self._write_value_file, payload))
 
 
 class DeviceRelay(DeviceSetMixin):
     """Observe relay output and publish with Mqtt."""
 
     DEVICE = "relay"
+    DEVICE_NAME = "Relay"
     DEVICE_TYPE = "physical"
     FOLDER_REGEX = re.compile(r"ro_\d_\d{2}")
     VALUE_FILENAME = "ro_value"
@@ -109,6 +116,7 @@ class DeviceDigitalInput(DeviceMixin):
     """Observe digital input and publish with Mqtt."""
 
     DEVICE = "input"
+    DEVICE_NAME ="Digital Input"
     DEVICE_TYPE = "digital"
     FOLDER_REGEX = re.compile(r"di_\d_\d{2}")
     VALUE_FILENAME = "di_value"
@@ -118,6 +126,7 @@ class DeviceDigitalOutput(DeviceSetMixin):
     """Observe digital output and publish with Mqtt."""
 
     DEVICE = "relay"
+    DEVICE_NAME ="Digital Output"
     DEVICE_TYPE = "digital"
     FOLDER_REGEX = re.compile(r"do_\d_\d{2}")
     VALUE_FILENAME = "do_value"
