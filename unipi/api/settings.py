@@ -22,10 +22,6 @@ def load_ha_config(file_name: str) -> dict:
     with open(f"""{API["sysfs"]["devices"]}/unipi_plc/model_name""", "r") as f:
         device["model"] = f.read().rstrip()
 
-    # TODO: Firmware per group in ha discovery!
-    with open(f"""{API["sysfs"]["devices"]}/unipi_plc/io_group1/firmware_version""", "r") as f:
-        device["sw_version"] = f.read().rstrip()
-
     ha["device"] = device
 
     return ha
