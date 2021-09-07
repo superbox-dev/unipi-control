@@ -2,13 +2,20 @@
 
 ## Installation
 
-### Systemd Service
+```console
+$ cd /opt
+$ git@github.com:mh-superbox/unipi-mqtt-api.git . 
+```
+
+### Install python requirements
 
 Install all required python packages in your virtualenv:
 
 ```console
 $ pip install -r requirements.txt
 ```
+
+### Systemd Service
 
 Install and start the systemd service:
 
