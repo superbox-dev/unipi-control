@@ -58,13 +58,13 @@ Available mqtt topics:
 
 Topic | Response | Description
 ------ | ------ | ------
-`unipi/relay/physical/[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "physical", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
-`unipi/relay/digital/[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
-`unipi/input/digital/[1-9]_[0-9][0-9]/get` | `{"dev": "input", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
+`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "physical", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
+`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
+`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
 
 ### Publish
 
 Topic | Request | Description
 ------ | ------ | ------
-`unipi/relay/physical/[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a JSON string, with the value (string) to this topic. **Value (string):** "0" is False and "1" is True. This enable or disable the selected relay.
-`unipi/relay/digital/[1-9]_[0-9][0-9]/set` | `{ "value": "1" }` | Send a JSON string, with the value (string) to this topic. **Value (string):** "0" is False and "1" is True. This enable or disable the selected relay.
+`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/set` | "0" or "1" | Send a string with the value to this topic. **Value (string):** "0" is False and "1" is True. This enable or disable the selected relay.
+`unipi/relay/digital/do_[1-9]_[0-9][0-9]/set` | "0" or "1" | Send a string with the value to this topic. **Value (string):** "0" is False and "1" is True. This enable or disable the selected relay.
