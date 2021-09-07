@@ -31,7 +31,7 @@ $ sudo systemctl start unipi-mqtt-api.service
 
 ### Configuration
 
-You can set the mqtt broker and logger in the `unifi/configs/config.yaml`.
+You can set the mqtt broker and logger in the `unifi/configs/api.yaml`.
 
 Example:
 
