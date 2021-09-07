@@ -2,7 +2,7 @@
 
 ## Installation
 
-```console
+```shell
 $ cd /opt
 $ git@github.com:mh-superbox/unipi-mqtt-api.git . 
 ```
@@ -11,7 +11,7 @@ $ git@github.com:mh-superbox/unipi-mqtt-api.git .
 
 Install all required python packages in your virtualenv:
 
-```console
+```shell
 $ pip install -r requirements.txt
 ```
 
@@ -19,7 +19,7 @@ $ pip install -r requirements.txt
 
 Install and start the systemd service:
 
-```console
+```shell
 $ sudo cp systemd/unipi-mqtt-api.service /etc/systemd/system
 $ sudo chown root:root /etc/systemd/system/unipi-mqtt-api.service
 $ sudo chmod 644 /etc/systemd/system/unipi-mqtt-api.service
