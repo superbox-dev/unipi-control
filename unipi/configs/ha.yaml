@@ -1,3 +1,1 @@
 discovery_prefix: homeassistant
-discovery:
-  - circuit: di_1_01
