@@ -1,3 +1,4 @@
+device_name: unipi
 sysfs:
   devices: /sys/bus/platform/devices
 mqtt:

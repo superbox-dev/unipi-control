@@ -56,7 +56,7 @@ class UnipiAPI(MqttMixin):
             for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(circuit):
                     device = device_class(device_path)
-                    key: str = f"unipi/{device.dev}/{device.dev_type}/{device.circuit}"
+                    key: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}"""
                     _devices[key] = device
 
         return _devices
@@ -116,9 +116,9 @@ class UnipiAPI(MqttMixin):
             for device_class in [DeviceRelay, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(device_name):
                     device = device_class(device_path)
-                    topic: str = f"unipi/{device.dev}/{device.dev_type}/{device.circuit}/set"
+                    topic: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/set"""
 
-                    self.client.subscribe(topic, qos=1)
+                    self.client.subscribe(topic, qos=0)
                     logger.info(f"Subscribe topic `{topic}`")
 
     def publish(self, device: namedtuple) -> None:
@@ -127,7 +127,7 @@ class UnipiAPI(MqttMixin):
         Args:
             device (namedtuple): device infos from the device class."
         """
-        topic: str = f"unipi/{device.dev}/{device.dev_type}/{device.circuit}/get"
+        topic: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/get"""
         values: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
         values.pop("changed")
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(
             UnipiAPI(
-                client_id=f"unipi-{uuid.uuid4()}", 
+                client_id=f"""{API["device_name"]}-{uuid.uuid4()}""", 
                 debug=args.debug
             ).run(),
             debug=args.debug,

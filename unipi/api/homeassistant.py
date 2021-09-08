@@ -4,6 +4,7 @@ import os
 import paho.mqtt.client as mqtt
 
 from api.settings import (
+    API,
     HA,
     logger,
 )
@@ -24,12 +25,13 @@ class HomeAssistant:
             return f.read().rstrip()
 
     def _publish_relay(self, key, device_class) -> None:
-        topic: str = f"""{HA["discovery_prefix"]}/switch/unipi/{device_class.circuit}/config"""
+        topic: str = f"""{HA["discovery_prefix"]}/switch/{API["device_name"]}/{device_class.circuit}/config"""
         firmware: str = self._read_firmware(device_class.value_path)
+        unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
             "name": device_class.dev_name,
-            "unique_id": device_class.circuit,
+            "unique_id": unique_id,
             "state_topic": f"{key}/get",
             "command_topic": f"{key}/set",
             "payload_on": "1",
@@ -39,7 +41,7 @@ class HomeAssistant:
             "retain": "true",
             "device": {
                 "name": f"""{HA["device"]["manufacturer"]} {device_class.dev_name}""",
-                "identifiers": device_class.circuit,
+                "identifiers": unique_id,
                 "sw_version": firmware,
                 **HA["device"],
             }
@@ -51,12 +53,13 @@ class HomeAssistant:
         self._mqtt_log(rc, mid, topic, payload)
 
     def _publish_input(self, key, device_class) -> None:
-        topic: str = f"""{HA["discovery_prefix"]}/binary_sensor/unipi/{device_class.circuit}/config"""
+        topic: str = f"""{HA["discovery_prefix"]}/binary_sensor/{API["device_name"]}/{device_class.circuit}/config"""
         firmware: str = self._read_firmware(device_class.value_path)
+        unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
             "name": device_class.dev_name,
-            "unique_id": device_class.circuit,
+            "unique_id": unique_id,
             "state_topic": f"{key}/get",
             "payload_on": "1",
             "payload_off": "0",
@@ -64,7 +67,7 @@ class HomeAssistant:
             "qos": 1,
             "device": {
                 "name": f"""{HA["device"]["manufacturer"]} {device_class.dev_name}""",
-                "identifiers": device_class.circuit,
+                "identifiers": unique_id,
                 "sw_version": firmware,
                 **HA["device"],
             }
