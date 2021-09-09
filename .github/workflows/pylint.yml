@@ -3,11 +3,12 @@ name: Pylint
 on: [push]
 
 jobs:
-  build:
-
+  armv7_job:
     runs-on: buster
-
+    name: Build on ARMv7 
     steps:
+      - uses: uraimo/run-on-arch-action@v1.0.8
+
       - name: Checkout
         uses: actions/checkout@main
 
