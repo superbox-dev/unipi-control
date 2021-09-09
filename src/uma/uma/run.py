@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
+import os
 import argparse
 import asyncio
 import json
-import os
 import uuid
 from collections import namedtuple
 from timeit import default_timer as timer
@@ -88,7 +88,7 @@ class UnipiAPI(MqttMixin):
         self._subscribe_timer = timer()
 
         async def on_message_cb(message):
-            key: str = message.topic.removesuffix("/set")
+            key: str = message.topic[:-len("/set")]
             device = self.devices.get(key)
             
             if device:
@@ -141,7 +141,7 @@ class UnipiAPI(MqttMixin):
             logger.error(f"Failed to send message to topic `{topic}` - Message ID: {mid}")
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", default=False, type=bool, help="Debug")
     args = parser.parse_args()
@@ -158,3 +158,7 @@ if __name__ == "__main__":
         logger.info("Process interrupted")
     except Exception as e:
         print(e)
+
+
+if __name__ == "__main__":
+    main()

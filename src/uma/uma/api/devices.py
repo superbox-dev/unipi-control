@@ -116,7 +116,7 @@ class DeviceDigitalInput(DeviceMixin):
     """Observe digital input and publish with Mqtt."""
 
     DEVICE = "input"
-    DEVICE_NAME ="Digital Input"
+    DEVICE_NAME = "Digital Input"
     DEVICE_TYPE = "digital"
     FOLDER_REGEX = re.compile(r"di_\d_\d{2}")
     VALUE_FILENAME = "di_value"
@@ -126,7 +126,7 @@ class DeviceDigitalOutput(DeviceSetMixin):
     """Observe digital output and publish with Mqtt."""
 
     DEVICE = "relay"
-    DEVICE_NAME ="Digital Output"
+    DEVICE_NAME = "Digital Output"
     DEVICE_TYPE = "digital"
     FOLDER_REGEX = re.compile(r"do_\d_\d{2}")
     VALUE_FILENAME = "do_value"

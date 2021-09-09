@@ -1,12 +1,18 @@
 import logging
+import os
 
 from systemd import journal
 import yaml
 
 
 def load_config(file_name: str) -> dict:
-    yaml_file = open(f"configs/{file_name}", "r")
-    return yaml.load(yaml_file, Loader=yaml.FullLoader)
+    path: str = f"/etc/uma/{file_name}"
+
+    if not os.path.exists(path):
+        path = f"configs/{file_name}"
+
+    with open(path, "r") as f:
+        return yaml.load(f, Loader=yaml.FullLoader)
 
 
 API = load_config("api.yaml")
@@ -16,6 +22,7 @@ def load_ha_config(file_name: str) -> dict:
     ha: dict = load_config(file_name)
 
     device: dict = {
+        "name": "Unipi",
         "manufacturer": "Unipi",
     }
 

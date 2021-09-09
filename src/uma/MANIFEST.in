@@ -1,0 +1,7 @@
+global-exclude *.pyc
+
+include LICENSE
+
+exclude requirements-dev.txt
+exclude requirements.txt
+

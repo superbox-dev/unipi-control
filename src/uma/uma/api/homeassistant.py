@@ -91,4 +91,3 @@ class HomeAssistant:
                 self._publish_relay(key, device_class)
             elif device_class.dev == "input":
                 self._publish_input(key, device_class)
-

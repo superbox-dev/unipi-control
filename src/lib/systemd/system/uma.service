@@ -4,10 +4,10 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/opt/unipi/run.py
+ExecStart=/usr/bin/uma
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
-WorkingDirectory=/opt/unipi
+#WorkingDirectory=/opt/unipi
 
 [Install]
 WantedBy=multi-user.target
