@@ -47,8 +47,6 @@ Key | Value
 Key | Value
 ------ | ------
 `discovery_prefix` | The prefix for the discovery topic
-`device/name` | The name of the device
-`device/manufacturer` | The manufacturer of the device
 
 ## Usage
 
