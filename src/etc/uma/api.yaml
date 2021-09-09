@@ -1,0 +1,5 @@
+device_name: unipi
+mqtt:
+  host: localhost
+  port: 1883
+logger: systemd  

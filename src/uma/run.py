@@ -18,7 +18,7 @@ from api.devices import (
 from api.homeassistant import HomeAssistant
 from api.mqtt import MqttMixin
 from api.settings import (
-    CONFIG,
+    API,
     logger,
 )
 
@@ -50,13 +50,13 @@ class UnipiAPI(MqttMixin):
         """Create devices dict with circuit as name and die device class as key."""
         _devices: dict = {}
 
-        for circuit in os.listdir(CONFIG["sysfs"]["devices"]):
-            device_path: str = os.path.join(CONFIG["sysfs"]["devices"], circuit)
+        for circuit in os.listdir(API["sysfs"]["devices"]):
+            device_path: str = os.path.join(API["sysfs"]["devices"], circuit)
 
             for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(circuit):
                     device = device_class(device_path)
-                    key: str = f"""{CONFIG["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}"""
+                    key: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}"""
                     _devices[key] = device
 
         return _devices
@@ -110,13 +110,13 @@ class UnipiAPI(MqttMixin):
 
     def subscribe(self) -> None:
         """Subscribe topics for relay devices."""
-        for device_name in os.listdir(CONFIG["sysfs"]["devices"]):
-            device_path: str = os.path.join(CONFIG["sysfs"]["devices"], device_name)
+        for device_name in os.listdir(API["sysfs"]["devices"]):
+            device_path: str = os.path.join(API["sysfs"]["devices"], device_name)
             
             for device_class in [DeviceRelay, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(device_name):
                     device = device_class(device_path)
-                    topic: str = f"""{CONFIG["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/set"""
+                    topic: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/set"""
 
                     self.client.subscribe(topic, qos=0)
                     logger.info(f"Subscribe topic `{topic}`")
@@ -127,7 +127,7 @@ class UnipiAPI(MqttMixin):
         Args:
             device (namedtuple): device infos from the device class."
         """
-        topic: str = f"""{CONFIG["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/get"""
+        topic: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/get"""
         values: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
         values.pop("changed")
 
@@ -149,7 +149,7 @@ def main() -> None:
     try:
         asyncio.run(
             UnipiAPI(
-                client_id=f"""{CONFIG["device_name"]}-{uuid.uuid4()}""", 
+                client_id=f"""{API["device_name"]}-{uuid.uuid4()}""", 
                 debug=args.debug
             ).run(),
             debug=args.debug,

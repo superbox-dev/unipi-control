@@ -3,7 +3,7 @@ import _thread
 import paho.mqtt.client as mqtt
 
 from api.settings import (
-    CONFIG,
+    API,
     logger,
 )
 
@@ -22,7 +22,7 @@ class MqttMixin:
         client.on_disconnect = self.on_disconnect
         client.on_message = self.on_message
 
-        client.connect(CONFIG["mqtt"]["host"], CONFIG["mqtt"]["port"])
+        client.connect(API["mqtt"]["host"], API["mqtt"]["port"])
         client.loop_start()
 
         return client

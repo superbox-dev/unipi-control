@@ -4,7 +4,8 @@ import os
 import paho.mqtt.client as mqtt
 
 from api.settings import (
-    CONFIG,
+    API,
+    HA,
     logger,
 )
 
@@ -15,8 +16,6 @@ class HomeAssistant:
     def __init__(self, client, devices):
         self.client = client
         self.devices = devices
-        self._discovery_prefix = CONFIG["homeassistant"]["discovery_prefix"]
-        self._device_manufacturer = CONFIG["homeassistant"]["device"]["manufacturer"]
 
     def _read_firmware(self, value_path) -> str:
         group: str = os.path.abspath(os.path.join(os.path.realpath(value_path), *([os.pardir] * 2)))
@@ -26,9 +25,9 @@ class HomeAssistant:
             return f.read().rstrip()
 
     def _publish_relay(self, key, device_class) -> None:
-        topic: str = f"""{self._discovery_prefix}/switch/{CONFIG["device_name"]}/{device_class.circuit}/config"""
+        topic: str = f"""{HA["discovery_prefix"]}/switch/{API["device_name"]}/{device_class.circuit}/config"""
         firmware: str = self._read_firmware(device_class.value_path)
-        unique_id: str = f"""{CONFIG["device_name"]}_{device_class.circuit}"""
+        unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
             "name": device_class.dev_name,
@@ -41,10 +40,10 @@ class HomeAssistant:
             "qos": 1,
             "retain": "true",
             "device": {
-                "name": f"""{self._device_manufacturer} {device_class.dev_name}""",
+                "name": f"""{HA["device"]["manufacturer"]} {device_class.dev_name}""",
                 "identifiers": unique_id,
                 "sw_version": firmware,
-                **CONFIG["homeassistant"]["device"],
+                **HA["device"],
             }
         }
 
@@ -54,9 +53,9 @@ class HomeAssistant:
         self._mqtt_log(rc, mid, topic, payload)
 
     def _publish_input(self, key, device_class) -> None:
-        topic: str = f"""{self._discovery_prefix}/binary_sensor/{CONFIG["device_name"]}/{device_class.circuit}/config"""
+        topic: str = f"""{HA["discovery_prefix"]}/binary_sensor/{API["device_name"]}/{device_class.circuit}/config"""
         firmware: str = self._read_firmware(device_class.value_path)
-        unique_id: str = f"""{CONFIG["device_name"]}_{device_class.circuit}"""
+        unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
             "name": device_class.dev_name,
@@ -67,10 +66,10 @@ class HomeAssistant:
             "value_template": "{{ value_json.value }}",
             "qos": 1,
             "device": {
-                "name": f"""{self._device_manufacturer} {device_class.dev_name}""",
+                "name": f"""{HA["device"]["manufacturer"]} {device_class.dev_name}""",
                 "identifiers": unique_id,
                 "sw_version": firmware,
-                **CONFIG["homeassistant"]["device"],
+                **HA["device"],
             }
         }
 
