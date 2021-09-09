@@ -15,9 +15,9 @@ $ pip install -e /opt/unipi-mqtt-api
 Install and start the systemd service:
 
 ```shell
-$ sudo cp /opt/unipi-mqtt-api/src/lib/systemd/uma.service /lib/systemd
-$ sudo chown root:root /lib/systemd/uma.service
-$ sudo chmod 644 /lib/systemd/uma.service
+$ sudo cp /opt/unipi-mqtt-api/src/lib/systemd/system/uma.service /lib/systemd/system
+$ sudo chown root:root /lib/systemd/system/uma.service
+$ sudo chmod 644 /lib/systemd/system/uma.service
 
 $ sudo systemctl daemon-reload
 $ sudo systemctl enable uma.service
