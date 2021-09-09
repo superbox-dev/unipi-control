@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: "v3.4.0"
+    hooks:
+      - id: check-builtin-literals
+      - id: check-byte-order-marker
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-xml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: mixed-line-ending
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: "3.8.3"
+    hooks:
+      - id: flake8
+        args: ["--ignore=D100,D101,D103,D104,D107,E501", ]
+        additional_dependencies: [flake8-docstrings]
+  - repo: https://github.com/mgedmin/check-manifest
+    rev: "0.44"
+    hooks:
+      - id: check-manifest
+        args: ["--ignore-bad-ideas=*.mo", ]
+
