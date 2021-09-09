@@ -5,38 +5,43 @@ from systemd import journal
 import yaml
 
 
-def load_config(file_name: str) -> dict:
-    path: str = f"/etc/uma/{file_name}"
-
-    if not os.path.exists(path):
-        path = f"configs/{file_name}"
-
-    with open(path, "r") as f:
-        return yaml.load(f, Loader=yaml.FullLoader)
-
-
-API = load_config("api.yaml")
-
-
-def load_ha_config(file_name: str) -> dict:
-    ha: dict = load_config(file_name)
-
-    device: dict = {
-        "name": "Unipi",
-        "manufacturer": "Unipi",
+def get_config() -> dict:
+    default_config: dict = {
+        "device_name": "unipi",
+        "sysfs": {
+            "devices": "/sys/bus/platform/devices",
+        },
+        "mqtt": {
+            "host": "localhost",
+            "port": 1883,
+        },
+        "logger": "systemd",
+        "homeassistant": {
+            "discovery_prefix": "homeassistant",
+            "device": {
+                "name": "Unipi",
+                "manufacturer": "Unipi",
+            }
+        },
     }
 
-    with open(f"""{API["sysfs"]["devices"]}/unipi_plc/model_name""", "r") as f:
-        device["model"] = f.read().rstrip()
+    path: str = "/etc/default/uma"
 
-    ha["device"] = device
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+            # TODO: add recusive merge!
+            default_config.update(**config)
 
-    return ha
+    return default_config
 
 
-HA = load_ha_config("ha.yaml")
+CONFIG = get_config()
 
-logger_type: str = API["logger"]
+with open(f"""{CONFIG["sysfs"]["devices"]}/unipi_plc/model_name""", "r") as f:
+    CONFIG["homeassistant"]["device"]["model"] = f.read().rstrip()
+
+logger_type: str = CONFIG["logger"]
 logger = logging.getLogger(__name__)
 
 if logger_type == "systemd":

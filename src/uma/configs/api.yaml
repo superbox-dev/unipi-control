@@ -1,7 +1,0 @@
-device_name: unipi
-sysfs:
-  devices: /sys/bus/platform/devices
-mqtt:
-  host: localhost
-  port: 1883
-logger: systemd
