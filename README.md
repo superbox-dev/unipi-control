@@ -26,24 +26,29 @@ $ sudo systemctl start uma.service
 
 ### Configuration
 
-You can set the mqtt broker and logger in the `/etc/default/uma`.
-
-Example:
-
-```yaml
-sysfs:
-  devices: /sys/bus/platform/devices
-mqtt:
-  host: localhost
-  port: 1883
-logger: systemd
+```shell
+$ sudo cp -R /opt/unipi-mqtt-api/src/etc/uma /etc
 ```
+
+* You can set the api settings in the `/etc/uma/api.yaml`
+* * You can set the Home Assistant settings in the `/etc/uma/ha.yaml`
+
+#### API settings
 
 Key | Value
 ------ | ------
-`mqtt/host` | mqtt broker host
+`device_name` | The device name for the subscribe and publish topics
+`mqtt/host` | Mqtt broker host
 `mqtt/port` | mqtt broker port
-`logger` | `systemd` or `file`
+`logger` | Set logger to `systemd` or `file`
+
+#### Home Assistant settings
+
+Key | Value
+------ | ------
+`discovery_prefix` | The prefix for the discovery topic
+`device/name` | The name of the device
+`device/manufacturer` | The manufacturer of the device
 
 ## Usage
 
