@@ -2,17 +2,12 @@
 
 ## Installation
 
+Install the python package in your virtualenv:
+
 ```shell
 $ cd /opt
-$ git@github.com:mh-superbox/unipi-mqtt-api.git . 
-```
-
-### Install python requirements
-
-Install all required python packages in your virtualenv:
-
-```shell
-$ pip install -r requirements.txt
+$ git@github.com:mh-superbox/unipi-mqtt-api.git
+$ pip install -e /opt/unipi-mqtt-api
 ```
 
 ### Systemd Service
@@ -20,18 +15,18 @@ $ pip install -r requirements.txt
 Install and start the systemd service:
 
 ```shell
-$ sudo cp systemd/unipi-mqtt-api.service /etc/systemd/system
-$ sudo chown root:root /etc/systemd/system/unipi-mqtt-api.service
-$ sudo chmod 644 /etc/systemd/system/unipi-mqtt-api.service
+$ sudo cp /opt/unipi-mqtt-api/src/lib/systemd/uma.service /lib/systemd
+$ sudo chown root:root /lib/systemd/uma.service
+$ sudo chmod 644 /lib/systemd/uma.service
 
 $ sudo systemctl daemon-reload
-$ sudo systemctl enable unipi-mqtt-api.service
-$ sudo systemctl start unipi-mqtt-api.service
+$ sudo systemctl enable uma.service
+$ sudo systemctl start uma.service
 ```
 
 ### Configuration
 
-You can set the mqtt broker and logger in the `unifi/configs/api.yaml`.
+You can set the mqtt broker and logger in the `/etc/default/uma`.
 
 Example:
 
