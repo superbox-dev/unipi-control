@@ -2,17 +2,12 @@
 
 ## Installation
 
+Install the python package in your virtualenv:
+
 ```shell
 $ cd /opt
-$ git@github.com:mh-superbox/unipi-mqtt-api.git . 
-```
-
-### Install python requirements
-
-Install all required python packages in your virtualenv:
-
-```shell
-$ pip install -r requirements.txt
+$ git@github.com:mh-superbox/unipi-mqtt-api.git
+$ pip install -e /opt/unipi-mqtt-api
 ```
 
 ### Systemd Service
@@ -20,35 +15,38 @@ $ pip install -r requirements.txt
 Install and start the systemd service:
 
 ```shell
-$ sudo cp systemd/unipi-mqtt-api.service /etc/systemd/system
-$ sudo chown root:root /etc/systemd/system/unipi-mqtt-api.service
-$ sudo chmod 644 /etc/systemd/system/unipi-mqtt-api.service
+$ sudo cp /opt/unipi-mqtt-api/src/lib/systemd/uma.service /lib/systemd
+$ sudo chown root:root /lib/systemd/uma.service
+$ sudo chmod 644 /lib/systemd/uma.service
 
 $ sudo systemctl daemon-reload
-$ sudo systemctl enable unipi-mqtt-api.service
-$ sudo systemctl start unipi-mqtt-api.service
+$ sudo systemctl enable uma.service
+$ sudo systemctl start uma.service
 ```
 
 ### Configuration
 
-You can set the mqtt broker and logger in the `unifi/configs/api.yaml`.
-
-Example:
-
-```yaml
-sysfs:
-  devices: /sys/bus/platform/devices
-mqtt:
-  host: localhost
-  port: 1883
-logger: systemd
+```shell
+$ sudo cp -R /opt/unipi-mqtt-api/src/etc/uma /etc
 ```
+
+* You can set the api settings in the `/etc/uma/api.yaml`
+* You can set the Home Assistant settings in the `/etc/uma/ha.yaml`
+
+#### API settings
 
 Key | Value
 ------ | ------
-`mqtt/host` | mqtt broker host
+`device_name` | The device name for the subscribe and publish topics
+`mqtt/host` | Mqtt broker host
 `mqtt/port` | mqtt broker port
-`logger` | `systemd` or `file`
+`logger` | Set logger to `systemd` or `file`
+
+#### Home Assistant settings
+
+Key | Value
+------ | ------
+`discovery_prefix` | The prefix for the discovery topic
 
 ## Usage
 
