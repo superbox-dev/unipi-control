@@ -5,5 +5,10 @@ include LICENSE
 exclude requirements-dev.txt
 exclude requirements.txt
 
+global-include .editorconfig
+
 recursive-include src *.py
 recursive-include src *.yaml
+
+prune src/etc
+prune src/lib
