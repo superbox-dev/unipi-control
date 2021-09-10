@@ -13,7 +13,7 @@ Install the python package in your virtualenv:
 
 ```shell
 $ cd /opt
-$ git@github.com:mh-superbox/unipi-mqtt-api.git
+$ git clone git@github.com:mh-superbox/unipi-mqtt-api.git
 $ pip install -e /opt/unipi-mqtt-api
 ```
 
