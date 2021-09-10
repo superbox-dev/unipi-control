@@ -21,7 +21,7 @@ ha_config: dict = {
     "discovery_prefix": "homeassistant",
     "device": {
         "name": "Unipi",
-        "manufacturer": "Unipi Technology",
+        "manufacturer": "Unipi technology",
     },
 }
 
