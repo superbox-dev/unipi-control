@@ -2,6 +2,13 @@
 
 ## Installation
 
+**Requirements:**
+
+* Unipi Neuron Kernel Module for SysFS. 
+  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology 
+  * Or compile it https://github.com/mh-superbox/unipi-kernel
+* Python 3.7
+
 Install the python package in your virtualenv:
 
 ```shell
