@@ -14,6 +14,8 @@ class HomeAssistant:
     """HomeAssistant class for discovery topics."""
 
     def __init__(self, client, devices):
+        logger.info("Initialize Home Assistant MQTT discovery")
+
         self.client = client
         self.devices = devices
 
@@ -80,7 +82,7 @@ class HomeAssistant:
 
     def _mqtt_log(self, rc, mid, topic, payload) -> None:
         if rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"Send `{payload}` to topic `{topic}` - Message ID: {mid}")
+            logger.debug(f"Send `{payload}` to topic `{topic}` - Message ID: {mid}")
         else:
             logger.error(f"Failed to send message to topic `{topic}` - Message ID: {mid}")
 

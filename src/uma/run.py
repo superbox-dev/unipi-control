@@ -54,6 +54,8 @@ class UnipiAPI:
         self._retry = 0
         self._connected_once = False
 
+        self._ha: Optional[HomeAssistant] = None
+
     @property
     def devices(self) -> dict:
         """Create devices dict with circuit as name and die device class as key."""
@@ -86,13 +88,17 @@ class UnipiAPI:
                 for device in results:
                     if device.changed:
                         self.publish(device)
+                    
+                if not self._ha:    
+                    self._ha = HomeAssistant(client=self.client, devices=self.devices)
+                    self._ha.publish()
 
             if not self.client.connected_flag:
                 try:
                     logger.info(f"Connecting attempt #{self._retry + 1}")            
 
                     self.client.connect(
-                        host=API["mqtt"]["host"],
+                        API["mqtt"]["host"],
                         port=API["mqtt"]["port"],
                         keepalive=API["mqtt"]["connection"]["keepalive"],
                     )
@@ -110,10 +116,6 @@ class UnipiAPI:
                         sys.exit(1)
 
                     time.sleep(API["mqtt"]["connection"]["retry_interval"])
-
-                    # Init home assistant discovery
-                    # ha = HomeAssistant(client=self.client, devices=self.devices)
-                    # ha.publish()
 
             await asyncio.sleep(250e-3)
 
