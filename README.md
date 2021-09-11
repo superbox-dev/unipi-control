@@ -44,10 +44,14 @@ $ sudo cp -R /opt/unipi-mqtt-api/src/etc/uma /etc
 
 Key | Value
 ------ | ------
-`device_name` | The device name for the subscribe and publish topics
-`mqtt/host` | Mqtt broker host
-`mqtt/port` | mqtt broker port
-`logger` | Set logger to `systemd` or `file`
+`device_name` | The device name for the subscribe and publish topics. Default to `unipi`.
+`mqtt/host` | The hostname or IP address of the remote broker: Default to `localhost`.
+`mqtt/port` | The network port of the server host to connect to. Defaults to `1883`.
+`mqtt/connection/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default to `15`.
+`mqtt/connection/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
+`mqtt/connection/retry_interval` | Time between connection attempts. Default to `10`.
+`logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
+`logging/level` | Set level to debug, info, warning or error. Default to `info`.
 
 #### Home Assistant settings
 
