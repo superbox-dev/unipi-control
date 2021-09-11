@@ -58,7 +58,7 @@ class DeviceMixin:
         if self._file_r is None:
             self._file_r = open(self.value_path, "r")
 
-            logger.info(f"Observe circuit `{self.circuit}`")
+            logger.debug(f"Observe circuit `{self.circuit}`")
 
         self._file_r.seek(0)
         return self._file_r.read().rstrip()

@@ -2,4 +2,10 @@ device_name: unipi
 mqtt:
   host: localhost
   port: 1883
-logger: systemd  
+  connection:
+    keepalive: 15
+    retry_limit: 30
+    retry_interval: 10    
+logging:
+  logger: systemd
+  level: info  

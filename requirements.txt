@@ -1,3 +1,4 @@
 deepmerge==0.3.0
 paho-mqtt==1.5.1
+pyyaml==5.4.1
 systemd-python==234

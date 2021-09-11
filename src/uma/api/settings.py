@@ -13,8 +13,16 @@ api_config: dict = {
     "mqtt": {
         "host": "localhost",
         "port": 1883,
+        "connection": {
+            "keepalive": 15,
+            "retry_limit": 30,
+            "retry_interval": 10,
+        },
     },
-    "logger": "systemd",
+    "logging": {
+        "logger": "systemd",
+        "level": "info",
+    },
 }
 
 ha_config: dict = {
@@ -41,15 +49,22 @@ HA = get_config(ha_config, "/etc/uma/ha.yaml")
 with open(f"""{API["sysfs"]["devices"]}/unipi_plc/model_name""", "r") as f:
     HA["device"]["model"] = f.read().rstrip()
 
-logger_type: str = API["logger"]
+logger_type: str = API["logging"]["logger"]
 logger = logging.getLogger(__name__)
+
+LEVEL: dict = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+}
 
 if logger_type == "systemd":
     logger.addHandler(journal.JournalHandler())
-    logger.setLevel(level=logging.DEBUG)
+    logger.setLevel(level=LEVEL[API["logging"]["level"]])
 elif logger_type == "file":
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=LEVEL[API["logging"]["level"]],
         filename="/var/log/unipi.log",
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )

@@ -4,9 +4,13 @@ import os
 import argparse
 import asyncio
 import json
+import sys
+import _thread
+import time
 import uuid
 from collections import namedtuple
 from timeit import default_timer as timer
+from typing import Optional
 
 import paho.mqtt.client as mqtt
 
@@ -16,14 +20,13 @@ from api.devices import (
     DeviceRelay,
 )
 from api.homeassistant import HomeAssistant
-from api.mqtt import MqttMixin
 from api.settings import (
     API,
     logger,
 )
 
 
-class UnipiAPI(MqttMixin):
+class UnipiAPI:
     """Unipi API class for subscribe/publish topics."""
 
     def __init__(self, client_id: str, debug: bool):
@@ -35,15 +38,21 @@ class UnipiAPI(MqttMixin):
         """
         logger.info(f"Client ID: {client_id}")
 
+        self.client = mqtt.Client(client_id)
         self.debug: bool = debug
-        self.client = self.connect(client_id)
+
+        self.client.on_connect = self.on_connect
+        self.client.on_disconnect = self.on_disconnect
+        self.client.on_message = self.on_message
+
+        self.client.connected_flag: bool = False
+
         self._devices: dict = {}
         self._publish_timer = None
         self._subscribe_timer = None
-
-        # Init home assistant discovery
-        self._ha = HomeAssistant(client=self.client, devices=self.devices)
-        self._ha.publish()
+        
+        self._retry = 0
+        self._connected_once = False
 
     @property
     def devices(self) -> dict:
@@ -62,23 +71,71 @@ class UnipiAPI(MqttMixin):
         return _devices
 
     async def run(self) -> None:
-        """Run publish method in a endless asyncio loop."""
+        """Run MQTT in a endless asyncio loop."""
         devices: dict = self.devices
 
         while True:
-            self._publish_timer = timer()
-            results: list = await asyncio.gather(*[device.get() for device in devices.values()])
+            self.client.loop(0.01)
+            
+            if self.client.connected_flag:
+                self._retry = 0
 
-            for device in results:
-                if device.changed:
-                    self.publish(device)
+                self._publish_timer = timer()
+                results: list = await asyncio.gather(*[device.get() for device in devices.values()])
+
+                for device in results:
+                    if device.changed:
+                        self.publish(device)
+
+            if not self.client.connected_flag:
+                try:
+                    logger.info(f"Connecting attempt #{self._retry + 1}")            
+
+                    self.client.connect(
+                        host=API["mqtt"]["host"],
+                        port=API["mqtt"]["port"],
+                        keepalive=API["mqtt"]["connection"]["keepalive"],
+                    )
+                    
+                    while not self.client.connected_flag:
+                        logger.info("Connecting to MQTT broker ...")
+                        self.client.loop(0.01)
+                        time.sleep(1)
+                except Exception:
+                    logger.error(f"""Can't connect to MQTT broker at `{API["mqtt"]["host"]}:{API["mqtt"]["port"]}`""")
+                    self._retry += 1
+                    retry_limit: Optional[int] = API["mqtt"]["connection"]["retry_limit"]
+                    
+                    if retry_limit and self._retry > retry_limit:
+                        sys.exit(1)
+
+                    time.sleep(API["mqtt"]["connection"]["retry_interval"])
+
+                    # Init home assistant discovery
+                    # ha = HomeAssistant(client=self.client, devices=self.devices)
+                    # ha.publish()
 
             await asyncio.sleep(250e-3)
 
     def on_connect(self, client, userdata, flags, rc: int) -> None:
-        super().on_connect(client, userdata, flags, rc)
-        self.subscribe()
-        
+        if rc == mqtt.MQTT_ERR_SUCCESS:
+            logger.info(f"Connected to MQTT broker at `{client._host}:{client._port}`")
+            client.connected_flag = True
+
+            self.subscribe(client)
+        else:
+            logger.error(f"Failed to connect! {mqtt.error_string(rc)}`")
+            sys.exit(1)
+
+    def on_disconnect(self, client, userdata, rc: int) -> None:
+        logger.debug(f"Disconnected! {mqtt.error_string(rc)}")
+        client.connected_flag = False
+
+    def on_message(self, client, userdata, message) -> None:
+        """Execude subscribe callback in a new thread."""
+        logger.debug(f"Received `{message.payload.decode()}` from topic `{message.topic}`")
+        _thread.start_new_thread(self.on_message_thread, (message, ))
+
     def on_message_thread(self, message):
         """Run on_message method in a thread.
 
@@ -108,7 +165,7 @@ class UnipiAPI(MqttMixin):
         asyncio.run(on_message_cb(message), debug=self.debug)
         logger.debug(f"Subscribe timer: {timer() - self._subscribe_timer}")
 
-    def subscribe(self) -> None:
+    def subscribe(self, client) -> None:
         """Subscribe topics for relay devices."""
         for device_name in os.listdir(API["sysfs"]["devices"]):
             device_path: str = os.path.join(API["sysfs"]["devices"], device_name)
@@ -118,8 +175,8 @@ class UnipiAPI(MqttMixin):
                     device = device_class(device_path)
                     topic: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/set"""
 
-                    self.client.subscribe(topic, qos=0)
-                    logger.info(f"Subscribe topic `{topic}`")
+                    client.subscribe(topic, qos=0)
+                    logger.debug(f"Subscribe topic `{topic}`")
 
     def publish(self, device: namedtuple) -> None:
         """Publish topics for all devices.
@@ -136,7 +193,7 @@ class UnipiAPI(MqttMixin):
         logger.debug(f"Publish timer: {timer() - self._publish_timer}")
 
         if rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"Send `{payload}` to topic `{topic}` - Message ID: {mid}")
+            logger.debug(f"Send `{payload}` to topic `{topic}` - Message ID: {mid}")
         else:
             logger.error(f"Failed to send message to topic `{topic}` - Message ID: {mid}")
 
@@ -156,8 +213,6 @@ def main() -> None:
         )
     except KeyboardInterrupt:
         logger.info("Process interrupted")
-    except Exception as e:
-        print(e)
 
 
 if __name__ == "__main__":
