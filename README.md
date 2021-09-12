@@ -38,7 +38,7 @@ $ sudo cp -R /opt/unipi-mqtt-api/src/etc/uma /etc
 ```
 
 * You can set the api settings in the `/etc/uma/api.yaml`
-* You can set the Home Assistant settings in the `/etc/uma/ha.yaml`
+* You can set the Home Assistant settings in the `/etc/uma/homeassistant.yaml`
 
 #### API settings
 
