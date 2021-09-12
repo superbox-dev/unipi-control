@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Optional
 
 import paho.mqtt.client as mqtt
 
@@ -19,6 +20,20 @@ class HomeAssistant:
         self.client = client
         self.devices = devices
 
+    def _get_mapping(self, circuit) -> dict:
+        return HA.get("mapping", {}).get(circuit, {})
+
+    def _get_name(self, device_class) -> str:
+        custom_name: Optional[str] = self._get_mapping(device_class.circuit).get("name")
+
+        if custom_name:
+            return f"{custom_name} ({device_class.dev_name})"
+
+        return device_class.dev_name
+
+    def _get_suggested_area(self, device_class) -> str:
+        return self._get_mapping(device_class.circuit).get("suggested_area", "")
+
     def _read_firmware(self, value_path) -> str:
         group: str = os.path.abspath(os.path.join(os.path.realpath(value_path), *([os.pardir] * 2)))
         firmeware: str = os.path.join(group, "firmware_version")
@@ -32,7 +47,7 @@ class HomeAssistant:
         unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
-            "name": device_class.dev_name,
+            "name": self._get_name(device_class),
             "unique_id": unique_id,
             "state_topic": f"{key}/get",
             "command_topic": f"{key}/set",
@@ -42,8 +57,7 @@ class HomeAssistant:
             "qos": 1,
             "retain": "true",
             "device": {
-                "name": f"""{HA["device"]["manufacturer"]} {device_class.dev_name}""",
-                "identifiers": unique_id,
+                # "suggested_area": self._get_suggested_area(device_class),
                 "sw_version": firmware,
                 **HA["device"],
             }
@@ -60,7 +74,7 @@ class HomeAssistant:
         unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
-            "name": device_class.dev_name,
+            "name": self._get_name(device_class),
             "unique_id": unique_id,
             "state_topic": f"{key}/get",
             "payload_on": "1",
@@ -68,8 +82,7 @@ class HomeAssistant:
             "value_template": "{{ value_json.value }}",
             "qos": 1,
             "device": {
-                "name": f"""{HA["device"]["manufacturer"]} {device_class.dev_name}""",
-                "identifiers": unique_id,
+                # "suggested_area": self._get_suggested_area(device_class),
                 "sw_version": firmware,
                 **HA["device"],
             }
