@@ -37,7 +37,7 @@ $ sudo systemctl start unipi-mqtt-client.service
 $ sudo cp -R /opt/unipi-mqtt-client/src/etc/unipi-mqtt-client /etc
 ```
 
-* You can set the api settings in the `/etc/unipi-mqtt-client/client.yaml`
+* You can set the MQTT client settings in the `/etc/unipi-mqtt-client/client.yaml`
 * You can set the Home Assistant settings in the `/etc/unipi-mqtt-client/homeassistant.yaml`
 
 #### Client settings
