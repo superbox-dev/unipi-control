@@ -37,7 +37,7 @@ def _get_config(config: dict, path: str) -> dict:
     return result
 
 
-api_config: dict = {
+client_config: dict = {
     "device_name": "unipi",
     "sysfs": {
         "devices": "/sys/bus/platform/devices",
@@ -66,13 +66,13 @@ homeassistant_config: dict = {
     },
 }
 
-API = _get_config(api_config, "/etc/uma/api.yaml")
-HA = _get_config(homeassistant_config, "/etc/uma/homeassistant.yaml")
+CLIENT = _get_config(client_config, "/etc/umc/client.yaml")
+HA = _get_config(homeassistant_config, "/etc/umc/homeassistant.yaml")
 
-with open(f"""{API["sysfs"]["devices"]}/unipi_plc/model_name""", "r") as f:
+with open(f"""{CLIENT["sysfs"]["devices"]}/unipi_plc/model_name""", "r") as f:
     HA["device"]["model"] = f.read().rstrip()
 
-logger_type: str = API["logging"]["logger"]
+logger_type: str = CLIENT["logging"]["logger"]
 logger = logging.getLogger(__name__)
 
 LEVEL: dict = {
@@ -84,10 +84,10 @@ LEVEL: dict = {
 
 if logger_type == "systemd":
     logger.addHandler(journal.JournalHandler())
-    logger.setLevel(level=LEVEL[API["logging"]["level"]])
+    logger.setLevel(level=LEVEL[CLIENT["logging"]["level"]])
 elif logger_type == "file":
     logging.basicConfig(
-        level=LEVEL[API["logging"]["level"]],
+        level=LEVEL[CLIENT["logging"]["level"]],
         filename="/var/log/unipi.log",
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
