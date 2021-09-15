@@ -27,8 +27,8 @@ $ sudo chown root:root /lib/systemd/system/umc.service
 $ sudo chmod 644 /lib/systemd/system/umc.service
 
 $ sudo systemctl daemon-reload
-$ sudo systemctl enable unipi-mqtt-client.service
-$ sudo systemctl start unipi-mqtt-client.service
+$ sudo systemctl enable umc.service
+$ sudo systemctl start umc.service
 ```
 
 ### Configuration
