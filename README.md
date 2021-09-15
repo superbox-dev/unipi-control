@@ -1,4 +1,4 @@
-# Unipi Mqtt API
+# Unipi Mqtt Client
 
 ## Installation
 
@@ -13,8 +13,8 @@ Install the python package in your virtualenv:
 
 ```shell
 $ cd /opt
-$ git clone git@github.com:mh-superbox/unipi-mqtt-api.git
-$ pip install -e /opt/unipi-mqtt-api
+$ git clone git@github.com:mh-superbox/unipi-mqtt-client.git
+$ pip install -e /opt/unipi-mqtt-client
 ```
 
 ### Systemd Service
@@ -22,23 +22,23 @@ $ pip install -e /opt/unipi-mqtt-api
 Install and start the systemd service:
 
 ```shell
-$ sudo cp /opt/unipi-mqtt-api/src/lib/systemd/system/uma.service /lib/systemd/system
-$ sudo chown root:root /lib/systemd/system/uma.service
-$ sudo chmod 644 /lib/systemd/system/uma.service
+$ sudo cp /opt/unipi-mqtt-api/src/lib/systemd/system/unipi-mqtt-client.service /lib/systemd/system
+$ sudo chown root:root /lib/systemd/system/unipi-mqtt-client.service
+$ sudo chmod 644 /lib/systemd/system/unipi-mqtt-client.service
 
 $ sudo systemctl daemon-reload
-$ sudo systemctl enable uma.service
-$ sudo systemctl start uma.service
+$ sudo systemctl enable unipi-mqtt-client.service
+$ sudo systemctl start unipi-mqtt-client.service
 ```
 
 ### Configuration
 
 ```shell
-$ sudo cp -R /opt/unipi-mqtt-api/src/etc/uma /etc
+$ sudo cp -R /opt/unipi-mqtt-api/src/etc/unipi-mqtt-client /etc
 ```
 
-* You can set the api settings in the `/etc/uma/api.yaml`
-* You can set the Home Assistant settings in the `/etc/uma/homeassistant.yaml`
+* You can set the api settings in the `/etc/unipi-mqtt-client/api.yaml`
+* You can set the Home Assistant settings in the `/etc/unipi-mqtt-client/homeassistant.yaml`
 
 #### API settings
 
