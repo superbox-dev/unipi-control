@@ -21,13 +21,13 @@ from api.devices import (
 )
 from api.homeassistant import HomeAssistant
 from api.settings import (
-    API,
+    CLIENT,
     logger,
 )
 
 
-class UnipiAPI:
-    """Unipi API class for subscribe/publish topics."""
+class UnipiMqttClient:
+    """Unipi Mqtt client class for subscribe/publish topics."""
 
     def __init__(self, client_id: str, debug: bool):
         """Connect to mqtt broker.
@@ -61,13 +61,13 @@ class UnipiAPI:
         """Create devices dict with circuit as name and die device class as key."""
         _devices: dict = {}
 
-        for circuit in os.listdir(API["sysfs"]["devices"]):
-            device_path: str = os.path.join(API["sysfs"]["devices"], circuit)
+        for circuit in os.listdir(CLIENT["sysfs"]["devices"]):
+            device_path: str = os.path.join(CLIENT["sysfs"]["devices"], circuit)
 
             for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(circuit):
                     device = device_class(device_path)
-                    key: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}"""
+                    key: str = f"""{CLIENT["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}"""
                     _devices[key] = device
 
         return _devices
@@ -98,9 +98,9 @@ class UnipiAPI:
                     logger.info(f"Connecting attempt #{self._retry + 1}")            
 
                     self.client.connect(
-                        API["mqtt"]["host"],
-                        port=API["mqtt"]["port"],
-                        keepalive=API["mqtt"]["connection"]["keepalive"],
+                        CLIENT["mqtt"]["host"],
+                        port=CLIENT["mqtt"]["port"],
+                        keepalive=CLIENT["mqtt"]["connection"]["keepalive"],
                     )
                     
                     while not self.client.connected_flag:
@@ -108,14 +108,14 @@ class UnipiAPI:
                         self.client.loop(0.01)
                         time.sleep(1)
                 except Exception:
-                    logger.error(f"""Can't connect to MQTT broker at `{API["mqtt"]["host"]}:{API["mqtt"]["port"]}`""")
+                    logger.error(f"""Can't connect to MQTT broker at `{CLIENT["mqtt"]["host"]}:{CLIENT["mqtt"]["port"]}`""")
                     self._retry += 1
-                    retry_limit: Optional[int] = API["mqtt"]["connection"]["retry_limit"]
+                    retry_limit: Optional[int] = CLIENT["mqtt"]["connection"]["retry_limit"]
                     
                     if retry_limit and self._retry > retry_limit:
                         sys.exit(1)
 
-                    time.sleep(API["mqtt"]["connection"]["retry_interval"])
+                    time.sleep(CLIENT["mqtt"]["connection"]["retry_interval"])
 
             await asyncio.sleep(250e-3)
 
@@ -169,13 +169,13 @@ class UnipiAPI:
 
     def subscribe(self, client) -> None:
         """Subscribe topics for relay devices."""
-        for device_name in os.listdir(API["sysfs"]["devices"]):
-            device_path: str = os.path.join(API["sysfs"]["devices"], device_name)
+        for device_name in os.listdir(CLIENT["sysfs"]["devices"]):
+            device_path: str = os.path.join(CLIENT["sysfs"]["devices"], device_name)
             
             for device_class in [DeviceRelay, DeviceDigitalOutput]:
                 if device_class.FOLDER_REGEX.match(device_name):
                     device = device_class(device_path)
-                    topic: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/set"""
+                    topic: str = f"""{CLIENT["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/set"""
 
                     client.subscribe(topic, qos=0)
                     logger.debug(f"Subscribe topic `{topic}`")
@@ -186,7 +186,7 @@ class UnipiAPI:
         Args:
             device (namedtuple): device infos from the device class."
         """
-        topic: str = f"""{API["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/get"""
+        topic: str = f"""{CLIENT["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/get"""
         values: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
         values.pop("changed")
 
@@ -207,8 +207,8 @@ def main() -> None:
 
     try:
         asyncio.run(
-            UnipiAPI(
-                client_id=f"""{API["device_name"]}-{uuid.uuid4()}""", 
+            UnipiMqttClient(
+                client_id=f"""{CLIENT["device_name"]}-{uuid.uuid4()}""", 
                 debug=args.debug
             ).run(),
             debug=args.debug,
