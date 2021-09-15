@@ -22,9 +22,9 @@ $ pip install -e /opt/unipi-mqtt-client
 Install and start the systemd service:
 
 ```shell
-$ sudo cp /opt/unipi-mqtt-client/src/lib/systemd/system/unipi-mqtt-client.service /lib/systemd/system
-$ sudo chown root:root /lib/systemd/system/unipi-mqtt-client.service
-$ sudo chmod 644 /lib/systemd/system/unipi-mqtt-client.service
+$ sudo cp /opt/unipi-mqtt-client/src/lib/systemd/system/umc.service /lib/systemd/system
+$ sudo chown root:root /lib/systemd/system/umc.service
+$ sudo chmod 644 /lib/systemd/system/umc.service
 
 $ sudo systemctl daemon-reload
 $ sudo systemctl enable unipi-mqtt-client.service
@@ -34,11 +34,11 @@ $ sudo systemctl start unipi-mqtt-client.service
 ### Configuration
 
 ```shell
-$ sudo cp -R /opt/unipi-mqtt-client/src/etc/unipi-mqtt-client /etc
+$ sudo cp -R /opt/unipi-mqtt-client/src/etc/umc /etc
 ```
 
-* You can set the MQTT client settings in the `/etc/unipi-mqtt-client/client.yaml`
-* You can set the Home Assistant settings in the `/etc/unipi-mqtt-client/homeassistant.yaml`
+* You can set the MQTT client settings in the `/etc/umc/client.yaml`
+* You can set the Home Assistant settings in the `/etc/umc/homeassistant.yaml`
 
 #### Client settings
 
