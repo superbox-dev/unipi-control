@@ -1,13 +1,12 @@
 [Unit]
-Description=Unipi mqtt service
+Description=Unipi MQTT Client
 After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/uma
+ExecStart=/usr/bin/umc
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
-#WorkingDirectory=/opt/unipi
 
 [Install]
 WantedBy=multi-user.target
