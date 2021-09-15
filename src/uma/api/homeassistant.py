@@ -5,7 +5,7 @@ from typing import Optional
 import paho.mqtt.client as mqtt
 
 from api.settings import (
-    API,
+    CLIENT,
     HA,
     logger,
 )
@@ -42,9 +42,9 @@ class HomeAssistant:
             return f.read().rstrip()
 
     def _publish_relay(self, key, device_class) -> None:
-        topic: str = f"""{HA["discovery_prefix"]}/switch/{API["device_name"]}/{device_class.circuit}/config"""
+        topic: str = f"""{HA["discovery_prefix"]}/switch/{CLIENT["device_name"]}/{device_class.circuit}/config"""
         firmware: str = self._read_firmware(device_class.value_path)
-        unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
+        unique_id: str = f"""{CLIENT["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
             "name": self._get_name(device_class),
@@ -69,9 +69,9 @@ class HomeAssistant:
         self._mqtt_log(rc, mid, topic, payload)
 
     def _publish_input(self, key, device_class) -> None:
-        topic: str = f"""{HA["discovery_prefix"]}/binary_sensor/{API["device_name"]}/{device_class.circuit}/config"""
+        topic: str = f"""{HA["discovery_prefix"]}/binary_sensor/{CLIENT["device_name"]}/{device_class.circuit}/config"""
         firmware: str = self._read_firmware(device_class.value_path)
-        unique_id: str = f"""{API["device_name"]}_{device_class.circuit}"""
+        unique_id: str = f"""{CLIENT["device_name"]}_{device_class.circuit}"""
 
         discovery: dict = {
             "name": self._get_name(device_class),
