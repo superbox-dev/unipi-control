@@ -27,7 +27,7 @@ repos:
     rev: "3.9.2"
     hooks:
       - id: flake8
-        args: ["--ignore=D100,D101,D103,D104,D107,E501", ]
+        args: ["--ignore=D100,D101,D102,D103,D104,D105,D107,E501", ]
         additional_dependencies: [flake8-docstrings]
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.46"
