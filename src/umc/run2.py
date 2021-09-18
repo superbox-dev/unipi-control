@@ -11,16 +11,23 @@ from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusClien
 
 class UnipiMqttClient:
     def __init__(self, modbus_client, debug: bool):
-        self.modbus_client = modbus_client
         self.debug: bool = debug
+        self.neuron = Neuron(modbus_client)
 
     async def run(self) -> None:
-        await Neuron(self.modbus_client).read_boards()
+        await self.neuron.initialise_cache()
+        await self.neuron.read_boards()
 
-        print(devices)
+        devs = devices.by_name(["RO", "DO", "LED"])
 
         while True:
-            print("test")
+            await self.neuron.start_scanning()
+            results: list = await asyncio.gather(*(dev.get_state() for dev in devs))
+
+            for device in results:
+                if device.changed:
+                    print(device)
+
             await asyncio.sleep(250e-3)
 
 

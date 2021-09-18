@@ -60,6 +60,6 @@ class HardwareDefinition(MappingMixin):
         if definition_file.is_file():
             with open(definition_file) as yf:
                 self.mapping["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
-                logger.info(f"""YAML Definition loaded: f{definition_file}""")
+                logger.info(f"""YAML Definition loaded: {definition_file}""")
         else:
             logger.error(f"""No valid YAML definition for active Neuron device! Device name {self._hw["model"]}""")
