@@ -1,8 +1,8 @@
 from collections import namedtuple
 from typing import Optional
 
-from api.settings import logger
 from config import HardwareDefinition
+from config import logger
 from devices import devices
 
 
@@ -66,7 +66,6 @@ class ModbusCacheMap:
 class FeatureMixin:
     def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
         self.__dict__.update(kwargs)
-
         self.modbus_client = board.neuron.modbus_client
         self.circuit: str = circuit
         self.mask: int = mask
@@ -85,7 +84,7 @@ class FeatureMixin:
         return f"""{self.name} {self.circuit.replace("_", ".")}"""
 
     async def get_state(self) -> namedtuple:
-        value: bool = self.value is True
+        value: bool = self.value == True  # noqa
         changed: bool = value != self._value
 
         if changed:
@@ -100,13 +99,18 @@ class FeatureMixin:
         )
 
 
-class Relay(FeatureMixin):
+class FeatureWriteMixin:
+    async def set_state(self, value: int) -> None:
+        await self.modbus_client.write_coil(self.coil, value)
+
+
+class Relay(FeatureMixin, FeatureWriteMixin):
     name = "Relay"
     dev_name = "relay"
     dev_type = "physical"
 
 
-class DigitalOutput(FeatureMixin):
+class DigitalOutput(FeatureMixin, FeatureWriteMixin):
     name = "Digital Output"
     dev_name = "relay"
     dev_type = "digital"
@@ -118,7 +122,7 @@ class DigitalInput(FeatureMixin):
     dev_type = "digital"
 
 
-class AnlogOutput(FeatureMixin):
+class AnlogOutput(FeatureMixin, FeatureWriteMixin):
     name = "Analog Output"
     dev_name = "output"
     dev_type = "analog"
@@ -130,18 +134,18 @@ class AnlogInput(FeatureMixin):
     dev_type = "analog"
 
 
-class Led(FeatureMixin):
+class Led(FeatureMixin, FeatureWriteMixin):
     name = "LED"
     dev_name = "led"
     dev_type = None
 
 
-class Watchdog(FeatureMixin):
+class Watchdog(FeatureMixin, FeatureWriteMixin):
     name = "Watchdog"
     dev_name = "wd"
 
 
-class Register(FeatureMixin):
+class Register(FeatureMixin, FeatureWriteMixin):
     name = "Register"
     dev_name = "register"
 
@@ -282,13 +286,13 @@ class Neuron:
         self.modbus_cache_map = None
 
     async def read_boards(self) -> None:
-        logger.info("Reading SPI boards")
+        logger.info("[MODBUS] Reading SPI boards")
 
         for index in (1, 2, 3):
             request_fw = await self.modbus_client.read_input_registers(1000, 1, unit=index)
 
             if request_fw.isError():
-                logger.info(f"No board on SPI {index}")
+                logger.info(f"[MODBUS] No board on SPI {index}")
             else:
                 Board(self, major_group=index).parse_definition()
 

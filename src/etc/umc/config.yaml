@@ -5,7 +5,7 @@ mqtt:
   connection:
     keepalive: 15
     retry_limit: 30
-    retry_interval: 10    
+    reconnect_interval: 10
 logging:
   logger: systemd
-  level: info  
+  level: info

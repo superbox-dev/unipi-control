@@ -1,11 +1,64 @@
+import logging
+import os
 import struct
 from pathlib import Path
 
 import yaml
-from api.settings import logger
+from deepmerge import always_merger
+from helpers import get_device_connections
 from helpers import MappingMixin
+from systemd import journal
 
 HW_DEFINITIONS = "/etc/umc/hw_definitions"
+
+
+class ConfigMixin(MappingMixin):
+    @staticmethod
+    def read_yaml(defaults: dict, path: str) -> dict:
+        result: dict = defaults
+
+        if os.path.exists(path):
+            with open(path) as f:
+                config: dict = yaml.load(f, Loader=yaml.FullLoader)
+                result = always_merger.merge(result, config)
+
+        return result
+
+
+class Config(ConfigMixin):
+    defaults: dict = {
+        "device_name": "unipi",
+        "mqtt": {
+            "host": "localhost",
+            "port": 1883,
+            "connection": {
+                "keepalive": 15,
+                "retry_limit": 30,
+                "reconnect_interval": 10,
+            },
+        },
+        "logging": {
+            "logger": "systemd",
+            "level": "info",
+        },
+    }
+
+    def __init__(self):
+        self.mapping: dict = self.read_yaml(self.defaults, "/etc/umc/config.yaml")
+
+
+class HomeAssistantConfig(ConfigMixin):
+    defaults: dict = {
+        "discovery_prefix": "homeassistant",
+        "device": {
+            "connections": get_device_connections(),
+            "name": "Unipi",
+            "manufacturer": "Unipi technology",
+        },
+    }
+
+    def __init__(self):
+        self.mapping: dict = self.read_yaml(self.defaults, "/etc/umc/homeassistant.yaml")
 
 
 class Hardware(MappingMixin):
@@ -63,3 +116,26 @@ class HardwareDefinition(MappingMixin):
                 logger.info(f"""YAML Definition loaded: {definition_file}""")
         else:
             logger.error(f"""No valid YAML definition for active Neuron device! Device name {self._hw["model"]}""")
+
+
+config = Config()
+
+logger_type: str = config["logger"]["logging"]["logger"]
+logger = logging.getLogger(__name__)
+
+LEVEL: dict = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+}
+
+if logger_type == "systemd":
+    logger.addHandler(journal.JournalHandler())
+    logger.setLevel(level=LEVEL[config["logger"]["logging"]["level"]])
+elif logger_type == "file":
+    logging.basicConfig(
+        level=LEVEL[config["logger"]["logging"]["level"]],
+        filename="/var/log/umc.log",
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )

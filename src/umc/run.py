@@ -1,203 +1,159 @@
 #!/usr/bin/env python3
-
-import os
 import argparse
 import asyncio
 import json
 import sys
-import _thread
-import time
 import uuid
 from collections import namedtuple
-from timeit import default_timer as timer
+from contextlib import AsyncExitStack
 from typing import Optional
 
-import paho.mqtt.client as mqtt
-
-from api.devices import (
-    DeviceDigitalInput,
-    DeviceDigitalOutput,
-    DeviceRelay,
-)
-from api.homeassistant import HomeAssistant
-from api.settings import (
-    CLIENT,
-    logger,
-)
+from asyncio_mqtt import Client
+from asyncio_mqtt import MqttError
+from config import config
+from config import logger
+from devices import devices
+from neuron import Neuron
+from pymodbus.client.asynchronous import schedulers
+from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusClient
+# from api.homeassistant import HomeAssistant
 
 
 class UnipiMqttClient:
-    """Unipi Mqtt client class for subscribe/publish topics."""
-
-    def __init__(self, client_id: str, debug: bool):
-        """Connect to mqtt broker.
-
-        Args:
-            client_id (str): unique client id
-            debug (bool): enable debug logging
-        """
-        logger.info(f"Client ID: {client_id}")
-
-        self.client = mqtt.Client(client_id)
+    def __init__(self, modbus_client, debug: bool):
         self.debug: bool = debug
+        self.neuron = Neuron(modbus_client)
+        self.config = config
 
-        self.client.on_connect = self.on_connect
-        self.client.on_disconnect = self.on_disconnect
-        self.client.on_message = self.on_message
+        self._mqtt_client_id: str = f"""{self.config["device_name"]}-{uuid.uuid4()}""",
+        logger.info(f"[MQTT] Client ID: {self._mqtt_client_id}")
 
-        self.client.connected_flag: bool = False
+        self._retry_reconnect: int = 0
 
-        self._devices: dict = {}
-        self._publish_timer = None
-        self._subscribe_timer = None
-        
-        self._retry = 0
-        self._connected_once = False
+        # self._ha: Optional[HomeAssistant] = None
 
-        self._ha: Optional[HomeAssistant] = None
+    def _get_topic(self, device) -> str:
+        topic: str = f"""{self.config["device_name"]}/{device.dev_name}"""
 
-    @property
-    def devices(self) -> dict:
-        """Create devices dict with circuit as name and die device class as key."""
-        _devices: dict = {}
+        if device.dev_type:
+            topic += f"/{device.dev_type}"
 
-        for circuit in os.listdir(CLIENT["sysfs"]["devices"]):
-            device_path: str = os.path.join(CLIENT["sysfs"]["devices"], circuit)
+        topic += f"/{device.circuit}"
 
-            for device_class in [DeviceRelay, DeviceDigitalInput, DeviceDigitalOutput]:
-                if device_class.FOLDER_REGEX.match(circuit):
-                    device = device_class(device_path)
-                    key: str = f"""{CLIENT["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}"""
-                    _devices[key] = device
+        return topic
 
-        return _devices
+    async def _subscribe_devices(self, device, topic, messages) -> None:
+        template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
 
-    async def run(self) -> None:
-        """Run MQTT in a endless asyncio loop."""
-        devices: dict = self.devices
+        async for message in messages:
+            logger.info(template.format(message.payload.decode()))
 
+            try:
+                value: int = int(message.payload.decode())
+            except ValueError as e:
+                logger.error(e)
+            finally:
+                await device.set_state(value)
+
+    async def _publish_devices(self, mqtt_client) -> None:
         while True:
-            self.client.loop(0.01)
-            
-            if self.client.connected_flag:
-                self._retry = 0
+            await self.neuron.start_scanning()
+            devices: namedtuple = await asyncio.gather(*(device.get_state() for device in self._publish_list))
 
-                self._publish_timer = timer()
-                results: list = await asyncio.gather(*[device.get() for device in devices.values()])
+            for device in devices:
+                if device.changed:
+                    topic: str = f"""{self._get_topic(device)}/get"""
+                    message: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
+                    message.pop("changed")
 
-                for device in results:
-                    if device.changed:
-                        self.publish(device)
-                    
-                if not self._ha:    
-                    self._ha = HomeAssistant(client=self.client, devices=self.devices)
-                    self._ha.publish()
-
-            if not self.client.connected_flag:
-                try:
-                    logger.info(f"Connecting attempt #{self._retry + 1}")            
-
-                    self.client.connect(
-                        CLIENT["mqtt"]["host"],
-                        port=CLIENT["mqtt"]["port"],
-                        keepalive=CLIENT["mqtt"]["connection"]["keepalive"],
-                    )
-                    
-                    while not self.client.connected_flag:
-                        logger.info("Connecting to MQTT broker ...")
-                        self.client.loop(0.01)
-                        time.sleep(1)
-                except Exception:
-                    logger.error(f"""Can't connect to MQTT broker at `{CLIENT["mqtt"]["host"]}:{CLIENT["mqtt"]["port"]}`""")
-                    self._retry += 1
-                    retry_limit: Optional[int] = CLIENT["mqtt"]["connection"]["retry_limit"]
-                    
-                    if retry_limit and self._retry > retry_limit:
-                        sys.exit(1)
-
-                    time.sleep(CLIENT["mqtt"]["connection"]["retry_interval"])
-
-            await asyncio.sleep(250e-3)
-
-    def on_connect(self, client, userdata, flags, rc: int) -> None:
-        if rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"Connected to MQTT broker at `{client._host}:{client._port}`")
-            client.connected_flag = True
-
-            self.subscribe(client)
-        else:
-            logger.error(f"Failed to connect! {mqtt.error_string(rc)}`")
-            sys.exit(1)
-
-    def on_disconnect(self, client, userdata, rc: int) -> None:
-        logger.debug(f"Disconnected! {mqtt.error_string(rc)}")
-        client.connected_flag = False
-
-    def on_message(self, client, userdata, message) -> None:
-        """Execude subscribe callback in a new thread."""
-        logger.debug(f"Received `{message.payload.decode()}` from topic `{message.topic}`")
-        _thread.start_new_thread(self.on_message_thread, (message, ))
+                    logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
+                    await mqtt_client.publish(topic, json.dumps(message), qos=1)
+                    await asyncio.sleep(250e-3)
 
     def on_message_thread(self, message):
-        """Run on_message method in a thread.
-
-        Args:
-            message (dict): message dict from the mqtt on_message method.
-        """
-        self._subscribe_timer = timer()
-
         async def on_message_cb(message):
-            key: str = message.topic[:-len("/set")]
-            device = self.devices.get(key)
-            
-            if device:
-                func = getattr(device, "set", None)
+            device = self._topics[message.topic]
 
-                if func:
-                    await func(message.payload.decode())
+            try:
+                value: int = int(message.payload.decode())
+            except ValueError as e:
+                logger.error(e)
+            finally:
+                device.set_state(value)
 
-                    # msg = message.payload.decode()
-                    # try:
-                    #     data: str = json.loads(msg)
-                    # except ValueError as e:
-                    #     logger.error(f"""Message `{msg}` is not a valid JSON - message not processed, error is "{e}".""")
-                    # else:    
-                    #     await func(json.loads(message.payload.decode()))
-        
-        asyncio.run(on_message_cb(message), debug=self.debug)
-        logger.debug(f"Subscribe timer: {timer() - self._subscribe_timer}")
+    async def _cancel_tasks(self, tasks):
+        for task in tasks:
+            if task.done():
+                continue
 
-    def subscribe(self, client) -> None:
-        """Subscribe topics for relay devices."""
-        for device_name in os.listdir(CLIENT["sysfs"]["devices"]):
-            device_path: str = os.path.join(CLIENT["sysfs"]["devices"], device_name)
-            
-            for device_class in [DeviceRelay, DeviceDigitalOutput]:
-                if device_class.FOLDER_REGEX.match(device_name):
-                    device = device_class(device_path)
-                    topic: str = f"""{CLIENT["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/set"""
+            task.cancel()
 
-                    client.subscribe(topic, qos=0)
-                    logger.debug(f"Subscribe topic `{topic}`")
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
-    def publish(self, device: namedtuple) -> None:
-        """Publish topics for all devices.
+    async def _init_tasks(self) -> None:
+        async with AsyncExitStack() as stack:
+            tasks = set()
+            stack.push_async_callback(self._cancel_tasks, tasks)
 
-        Args:
-            device (namedtuple): device infos from the device class."
-        """
-        topic: str = f"""{CLIENT["device_name"]}/{device.dev}/{device.dev_type}/{device.circuit}/get"""
-        values: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
-        values.pop("changed")
+            mqtt_client = Client(
+                self.config["mqtt"]["host"],
+                port=self.config["mqtt"]["port"],
+                client_id=self._mqtt_client_id,
+                keepalive=self.config["mqtt"]["connection"]["keepalive"],
+            )
 
-        payload: str = json.dumps(values)
-        rc, mid = self.client.publish(topic, payload, qos=1)
-        logger.debug(f"Publish timer: {timer() - self._publish_timer}")
+            await stack.enter_async_context(mqtt_client)
+            self._retry_reconnect = 0
 
-        if rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.debug(f"Send `{payload}` to topic `{topic}` - Message ID: {mid}")
-        else:
-            logger.error(f"Failed to send message to topic `{topic}` - Message ID: {mid}")
+            logger.info(f"""[MQTT] Connected to broker at `{self.config["mqtt"]["host"]}:{self.config["mqtt"]["port"]}`""")
+
+            for device in self._subscribe_list:
+                topic: str = f"""{self._get_topic(device)}/set"""
+
+                manager = mqtt_client.filtered_messages(topic)
+                messages = await stack.enter_async_context(manager)
+
+                task = asyncio.create_task(self._subscribe_devices(device, topic, messages))
+                tasks.add(task)
+
+                await mqtt_client.subscribe(topic)
+                logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+
+            task = asyncio.create_task(self._publish_devices(mqtt_client))
+            tasks.add(task)
+
+            await asyncio.gather(*tasks)
+
+    async def run(self) -> None:
+        await self.neuron.initialise_cache()
+        await self.neuron.read_boards()
+
+        self._subscribe_list: list = devices.by_name(["RO", "DO"])
+        self._publish_list: list = devices.by_name(["RO", "DO", "DI", "LED"])
+
+        reconnect_interval: int = self.config["mqtt"]["connection"]["reconnect_interval"]
+        retry_limit: Optional[int] = self.config["mqtt"]["connection"]["retry_limit"]
+
+        while True:
+            try:
+                logger.info("[MQTT] Connecting to broker ...")
+                await self._init_tasks()
+            except MqttError as error:
+                logger.error(f"""[MQTT] Error `{error}`. Connecting attempt #{self._retry_reconnect + 1}. Reconnecting in {reconnect_interval} seconds.""")
+            finally:
+                if retry_limit and self._retry_reconnect > retry_limit:
+                    sys.exit(1)
+
+                self._retry_reconnect += 1
+
+                await asyncio.sleep(reconnect_interval)
+
+    # if not self._ha:
+    #    self._ha = HomeAssistant(client=self.mqtt_client, devices=self.devices)
+    # self._ha.publish()
 
 
 def main() -> None:
@@ -206,15 +162,18 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        asyncio.run(
+        loop, modbus_client = ModbusClient(schedulers.ASYNC_IO, port=502)
+
+        loop.run_until_complete(
             UnipiMqttClient(
-                client_id=f"""{CLIENT["device_name"]}-{uuid.uuid4()}""", 
-                debug=args.debug
-            ).run(),
-            debug=args.debug,
+                modbus_client.protocol,
+                debug=args.debug,
+            ).run()
         )
     except KeyboardInterrupt:
         logger.info("Process interrupted")
+    finally:
+        loop.close()
 
 
 if __name__ == "__main__":
