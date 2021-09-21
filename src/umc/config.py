@@ -5,8 +5,7 @@ from pathlib import Path
 
 import yaml
 from deepmerge import always_merger
-from helpers import get_device_connections
-from helpers import MappingMixin
+from mapping import MappingMixin
 from systemd import journal
 
 HW_DEFINITIONS = "/etc/umc/hw_definitions"
@@ -25,7 +24,7 @@ class ConfigMixin(MappingMixin):
         return result
 
 
-class Config(ConfigMixin):
+class ClientConfig(ConfigMixin):
     defaults: dict = {
         "device_name": "unipi",
         "mqtt": {
@@ -44,15 +43,13 @@ class Config(ConfigMixin):
     }
 
     def __init__(self):
-        self.mapping: dict = self.read_yaml(self.defaults, "/etc/umc/config.yaml")
+        self.mapping: dict = self.read_yaml(self.defaults, "/etc/umc/client.yaml")
 
 
 class HomeAssistantConfig(ConfigMixin):
     defaults: dict = {
         "discovery_prefix": "homeassistant",
         "device": {
-            "connections": get_device_connections(),
-            "name": "Unipi",
             "manufacturer": "Unipi technology",
         },
     }
@@ -77,8 +74,9 @@ class Hardware(MappingMixin):
                 ee_bytes = f.read(128)
 
                 self.mapping.update({
-                    "version": f"{ee_bytes[99]}.{ee_bytes[98]}",
+                    "name": "Unipi Neuron",
                     "model": f"{ee_bytes[106:110].decode()}",
+                    "version": f"{ee_bytes[99]}.{ee_bytes[98]}",
                     "serial": struct.unpack("i", ee_bytes[100:104])[0],
                 })
 
@@ -88,11 +86,10 @@ class HardwareDefinition(MappingMixin):
         super().__init__()
 
         self.mapping: dict = {
+            "neuron": Hardware(),
             "definitions": [],
             "neuron_definition": None,
         }
-
-        self._hw = Hardware()
 
         self._read_definitions()
         self._read_build_in_definition()
@@ -108,19 +105,20 @@ class HardwareDefinition(MappingMixin):
                     logger.info(f"""YAML Definition loaded: {f}""")
 
     def _read_build_in_definition(self) -> None:
-        definition_file: str = Path(f"""{HW_DEFINITIONS}/BuiltIn/{self._hw["model"]}.yaml""")
+        definition_file: str = Path(f"""{HW_DEFINITIONS}/BuiltIn/{self.mapping["neuron"]["model"]}.yaml""")
 
         if definition_file.is_file():
             with open(definition_file) as yf:
                 self.mapping["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
                 logger.info(f"""YAML Definition loaded: {definition_file}""")
         else:
-            logger.error(f"""No valid YAML definition for active Neuron device! Device name {self._hw["model"]}""")
+            logger.error(f"""No valid YAML definition for active Neuron device! Device name {self.mapping["neuron"]["model"]}""")
 
 
-config = Config()
+config = ClientConfig()
+ha_config = HomeAssistantConfig()
 
-logger_type: str = config["logger"]["logging"]["logger"]
+logger_type: str = config["logging"]["logger"]
 logger = logging.getLogger(__name__)
 
 LEVEL: dict = {
@@ -132,10 +130,10 @@ LEVEL: dict = {
 
 if logger_type == "systemd":
     logger.addHandler(journal.JournalHandler())
-    logger.setLevel(level=LEVEL[config["logger"]["logging"]["level"]])
+    logger.setLevel(level=LEVEL[config["logging"]["level"]])
 elif logger_type == "file":
     logging.basicConfig(
-        level=LEVEL[config["logger"]["logging"]["level"]],
+        level=LEVEL[config["logging"]["level"]],
         filename="/var/log/umc.log",
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )

@@ -1,3 +1,4 @@
+import re
 from collections import namedtuple
 from typing import Optional
 
@@ -81,7 +82,8 @@ class FeatureMixin:
 
     @property
     def circuit_name(self):
-        return f"""{self.name} {self.circuit.replace("_", ".")}"""
+        m = re.match(r"^[a-z]+_(\d{1})_(\d{2})$", self.circuit)
+        return f"""{self.name} {m.group(1)}.{m.group(2).lstrip("0")}"""
 
     async def get_state(self) -> namedtuple:
         value: bool = self.value == True  # noqa
@@ -172,11 +174,12 @@ class Board:
 
     def _parse_feature_di(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
+        feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
                 DigitalInput(
-                    circuit="%s_%02d" % (major_group, index + 1),
+                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature['val_reg'],
                     mask=(0x1 << (index % 16)),
@@ -185,11 +188,12 @@ class Board:
 
     def _parse_feature_do(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
+        feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
                 DigitalOutput(
-                    circuit="%s_%02d" % (major_group, index + 1),
+                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     coil=modbus_feature['val_coil'] + index,
                     reg=modbus_feature['val_reg'],
@@ -199,11 +203,12 @@ class Board:
 
     def _parse_feature_ao(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
+        feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
                 AnlogOutput(
-                    circuit="%s_%02d" % (major_group, index + 1),
+                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature['val_reg'],
                     **modbus_feature,
@@ -211,11 +216,12 @@ class Board:
 
     def _parse_feature_ai(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
+        feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
                 AnlogInput(
-                    circuit="%s_%02d" % (major_group, index + 1),
+                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature['val_reg'],
                     **modbus_feature,
@@ -223,17 +229,18 @@ class Board:
 
     def _parse_feature_register(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
+        feature_type: str = modbus_feature["type"]
         reg_type: str = modbus_feature.get("reg_type")
 
         if major_group == self.major_group:
             for index in range(0, max_count):
                 if reg_type == "input":
-                    name = "%s_%d_inp"
+                    name = "%s_%s_%d_inp"
                 else:
-                    name = "%s_%d"
+                    name = "%s_%s_%d"
 
                 Register(
-                    circuit=name % (major_group, index + 1),
+                    circuit=name % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature['start_reg'] + index,
                     **modbus_feature,
@@ -241,11 +248,12 @@ class Board:
 
     def _parse_feature_led(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
+        feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
                 Led(
-                    circuit="%s_%02d" % (major_group, index + 1),
+                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     coil=modbus_feature['val_coil'] + index,
                     reg=modbus_feature['val_reg'],
@@ -255,11 +263,12 @@ class Board:
 
     def _parse_feature_wd(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
+        feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
                 Watchdog(
-                    circuit="%s_%02d" % (major_group, index + 1),
+                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature['val_reg'],
                     **modbus_feature,

@@ -1,7 +1,7 @@
 import itertools
 from typing import Union
 
-from helpers import MutableMappingMixin
+from mapping import MutableMappingMixin
 
 
 class DeviceMap(MutableMappingMixin):

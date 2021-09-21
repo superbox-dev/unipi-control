@@ -4,8 +4,8 @@
 
 **Requirements:**
 
-* Unipi Neuron Kernel Module for SysFS. 
-  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology 
+* Unipi Neuron Kernel Module for SysFS.
+  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
   * Or compile it https://github.com/mh-superbox/unipi-kernel
 * Python 3.7
 
@@ -49,7 +49,7 @@ Key | Value
 `mqtt/port` | The network port of the server host to connect to. Defaults to `1883`.
 `mqtt/connection/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default to `15`.
 `mqtt/connection/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
-`mqtt/connection/retry_interval` | Time between connection attempts. Default to `10`.
+`mqtt/connection/reconnect_interval` | Time between connection attempts. Default to `10`.
 `logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
 `logging/level` | Set level to debug, info, warning or error. Default to `info`.
 
@@ -67,9 +67,9 @@ Available mqtt topics:
 
 Topic | Response | Description
 ------ | ------ | ------
-`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "physical", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
-`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
-`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
+`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "physical", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
+`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
+`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
 
 ### Publish
 
