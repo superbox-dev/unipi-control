@@ -6,6 +6,12 @@ mqtt:
     keepalive: 15
     retry_limit: 30
     reconnect_interval: 10
+homeassistant:
+  discovery_prefix: homeassistant
+  mapping:
+    di_2_05:
+        name: "Shading up switch"
+        suggested_area: "Workspace"
 logging:
   logger: systemd
   level: info

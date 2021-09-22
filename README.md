@@ -37,10 +37,7 @@ $ sudo systemctl start umc.service
 $ sudo cp -R /opt/unipi-mqtt-client/src/etc/umc /etc
 ```
 
-* You can set the MQTT client settings in the `/etc/umc/client.yaml`
-* You can set the Home Assistant settings in the `/etc/umc/homeassistant.yaml`
-
-#### Client settings
+You can set the client settings in the `/etc/umc/client.yaml`.
 
 Key | Value
 ------ | ------
@@ -50,14 +47,9 @@ Key | Value
 `mqtt/connection/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default to `15`.
 `mqtt/connection/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
 `mqtt/connection/reconnect_interval` | Time between connection attempts. Default to `10`.
+`homeassistant/discovery_prefix` | The prefix for the discovery topic
 `logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
 `logging/level` | Set level to debug, info, warning or error. Default to `info`.
-
-#### Home Assistant settings
-
-Key | Value
------- | ------
-`discovery_prefix` | The prefix for the discovery topic
 
 ## Usage
 

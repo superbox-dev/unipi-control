@@ -1,7 +1,9 @@
 import re
 from collections import namedtuple
+from collections.abc import Mapping
 from typing import Optional
 
+from config import config
 from config import HardwareDefinition
 from config import logger
 from devices import devices
@@ -18,7 +20,7 @@ class ModbusCacheMap:
             for index in range(modbus_reg_group["count"]):
                 reg: int = modbus_reg_group["start_reg"] + index
 
-                if modbus_reg_group.get('type') == "input":
+                if modbus_reg_group.get("type") == "input":
                     self.registered_input[reg] = None
                 else:
                     self.registered[reg] = None
@@ -70,35 +72,48 @@ class FeatureMixin:
         self.modbus_client = board.neuron.modbus_client
         self.circuit: str = circuit
         self.mask: int = mask
-        self.device = namedtuple("Device", "dev_name dev_type circuit value changed")
+        self.device = namedtuple("Device", "dev_name dev_type circuit value topic")
         self.reg_value = lambda: board.neuron.modbus_cache_map.get_register(1, self.reg, unit=0)[0]
         self._value: bool = False
 
         devices.register(self.type, self)
 
     @property
-    def value(self):
+    def value(self) -> int:
         return 1 if self.reg_value() & self.mask else 0
+
+    @property
+    def topic(self) -> str:
+        topic: str = f"""{config.device_name}/{self.dev_name}"""
+
+        if self.dev_type:
+            topic += f"/{self.dev_type}"
+
+        topic += f"/{self.circuit}"
+
+        return topic
 
     @property
     def circuit_name(self):
         m = re.match(r"^[a-z]+_(\d{1})_(\d{2})$", self.circuit)
         return f"""{self.name} {m.group(1)}.{m.group(2).lstrip("0")}"""
 
-    async def get_state(self) -> namedtuple:
+    def get_state(self) -> tuple[namedtuple, bool]:
         value: bool = self.value == True  # noqa
         changed: bool = value != self._value
 
         if changed:
             self._value = value
 
-        return self.device(
+        device: namedtuple = self.device(
             self.dev_name,
             self.dev_type,
             self.circuit,
             self.value,
-            changed,
+            f"{self.topic}/get",
         )
+
+        return device, changed
 
 
 class FeatureWriteMixin:
@@ -181,7 +196,7 @@ class Board:
                 DigitalInput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
-                    reg=modbus_feature['val_reg'],
+                    reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
                     **modbus_feature,
                 )
@@ -195,8 +210,8 @@ class Board:
                 DigitalOutput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
-                    coil=modbus_feature['val_coil'] + index,
-                    reg=modbus_feature['val_reg'],
+                    coil=modbus_feature["val_coil"] + index,
+                    reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
                     **modbus_feature,
                 )
@@ -210,7 +225,7 @@ class Board:
                 AnlogOutput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
-                    reg=modbus_feature['val_reg'],
+                    reg=modbus_feature["val_reg"],
                     **modbus_feature,
                 )
 
@@ -223,7 +238,7 @@ class Board:
                 AnlogInput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
-                    reg=modbus_feature['val_reg'],
+                    reg=modbus_feature["val_reg"],
                     **modbus_feature,
                 )
 
@@ -242,7 +257,7 @@ class Board:
                 Register(
                     circuit=name % (feature_type.lower(), major_group, index + 1),
                     board=self,
-                    reg=modbus_feature['start_reg'] + index,
+                    reg=modbus_feature["start_reg"] + index,
                     **modbus_feature,
                 )
 
@@ -255,8 +270,8 @@ class Board:
                 Led(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
-                    coil=modbus_feature['val_coil'] + index,
-                    reg=modbus_feature['val_reg'],
+                    coil=modbus_feature["val_coil"] + index,
+                    reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
                     **modbus_feature,
                 )
@@ -270,7 +285,7 @@ class Board:
                 Watchdog(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
-                    reg=modbus_feature['val_reg'],
+                    reg=modbus_feature["val_reg"],
                     **modbus_feature,
                 )
 
@@ -290,9 +305,9 @@ class Board:
 class Neuron:
     def __init__(self, modbus_client):
         self.modbus_client = modbus_client
-        self.hw = HardwareDefinition()
+        self.hw: Mapping = HardwareDefinition()
         self.boards: list = []
-        self.modbus_cache_map = None
+        self.modbus_cache_map: Optional[ModbusCacheMap] = None
 
     async def read_boards(self) -> None:
         logger.info("[MODBUS] Reading SPI boards")
@@ -308,7 +323,7 @@ class Neuron:
     async def initialise_cache(self):
         if self.modbus_cache_map is None:
             self.modbus_cache_map = ModbusCacheMap(
-                self.hw["neuron_definition"]['modbus_register_blocks'],
+                self.hw["neuron_definition"]["modbus_register_blocks"],
                 self,
             )
 

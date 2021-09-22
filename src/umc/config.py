@@ -1,69 +1,113 @@
 import logging
 import os
 import struct
+from dataclasses import asdict
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import is_dataclass
 from pathlib import Path
 
 import yaml
-from deepmerge import always_merger
 from mapping import MappingMixin
 from systemd import journal
 
 HW_DEFINITIONS = "/etc/umc/hw_definitions"
 
 
-class ConfigMixin(MappingMixin):
-    @staticmethod
-    def read_yaml(defaults: dict, path: str) -> dict:
-        result: dict = defaults
+@dataclass
+class ConfigBase:
+    def update(self, new):
+        for key, value in new.items():
+            if hasattr(self, key):
+                item = getattr(self, key)
 
+                if is_dataclass(item):
+                    item.update(value)
+                else:
+                    setattr(self, key, value)
+
+    @staticmethod
+    def get_config(path: str) -> dict:
         if os.path.exists(path):
             with open(path) as f:
                 config: dict = yaml.load(f, Loader=yaml.FullLoader)
-                result = always_merger.merge(result, config)
 
-        return result
-
-
-class ClientConfig(ConfigMixin):
-    defaults: dict = {
-        "device_name": "unipi",
-        "mqtt": {
-            "host": "localhost",
-            "port": 1883,
-            "connection": {
-                "keepalive": 15,
-                "retry_limit": 30,
-                "reconnect_interval": 10,
-            },
-        },
-        "logging": {
-            "logger": "systemd",
-            "level": "info",
-        },
-    }
-
-    def __init__(self):
-        self.mapping: dict = self.read_yaml(self.defaults, "/etc/umc/client.yaml")
+        return config
 
 
-class HomeAssistantConfig(ConfigMixin):
-    defaults: dict = {
-        "discovery_prefix": "homeassistant",
-        "device": {
-            "manufacturer": "Unipi technology",
-        },
-    }
-
-    def __init__(self):
-        self.mapping: dict = self.read_yaml(self.defaults, "/etc/umc/homeassistant.yaml")
+@dataclass
+class MqttConfig(ConfigBase):
+    host: str = field(default="localhost")
+    port: int = field(default=1883)
+    keepalive: int = field(default=15)
+    retry_limit: int = field(default=30)
+    reconnect_interval: int = field(default=10)
 
 
-class Hardware(MappingMixin):
-    def __init__(self):
-        super().__init__()
-        self._read_eprom()
+@dataclass
+class DeviceInfo(ConfigBase):
+    manufacturer: str = field(default="Unipi technology")
 
-    def _read_eprom(self) -> None:
+
+@dataclass
+class HomeAssistantConfig(ConfigBase):
+    discovery_prefix: str = field(default="homeassistant")
+    mapping: dict = field(init=False, default_factory=dict)
+    device: dataclass = field(default=DeviceInfo())
+
+
+@dataclass
+class LoggingConfig(ConfigBase):
+    logger: str = field(default="systemd")
+    level: str = field(default="level")
+
+
+@dataclass
+class Config(ConfigBase):
+    device_name: str = field(default="unipi")
+    mqtt: dataclass = field(default=MqttConfig())
+    homeassistant: dataclass = field(default=HomeAssistantConfig())
+    logging: dataclass = field(default=LoggingConfig())
+
+    def __post_init__(self):
+        config: dict = self.get_config("/etc/umc/client.yaml")
+        self.update(config)
+
+    @property
+    def logger(self):
+        logger_type: str = self.logging.logger
+        logger = logging.getLogger(__name__)
+
+        level: dict = {
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
+        }
+
+        logger_level = level[self.logging.level]
+
+        if logger_type == "systemd":
+            logger.addHandler(journal.JournalHandler())
+            logger.setLevel(level=logger_level)
+        elif logger_type == "file":
+            logging.basicConfig(
+                level=logger_level,
+                filename="/var/log/umc.log",
+                format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            )
+
+        return logger
+
+
+@dataclass
+class Hardware:
+    name: str = field(init=False)
+    model: str = field(init=False)
+    version: str = field(init=False)
+    serial: str = field(init=False)
+
+    def __post_init__(self):
         neuron: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")
 
         # TODO: Add other devices
@@ -73,20 +117,20 @@ class Hardware(MappingMixin):
             with open(neuron, "rb") as f:
                 ee_bytes = f.read(128)
 
-                self.mapping.update({
-                    "name": "Unipi Neuron",
-                    "model": f"{ee_bytes[106:110].decode()}",
-                    "version": f"{ee_bytes[99]}.{ee_bytes[98]}",
-                    "serial": struct.unpack("i", ee_bytes[100:104])[0],
-                })
+                self.name = "Unipi Neuron"
+                self.model = f"{ee_bytes[106:110].decode()}"
+                self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
+                self.serial = struct.unpack("i", ee_bytes[100:104])[0]
 
 
 class HardwareDefinition(MappingMixin):
     def __init__(self):
         super().__init__()
 
+        self.hardware = Hardware()
+
         self.mapping: dict = {
-            "neuron": Hardware(),
+            "neuron": asdict(Hardware()),
             "definitions": [],
             "neuron_definition": None,
         }
@@ -115,25 +159,5 @@ class HardwareDefinition(MappingMixin):
             logger.error(f"""No valid YAML definition for active Neuron device! Device name {self.mapping["neuron"]["model"]}""")
 
 
-config = ClientConfig()
-ha_config = HomeAssistantConfig()
-
-logger_type: str = config["logging"]["logger"]
-logger = logging.getLogger(__name__)
-
-LEVEL: dict = {
-    "debug": logging.DEBUG,
-    "info": logging.INFO,
-    "warning": logging.WARNING,
-    "error": logging.ERROR,
-}
-
-if logger_type == "systemd":
-    logger.addHandler(journal.JournalHandler())
-    logger.setLevel(level=LEVEL[config["logging"]["level"]])
-elif logger_type == "file":
-    logging.basicConfig(
-        level=LEVEL[config["logging"]["level"]],
-        filename="/var/log/umc.log",
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
+config = Config()
+logger = config.logger

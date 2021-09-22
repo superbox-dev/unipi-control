@@ -5,11 +5,10 @@ import json
 import signal
 import sys
 import uuid
-from collections import namedtuple
 from contextlib import AsyncExitStack
 from typing import Optional
 
-from asyncio_mqtt import Client
+from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
 from config import config
 from config import logger
@@ -18,7 +17,6 @@ from homeassistant import HomeAssistant
 from neuron import Neuron
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusClient
-from utils import get_device_topic
 
 
 class UnipiMqttClient:
@@ -26,9 +24,10 @@ class UnipiMqttClient:
         self.neuron = Neuron(modbus_client)
         self.ha = HomeAssistant(self.neuron)
 
-        self._mqtt_client_id: str = f"""{config["device_name"]}-{uuid.uuid4()}"""
+        self._mqtt_client_id: str = f"""{config.device_name}-{uuid.uuid4()}"""
         logger.info(f"[MQTT] Client ID: {self._mqtt_client_id}")
 
+        self._queue = asyncio.Queue()
         self._tasks = None
         self._retry_reconnect: int = 0
 
@@ -45,20 +44,17 @@ class UnipiMqttClient:
             finally:
                 await device.set_state(value)
 
-    async def _publish_devices(self, mqtt_client) -> None:
+    async def _publish_devices(self, client: MqttClient) -> None:
         while True:
             await self.neuron.start_scanning()
 
-            results: namedtuple = await asyncio.gather(*(device.get_state() for device in self._publish_list))
+            for d in devices.by_name(["RO", "DO"]):
+                device, changed = d.get_state()
 
-            for device in results:
-                if device.changed:
-                    topic: str = f"""{get_device_topic(device)}/get"""
-                    message: dict = {k: v for k, v in dict(device._asdict()).items() if v is not None}
-                    message.pop("changed")
-
-                    logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
-                    await mqtt_client.publish(topic, json.dumps(message), qos=1)
+                if changed:
+                    message: dict = device._asdict()
+                    logger.info(f"""[MQTT][{device.topic}] Publishing message: {message}""")
+                    await client.publish(device.topic, json.dumps(message), qos=1)
 
             await asyncio.sleep(250e-3)
 
@@ -68,20 +64,20 @@ class UnipiMqttClient:
 
             stack.push_async_callback(self.cancel_tasks)
 
-            mqtt_client = Client(
-                config["mqtt"]["host"],
-                port=config["mqtt"]["port"],
+            mqtt_client = MqttClient(
+                config.mqtt.host,
+                config.mqtt.port,
                 client_id=self._mqtt_client_id,
-                keepalive=config["mqtt"]["connection"]["keepalive"],
+                keepalive=config.mqtt.keepalive,
             )
 
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info(f"""[MQTT] Connected to broker at `{config["mqtt"]["host"]}:{config["mqtt"]["port"]}`""")
+            logger.info(f"""[MQTT] Connected to broker at `{config.mqtt.host}:{config.mqtt.port}`""")
 
-            for device in self._subscribe_list:
-                topic: str = f"""{get_device_topic(device)}/set"""
+            for device in devices.by_name(["RO", "DO"]):
+                topic: str = f"""{device.topic}/set"""
 
                 manager = mqtt_client.filtered_messages(topic)
                 messages = await stack.enter_async_context(manager)
@@ -126,11 +122,8 @@ class UnipiMqttClient:
         await self.neuron.initialise_cache()
         await self.neuron.read_boards()
 
-        self._subscribe_list: list = devices.by_name(["RO", "DO"])
-        self._publish_list: list = devices.by_name(["RO", "DO", "DI", "LED"])
-
-        reconnect_interval: int = config["mqtt"]["connection"]["reconnect_interval"]
-        retry_limit: Optional[int] = config["mqtt"]["connection"]["retry_limit"]
+        reconnect_interval: int = config.mqtt.reconnect_interval
+        retry_limit: Optional[int] = config.mqtt.retry_limit
 
         while True:
             try:
