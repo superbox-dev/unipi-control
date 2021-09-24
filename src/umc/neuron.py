@@ -1,12 +1,17 @@
-import re
-from collections import namedtuple
 from collections.abc import Mapping
 from typing import Optional
 
-from config import config
 from config import HardwareDefinition
 from config import logger
+from devices import AnalogInput
+from devices import AnalogOutput
 from devices import devices
+from devices import DigitalInput
+from devices import DigitalOutput
+from devices import Led
+from devices import Register
+from devices import Relay
+from devices import Watchdog
 
 
 class ModbusCacheMap:
@@ -55,116 +60,15 @@ class ModbusCacheMap:
             }
 
             if modbus_reg_group.get("type") == "input":
-                val = await self.neuron.modbus_client.read_input_registers(**data)
+                val = await self.neuron.modbus.read_input_registers(**data)
 
                 for index in range(modbus_reg_group["count"]):
                     self.registered_input[modbus_reg_group["start_reg"] + index] = val.registers[index]
             else:
-                val = await self.neuron.modbus_client.read_holding_registers(**data)
+                val = await self.neuron.modbus.read_holding_registers(**data)
 
                 for index in range(modbus_reg_group["count"]):
                     self.registered[modbus_reg_group["start_reg"] + index] = val.registers[index]
-
-
-class FeatureMixin:
-    def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
-        self.__dict__.update(kwargs)
-        self.modbus_client = board.neuron.modbus_client
-        self.circuit: str = circuit
-        self.mask: int = mask
-        self.device = namedtuple("Device", "dev_name dev_type circuit value topic")
-        self.reg_value = lambda: board.neuron.modbus_cache_map.get_register(1, self.reg, unit=0)[0]
-        self._value: bool = False
-
-        devices.register(self.type, self)
-
-    @property
-    def value(self) -> int:
-        return 1 if self.reg_value() & self.mask else 0
-
-    @property
-    def topic(self) -> str:
-        topic: str = f"""{config.device_name}/{self.dev_name}"""
-
-        if self.dev_type:
-            topic += f"/{self.dev_type}"
-
-        topic += f"/{self.circuit}"
-
-        return topic
-
-    @property
-    def circuit_name(self):
-        m = re.match(r"^[a-z]+_(\d{1})_(\d{2})$", self.circuit)
-        return f"""{self.name} {m.group(1)}.{m.group(2).lstrip("0")}"""
-
-    def get_state(self) -> tuple[namedtuple, bool]:
-        value: bool = self.value == True  # noqa
-        changed: bool = value != self._value
-
-        if changed:
-            self._value = value
-
-        device: namedtuple = self.device(
-            self.dev_name,
-            self.dev_type,
-            self.circuit,
-            self.value,
-            f"{self.topic}/get",
-        )
-
-        return device, changed
-
-
-class FeatureWriteMixin:
-    async def set_state(self, value: int) -> None:
-        await self.modbus_client.write_coil(self.coil, value)
-
-
-class Relay(FeatureMixin, FeatureWriteMixin):
-    name = "Relay"
-    dev_name = "relay"
-    dev_type = "physical"
-
-
-class DigitalOutput(FeatureMixin, FeatureWriteMixin):
-    name = "Digital Output"
-    dev_name = "relay"
-    dev_type = "digital"
-
-
-class DigitalInput(FeatureMixin):
-    name = "Digital Input"
-    dev_name = "input"
-    dev_type = "digital"
-
-
-class AnlogOutput(FeatureMixin, FeatureWriteMixin):
-    name = "Analog Output"
-    dev_name = "output"
-    dev_type = "analog"
-
-
-class AnlogInput(FeatureMixin):
-    name = "Analog Input"
-    dev_name = "input"
-    dev_type = "analog"
-
-
-class Led(FeatureMixin, FeatureWriteMixin):
-    name = "LED"
-    dev_name = "led"
-    dev_type = None
-
-
-class Watchdog(FeatureMixin, FeatureWriteMixin):
-    name = "Watchdog"
-    dev_name = "wd"
-
-
-class Register(FeatureMixin, FeatureWriteMixin):
-    name = "Register"
-    dev_name = "register"
 
 
 class Board:
@@ -178,7 +82,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                Relay(
+                ro = Relay(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     coil=modbus_feature['val_coil'] + index,
@@ -187,13 +91,15 @@ class Board:
                     **modbus_feature,
                 )
 
+                devices.register(ro)
+
     def _parse_feature_di(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                DigitalInput(
+                di = DigitalInput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature["val_reg"],
@@ -201,13 +107,15 @@ class Board:
                     **modbus_feature,
                 )
 
+                devices.register(di)
+
     def _parse_feature_do(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                DigitalOutput(
+                do = DigitalOutput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     coil=modbus_feature["val_coil"] + index,
@@ -216,18 +124,22 @@ class Board:
                     **modbus_feature,
                 )
 
+                devices.register(do)
+
     def _parse_feature_ao(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                AnlogOutput(
+                ao = AnalogOutput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature["val_reg"],
                     **modbus_feature,
                 )
+
+                devices.register(ao)
 
     def _parse_feature_ai(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -235,12 +147,14 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                AnlogInput(
+                ai = AnalogInput(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature["val_reg"],
                     **modbus_feature,
                 )
+
+                devices.register(ai)
 
     def _parse_feature_register(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -254,12 +168,14 @@ class Board:
                 else:
                     name = "%s_%s_%d"
 
-                Register(
+                reg = Register(
                     circuit=name % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature["start_reg"] + index,
                     **modbus_feature,
                 )
+
+                devices.register(reg)
 
     def _parse_feature_led(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -267,7 +183,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                Led(
+                led = Led(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     coil=modbus_feature["val_coil"] + index,
@@ -276,18 +192,22 @@ class Board:
                     **modbus_feature,
                 )
 
+                devices.register(led)
+
     def _parse_feature_wd(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                Watchdog(
+                wd = Watchdog(
                     circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
                     board=self,
                     reg=modbus_feature["val_reg"],
                     **modbus_feature,
                 )
+
+                devices.register(wd)
 
     def _parse_feature(self, modbus_feature: dict) -> None:
         max_count: int = modbus_feature["count"]
@@ -303,8 +223,8 @@ class Board:
 
 
 class Neuron:
-    def __init__(self, modbus_client):
-        self.modbus_client = modbus_client
+    def __init__(self, modbus):
+        self.modbus = modbus
         self.hw: Mapping = HardwareDefinition()
         self.boards: list = []
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
@@ -313,7 +233,7 @@ class Neuron:
         logger.info("[MODBUS] Reading SPI boards")
 
         for index in (1, 2, 3):
-            request_fw = await self.modbus_client.read_input_registers(1000, 1, unit=index)
+            request_fw = await self.modbus.read_input_registers(1000, 1, unit=index)
 
             if request_fw.isError():
                 logger.info(f"[MODBUS] No board on SPI {index}")

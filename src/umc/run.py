@@ -6,6 +6,7 @@ import signal
 import sys
 import uuid
 from contextlib import AsyncExitStack
+from dataclasses import asdict
 from typing import Optional
 
 from asyncio_mqtt import Client as MqttClient
@@ -14,20 +15,19 @@ from config import config
 from config import logger
 from devices import devices
 from homeassistant import HomeAssistant
+from modbus import Modbus
+from modbus import ModbusException
 from neuron import Neuron
-from pymodbus.client.asynchronous import schedulers
-from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusClient
 
 
 class UnipiMqttClient:
-    def __init__(self, loop, modbus_client):
-        self.neuron = Neuron(modbus_client)
+    def __init__(self, loop, modbus):
+        self.neuron = Neuron(modbus)
         self.ha = HomeAssistant(self.neuron)
 
         self._mqtt_client_id: str = f"""{config.device_name}-{uuid.uuid4()}"""
         logger.info(f"[MQTT] Client ID: {self._mqtt_client_id}")
 
-        self._queue = asyncio.Queue()
         self._tasks = None
         self._retry_reconnect: int = 0
 
@@ -48,11 +48,9 @@ class UnipiMqttClient:
         while True:
             await self.neuron.start_scanning()
 
-            for d in devices.by_name(["RO", "DO"]):
-                device, changed = d.get_state()
-
-                if changed:
-                    message: dict = device._asdict()
+            for device in devices.by_name(["RO", "DO"]):
+                if device.changed:
+                    message: dict = asdict(device.message)
                     logger.info(f"""[MQTT][{device.topic}] Publishing message: {message}""")
                     await client.publish(device.topic, json.dumps(message), qos=1)
 
@@ -109,14 +107,12 @@ class UnipiMqttClient:
         if signal:
             logger.info(f"Received exit signal {signal.name}...")
 
-        tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        tasks = [t for t in asyncio.all_tasks() if t is not (t.done() or asyncio.current_task())]
         [task.cancel() for task in tasks]
 
         logger.info(f"Cancelling {len(tasks)} outstanding tasks.")
 
         await asyncio.gather(*tasks)
-
-        loop.stop()
 
     async def run(self) -> None:
         await self.neuron.initialise_cache()
@@ -145,11 +141,13 @@ def main() -> None:
     parser.add_argument("--debug", default=False, type=bool, help="Debug")
     args = parser.parse_args()
 
-    loop, modbus_client = ModbusClient(schedulers.ASYNC_IO, port=502)
-    umc = UnipiMqttClient(loop, modbus_client.protocol)
-    signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-
+    loop = asyncio.new_event_loop()
     loop.set_debug(args.debug)
+
+    modbus = Modbus(loop)
+    umc = UnipiMqttClient(loop, modbus)
+
+    signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
 
     for s in signals:
         loop.add_signal_handler(
@@ -158,8 +156,8 @@ def main() -> None:
 
     try:
         loop.run_until_complete(umc.run())
-    except asyncio.CancelledError as error:
-        print(error)
+    except ModbusException as error:
+        logger.error(f"[MODBUS] {error}")
     finally:
         loop.close()
         logger.info("Successfully shutdown the Unipi MQTT Client service.")

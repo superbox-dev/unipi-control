@@ -8,7 +8,7 @@ from dataclasses import is_dataclass
 from pathlib import Path
 
 import yaml
-from mapping import MappingMixin
+from helpers import MappingMixin
 from systemd import journal
 
 HW_DEFINITIONS = "/etc/umc/hw_definitions"
@@ -25,14 +25,6 @@ class ConfigBase:
                     item.update(value)
                 else:
                     setattr(self, key, value)
-
-    @staticmethod
-    def get_config(path: str) -> dict:
-        if os.path.exists(path):
-            with open(path) as f:
-                config: dict = yaml.load(f, Loader=yaml.FullLoader)
-
-        return config
 
 
 @dataclass
@@ -72,6 +64,14 @@ class Config(ConfigBase):
     def __post_init__(self):
         config: dict = self.get_config("/etc/umc/client.yaml")
         self.update(config)
+
+    @staticmethod
+    def get_config(path: str) -> dict:
+        if os.path.exists(path):
+            with open(path) as f:
+                config: dict = yaml.load(f, Loader=yaml.FullLoader)
+
+        return config
 
     @property
     def logger(self):
