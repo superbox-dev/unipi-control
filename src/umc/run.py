@@ -12,6 +12,7 @@ from typing import Optional
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
 from config import config
+from config import HardwareException
 from config import logger
 from devices import devices
 from homeassistant import HomeAssistant
@@ -144,18 +145,20 @@ def main() -> None:
     loop = asyncio.new_event_loop()
     loop.set_debug(args.debug)
 
-    modbus = Modbus(loop)
-    umc = UnipiMqttClient(loop, modbus)
-
-    signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-
-    for s in signals:
-        loop.add_signal_handler(
-            s, lambda s=s: asyncio.create_task(umc.shutdown(loop, s))
-        )
-
     try:
+        modbus = Modbus(loop)
+        umc = UnipiMqttClient(loop, modbus)
+
+        signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
+
+        for s in signals:
+            loop.add_signal_handler(
+                s, lambda s=s: asyncio.create_task(umc.shutdown(loop, s))
+            )
+
         loop.run_until_complete(umc.run())
+    except HardwareException as error:
+        logger.error(error)
     except ModbusException as error:
         logger.error(f"[MODBUS] {error}")
     finally:

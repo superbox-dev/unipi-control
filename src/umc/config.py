@@ -11,7 +11,7 @@ import yaml
 from helpers import MappingMixin
 from systemd import journal
 
-HW_DEFINITIONS = "/etc/umc/hw_definitions"
+HW_CONFIGS = "/etc/umc/hardware"
 
 
 @dataclass
@@ -100,6 +100,10 @@ class Config(ConfigBase):
         return logger
 
 
+class HardwareException(Exception):
+    pass
+
+
 @dataclass
 class Hardware:
     name: str = field(init=False)
@@ -109,9 +113,6 @@ class Hardware:
 
     def __post_init__(self):
         neuron: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")
-
-        # TODO: Add other devices
-        # https://github.com/UniPiTechnology/evok/blob/master/evok/config.py
 
         if neuron.is_file():
             with open(neuron, "rb") as f:
@@ -135,28 +136,33 @@ class HardwareDefinition(MappingMixin):
             "neuron_definition": None,
         }
 
+        self.model: str = self.mapping["neuron"]["model"]
+
+        if self.model is None:
+            raise HardwareException("Hardware is not supported!")
+
         self._read_definitions()
-        self._read_build_in_definition()
+        self._read_neuron_definition()
 
     def _read_definitions(self) -> None:
-        for f in Path(HW_DEFINITIONS).iterdir():
+        for f in Path(f"{HW_CONFIGS}/extension").iterdir():
             if str(f).endswith(".yaml"):
                 with open(f) as yf:
                     self.mapping["definitions"].append(
                         yaml.load(yf, Loader=yaml.FullLoader)
                     )
 
-                    logger.info(f"""YAML Definition loaded: {f}""")
+                    # logger.info(f"""YAML Definition loaded: {f}""")
 
-    def _read_build_in_definition(self) -> None:
-        definition_file: str = Path(f"""{HW_DEFINITIONS}/BuiltIn/{self.mapping["neuron"]["model"]}.yaml""")
+    def _read_neuron_definition(self) -> None:
+        definition_file: str = Path(f"""{HW_CONFIGS}/neuron/{self.model}.yaml""")
 
         if definition_file.is_file():
             with open(definition_file) as yf:
                 self.mapping["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
                 logger.info(f"""YAML Definition loaded: {definition_file}""")
         else:
-            logger.error(f"""No valid YAML definition for active Neuron device! Device name {self.mapping["neuron"]["model"]}""")
+            raise HardwareException(f"No valid YAML definition for active Neuron device! Device name {self.model}")
 
 
 config = Config()
