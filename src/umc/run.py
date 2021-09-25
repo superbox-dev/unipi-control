@@ -157,6 +157,8 @@ def main() -> None:
             )
 
         loop.run_until_complete(umc.run())
+    except asyncio.exceptions.CancelledError:
+        pass
     except HardwareException as error:
         logger.error(error)
     except ModbusException as error:
