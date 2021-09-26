@@ -126,14 +126,4 @@ class Led(FeatureMixin, FeatureWriteMixin):
     dev_type = None
 
 
-class Watchdog(FeatureMixin, FeatureWriteMixin):
-    name = "Watchdog"
-    dev_name = "wd"
-
-
-class Register(FeatureMixin, FeatureWriteMixin):
-    name = "Register"
-    dev_name = "register"
-
-
 devices = DeviceMap()

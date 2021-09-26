@@ -1,4 +1,4 @@
-device_name: unipi
+device_name: Unipi
 mqtt:
   host: localhost
   port: 1883
@@ -11,7 +11,6 @@ homeassistant:
   mapping:
     di_2_05:
         name: "Shading up switch"
-        suggested_area: "Workspace"
 logging:
   logger: systemd
   level: info

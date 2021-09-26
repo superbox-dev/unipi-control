@@ -32,6 +32,7 @@ def get_device_connections() -> list:
 class HomeAssistant:
     def __init__(self, neuron):
         logger.info("[MQTT] Initialize Home Assistant discovery")
+        self.neuron = neuron
         self._hw = neuron.hw
 
     def _get_mapping(self, circuit) -> dict:
@@ -41,18 +42,15 @@ class HomeAssistant:
         custom_name: Optional[str] = self._get_mapping(device.circuit).get("name")
 
         if custom_name:
-            return f"{custom_name} - {device.circuit_name}"
+            return custom_name
 
-        return f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]} - {device.circuit_name}"""
-
-    def _get_suggested_area(self, device) -> str:
-        return self._get_mapping(device.circuit).get("suggested_area", "")
+        return f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}"""
 
     def _get_switch_discovery(self, device) -> tuple:
         topic: str = f"""{config.homeassistant.discovery_prefix}/switch/{config.device_name}/{device.circuit}/config"""
 
         message: dict = {
-            "name": self._get_name(device),
+            "name": f"{self._get_name(device)} - {device.circuit_name}",
             "unique_id": f"""{config.device_name}_{device.circuit}""",
             "state_topic": f"{device.topic}/get",
             "command_topic": f"{device.topic}/set",
@@ -62,12 +60,11 @@ class HomeAssistant:
             "qos": 1,
             "retain": "true",
             "device": {
-                "name": self._hw["neuron"]["name"],
-                "connections": get_device_connections(),
-                "model": self._hw["neuron"]["model"],
-                # "suggested_area": self._get_suggested_area(device),
-                # TODO: read firmeware from board
-                "sw_version": self._hw["neuron"]["version"],
+                "name": f"{config.device_name} {device.major_group}/{len(self.neuron.boards)}",
+                # "connections": get_device_connections(),
+                "identifiers": f"{config.device_name} {device.major_group}",
+                "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
+                "sw_version": self.neuron.boards[device.major_group - 1].firmware,
                 **asdict(config.homeassistant.device),
             }
         }
@@ -78,7 +75,7 @@ class HomeAssistant:
         topic: str = f"""{config.homeassistant.discovery_prefix}/binary_sensor/{config.device_name}/{device.circuit}/config"""
 
         message: dict = {
-            "name": self._get_name(device),
+            "name": f"{self._get_name(device)} - {device.circuit_name}",
             "unique_id": f"""{config.device_name}_{device.circuit}""",
             "state_topic": f"{device.topic}/get",
             "payload_on": "1",
@@ -86,12 +83,11 @@ class HomeAssistant:
             "value_template": "{{ value_json.value }}",
             "qos": 1,
             "device": {
-                "name": self._hw["neuron"]["name"],
-                "connections": get_device_connections(),
-                "model": self._hw["neuron"]["model"],
-                # "suggested_area": self._get_suggested_area(device_class),
-                # TODO: read firmeware from board
-                "sw_version": self._hw["neuron"]["version"],
+                "name": f"{config.device_name} {device.major_group}/{len(self.neuron.boards)}",
+                # "connections": get_device_connections(),
+                "identifiers": f"{config.device_name} {device.major_group}",
+                "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
+                "sw_version": self.neuron.boards[device.major_group - 1].firmware,
                 **asdict(config.homeassistant.device),
             }
         }
