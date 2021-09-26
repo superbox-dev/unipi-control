@@ -26,7 +26,7 @@ class UnipiMqttClient:
         self.neuron = Neuron(modbus)
         self.ha = HomeAssistant(self.neuron)
 
-        self._mqtt_client_id: str = f"""{config.device_name}-{uuid.uuid4()}"""
+        self._mqtt_client_id: str = f"""{config.device_name.lower()}-{uuid.uuid4()}"""
         logger.info(f"[MQTT] Client ID: {self._mqtt_client_id}")
 
         self._tasks = None
@@ -53,7 +53,7 @@ class UnipiMqttClient:
                 if device.changed:
                     message: dict = asdict(device.message)
                     logger.info(f"""[MQTT][{device.topic}] Publishing message: {message}""")
-                    await client.publish(device.topic, json.dumps(message), qos=1)
+                    await client.publish(f"{device.topic}/get", json.dumps(message), qos=1)
 
             await asyncio.sleep(250e-3)
 

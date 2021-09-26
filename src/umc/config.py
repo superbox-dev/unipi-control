@@ -56,7 +56,8 @@ class LoggingConfig(ConfigBase):
 
 @dataclass
 class Config(ConfigBase):
-    device_name: str = field(default="unipi")
+    # TODO: Device name check. No spaces and only A-Z 0-1 allowed!
+    device_name: str = field(default="Unipi")
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
     logging: dataclass = field(default=LoggingConfig())

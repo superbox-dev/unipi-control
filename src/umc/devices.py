@@ -50,7 +50,7 @@ class FeatureMixin:
 
     @property
     def topic(self) -> str:
-        topic: str = f"""{config.device_name}/{self.dev_name}"""
+        topic: str = f"""{config.device_name.lower()}/{self.dev_name}"""
 
         if self.dev_type:
             topic += f"/{self.dev_type}"

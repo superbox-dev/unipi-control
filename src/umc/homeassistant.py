@@ -47,22 +47,22 @@ class HomeAssistant:
         return f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}"""
 
     def _get_switch_discovery(self, device) -> tuple:
-        topic: str = f"""{config.homeassistant.discovery_prefix}/switch/{config.device_name}/{device.circuit}/config"""
+        topic: str = f"""{config.homeassistant.discovery_prefix}/switch/{config.device_name.lower()}/{device.circuit}/config"""
 
         message: dict = {
             "name": f"{self._get_name(device)} - {device.circuit_name}",
-            "unique_id": f"""{config.device_name}_{device.circuit}""",
+            "unique_id": f"""{config.device_name.lower()}_{device.circuit}""",
             "state_topic": f"{device.topic}/get",
             "command_topic": f"{device.topic}/set",
-            "payload_on": "1",
-            "payload_off": "0",
+            "payload_on": 1,
+            "payload_off": 0,
             "value_template": "{{ value_json.value }}",
             "qos": 1,
             "retain": "true",
             "device": {
                 "name": f"{config.device_name} {device.major_group}/{len(self.neuron.boards)}",
                 # "connections": get_device_connections(),
-                "identifiers": f"{config.device_name} {device.major_group}",
+                "identifiers": f"{config.device_name.lower()} {device.major_group}",
                 "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
                 "sw_version": self.neuron.boards[device.major_group - 1].firmware,
                 **asdict(config.homeassistant.device),
@@ -72,20 +72,20 @@ class HomeAssistant:
         return topic, message
 
     def _get_binary_sensor_discovery(self, device) -> tuple:
-        topic: str = f"""{config.homeassistant.discovery_prefix}/binary_sensor/{config.device_name}/{device.circuit}/config"""
+        topic: str = f"""{config.homeassistant.discovery_prefix}/binary_sensor/{config.device_name.lower()}/{device.circuit}/config"""
 
         message: dict = {
             "name": f"{self._get_name(device)} - {device.circuit_name}",
-            "unique_id": f"""{config.device_name}_{device.circuit}""",
+            "unique_id": f"""{config.device_name.lower()}_{device.circuit}""",
             "state_topic": f"{device.topic}/get",
-            "payload_on": "1",
-            "payload_off": "0",
+            "payload_on": 1,
+            "payload_off": 0,
             "value_template": "{{ value_json.value }}",
             "qos": 1,
             "device": {
                 "name": f"{config.device_name} {device.major_group}/{len(self.neuron.boards)}",
                 # "connections": get_device_connections(),
-                "identifiers": f"{config.device_name} {device.major_group}",
+                "identifiers": f"{config.device_name.lower()} {device.major_group}",
                 "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
                 "sw_version": self.neuron.boards[device.major_group - 1].firmware,
                 **asdict(config.homeassistant.device),
