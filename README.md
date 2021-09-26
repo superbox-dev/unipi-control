@@ -4,9 +4,9 @@
 
 **Requirements:**
 
-* Unipi Neuron Kernel Module for SysFS.
+* Unipi Neuron Kernel Module and Unipi tools
   * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-  * Or compile it https://github.com/mh-superbox/unipi-kernel
+  * Or compile it https://github.com/UniPiTechnology/unipi-kernel / https://github.com/UniPiTechnology/unipi-tools   
 * Python 3.7
 
 Install the python package in your virtualenv:
@@ -47,7 +47,8 @@ Key | Value
 `mqtt/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default to `15`.
 `mqtt/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
 `mqtt/reconnect_interval` | Time between connection attempts. Default to `10`.
-`homeassistant/discovery_prefix` | The prefix for the discovery topic
+`homeassistant/discovery_prefix` | The prefix for the discovery topic.
+`homeassistant/mapping` | Custom name mapping for circuits.
 `logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
 `logging/level` | Set level to debug, info, warning or error. Default to `info`.
 
