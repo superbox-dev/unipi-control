@@ -4,12 +4,9 @@
 
 **Requirements:**
 
-* Unipi Neuron Kernel Module
+* Unipi Neuron Kernel Module and Unipi tools
   * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-  * Or compile it https://github.com/UniPiTechnology/unipi-kernel
-* Unipi tools
-  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-  *  Or compile it https://github.com/UniPiTechnology/unipi-tools   
+  * Or compile it https://github.com/UniPiTechnology/unipi-kernel / https://github.com/UniPiTechnology/unipi-tools   
 * Python 3.7
 
 Install the python package in your virtualenv:
