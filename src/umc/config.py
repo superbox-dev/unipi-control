@@ -1,6 +1,8 @@
 import logging
 import os
+import re
 import struct
+import sys
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
@@ -10,12 +12,19 @@ from pathlib import Path
 import yaml
 from helpers import MappingMixin
 from systemd import journal
+from termcolor import colored
 
 HW_CONFIGS = "/etc/umc/hardware"
 
 
 @dataclass
 class ConfigBase:
+    def clean(self):
+        for key in self.__dict__.keys():
+            clean_method = getattr(self, f"clean_{key}", None)
+            if clean_method and callable(clean_method):
+                clean_method()
+
     def update(self, new):
         for key, value in new.items():
             if hasattr(self, key):
@@ -56,7 +65,6 @@ class LoggingConfig(ConfigBase):
 
 @dataclass
 class Config(ConfigBase):
-    # TODO: Device name check. No spaces and only A-Z 0-1 allowed!
     device_name: str = field(default="Unipi")
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
@@ -65,6 +73,7 @@ class Config(ConfigBase):
     def __post_init__(self):
         config: dict = self.get_config("/etc/umc/client.yaml")
         self.update(config)
+        self.clean()
 
     @staticmethod
     def get_config(path: str) -> dict:
@@ -99,6 +108,12 @@ class Config(ConfigBase):
             )
 
         return logger
+
+    def clean_device_name(self):
+        result = re.search(r"^[\w\d_-]*$", self.device_name)
+
+        if result is None:
+            sys.exit(colored("[CONFIG] Invalid value in \"device_name\". The following characters are prohibited: A-Z a-z 0-9 -_", "red"))
 
 
 class HardwareException(Exception):
@@ -140,7 +155,7 @@ class HardwareDefinition(MappingMixin):
         self.model: str = self.mapping["neuron"]["model"]
 
         if self.model is None:
-            raise HardwareException("Hardware is not supported!")
+            raise HardwareException("[CONFIG] Hardware is not supported!")
 
         self._read_definitions()
         self._read_neuron_definition()
@@ -163,7 +178,7 @@ class HardwareDefinition(MappingMixin):
                 self.mapping["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
                 logger.info(f"""YAML Definition loaded: {definition_file}""")
         else:
-            raise HardwareException(f"No valid YAML definition for active Neuron device! Device name {self.model}")
+            raise HardwareException(f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self.model}.")
 
 
 config = Config()

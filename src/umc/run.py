@@ -19,6 +19,7 @@ from homeassistant import HomeAssistant
 from modbus import Modbus
 from modbus import ModbusException
 from neuron import Neuron
+from termcolor import colored
 
 
 class UnipiMqttClient:
@@ -161,6 +162,7 @@ def main() -> None:
         pass
     except HardwareException as error:
         logger.error(error)
+        print(colored(error, "red"))
     except ModbusException as error:
         logger.error(f"[MODBUS] {error}")
     finally:
