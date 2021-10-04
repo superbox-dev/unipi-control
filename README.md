@@ -1,4 +1,4 @@
-# Unipi Mqtt Client
+# Unipi MQTT Client
 
 ## Installation
 
