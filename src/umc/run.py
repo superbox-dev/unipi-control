@@ -1,63 +1,34 @@
 #!/usr/bin/env python3
 import argparse
 import asyncio
-import json
 import signal
 import sys
 import uuid
 from contextlib import AsyncExitStack
-from dataclasses import asdict
 from typing import Optional
 
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
-from config import config
-from config import HardwareException
-from config import logger
-from devices import devices
-from homeassistant import HomeAssistant
-from modbus import Modbus
-from modbus import ModbusException
-from neuron import Neuron
+from plugins.devices import DevicesMqttPlugin
+from plugins.homeassistant import HomeAssistantMqttPlugin
 from termcolor import colored
+from umc.config import config
+from umc.config import HardwareException
+from umc.config import logger
+from umc.modbus import Modbus
+from umc.modbus import ModbusException
+from umc.neuron import Neuron
 
 
 class UnipiMqttClient:
     def __init__(self, loop, modbus):
         self.neuron = Neuron(modbus)
-        self.ha = HomeAssistant(self.neuron)
 
         self._mqtt_client_id: str = f"""{config.device_name.lower()}-{uuid.uuid4()}"""
         logger.info(f"[MQTT] Client ID: {self._mqtt_client_id}")
 
         self._tasks = None
         self._retry_reconnect: int = 0
-
-    async def _subscribe_devices(self, device, topic, messages) -> None:
-        template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
-
-        async for message in messages:
-            logger.info(template.format(message.payload.decode()))
-
-            try:
-                value: int = int(message.payload.decode())
-            except ValueError as e:
-                logger.error(e)
-            finally:
-                await device.set_state(value)
-
-    async def _publish_devices(self, client: MqttClient) -> None:
-        while True:
-            await self.neuron.start_scanning()
-
-            for device in devices.by_name(["AO", "DI", "DO", "RO"]):
-                if device.changed:
-                    topic: str = f"""{device.topic}/get"""
-                    message: dict = asdict(device.message)
-                    logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
-                    await client.publish(f"{topic}", json.dumps(message), qos=1)
-
-            await asyncio.sleep(250e-3)
 
     async def _init_tasks(self) -> None:
         async with AsyncExitStack() as stack:
@@ -77,23 +48,11 @@ class UnipiMqttClient:
 
             logger.info(f"""[MQTT] Connected to broker at `{config.mqtt.host}:{config.mqtt.port}`""")
 
-            for device in devices.by_name(["AO", "DO", "RO"]):
-                topic: str = f"""{device.topic}/set"""
+            tasks = await DevicesMqttPlugin(self, mqtt_client).init(stack)
+            self._tasks.update(tasks)
 
-                manager = mqtt_client.filtered_messages(topic)
-                messages = await stack.enter_async_context(manager)
-
-                task = asyncio.create_task(self._subscribe_devices(device, topic, messages))
-                self._tasks.add(task)
-
-                await mqtt_client.subscribe(topic)
-                logger.debug(f"[MQTT] Subscribe topic `{topic}`")
-
-            task = asyncio.create_task(self._publish_devices(mqtt_client))
-            self._tasks.add(task)
-
-            task = asyncio.create_task(self.ha.publish(mqtt_client))
-            self._tasks.add(task)
+            tasks = await HomeAssistantMqttPlugin(self, mqtt_client).init(stack)
+            self._tasks.update(tasks)
 
             await asyncio.gather(*self._tasks)
 

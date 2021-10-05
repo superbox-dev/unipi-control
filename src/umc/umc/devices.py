@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Optional
 from typing import Union
 
-from config import config
-from helpers import MutableMappingMixin
+from umc.config import config
+from umc.helpers import MutableMappingMixin
 
 
 class DeviceMap(MutableMappingMixin):

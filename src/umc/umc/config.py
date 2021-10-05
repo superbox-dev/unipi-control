@@ -10,9 +10,9 @@ from dataclasses import is_dataclass
 from pathlib import Path
 
 import yaml
-from helpers import MappingMixin
 from systemd import journal
 from termcolor import colored
+from umc.helpers import MappingMixin
 
 HW_CONFIGS = "/etc/umc/hardware"
 

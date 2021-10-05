@@ -1,39 +1,27 @@
-import fcntl
+import asyncio
 import json
-import socket
-import struct
 from dataclasses import asdict
 from typing import Optional
 
-from config import config
-from config import logger
-from devices import devices
+from umc.config import config
+from umc.config import logger
+from umc.devices import devices
 
 
-def get_hw_addr(ifname: str) -> str:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    info = fcntl.ioctl(s.fileno(), 0x8927, struct.pack("256s", bytes(ifname, "utf-8")[:15]))
-    return ":".join("%02x" % b for b in info[18:24])
+class HomeAssistantMqttPlugin:
+    def __init__(self, umc, mqtt_client):
+        logger.info("[MQTT] Initialize Home Assistant MQTT plugin")
+        self.umc = umc
+        self.mqtt_client = mqtt_client
+        self._hw = umc.neuron.hw
 
+    async def init(self, stack) -> set:
+        tasks = set()
 
-def get_device_connections() -> list:
-    connections: list = []
+        task = asyncio.create_task(self._publish())
+        tasks.add(task)
 
-    for key, interface in socket.if_nameindex():
-        hw_addr: str = get_hw_addr(interface)
-
-        if hw_addr != "00:00:00:00:00:00":
-            connections.append(["mac", hw_addr])
-            break
-
-    return connections
-
-
-class HomeAssistant:
-    def __init__(self, neuron):
-        logger.info("[MQTT] Initialize Home Assistant discovery")
-        self.neuron = neuron
-        self._hw = neuron.hw
+        return tasks
 
     def _get_mapping(self, circuit) -> dict:
         return config.homeassistant.mapping.get(circuit, {})
@@ -60,11 +48,11 @@ class HomeAssistant:
             "qos": 1,
             "retain": "true",
             "device": {
-                "name": f"{config.device_name} {device.major_group}/{len(self.neuron.boards)}",
+                "name": f"{config.device_name} {device.major_group}/{len(self.umc.neuron.boards)}",
                 # "connections": get_device_connections(),
                 "identifiers": f"{config.device_name.lower()} {device.major_group}",
                 "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
-                "sw_version": self.neuron.boards[device.major_group - 1].firmware,
+                "sw_version": self.umc.neuron.boards[device.major_group - 1].firmware,
                 **asdict(config.homeassistant.device),
             }
         }
@@ -83,24 +71,24 @@ class HomeAssistant:
             "value_template": "{{ value_json.value }}",
             "qos": 1,
             "device": {
-                "name": f"{config.device_name} {device.major_group}/{len(self.neuron.boards)}",
+                "name": f"{config.device_name} {device.major_group}/{len(self.umc.neuron.boards)}",
                 # "connections": get_device_connections(),
                 "identifiers": f"{config.device_name.lower()} {device.major_group}",
                 "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
-                "sw_version": self.neuron.boards[device.major_group - 1].firmware,
+                "sw_version": self.umc.neuron.boards[device.major_group - 1].firmware,
                 **asdict(config.homeassistant.device),
             }
         }
 
         return topic, message
 
-    async def publish(self, mqtt_client) -> None:
+    async def _publish(self) -> None:
         for device in devices.by_name(["RO", "DO"]):
             topic, message = self._get_switch_discovery(device)
             logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
-            await mqtt_client.publish(topic, json.dumps(message), qos=1)
+            await self.mqtt_client.publish(topic, json.dumps(message), qos=1)
 
         for device in devices.by_name(["DI"]):
             topic, message = self._get_binary_sensor_discovery(device)
             logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
-            await mqtt_client.publish(topic, json.dumps(message), qos=1)
+            await self.mqtt_client.publish(topic, json.dumps(message), qos=1)
