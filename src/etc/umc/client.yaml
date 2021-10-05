@@ -1,11 +1,16 @@
-device_name: unipi
+device_name: Unipi
 mqtt:
   host: localhost
   port: 1883
   connection:
     keepalive: 15
     retry_limit: 30
-    retry_interval: 10    
+    reconnect_interval: 10
+homeassistant:
+  discovery_prefix: homeassistant
+  mapping:
+    di_2_05:
+        name: "Shading up switch"
 logging:
   logger: systemd
-  level: info  
+  level: info

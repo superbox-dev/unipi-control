@@ -1,12 +1,12 @@
-# Unipi Mqtt Client
+# Unipi MQTT Client
 
 ## Installation
 
 **Requirements:**
 
-* Unipi Neuron Kernel Module for SysFS. 
-  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology 
-  * Or compile it https://github.com/mh-superbox/unipi-kernel
+* Unipi Neuron Kernel Module and Unipi tools
+  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
+  * Or compile it https://github.com/UniPiTechnology/unipi-kernel / https://github.com/UniPiTechnology/unipi-tools   
 * Python 3.7
 
 Install the python package in your virtualenv:
@@ -37,10 +37,7 @@ $ sudo systemctl start umc.service
 $ sudo cp -R /opt/unipi-mqtt-client/src/etc/umc /etc
 ```
 
-* You can set the MQTT client settings in the `/etc/umc/client.yaml`
-* You can set the Home Assistant settings in the `/etc/umc/homeassistant.yaml`
-
-#### Client settings
+You can set the client settings in the `/etc/umc/client.yaml`.
 
 Key | Value
 ------ | ------
@@ -49,15 +46,11 @@ Key | Value
 `mqtt/port` | The network port of the server host to connect to. Defaults to `1883`.
 `mqtt/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default to `15`.
 `mqtt/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
-`mqtt/retry_interval` | Time between connection attempts. Default to `10`.
+`mqtt/reconnect_interval` | Time between connection attempts. Default to `10`.
+`homeassistant/discovery_prefix` | The prefix for the discovery topic.
+`homeassistant/mapping` | Custom name mapping for circuits.
 `logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
 `logging/level` | Set level to debug, info, warning or error. Default to `info`.
-
-#### Home Assistant settings
-
-Key | Value
------- | ------
-`discovery_prefix` | The prefix for the discovery topic
 
 ## Usage
 
@@ -67,9 +60,9 @@ Available mqtt topics:
 
 Topic | Response | Description
 ------ | ------ | ------
-`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "physical", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
-`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
-`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True. 
+`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "physical", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
+`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
+`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
 
 ### Publish
 

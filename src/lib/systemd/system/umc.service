@@ -1,6 +1,7 @@
 [Unit]
 Description=Unipi MQTT Client
 After=multi-user.target
+Requires=unipitcp.service
 
 [Service]
 Type=simple
