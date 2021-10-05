@@ -17,20 +17,6 @@ $ git clone git@github.com:mh-superbox/unipi-mqtt-client.git
 $ pip install -e /opt/unipi-mqtt-client
 ```
 
-### Systemd Service
-
-Install and start the systemd service:
-
-```shell
-$ sudo cp /opt/unipi-mqtt-client/src/lib/systemd/system/umc.service /lib/systemd/system
-$ sudo chown root:root /lib/systemd/system/umc.service
-$ sudo chmod 644 /lib/systemd/system/umc.service
-
-$ sudo systemctl daemon-reload
-$ sudo systemctl enable umc.service
-$ sudo systemctl start umc.service
-```
-
 ### Configuration
 
 ```shell
@@ -51,6 +37,20 @@ Key | Value
 `homeassistant/mapping` | Custom name mapping for circuits.
 `logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
 `logging/level` | Set level to debug, info, warning or error. Default to `info`.
+
+### Systemd Service
+
+Install and start the systemd service:
+
+```shell
+$ sudo cp /opt/unipi-mqtt-client/src/lib/systemd/system/umc.service /lib/systemd/system
+$ sudo chown root:root /lib/systemd/system/umc.service
+$ sudo chmod 644 /lib/systemd/system/umc.service
+
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable umc.service
+$ sudo systemctl start umc.service
+```
 
 ## Usage
 
