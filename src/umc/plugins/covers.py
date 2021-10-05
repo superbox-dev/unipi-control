@@ -1,8 +1,8 @@
 # import asyncio
 # import json
 # from dataclasses import asdict
-from umc.config import logger
-# from umc.devices import devices
+from config import logger
+# from devices import devices
 
 
 class CoversMqttPlugin:

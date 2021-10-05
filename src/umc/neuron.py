@@ -1,16 +1,16 @@
 from collections.abc import Mapping
 from typing import Optional
 
-from umc.config import HardwareDefinition
-from umc.config import logger
-from umc.devices import AnalogInput
-from umc.devices import AnalogOutput
-from umc.devices import devices
-from umc.devices import DigitalInput
-from umc.devices import DigitalOutput
-from umc.devices import Led
-from umc.devices import Relay
-from umc.modbus import ModbusCacheMap
+from config import HardwareDefinition
+from config import logger
+from devices import AnalogInput
+from devices import AnalogOutput
+from devices import devices
+from devices import DigitalInput
+from devices import DigitalOutput
+from devices import Led
+from devices import Relay
+from modbus import ModbusCacheMap
 
 
 class Board:

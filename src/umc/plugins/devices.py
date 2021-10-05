@@ -3,9 +3,9 @@ import json
 from dataclasses import asdict
 from typing import Optional
 
-from umc.config import config
-from umc.config import logger
-from umc.devices import devices
+from config import config
+from config import logger
+from devices import devices
 
 
 class DevicesMqttPlugin:
