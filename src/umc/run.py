@@ -50,11 +50,12 @@ class UnipiMqttClient:
         while True:
             await self.neuron.start_scanning()
 
-            for device in devices.by_name(["RO", "DO"]):
+            for device in devices.by_name(["AO", "DI", "DO", "RO"]):
                 if device.changed:
+                    topic: str = f"""{device.topic}/get"""
                     message: dict = asdict(device.message)
-                    logger.info(f"""[MQTT][{device.topic}] Publishing message: {message}""")
-                    await client.publish(f"{device.topic}/get", json.dumps(message), qos=1)
+                    logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
+                    await client.publish(f"{topic}", json.dumps(message), qos=1)
 
             await asyncio.sleep(250e-3)
 
@@ -76,7 +77,7 @@ class UnipiMqttClient:
 
             logger.info(f"""[MQTT] Connected to broker at `{config.mqtt.host}:{config.mqtt.port}`""")
 
-            for device in devices.by_name(["RO", "DO"]):
+            for device in devices.by_name(["AO", "DO", "RO"]):
                 topic: str = f"""{device.topic}/set"""
 
                 manager = mqtt_client.filtered_messages(topic)

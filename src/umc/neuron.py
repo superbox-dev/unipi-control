@@ -18,6 +18,11 @@ class Board:
         self.neuron = neuron
         self.major_group: int = major_group
         self.firmware = f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
+        self.nao = (versions[2] & 0x00f0) >> 4
+
+        if self.nao:
+            self.volt_refx = (3.3 * (1 + neuron.modbus_cache_map.get_register(1, 1009)[0]))
+            self.volt_ref = self.volt_refx / neuron.modbus_cache_map.get_register(1, 5)[0]
 
     def _parse_feature_ro(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]

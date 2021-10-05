@@ -20,6 +20,14 @@ class Modbus:
 
         return response
 
+    async def write_register(self, address, value, unit):
+        if not self.modbus_client or not self.modbus_client.connected:
+            raise ModbusException()
+
+        response = await self.modbus_client.write_register(address, value, unit=unit)
+
+        return response
+
     async def read_holding_registers(self, address, count, unit):
         if not self.modbus_client or not self.modbus_client.connected:
             raise ModbusException()
