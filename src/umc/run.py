@@ -9,8 +9,8 @@ from typing import Optional
 
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
+from plugins.covers import CoversMqttPlugin
 from plugins.devices import DevicesMqttPlugin
-from plugins.homeassistant import HomeAssistantMqttPlugin
 from termcolor import colored
 from umc.config import config
 from umc.config import HardwareException
@@ -48,10 +48,10 @@ class UnipiMqttClient:
 
             logger.info(f"""[MQTT] Connected to broker at `{config.mqtt.host}:{config.mqtt.port}`""")
 
-            tasks = await DevicesMqttPlugin(self, mqtt_client).init(stack)
+            tasks = await DevicesMqttPlugin(self, mqtt_client).init_task(stack)
             self._tasks.update(tasks)
 
-            tasks = await HomeAssistantMqttPlugin(self, mqtt_client).init(stack)
+            tasks = await CoversMqttPlugin(self, mqtt_client).init_task(stack)
             self._tasks.update(tasks)
 
             await asyncio.gather(*self._tasks)
