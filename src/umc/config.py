@@ -122,10 +122,10 @@ class HardwareException(Exception):
 
 @dataclass
 class Hardware:
-    name: str = field(init=False)
-    model: str = field(init=False)
-    version: str = field(init=False)
-    serial: str = field(init=False)
+    name: str = field(default="unknown", init=False)
+    model: str = field(default="unknown", init=False)
+    version: str = field(default="unknown", init=False)
+    serial: str = field(default="unknown", init=False)
 
     def __post_init__(self):
         neuron: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")

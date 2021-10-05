@@ -167,7 +167,7 @@ def main() -> None:
     except ModbusException as error:
         logger.error(f"[MODBUS] {error}")
     finally:
-        loop.close()
+        # loop.close()
         logger.info("Successfully shutdown the Unipi MQTT Client service.")
 
 
