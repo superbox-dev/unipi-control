@@ -68,6 +68,7 @@ class Config(ConfigBase):
     device_name: str = field(default="Unipi")
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
+    plugins: dict = field(init=False, default_factory=dict)
     logging: dataclass = field(default=LoggingConfig())
 
     def __post_init__(self):

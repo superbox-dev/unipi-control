@@ -1,6 +1,7 @@
 # import asyncio
 # import json
 # from dataclasses import asdict
+from config import config
 from config import logger
 # from devices import devices
 
@@ -13,9 +14,9 @@ class CoversMqttPlugin:
 
     async def init_task(self, stack) -> set:
         tasks = set()
-
-        # for device in devices.by_name(["AO", "DO", "RO"]):
-        #    topic: str = f"""{device.topic}/set"""
+        logger.info(config)
+        # for device in devices.by_name(["RO"]):
+        #    topic: str = f"""{device.topic}/cover/set"""
 
         #    manager = self.mqtt_client.filtered_messages(topic)
         #    messages = await stack.enter_async_context(manager)
