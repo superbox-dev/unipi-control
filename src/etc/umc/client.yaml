@@ -8,9 +8,25 @@ mqtt:
     reconnect_interval: 10
 homeassistant:
   discovery_prefix: homeassistant
-  mapping:
-    di_2_05:
-        name: "Shading up switch"
+plugins:
+  devices:
+    enabled:
+      - di_3_02
+      - di_3_03
+      - ro_3_02
+      - ro_3_03
+    mapping:
+      di_3_02:
+        name: "Workspace - Switch up"
+      di_3_03:
+        name: "Workspace - Switch down"
+  covers:
+    blinds:
+      - name: "Workspace - Blind 1"
+        topic_name: workspace_1
+        circuit:
+            opening: ro_3_02
+            closing: ro_3_03
 logging:
   logger: systemd
   level: info

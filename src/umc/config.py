@@ -53,7 +53,6 @@ class DeviceInfo(ConfigBase):
 @dataclass
 class HomeAssistantConfig(ConfigBase):
     discovery_prefix: str = field(default="homeassistant")
-    mapping: dict = field(init=False, default_factory=dict)
     device: dataclass = field(default=DeviceInfo())
 
 
@@ -63,12 +62,26 @@ class LoggingConfig(ConfigBase):
     level: str = field(default="level")
 
 
+class DevicesPluginsConfig(ConfigBase):
+    enabled: list = field(init=False, default_factory=list)
+    mapping: dict = field(init=False, default_factory=dict)
+
+
+class CoversPluginsConfig(ConfigBase):
+    blinds: list = field(init=False, default_factory=list)
+
+
+class PluginsConfig(ConfigBase):
+    devices: dataclass = field(default=DevicesPluginsConfig())
+    covers: dataclass = field(default=CoversPluginsConfig())
+
+
 @dataclass
 class Config(ConfigBase):
     device_name: str = field(default="Unipi")
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
-    plugins: dict = field(init=False, default_factory=dict)
+    plugins: dataclass = field(default=PluginsConfig())
     logging: dataclass = field(default=LoggingConfig())
 
     def __post_init__(self):

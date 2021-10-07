@@ -1,6 +1,7 @@
 from collections.abc import Mapping
 from typing import Optional
 
+from config import config
 from config import HardwareDefinition
 from config import logger
 from devices import AnalogInput
@@ -30,16 +31,19 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                ro = Relay(
-                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
-                    board=self,
-                    coil=modbus_feature['val_coil'] + index,
-                    reg=modbus_feature['val_reg'],
-                    mask=(0x1 << (index % 16)),
-                    **modbus_feature,
-                )
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                devices.register(ro)
+                if circuit in self.neuron.enabled_devices:
+                    ro = Relay(
+                        circuit=circuit,
+                        board=self,
+                        coil=modbus_feature['val_coil'] + index,
+                        reg=modbus_feature['val_reg'],
+                        mask=(0x1 << (index % 16)),
+                        **modbus_feature,
+                    )
+
+                    devices.register(ro)
 
     def _parse_feature_di(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -47,15 +51,18 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                di = DigitalInput(
-                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
-                    board=self,
-                    reg=modbus_feature["val_reg"],
-                    mask=(0x1 << (index % 16)),
-                    **modbus_feature,
-                )
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                devices.register(di)
+                if circuit in self.neuron.enabled_devices:
+                    di = DigitalInput(
+                        circuit=circuit,
+                        board=self,
+                        reg=modbus_feature["val_reg"],
+                        mask=(0x1 << (index % 16)),
+                        **modbus_feature,
+                    )
+
+                    devices.register(di)
 
     def _parse_feature_do(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -63,16 +70,19 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                do = DigitalOutput(
-                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
-                    board=self,
-                    coil=modbus_feature["val_coil"] + index,
-                    reg=modbus_feature["val_reg"],
-                    mask=(0x1 << (index % 16)),
-                    **modbus_feature,
-                )
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                devices.register(do)
+                if circuit in self.neuron.enabled_devices:
+                    do = DigitalOutput(
+                        circuit=circuit,
+                        board=self,
+                        coil=modbus_feature["val_coil"] + index,
+                        reg=modbus_feature["val_reg"],
+                        mask=(0x1 << (index % 16)),
+                        **modbus_feature,
+                    )
+
+                    devices.register(do)
 
     def _parse_feature_ao(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -80,14 +90,17 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                ao = AnalogOutput(
-                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
-                    board=self,
-                    reg=modbus_feature["val_reg"],
-                    **modbus_feature,
-                )
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                devices.register(ao)
+                if circuit in self.neuron.enabled_devices:
+                    ao = AnalogOutput(
+                        circuit=circuit,
+                        board=self,
+                        reg=modbus_feature["val_reg"],
+                        **modbus_feature,
+                    )
+
+                    devices.register(ao)
 
     def _parse_feature_ai(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -95,14 +108,17 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                ai = AnalogInput(
-                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
-                    board=self,
-                    reg=modbus_feature["val_reg"],
-                    **modbus_feature,
-                )
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                devices.register(ai)
+                if circuit in self.neuron.enabled_devices:
+                    ai = AnalogInput(
+                        circuit=circuit,
+                        board=self,
+                        reg=modbus_feature["val_reg"],
+                        **modbus_feature,
+                    )
+
+                    devices.register(ai)
 
     def _parse_feature_led(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -110,16 +126,19 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                led = Led(
-                    circuit="%s_%s_%02d" % (feature_type.lower(), major_group, index + 1),
-                    board=self,
-                    coil=modbus_feature["val_coil"] + index,
-                    reg=modbus_feature["val_reg"],
-                    mask=(0x1 << (index % 16)),
-                    **modbus_feature,
-                )
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                devices.register(led)
+                if circuit in self.neuron.enabled_devices:
+                    led = Led(
+                        circuit=circuit,
+                        board=self,
+                        coil=modbus_feature["val_coil"] + index,
+                        reg=modbus_feature["val_reg"],
+                        mask=(0x1 << (index % 16)),
+                        **modbus_feature,
+                    )
+
+                    devices.register(led)
 
     def _parse_feature(self, modbus_feature: dict) -> None:
         max_count: int = modbus_feature["count"]
@@ -140,6 +159,7 @@ class Neuron:
         self.hw: Mapping = HardwareDefinition()
         self._boards: list = []
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
+        self.enabled_devices = config.plugins.devices["enabled"]
 
     @property
     def boards(self) -> list:

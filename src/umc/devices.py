@@ -1,38 +1,38 @@
 import itertools
 import re
-from dataclasses import dataclass
+from collections.abc import Iterator
 from typing import Optional
-from typing import Union
 
 from config import config
+from config import logger
 from helpers import MutableMappingMixin
 
 
 class DeviceMap(MutableMappingMixin):
-    def register(self, device):
+    def register(self, device) -> None:
         if not self.mapping.get(device.type):
             self.mapping[device.type] = []
 
         self.mapping[device.type].append(device)
 
-    def by_name(self, device_type: Union[str, list]) -> list:
-        if isinstance(device_type, str):
-            return self.mapping[device_type]
-        elif isinstance(device_type, list):
-            return list(
-                itertools.chain.from_iterable(
-                    map(self.mapping.get, device_type)
+    def by_circuit(self, circuit: str):
+        try:
+            device = next(
+                filter(
+                    lambda d: d.circuit == circuit,
+                    itertools.chain.from_iterable(self.mapping.values())
                 )
             )
+        except StopIteration:
+            device = None
+            logger.error(f"[CONFIG] \"{circuit}\" not found in {self.__class__.__name__}!")
+        finally:
+            return device
 
-
-@dataclass
-class Message:
-    dev_name: str
-    dev_type: str
-    circuit: str
-    value: bool
-    topic: str
+    def by_device_type(self, device_type: list) -> Iterator:
+        return itertools.chain.from_iterable(
+            filter(None, map(self.mapping.get, device_type))
+        )
 
 
 class FeatureMixin:
@@ -76,14 +76,11 @@ class FeatureMixin:
         return changed
 
     @property
-    def message(self) -> Message:
-        return Message(
-            self.dev_name,
-            self.dev_type,
-            self.circuit,
-            self.value,
-            f"{self.topic}/get",
-        )
+    def message(self) -> str:
+        return "ON" if self.value == 1 else "OFF"
+
+    def __repr__(self):
+        return self.circuit_name
 
 
 class Relay(FeatureMixin):
@@ -92,7 +89,7 @@ class Relay(FeatureMixin):
     dev_type = "physical"
 
     async def set_state(self, value: int) -> None:
-        await self.modbus.write_coil(self.coil, value, unit=0)
+        return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
 class DigitalOutput(FeatureMixin):
