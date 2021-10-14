@@ -43,7 +43,12 @@ class FeatureMixin:
         self.circuit: str = circuit
         self.mask: int = mask
         self.reg_value = lambda: board.neuron.modbus_cache_map.get_register(1, self.reg, unit=0)[0]
+        self._available: str = "online"
         self._value: bool = False
+
+    @property
+    def available(self) -> str:
+        return "offline"
 
     @property
     def value(self) -> int:
@@ -76,7 +81,20 @@ class FeatureMixin:
         return changed
 
     @property
-    def message(self) -> str:
+    def available_changed(self) -> bool:
+        changed: bool = self.available != self._available
+
+        if changed:
+            self._available = self.available
+
+        return changed
+
+    @property
+    def available_message(self) -> str:
+        return "offline"
+
+    @property
+    def state_message(self) -> str:
         return "ON" if self.value == 1 else "OFF"
 
     def __repr__(self):

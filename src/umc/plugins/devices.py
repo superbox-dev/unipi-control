@@ -31,9 +31,11 @@ class HomeAssistantDevicesDiscovery:
         message: dict = {
             "name": self._get_name(device),
             "unique_id": f"""{config.device_name.lower()}_{device.circuit}""",
-            "state_topic": f"{device.topic}/get",
+            "availability_topic": f"{device.topic}/available",
             "command_topic": f"{device.topic}/set",
+            "state_topic": f"{device.topic}/get",
             "retain": "true",
+            "qos": 2,
             "device": {
                 "name": config.device_name,
                 "identifiers": config.device_name.lower(),
@@ -51,7 +53,9 @@ class HomeAssistantDevicesDiscovery:
         message: dict = {
             "name": self._get_name(device),
             "unique_id": f"""{config.device_name.lower()}_{device.circuit}""",
+            "availability_topic": f"{device.topic}/available",
             "state_topic": f"{device.topic}/get",
+            "qos": 2,
             "device": {
                 "name": config.device_name,
                 "identifiers": config.device_name.lower(),
@@ -109,9 +113,9 @@ class DevicesMqttPlugin:
         template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
 
         async for message in messages:
-            logger.info(template.format(message.payload.decode()))
             value: str = message.payload.decode()
-
+            logger.info(template.format(value))
+            print(device, value)
             if value == "ON":
                 await device.set_state(1)
             elif value == "OFF":
@@ -122,9 +126,14 @@ class DevicesMqttPlugin:
             await self.umc.neuron.start_scanning()
 
             for device in devices.by_device_type(["AO", "DI", "DO", "RO"]):
+                if device.available_changed:
+                    topic: str = f"""{device.topic}/available"""
+                    logger.info(f"""[MQTT][{topic}] Publishing message: {device.available_message}""")
+                    await self.mqtt_client.publish(topic, device.available_message, qos=2)
+
                 if device.changed:
                     topic: str = f"""{device.topic}/get"""
-                    logger.info(f"""[MQTT][{topic}] Publishing message: {device.message}""")
-                    await self.mqtt_client.publish(topic, device.message, qos=0)
+                    logger.info(f"""[MQTT][{topic}] Publishing message: {device.state_message}""")
+                    await self.mqtt_client.publish(topic, device.state_message, qos=2)
 
             await asyncio.sleep(250e-3)
