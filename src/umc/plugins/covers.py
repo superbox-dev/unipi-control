@@ -45,18 +45,23 @@ class CoverCommand:
     OPEN: str = "OPEN"
     CLOSE: str = "CLOSE"
     STOP: str = "STOP"
+    IDLE: str = "IDLE"
 
 
 class Cover:
     def __init__(self, *args, **kwargs):
         self.__dict__.update(kwargs)
 
-        self._current_position: Optional[int] = None
+        self._current_command: Optional[str] = None
+        self._command: str = CoverCommand.IDLE
+
         self._current_state: Optional[str] = None
         self._state: str = CoverState.OPEN
+
         self._position: int = 100
-        self._opening = devices.by_circuit(self.circuit["opening"])
-        self._closing = devices.by_circuit(self.circuit["closing"])
+        self._set_position: Optional[int] = None
+        self._port_up = devices.by_circuit(self.port_up)
+        self._port_down = devices.by_circuit(self.port_down)
 
         self._start_position: int = self.position
         self._event_start_time: Optional[float] = None
@@ -66,51 +71,47 @@ class Cover:
         return f"{config.device_name.lower()}/{self.topic_name}/cover/{self.cover_type}"
 
     @property
-    def state(self) -> str:
-        return self._state
+    def is_opening(self) -> bool:
+        return self._state == CoverState.OPENING
 
-    @state.setter
-    def state(self, state):
-        self._state = state
+    @property
+    def is_closing(self) -> bool:
+        return self._state == CoverState.CLOSING
+
+    @property
+    def is_stopped(self) -> bool:
+        return self._state == CoverState.STOPPED
 
     @property
     def state_changed(self) -> bool:
-        changed: bool = self.state != self._current_state
+        changed: bool = self._state != self._current_state
 
         if changed:
-            self._current_state = self.state
+            self._current_state = self._state
 
         return changed
 
     @property
     def state_message(self) -> str:
-        return self.state
+        return self._state
 
     @property
-    def position(self) -> str:
+    def position(self) -> int:
         return self._position
 
     @position.setter
     def position(self, position: int):
-        if position <= 0:
-            if self.state == CoverState.CLOSING:
-                self.state = CoverState.CLOSED
-
-            position = 0
-        elif position >= 100:
-            if self.state == CoverState.OPENING:
-                self.state = CoverState.OPEN
-
-            position = 100
-
-        self._position = int(position)
+        self._position = position
 
     @property
-    def position_changed(self) -> bool:
-        changed: bool = self.position != self._current_position
+    def update_position(self) -> bool:
+        changed: bool = False
 
-        if changed:
-            self._current_position = self.position
+        if self._command != self._current_command:
+            self._current_command = self._command
+
+            if self._current_command == CoverCommand.IDLE:
+                changed = True
 
         return changed
 
@@ -124,50 +125,84 @@ class Cover:
 
             if self._event_start_time:
                 self._event_time = self._current_time - self._event_start_time
-                print("event_time:", self._event_time, "current:", self._current_time, "event start:", self._event_start_time)
+                # print("event_time:", self._event_time, "current:", self._current_time, "event start:", self._event_start_time)
 
-                if self.state == CoverState.CLOSING:
+                if self.is_closing:
                     self.position = int(100 * (self.runtime - self._event_time) / self.runtime) - (100 - self._start_position)
-                elif self.state == CoverState.OPENING:
+                elif self.is_opening:
                     self.position = self._start_position + int(100 * self._event_time / self.runtime)
 
-                print(self.state, self.position)
+                if self.position <= 0:
+                    if self.is_closing:
+                        await self.stop()
+
+                    self.position = 0
+                elif self.position >= 100:
+                    if self.is_opening:
+                        await self.stop()
+
+                    self.position = 100
+                elif self._set_position == self.position:
+                    await self.stop()
+
+                print(self._state, self.position, self._set_position)
 
             await asyncio.sleep(20e-3)
 
-    async def open(self) -> None:
-        if all([self._closing, self._opening]):
-            response = await self._closing.set_state(0)
+    async def open(self, position: int = 100) -> None:
+        if self.is_closing:
+            await self.stop()
+        else:
+            response = await self._port_down.set_state(0)
 
             if not response.isError():
-                await self._opening.set_state(1)
+                await self._port_up.set_state(1)
 
-            self.state = CoverState.OPENING
-            self._start_position = self.position
-            self._event_start_time = time.monotonic()
+                self._command = CoverCommand.OPEN
+                self._state = CoverState.OPENING
+                self._set_position = position
+                self._start_position = self.position
+                self._event_start_time = time.monotonic()
 
-    async def close(self) -> None:
-        if all([self._closing, self._opening]):
-            response = await self._opening.set_state(0)
+    async def close(self, position: int = 0) -> None:
+        if self.is_opening:
+            await self.stop()
+        else:
+            response = await self._port_up.set_state(0)
 
             if not response.isError():
-                await self._closing.set_state(1)
+                await self._port_down.set_state(1)
 
-            self.state = CoverState.CLOSING
-            self._start_position = self.position
-            self._event_start_time = time.monotonic()
+                self._command = CoverCommand.CLOSE
+                self._state = CoverState.CLOSING
+                self._set_position = position
+                self._start_position = self.position
+                self._event_start_time = time.monotonic()
 
     async def stop(self) -> None:
-        if all([self._closing, self._opening]):
-            await self._closing.set_state(0)
-            await self._opening.set_state(0)
+        await self._port_down.set_state(0)
+        await self._port_up.set_state(0)
 
-            self.state = CoverState.STOPPED
-            self._start_position = self.position
-            self._event_start_time = None
+        if self.position <= 0:
+            self._state = CoverState.CLOSED
+        elif self.position >= 100:
+            self._state = CoverState.OPEN
+        else:
+            self._state = CoverState.STOPPED
+
+        self._command = CoverCommand.IDLE
+        self._set_position = None
+        self._start_position = self.position
+        self._event_start_time = None
+
+    async def move(self, position: int) -> None:
+        if position > self.position:
+            await self.open(position)
+        elif position < self.position:
+            await self.close(position)
 
     def __repr__(self):
-        return self.name
+        return self.friendly_name
 
 
 class Blind(Cover):
@@ -184,16 +219,16 @@ class HomeAssistantCoverDiscovery:
 
     def _get_discovery(self, cover) -> tuple:
         topic: str = f"""{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"""
-
         message: dict = {
-            "name": cover.name,
+            "name": cover.friendly_name,
             "unique_id": f"{cover.cover_type}_{cover.topic_name}",
             "command_topic": f"{cover.topic}/set",
             "position_topic": f"{cover.topic}/position",
+            "set_position_topic": f"{cover.topic}/position/set",
             "state_topic": f"{cover.topic}/state",
-            # "position_template:": """{% if not state_attr(entity_id, "current_position") %}{{ value }}{% elif state_attr(entity_id, "current_position") < (value | int) %}{{ (value | int + 1) }}{% elif state_attr(entity_id, "current_position") > (value | int) %}{{ (value | int - 1) }}{% else %}{{ value }}{% endif %}""",
-            "retain": "true",
+            "retain": False,
             "qos": 2,
+            "optimistic": False,
             "device": {
                 "name": config.device_name,
                 "identifiers": config.device_name.lower(),
@@ -207,8 +242,9 @@ class HomeAssistantCoverDiscovery:
     async def publish(self) -> None:
         for cover in self.covers.by_cover_type(["blind"]):
             topic, message = self._get_discovery(cover)
-            logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
-            await self.mqtt_client.publish(topic, json.dumps(message), qos=1)
+            json_data: str = json.dumps(message)
+            logger.info(f"""[MQTT][{topic}] Publishing message: {json_data}""")
+            await self.mqtt_client.publish(topic, json_data, qos=2)
 
 
 class CoversMqttPlugin:
@@ -223,21 +259,8 @@ class CoversMqttPlugin:
     async def init_task(self, stack) -> set:
         tasks = set()
 
-        for cover in self.covers.by_cover_type(["blind"]):
-            task = asyncio.create_task(cover.elapsed_time())
-            tasks.add(task)
-
-            topic: str = f"""{cover.topic}/set"""
-
-            manager = self.mqtt_client.filtered_messages(topic)
-            messages = await stack.enter_async_context(manager)
-            # TODO: error log plugin config errors
-
-            task = asyncio.create_task(self._subscribe(cover, topic, messages))
-            tasks.add(task)
-
-            await self.mqtt_client.subscribe(topic)
-            logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+        tasks = await self._command_topic(stack, tasks)
+        tasks = await self._set_position_topic(stack, tasks)
 
         task = asyncio.create_task(self._publish())
         tasks.add(task)
@@ -247,7 +270,40 @@ class CoversMqttPlugin:
 
         return tasks
 
-    async def _subscribe(self, cover, topic: str, messages) -> None:
+    async def _command_topic(self, stack, tasks):
+        for cover in self.covers.by_cover_type(["blind"]):
+            task = asyncio.create_task(cover.elapsed_time())
+            tasks.add(task)
+
+            topic: str = f"""{cover.topic}/set"""
+
+            manager = self.mqtt_client.filtered_messages(topic)
+            messages = await stack.enter_async_context(manager)
+
+            task = asyncio.create_task(self._subscribe_command_topic(cover, topic, messages))
+            tasks.add(task)
+
+            await self.mqtt_client.subscribe(topic, qos=2)
+            logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+
+        return tasks
+
+    async def _set_position_topic(self, stack, tasks):
+        for cover in self.covers.by_cover_type(["blind"]):
+            topic: str = f"""{cover.topic}/position/set"""
+
+            manager = self.mqtt_client.filtered_messages(topic)
+            messages = await stack.enter_async_context(manager)
+
+            task = asyncio.create_task(self._subscribe_set_position_topic(cover, topic, messages))
+            tasks.add(task)
+
+            await self.mqtt_client.subscribe(topic, qos=2)
+            logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+
+        return tasks
+
+    async def _subscribe_command_topic(self, cover, topic: str, messages) -> None:
         template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
 
         async for message in messages:
@@ -261,16 +317,28 @@ class CoversMqttPlugin:
             elif value == CoverCommand.STOP:
                 await cover.stop()
 
+    async def _subscribe_set_position_topic(self, cover, topic: str, messages) -> None:
+        template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
+
+        async for message in messages:
+            try:
+                position: int = int(message.payload.decode())
+                logger.info(template.format(position))
+
+                await cover.move(position)
+            except ValueError as error:
+                logger.error(error)
+
     async def _publish(self) -> None:
         while True:
             for cover in self.covers.by_cover_type(["blind"]):
-                if cover.position_changed:
+                if cover.update_position:
                     topic: str = f"{cover.topic}/position"
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.position_message}")
                     await self.mqtt_client.publish(topic, cover.position_message, qos=2)
 
                 if cover.state_changed:
-                    print(cover.state_message)
+                    # if not cover.is_stopped:
                     topic: str = f"{cover.topic}/state"
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.state_message}")
                     await self.mqtt_client.publish(topic, cover.state_message, qos=2)

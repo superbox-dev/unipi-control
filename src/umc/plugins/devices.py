@@ -17,11 +17,11 @@ class HomeAssistantDevicesDiscovery:
     def _get_mapping(self, circuit) -> dict:
         return config.plugins.devices["mapping"].get(circuit, {})
 
-    def _get_name(self, device) -> str:
-        custom_name: Optional[str] = self._get_mapping(device.circuit).get("name")
+    def _get_friendly_name(self, device) -> str:
+        friendly_name: Optional[str] = self._get_mapping(device.circuit).get("friendly_name")
 
-        if custom_name:
-            return custom_name
+        if friendly_name:
+            return friendly_name
 
         return f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]} - {device.circuit_name}"""
 
@@ -29,12 +29,12 @@ class HomeAssistantDevicesDiscovery:
         topic: str = f"""{config.homeassistant.discovery_prefix}/switch/{config.device_name.lower()}/{device.circuit}/config"""
 
         message: dict = {
-            "name": self._get_name(device),
+            "name": self._get_friendly_name(device),
             "unique_id": f"""{config.device_name.lower()}_{device.circuit}""",
             "availability_topic": f"{device.topic}/available",
             "command_topic": f"{device.topic}/set",
             "state_topic": f"{device.topic}/get",
-            "retain": "true",
+            "retain": True,
             "qos": 2,
             "device": {
                 "name": config.device_name,
@@ -51,7 +51,7 @@ class HomeAssistantDevicesDiscovery:
         topic: str = f"""{config.homeassistant.discovery_prefix}/binary_sensor/{config.device_name.lower()}/{device.circuit}/config"""
 
         message: dict = {
-            "name": self._get_name(device),
+            "name": self._get_friendly_name(device),
             "unique_id": f"""{config.device_name.lower()}_{device.circuit}""",
             "availability_topic": f"{device.topic}/available",
             "state_topic": f"{device.topic}/get",
@@ -70,13 +70,15 @@ class HomeAssistantDevicesDiscovery:
     async def publish(self) -> None:
         for device in devices.by_device_type(["RO", "DO"]):
             topic, message = self._get_switch_discovery(device)
-            logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
-            await self.mqtt_client.publish(topic, json.dumps(message), qos=1)
+            json_data: str = json.dumps(message)
+            logger.info(f"""[MQTT][{topic}] Publishing message: {json_data}""")
+            await self.mqtt_client.publish(topic, json_data, qos=1)
 
         for device in devices.by_device_type(["DI"]):
             topic, message = self._get_binary_sensor_discovery(device)
-            logger.info(f"""[MQTT][{topic}] Publishing message: {message}""")
-            await self.mqtt_client.publish(topic, json.dumps(message), qos=1)
+            json_data: str = json.dumps(message)
+            logger.info(f"""[MQTT][{topic}] Publishing message: {json_data}""")
+            await self.mqtt_client.publish(topic, json_data, qos=1)
 
 
 class DevicesMqttPlugin:

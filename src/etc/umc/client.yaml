@@ -17,16 +17,16 @@ plugins:
       - ro_3_03
     mapping:
       di_3_02:
-        name: "Workspace - Switch up"
+        friendly_name: "Workspace - Switch up"
       di_3_03:
-        name: "Workspace - Switch down"
+        friendly_name: "Workspace - Switch down"
   covers:
     blinds:
-      - name: "Workspace - Blind 1"
+      - friendly_name: "Workspace - Blind 1"
         topic_name: workspace_1
-        circuit:
-            opening: ro_3_02
-            closing: ro_3_03
+        runtime: 35.5
+        port_up: ro_3_03
+        port_down: ro_3_02
 logging:
   logger: systemd
   level: info
