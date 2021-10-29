@@ -29,28 +29,49 @@ You can set the client settings in the `/etc/unipi/control.yaml`.
 Key | Value
 ------ | ------
 `device_name` | The device name for the subscribe and publish topics. Default is the hostname.
+
+```yaml
+device_name: unipi
+```
+
+Key | Value
+------ | ------
 `mqtt/host` | The hostname or IP address of the remote broker: Default is `localhost`.
 `mqtt/port` | The network port of the server host to connect to. Defaults is `1883`.
 `mqtt/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default tis `15`.
 `mqtt/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
 `mqtt/reconnect_interval` | Time between connection attempts. Default is `10`.
+
+```yaml
+mqtt:
+  host: localhost
+  port: 1883
+  connection:
+    keepalive: 15
+    retry_limit: 30
+    reconnect_interval: 10
+```
+
+Key | Value
+------ | ------
 `homeassistant/enabled` | Enable Home Assistant MQTT Discovery. Default is `true`.
 `homeassistant/discovery_prefix` | The prefix for the discovery topic. Default is `homeassistant`.
+
+```yaml
+homeassistant:
+  enabled: true
+  discovery_prefix: homeassistant
+```
+
+Key | Value
+------ | ------
 `logging/logger` | Set logger to `systemd` or `file`. Default is `systemd`.
 `logging/level` | Set level to debug, info, warning or error. Default is `info`.
 
-### Systemd Service
-
-Install and start the systemd service:
-
-```shell
-$ sudo cp /opt/unipi-control/src/lib/systemd/system/unipi-control.service /lib/systemd/system
-$ sudo chown root:root /lib/systemd/system/unipi-control.service
-$ sudo chmod 644 /lib/systemd/system/unipi-control.service
-
-$ sudo systemctl daemon-reload
-$ sudo systemctl enable unipi-control.service
-$ sudo systemctl start unipi-control.service
+```yaml
+logging:
+  logger: systemd
+  level: info
 ```
 
 ## Usage
