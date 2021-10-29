@@ -26,6 +26,8 @@ $ unipi-control --install
 
 You can set the client settings in the `/etc/unipi/control.yaml`.
 
+#### Device
+
 Key | Value
 ------ | ------
 `device_name` | The device name for the subscribe and publish topics. Default is the hostname.
@@ -34,6 +36,8 @@ Key | Value
 # control.yaml
 device_name: unipi
 ```
+
+#### MQTT
 
 Key | Value
 ------ | ------
@@ -54,6 +58,8 @@ mqtt:
     reconnect_interval: 10
 ```
 
+#### Home Assistant
+
 Key | Value
 ------ | ------
 `homeassistant/enabled` | Enable Home Assistant MQTT Discovery. Default is `true`.
@@ -65,6 +71,49 @@ homeassistant:
   enabled: true
   discovery_prefix: homeassistant
 ```
+
+#### Devices
+
+It's psoible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
+
+```yaml
+# control.yaml
+devices:
+  di_3_02:
+    friendly_name: "Workspace - Switch up"
+  di_3_03:
+    friendly_name: "Workspace - Switch down"
+```
+
+#### Covers
+
+**Warning:** Driving both signals up and down at the same time can damage the motor. There are a couple of checks to prevent such situation. Use this software at your own risk! I do not take any responsibility for it!
+
+The Home Assistant Discovery for the covers is optionaly. Covers can be control with MQTT topics without Home Assistant.
+
+Key | Value
+------ | ------
+`friendly_name` | Friendly name is displayed in Home Assistant.
+`cover_type` | Cover types can be "blind", "roller_shutter", or "garage_door".
+`topic_name` | Unique name for the MQTT topic.
+`full_open_time` | Define the time it takes for blind to fully open in seconds.
+`full_close_time` | Define the time it takes for blind to fully close in seconds.
+`circuit_up` | Output circuit name from a relay or digital output.
+`circuit_down` | Output circuit name from a relay or digital output.
+
+```yaml
+# control.yaml
+covers:
+  - friendly_name: "Workspace - Blind 1"
+    cover_type: "blind"
+    topic_name: workspace_1
+    full_open_time: 35.5
+    full_close_time: 35.5
+    circuit_up: ro_3_03
+    circuit_down: ro_3_02
+```
+
+#### Logging
 
 Key | Value
 ------ | ------
