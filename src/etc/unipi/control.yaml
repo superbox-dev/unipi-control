@@ -14,12 +14,13 @@ devices:
   di_3_03:
     friendly_name: "Workspace - Switch down"
 covers:
-  blinds:
-    - friendly_name: "Workspace - Blind 1"
-      topic_name: workspace_1
-      runtime: 35.5
-      circuit_up: ro_3_03
-      circuit_down: ro_3_02
+  - friendly_name: "Workspace - Blind 1"
+    cover_type: "blind"
+    topic_name: workspace_1
+    full_open_time: 35.5
+    full_close_time: 35.5
+    circuit_up: ro_3_03
+    circuit_down: ro_3_02
 logging:
   logger: systemd
   level: info
