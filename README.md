@@ -31,6 +31,7 @@ Key | Value
 `device_name` | The device name for the subscribe and publish topics. Default is the hostname.
 
 ```yaml
+# control.yaml
 device_name: unipi
 ```
 
@@ -43,6 +44,7 @@ Key | Value
 `mqtt/reconnect_interval` | Time between connection attempts. Default is `10`.
 
 ```yaml
+# control.yaml
 mqtt:
   host: localhost
   port: 1883
@@ -58,6 +60,7 @@ Key | Value
 `homeassistant/discovery_prefix` | The prefix for the discovery topic. Default is `homeassistant`.
 
 ```yaml
+# control.yaml
 homeassistant:
   enabled: true
   discovery_prefix: homeassistant
@@ -69,6 +72,7 @@ Key | Value
 `logging/level` | Set level to debug, info, warning or error. Default is `info`.
 
 ```yaml
+# control.yaml
 logging:
   logger: systemd
   level: info
