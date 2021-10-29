@@ -28,13 +28,13 @@ You can set the client settings in the `/etc/unipi/control.yaml`.
 Key | Value
 ------ | ------
 `device_name` | The device name for the subscribe and publish topics. Default is the hostname.
-`mqtt/host` | The hostname or IP address of the remote broker: Default to `localhost`.
-`mqtt/port` | The network port of the server host to connect to. Defaults to `1883`.
-`mqtt/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default to `15`.
+`mqtt/host` | The hostname or IP address of the remote broker: Default is `localhost`.
+`mqtt/port` | The network port of the server host to connect to. Defaults is `1883`.
+`mqtt/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default tis `15`.
 `mqtt/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
-`mqtt/reconnect_interval` | Time between connection attempts. Default to `10`.
-`homeassistant/discovery_prefix` | The prefix for the discovery topic.
-`homeassistant/mapping` | Custom name mapping for circuits.
+`mqtt/reconnect_interval` | Time between connection attempts. Default is `10`.
+`homeassistant/enabled` | Enable Home Assistant MQTT Discovery. Default is `true`.
+`homeassistant/discovery_prefix` | The prefix for the discovery topic. Default is `homeassistant`.
 `logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
 `logging/level` | Set level to debug, info, warning or error. Default to `info`.
 
