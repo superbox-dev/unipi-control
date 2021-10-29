@@ -98,36 +98,47 @@ class UnipiMqttClient:
                 await asyncio.sleep(reconnect_interval)
 
 
+def install() -> None:
+    # TODO: write installer
+    print("install")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", default=False, type=bool, help="Debug")
+    parser = argparse.ArgumentParser(description="Unipi Control")
+
+    parser.add_argument("-i", "--install", action="store_true", help="install Unipi Control")
+    parser.add_argument("-d", "--debug", action="store_true", help="enable debug messages in log files")
     args = parser.parse_args()
 
-    loop = asyncio.new_event_loop()
-    loop.set_debug(args.debug)
+    if args.install:
+        install()
+    else:
+        loop = asyncio.new_event_loop()
+        loop.set_debug(args.debug)
 
-    try:
-        modbus = Modbus(loop)
-        umc = UnipiMqttClient(loop, modbus)
+        try:
+            modbus = Modbus(loop)
+            uc = UnipiMqttClient(loop, modbus)
 
-        signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
+            signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
 
-        for s in signals:
-            loop.add_signal_handler(
-                s, lambda s=s: asyncio.create_task(umc.shutdown(loop, s))
-            )
+            for s in signals:
+                loop.add_signal_handler(
+                    s, lambda s=s: asyncio.create_task(uc.shutdown(loop, s))
+                )
 
-        loop.run_until_complete(umc.run())
-    except asyncio.exceptions.CancelledError:
-        pass
-    except HardwareException as error:
-        logger.error(error)
-        print(colored(error, "red"))
-    except ModbusException as error:
-        logger.error(f"[MODBUS] {error}")
-    finally:
-        # loop.close()
-        logger.info("Successfully shutdown the Unipi MQTT Client service.")
+            loop.run_until_complete(uc.run())
+        except asyncio.exceptions.CancelledError:
+            pass
+        except HardwareException as error:
+            logger.error(error)
+            print(colored(error, "red"))
+        except ModbusException as error:
+            logger.error(f"[MODBUS] {error}")
+        finally:
+            # loop.close()
+            logger.info("Successfully shutdown the Unipi MQTT Client service.")
 
 
 if __name__ == "__main__":

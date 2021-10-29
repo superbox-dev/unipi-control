@@ -14,7 +14,7 @@ from helpers import MappingMixin
 from systemd import journal
 from termcolor import colored
 
-HW_CONFIGS = "/etc/umc/hardware"
+HW_CONFIGS = "/etc/unipi/hardware"
 
 
 @dataclass
@@ -22,6 +22,7 @@ class ConfigBase:
     def clean(self):
         for key in self.__dict__.keys():
             clean_method = getattr(self, f"clean_{key}", None)
+
             if clean_method and callable(clean_method):
                 clean_method()
 
@@ -62,17 +63,11 @@ class LoggingConfig(ConfigBase):
     level: str = field(default="level")
 
 
-class DevicesPluginsConfig(ConfigBase):
-    enabled: list = field(init=False, default_factory=list)
-    mapping: dict = field(init=False, default_factory=dict)
-
-
 class CoversPluginsConfig(ConfigBase):
     blinds: list = field(init=False, default_factory=list)
 
 
 class PluginsConfig(ConfigBase):
-    devices: dataclass = field(default=DevicesPluginsConfig())
     covers: dataclass = field(default=CoversPluginsConfig())
 
 
@@ -85,7 +80,7 @@ class Config(ConfigBase):
     logging: dataclass = field(default=LoggingConfig())
 
     def __post_init__(self):
-        config: dict = self.get_config("/etc/umc/client.yaml")
+        config: dict = self.get_config("/etc/unipi/mqtt-client.yaml")
         self.update(config)
         self.clean()
 
@@ -117,7 +112,7 @@ class Config(ConfigBase):
         elif logger_type == "file":
             logging.basicConfig(
                 level=logger_level,
-                filename="/var/log/umc.log",
+                filename="/var/log/unipi/mqtt-client.log",
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             )
 

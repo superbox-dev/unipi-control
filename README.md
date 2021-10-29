@@ -1,4 +1,4 @@
-# Unipi MQTT Client
+# Unipi Control
 
 ## Installation
 
@@ -6,7 +6,7 @@
 
 * Unipi Neuron Kernel Module and Unipi tools
   * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-  * Or compile it https://github.com/UniPiTechnology/unipi-kernel / https://github.com/UniPiTechnology/unipi-tools   
+  * Or compile it https://github.com/UniPiTechnology/unipi-kernel / https://github.com/UniPiTechnology/unipi-tools
 * Python 3.7
 
 Install the python package in your virtualenv:
@@ -20,10 +20,10 @@ $ pip install -e /opt/unipi-mqtt-client
 ### Configuration
 
 ```shell
-$ sudo cp -R /opt/unipi-mqtt-client/src/etc/umc /etc
+$ sudo cp -R /opt/unipi-mqtt-client/src/etc/unipi /etc
 ```
 
-You can set the client settings in the `/etc/umc/client.yaml`.
+You can set the client settings in the `/etc/unipi/mqtt-client.yaml`.
 
 Key | Value
 ------ | ------
@@ -43,13 +43,13 @@ Key | Value
 Install and start the systemd service:
 
 ```shell
-$ sudo cp /opt/unipi-mqtt-client/src/lib/systemd/system/umc.service /lib/systemd/system
-$ sudo chown root:root /lib/systemd/system/umc.service
-$ sudo chmod 644 /lib/systemd/system/umc.service
+$ sudo cp /opt/unipi-mqtt-client/src/lib/systemd/system/unipi-control.service /lib/systemd/system
+$ sudo chown root:root /lib/systemd/system/unipi-control.service
+$ sudo chmod 644 /lib/systemd/system/unipi-control.service
 
 $ sudo systemctl daemon-reload
-$ sudo systemctl enable umc.service
-$ sudo systemctl start umc.service
+$ sudo systemctl enable unipi-control.service
+$ sudo systemctl start unipi-control.service
 ```
 
 ## Usage

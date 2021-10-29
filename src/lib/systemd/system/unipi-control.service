@@ -1,11 +1,11 @@
 [Unit]
-Description=Unipi MQTT Client
+Description=Unipi Control
 After=multi-user.target
 Requires=unipitcp.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/umc
+ExecStart=/usr/bin/unipi-control
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
 

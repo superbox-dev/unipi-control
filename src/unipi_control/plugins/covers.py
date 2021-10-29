@@ -58,13 +58,19 @@ class Cover:
         self._current_state: Optional[str] = None
         self._state: str = CoverState.OPEN
 
-        self._position: int = 100
+        self._position: Optional[int] = None
+        self._start_position: Optional[int] = self.position
         self._set_position: Optional[int] = None
-        self._port_up = devices.by_circuit(self.port_up)
-        self._port_down = devices.by_circuit(self.port_down)
 
-        self._start_position: int = self.position
+        self._circuit_up = devices.by_circuit(self.circuit_up)
+        self._circuit_down = devices.by_circuit(self.circuit_down)
+
         self._event_start_time: Optional[float] = None
+
+    async def calibrate_position(self):
+        if self._position is None:
+            self._position = 0
+            await self.open()
 
     @property
     def topic(self) -> str:
@@ -96,11 +102,11 @@ class Cover:
         return self._state
 
     @property
-    def position(self) -> int:
+    def position(self) -> Optional[int]:
         return self._position
 
     @position.setter
-    def position(self, position: int):
+    def position(self, position) -> Optional[int]:
         self._position = position
 
     @property
@@ -116,7 +122,7 @@ class Cover:
         return changed
 
     @property
-    def position_message(self) -> int:
+    def position_message(self) -> Optional[int]:
         return self._position
 
     async def elapsed_time(self) -> None:
@@ -125,7 +131,6 @@ class Cover:
 
             if self._event_start_time:
                 self._event_time = self._current_time - self._event_start_time
-                # print("event_time:", self._event_time, "current:", self._current_time, "event start:", self._event_start_time)
 
                 if self.is_closing:
                     self.position = int(100 * (self.runtime - self._event_time) / self.runtime) - (100 - self._start_position)
@@ -153,10 +158,10 @@ class Cover:
         if self.is_closing:
             await self.stop()
         else:
-            response = await self._port_down.set_state(0)
+            response = await self._circuit_down.set_state(0)
 
             if not response.isError():
-                await self._port_up.set_state(1)
+                await self._circuit_up.set_state(1)
 
                 self._command = CoverCommand.OPEN
                 self._state = CoverState.OPENING
@@ -168,10 +173,10 @@ class Cover:
         if self.is_opening:
             await self.stop()
         else:
-            response = await self._port_up.set_state(0)
+            response = await self._circuit_up.set_state(0)
 
             if not response.isError():
-                await self._port_down.set_state(1)
+                await self._circuit_down.set_state(1)
 
                 self._command = CoverCommand.CLOSE
                 self._state = CoverState.CLOSING
@@ -180,8 +185,8 @@ class Cover:
                 self._event_start_time = time.monotonic()
 
     async def stop(self) -> None:
-        await self._port_down.set_state(0)
-        await self._port_up.set_state(0)
+        await self._circuit_down.set_state(0)
+        await self._circuit_up.set_state(0)
 
         if self.position <= 0:
             self._state = CoverState.CLOSED
@@ -210,12 +215,12 @@ class Blind(Cover):
 
 
 class HomeAssistantCoverDiscovery:
-    def __init__(self, umc, mqtt_client, covers):
-        self.umc = umc
+    def __init__(self, uc, mqtt_client, covers):
+        self.uc = uc
         self.mqtt_client = mqtt_client
         self.covers = covers
 
-        self._hw = umc.neuron.hw
+        self._hw = uc.neuron.hw
 
     def _get_discovery(self, cover) -> tuple:
         topic: str = f"""{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"""
@@ -248,13 +253,13 @@ class HomeAssistantCoverDiscovery:
 
 
 class CoversMqttPlugin:
-    def __init__(self, umc, mqtt_client):
+    def __init__(self, uc, mqtt_client):
         logger.info("[MQTT] Initialize covers MQTT plugin")
-        self.umc = umc
+        self.uc = uc
         self.mqtt_client = mqtt_client
 
         self.covers = CoverMap()
-        self._ha = HomeAssistantCoverDiscovery(umc, mqtt_client, self.covers)
+        self._ha = HomeAssistantCoverDiscovery(uc, mqtt_client, self.covers)
 
     async def init_task(self, stack) -> set:
         tasks = set()
@@ -332,13 +337,14 @@ class CoversMqttPlugin:
     async def _publish(self) -> None:
         while True:
             for cover in self.covers.by_cover_type(["blind"]):
+                await cover.calibrate_position()
+
                 if cover.update_position:
                     topic: str = f"{cover.topic}/position"
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.position_message}")
                     await self.mqtt_client.publish(topic, cover.position_message, qos=2)
 
                 if cover.state_changed:
-                    # if not cover.is_stopped:
                     topic: str = f"{cover.topic}/state"
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.state_message}")
                     await self.mqtt_client.publish(topic, cover.state_message, qos=2)

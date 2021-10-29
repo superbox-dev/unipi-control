@@ -9,17 +9,11 @@ mqtt:
 homeassistant:
   discovery_prefix: homeassistant
 plugins:
-  devices:
-    enabled:
-      - di_3_02
-      - di_3_03
-      - ro_3_02
-      - ro_3_03
-    mapping:
-      di_3_02:
-        friendly_name: "Workspace - Switch up"
-      di_3_03:
-        friendly_name: "Workspace - Switch down"
+  binary_sensor:
+   - friendly_name: "Workspace - Switch up"
+     circuit: di_3_02
+   - friendly_name: "Workspace - Switch down"
+     circuit: di_3_03
   covers:
     blinds:
       - friendly_name: "Workspace - Blind 1"
