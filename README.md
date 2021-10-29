@@ -35,8 +35,8 @@ Key | Value
 `mqtt/reconnect_interval` | Time between connection attempts. Default is `10`.
 `homeassistant/enabled` | Enable Home Assistant MQTT Discovery. Default is `true`.
 `homeassistant/discovery_prefix` | The prefix for the discovery topic. Default is `homeassistant`.
-`logging/logger` | Set logger to `systemd` or `file`. Default to `systemd`.
-`logging/level` | Set level to debug, info, warning or error. Default to `info`.
+`logging/logger` | Set logger to `systemd` or `file`. Default is `systemd`.
+`logging/level` | Set level to debug, info, warning or error. Default is `info`.
 
 ### Systemd Service
 
