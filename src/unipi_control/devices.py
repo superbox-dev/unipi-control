@@ -1,9 +1,9 @@
 import itertools
 import re
+import socket
 from collections.abc import Iterator
 from typing import Optional
 
-from config import config
 from config import logger
 from helpers import MutableMappingMixin
 
@@ -43,12 +43,7 @@ class FeatureMixin:
         self.circuit: str = circuit
         self.mask: int = mask
         self.reg_value = lambda: board.neuron.modbus_cache_map.get_register(1, self.reg, unit=0)[0]
-        self._available: str = "online"
         self._value: bool = False
-
-    @property
-    def available(self) -> str:
-        return "offline"
 
     @property
     def value(self) -> int:
@@ -56,7 +51,7 @@ class FeatureMixin:
 
     @property
     def topic(self) -> str:
-        topic: str = f"""{config.device_name.lower()}/{self.dev_name}"""
+        topic: str = f"""{socket.gethostname()}/{self.dev_name}"""
 
         if self.dev_type:
             topic += f"/{self.dev_type}"
@@ -79,19 +74,6 @@ class FeatureMixin:
             self._value = value
 
         return changed
-
-    @property
-    def available_changed(self) -> bool:
-        changed: bool = self.available != self._available
-
-        if changed:
-            self._available = self.available
-
-        return changed
-
-    @property
-    def available_message(self) -> str:
-        return "offline"
 
     @property
     def state_message(self) -> str:
@@ -247,6 +229,3 @@ class Led(FeatureMixin):
 
     async def set_state(self, value: int) -> None:
         await self.modbus.write_coil(self.coil, value, unit=0)
-
-
-devices = DeviceMap()

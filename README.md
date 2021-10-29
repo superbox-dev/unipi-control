@@ -27,7 +27,7 @@ You can set the client settings in the `/etc/unipi/control.yaml`.
 
 Key | Value
 ------ | ------
-`device_name` | The device name for the subscribe and publish topics. Default to `unipi`.
+`device_name` | The device name for the subscribe and publish topics. Default is the hostname.
 `mqtt/host` | The hostname or IP address of the remote broker: Default to `localhost`.
 `mqtt/port` | The network port of the server host to connect to. Defaults to `1883`.
 `mqtt/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default to `15`.

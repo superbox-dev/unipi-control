@@ -5,7 +5,7 @@ from config import HardwareDefinition
 from config import logger
 from devices import AnalogInput
 from devices import AnalogOutput
-from devices import devices
+from devices import DeviceMap
 from devices import DigitalInput
 from devices import DigitalOutput
 from devices import Led
@@ -41,7 +41,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                devices.register(ro)
+                self.neuron.devices.register(ro)
 
     def _parse_feature_di(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -59,7 +59,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                devices.register(di)
+                self.neuron.devices.register(di)
 
     def _parse_feature_do(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -78,7 +78,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                devices.register(do)
+                self.neuron.devices.register(do)
 
     def _parse_feature_ao(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -95,7 +95,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                devices.register(ao)
+                self.neuron.devices.register(ao)
 
     def _parse_feature_ai(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -112,7 +112,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                devices.register(ai)
+                self.neuron.devices.register(ai)
 
     def _parse_feature_led(self, max_count: int, modbus_feature: list) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -131,7 +131,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                devices.register(led)
+                self.neuron.devices.register(led)
 
     def _parse_feature(self, modbus_feature: dict) -> None:
         max_count: int = modbus_feature["count"]
@@ -150,8 +150,13 @@ class Neuron:
     def __init__(self, modbus):
         self.modbus = modbus
         self.hw: Mapping = HardwareDefinition()
-        self._boards: list = []
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
+        self._devices = DeviceMap()
+        self._boards: list = []
+
+    @property
+    def devices(self):
+        return self._devices
 
     @property
     def boards(self) -> list:

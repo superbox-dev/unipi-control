@@ -1,4 +1,3 @@
-device_name: Unipi
 mqtt:
   host: localhost
   port: 1883
@@ -7,20 +6,20 @@ mqtt:
     retry_limit: 30
     reconnect_interval: 10
 homeassistant:
+  enabled: true
   discovery_prefix: homeassistant
-plugins:
-  binary_sensor:
-   - friendly_name: "Workspace - Switch up"
-     circuit: di_3_02
-   - friendly_name: "Workspace - Switch down"
-     circuit: di_3_03
-  covers:
-    blinds:
-      - friendly_name: "Workspace - Blind 1"
-        topic_name: workspace_1
-        runtime: 35.5
-        port_up: ro_3_03
-        port_down: ro_3_02
+devices:
+  di_3_02:
+    friendly_name: "Workspace - Switch up"
+  di_3_03:
+    friendly_name: "Workspace - Switch down"
+covers:
+  blinds:
+    - friendly_name: "Workspace - Blind 1"
+      topic_name: workspace_1
+      runtime: 35.5
+      circuit_up: ro_3_03
+      circuit_down: ro_3_02
 logging:
   logger: systemd
   level: info

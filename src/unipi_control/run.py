@@ -12,17 +12,22 @@ from asyncio_mqtt import MqttError
 from config import config
 from config import HardwareException
 from config import logger
+from covers import CoverMap
 from modbus import Modbus
 from modbus import ModbusException
 from neuron import Neuron
 from plugins.covers import CoversMqttPlugin
 from plugins.devices import DevicesMqttPlugin
+from plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
+from plugins.hass.covers import HassCoversMqttPlugin
+from plugins.hass.switches import HassSwitchesMqttPlugin
 from termcolor import colored
 
 
-class UnipiMqttClient:
+class UnipiControl:
     def __init__(self, loop, modbus):
         self.neuron = Neuron(modbus)
+        self.covers: Optional[CoverMap] = None
 
         self._mqtt_client_id: str = f"""{config.device_name.lower()}-{uuid.uuid4()}"""
         logger.info(f"[MQTT] Client ID: {self._mqtt_client_id}")
@@ -54,6 +59,16 @@ class UnipiMqttClient:
             tasks = await CoversMqttPlugin(self, mqtt_client).init_task(stack)
             self._tasks.update(tasks)
 
+            if config.homeassistant.enabled:
+                tasks = await HassBinarySensorsMqttPlugin(self, mqtt_client).init_task(stack)
+                self._tasks.update(tasks)
+
+                tasks = await HassCoversMqttPlugin(self, mqtt_client).init_task(stack)
+                self._tasks.update(tasks)
+
+                tasks = await HassSwitchesMqttPlugin(self, mqtt_client).init_task(stack)
+                self._tasks.update(tasks)
+
             await asyncio.gather(*self._tasks)
 
     async def cancel_tasks(self):
@@ -79,6 +94,8 @@ class UnipiMqttClient:
     async def run(self) -> None:
         await self.neuron.initialise_cache()
         await self.neuron.read_boards()
+
+        self.covers = CoverMap(devices=self.neuron.devices)
 
         reconnect_interval: int = config.mqtt.reconnect_interval
         retry_limit: Optional[int] = config.mqtt.retry_limit
@@ -108,18 +125,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
 
     parser.add_argument("-i", "--install", action="store_true", help="install Unipi Control")
-    parser.add_argument("-d", "--debug", action="store_true", help="enable debug messages in log files")
     args = parser.parse_args()
 
     if args.install:
         install()
     else:
         loop = asyncio.new_event_loop()
-        loop.set_debug(args.debug)
 
         try:
             modbus = Modbus(loop)
-            uc = UnipiMqttClient(loop, modbus)
+            uc = UnipiControl(loop, modbus)
 
             signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
 

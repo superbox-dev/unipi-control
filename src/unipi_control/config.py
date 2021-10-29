@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import socket
 import struct
 import sys
 from dataclasses import asdict
@@ -53,6 +54,7 @@ class DeviceInfo(ConfigBase):
 
 @dataclass
 class HomeAssistantConfig(ConfigBase):
+    enabled: bool = field(default=True)
     discovery_prefix: str = field(default="homeassistant")
     device: dataclass = field(default=DeviceInfo())
 
@@ -63,20 +65,18 @@ class LoggingConfig(ConfigBase):
     level: str = field(default="level")
 
 
-class CoversPluginsConfig(ConfigBase):
+@dataclass
+class CoversConfig(ConfigBase):
     blinds: list = field(init=False, default_factory=list)
-
-
-class PluginsConfig(ConfigBase):
-    covers: dataclass = field(default=CoversPluginsConfig())
 
 
 @dataclass
 class Config(ConfigBase):
-    device_name: str = field(default="Unipi")
+    device_name: str = field(default=socket.gethostname())
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
-    plugins: dataclass = field(default=PluginsConfig())
+    devices: list = field(init=False, default_factory=list)
+    covers: dataclass = field(default=CoversConfig())
     logging: dataclass = field(default=LoggingConfig())
 
     def __post_init__(self):
