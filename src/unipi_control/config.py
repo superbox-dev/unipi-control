@@ -80,7 +80,7 @@ class Config(ConfigBase):
     logging: dataclass = field(default=LoggingConfig())
 
     def __post_init__(self):
-        config: dict = self.get_config("/etc/unipi/mqtt-client.yaml")
+        config: dict = self.get_config("/etc/unipi/control.yaml")
         self.update(config)
         self.clean()
 
@@ -112,7 +112,7 @@ class Config(ConfigBase):
         elif logger_type == "file":
             logging.basicConfig(
                 level=logger_level,
-                filename="/var/log/unipi/mqtt-client.log",
+                filename="/var/log/unipi-control.log",
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             )
 

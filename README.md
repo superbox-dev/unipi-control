@@ -13,17 +13,17 @@ Install the python package in your virtualenv:
 
 ```shell
 $ cd /opt
-$ git clone git@github.com:mh-superbox/unipi-mqtt-client.git
-$ pip install -e /opt/unipi-mqtt-client
+$ git clone git@github.com:mh-superbox/unipi-control.git
+$ pip install -e /opt/unipi-control
 ```
 
 ### Configuration
 
 ```shell
-$ sudo cp -R /opt/unipi-mqtt-client/src/etc/unipi /etc
+$ sudo cp -R /opt/unipi-control/src/etc/unipi /etc
 ```
 
-You can set the client settings in the `/etc/unipi/mqtt-client.yaml`.
+You can set the client settings in the `/etc/unipi/control.yaml`.
 
 Key | Value
 ------ | ------
@@ -43,7 +43,7 @@ Key | Value
 Install and start the systemd service:
 
 ```shell
-$ sudo cp /opt/unipi-mqtt-client/src/lib/systemd/system/unipi-control.service /lib/systemd/system
+$ sudo cp /opt/unipi-control/src/lib/systemd/system/unipi-control.service /lib/systemd/system
 $ sudo chown root:root /lib/systemd/system/unipi-control.service
 $ sudo chmod 644 /lib/systemd/system/unipi-control.service
 
