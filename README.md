@@ -1,5 +1,7 @@
 # Unipi Control
 
+Control Unipi I/O directly with MQTT commands and without [Evok](https://github.com/UniPiTechnology/evok). Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionaly you can enable the Home Assistant MQTT discovery for binary sensors, switches and covers.
+
 ## Installation
 
 **Requirements:**
@@ -17,13 +19,10 @@ Install the python package in your virtualenv:
 $ cd /opt
 $ git clone git@github.com:mh-superbox/unipi-control.git
 $ pip install -e /opt/unipi-control
+$ unipi-control --install
 ```
 
 ### Configuration
-
-```shell
-$ sudo cp -R /opt/unipi-control/src/etc/unipi /etc
-```
 
 You can set the client settings in the `/etc/unipi/control.yaml`.
 
