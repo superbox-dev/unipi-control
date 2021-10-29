@@ -105,7 +105,7 @@ def install() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser(description="Unipi Control")
+    parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
 
     parser.add_argument("-i", "--install", action="store_true", help="install Unipi Control")
     parser.add_argument("-d", "--debug", action="store_true", help="enable debug messages in log files")
