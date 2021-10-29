@@ -135,13 +135,25 @@ Available MQTT topics:
 
 Topic | Response | Description
 ------ | ------ | ------
-`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
-`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
-`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
+`[device_name]/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
+`[device_name]/relay/digital/do_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
+`[device_name]/input/digital/di_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
 
 ### Publish
 
 Topic | Request | Description
 ------ | ------ | ------
-`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/set` | `ON` or `OFF` | Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay.
-`unipi/relay/digital/do_[1-9]_[0-9][0-9]/set` | `ON` or `OFF` |  Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay.
+`[device_name]/relay/physical/ro_[1-9]_[0-9][0-9]/set` | `ON` or `OFF` | Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay.
+`[device_name]/relay/digital/do_[1-9]_[0-9][0-9]/set` | `ON` or `OFF` |  Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay.
+
+### Covers
+
+Topic | Response | Description
+------ | ------ | ------
+`[device_name]/[topic_name]/cover/[cover_type]/position` | `0` to `100` | Get the cover position. `100` is fully open and `0` ist fully closed.
+`[device_name]/[topic_name]/cover/[cover_type]/state` | `open`, `opening`, `closing`, `closed` or `stopped` | Get the cover state.
+
+Topic | Request | Description
+------ | ------ | ------
+`[device_name]/[topic_name]/cover/[cover_type]/set` | `OPEN`, `CLOSE` or `STOP` | Send a string to control the cover.
+`[device_name]/[topic_name]/cover/[cover_type]/position/set` |  `0` to `100` | Send an integer to set the cover position.
