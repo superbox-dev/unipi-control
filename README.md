@@ -6,7 +6,9 @@
 
 * Unipi Neuron Kernel Module and Unipi tools
   * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-  * Or compile it https://github.com/UniPiTechnology/unipi-kernel / https://github.com/UniPiTechnology/unipi-tools
+  * Or compile it
+    * https://github.com/UniPiTechnology/unipi-kernel 
+    * https://github.com/UniPiTechnology/unipi-tools
 * Python 3.7
 
 Install the python package in your virtualenv:
@@ -61,7 +63,7 @@ Available mqtt topics:
 Topic | Response | Description
 ------ | ------ | ------
 `unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
-`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `ON` or `OFF`` | Get a string with the value `ON` or `OFF` from this topic.
+`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
 `unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
 
 ### Publish
