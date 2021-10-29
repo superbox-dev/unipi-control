@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import argparse
 import asyncio
+import shutil
 import signal
+import subprocess
 import sys
 import uuid
 from contextlib import AsyncExitStack
+from pathlib import Path
 from typing import Optional
 
 from asyncio_mqtt import Client as MqttClient
@@ -116,8 +119,38 @@ class UnipiControl:
 
 
 def install() -> None:
-    # TODO: write installer
-    print("install")
+    src_config_path: str = Path(__file__).parents[1].joinpath("etc/unipi")
+    src_systemd_path: str = Path(__file__).parents[1].joinpath("lib/systemd/system/unipi-control.service")
+    dest_config_path: str = Path("/etc/unipi")
+
+    print(colored(f"-> Copy config files to {dest_config_path}", "green"))
+
+    dirs_exist_ok: bool = False
+    copy_config_files: bool = True
+
+    if dest_config_path.exists():
+        overwrite_config: str = input("Overwrite existing config files? [Y/n]")
+
+        if overwrite_config.lower() == "y":
+            dirs_exist_ok = True
+        else:
+            copy_config_files = False
+
+    if copy_config_files:
+        shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
+
+    print(colored("-> Copy systemd service \"unipi-control.service\"", "green"))
+    shutil.copyfile(src_systemd_path, "/lib/systemd/system/unipi-control.service")
+
+    enable_and_start_systemd: str = input("Enable and start systemd service? [Y/n]")
+
+    if enable_and_start_systemd.lower() == "y":
+        print(colored("-> Enable systemd service \"unipi-control.service\"", "green"))
+        status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
+        logger.info(status)
+    else:
+        print(colored("\nYou can enable the systemd service with the command:", "white", attrs=["bold", ]))
+        print(colored("systemctl enable --now unipi-control", "magenta", attrs=["bold", ]))
 
 
 def main() -> None:
