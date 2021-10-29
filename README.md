@@ -41,11 +41,11 @@ device_name: unipi
 
 Key | Value
 ------ | ------
-`mqtt/host` | The hostname or IP address of the remote broker: Default is `localhost`.
-`mqtt/port` | The network port of the server host to connect to. Defaults is `1883`.
-`mqtt/keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default tis `15`.
-`mqtt/retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
-`mqtt/reconnect_interval` | Time between connection attempts. Default is `10`.
+`host` | The hostname or IP address of the remote broker: Default is `localhost`.
+`port` | The network port of the server host to connect to. Defaults is `1883`.
+`keepalive` | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default tis `15`.
+`retry_limit` | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).
+`reconnect_interval` | Time between connection attempts. Default is `10`.
 
 ```yaml
 # control.yaml
@@ -62,8 +62,8 @@ mqtt:
 
 Key | Value
 ------ | ------
-`homeassistant/enabled` | Enable Home Assistant MQTT Discovery. Default is `true`.
-`homeassistant/discovery_prefix` | The prefix for the discovery topic. Default is `homeassistant`.
+`enabled` | Enable Home Assistant MQTT Discovery. Default is `true`.
+`discovery_prefix` | The prefix for the discovery topic. Default is `homeassistant`.
 
 ```yaml
 # control.yaml
@@ -117,8 +117,8 @@ covers:
 
 Key | Value
 ------ | ------
-`logging/logger` | Set logger to `systemd` or `file`. Default is `systemd`.
-`logging/level` | Set level to debug, info, warning or error. Default is `info`.
+`logger` | Set logger to `systemd` or `file`. Default is `systemd`.
+`level` | Set level to debug, info, warning or error. Default is `info`.
 
 ```yaml
 # control.yaml
