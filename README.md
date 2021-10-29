@@ -60,9 +60,9 @@ Available mqtt topics:
 
 Topic | Response | Description
 ------ | ------ | ------
-`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "physical", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
-`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `{"dev": "relay", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
-`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `{"dev": "input", "dev_type": "digital", "circuit": "1_01", "value": "1"}` | **Value (string):** "0" is False and "1" is True.
+`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
+`unipi/relay/digital/do_[1-9]_[0-9][0-9]/get` | `ON` or `OFF`` | Get a string with the value `ON` or `OFF` from this topic.
+`unipi/input/digital/di_[1-9]_[0-9][0-9]/get` | `ON` or `OFF` | Get a string with the value `ON` or `OFF` from this topic.
 
 ### Publish
 
