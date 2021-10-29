@@ -68,5 +68,5 @@ Topic | Response | Description
 
 Topic | Request | Description
 ------ | ------ | ------
-`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/set` | `"0" or "1"` | Send a string with the value to this topic. **Value (string):** "0" is False and "1" is True. This enable or disable the selected relay.
-`unipi/relay/digital/do_[1-9]_[0-9][0-9]/set` | `"0" or "1"` | Send a string with the value to this topic. **Value (string):** "0" is False and "1" is True. This enable or disable the selected relay.
+`unipi/relay/physical/ro_[1-9]_[0-9][0-9]/set` | `ON` or `OFF` | Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay.
+`unipi/relay/digital/do_[1-9]_[0-9][0-9]/set` | `ON` or `OFF` |  Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay.
