@@ -153,7 +153,7 @@ def main() -> None:
             logger.error(f"[MODBUS] {error}")
         finally:
             # loop.close()
-            logger.info("Successfully shutdown the Unipi MQTT Client service.")
+            logger.info("Successfully shutdown the Unipi Control service.")
 
 
 if __name__ == "__main__":

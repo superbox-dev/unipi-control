@@ -1,5 +1,6 @@
 import asyncio
 
+from config import COVER_TYPES
 from config import logger
 from covers import CoverCommand
 
@@ -21,7 +22,7 @@ class CoversMqttPlugin:
         return tasks
 
     async def _command_topic(self, stack, tasks):
-        for cover in self.uc.covers.by_cover_type(["blind"]):
+        for cover in self.uc.covers.by_cover_type(COVER_TYPES):
             task = asyncio.create_task(cover.elapsed_time())
             tasks.add(task)
 
@@ -39,7 +40,7 @@ class CoversMqttPlugin:
         return tasks
 
     async def _set_position_topic(self, stack, tasks):
-        for cover in self.uc.covers.by_cover_type(["blind"]):
+        for cover in self.uc.covers.by_cover_type(COVER_TYPES):
             topic: str = f"""{cover.topic}/position/set"""
 
             manager = self.mqtt_client.filtered_messages(topic)
@@ -81,7 +82,7 @@ class CoversMqttPlugin:
 
     async def _publish(self) -> None:
         while True:
-            for cover in self.uc.covers.by_cover_type(["blind"]):
+            for cover in self.uc.covers.by_cover_type(COVER_TYPES):
                 await cover.calibrate_position()
 
                 if cover.update_position:

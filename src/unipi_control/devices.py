@@ -1,9 +1,10 @@
 import itertools
 import re
-import socket
 from collections.abc import Iterator
+from dataclasses import dataclass
 from typing import Optional
 
+from config import config
 from config import logger
 from helpers import MutableMappingMixin
 
@@ -35,6 +36,12 @@ class DeviceMap(MutableMappingMixin):
         )
 
 
+@dataclass(frozen=True)
+class FeatureState:
+    ON: str = "ON"
+    OFF: str = "OFF"
+
+
 class FeatureMixin:
     def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
         self.__dict__.update(kwargs)
@@ -51,7 +58,7 @@ class FeatureMixin:
 
     @property
     def topic(self) -> str:
-        topic: str = f"""{socket.gethostname()}/{self.dev_name}"""
+        topic: str = f"""{config.device_name.lower()}/{self.dev_name}"""
 
         if self.dev_type:
             topic += f"/{self.dev_type}"
@@ -63,7 +70,7 @@ class FeatureMixin:
     @property
     def circuit_name(self) -> str:
         m = re.match(r"^[a-z]+_(\d{1})_(\d{2})$", self.circuit)
-        return f"""{self.name} {m.group(1)}.{m.group(2).lstrip("0")}"""
+        return f"""{self.name} {m.group(1)}.{m.group(2)}"""
 
     @property
     def changed(self) -> bool:
@@ -77,7 +84,7 @@ class FeatureMixin:
 
     @property
     def state_message(self) -> str:
-        return "ON" if self.value == 1 else "OFF"
+        return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     def __repr__(self):
         return self.circuit_name

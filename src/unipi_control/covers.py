@@ -1,6 +1,7 @@
 import asyncio
 import itertools
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Optional
 
@@ -12,16 +13,21 @@ from helpers import MutableMappingMixin
 class CoverMap(MutableMappingMixin):
     def __init__(self, devices):
         super().__init__()
-        self.mapping["blind"] = []
 
-        for blind in config.covers.blinds:
-            self.mapping["blind"].append(Blind(devices, **blind))
+        for index, cover in enumerate(config.covers):
+            cover_type: str = cover["cover_type"]
 
-    def by_cover_type(self, cover_type: list) -> list:
-        return list(
-            itertools.chain.from_iterable(
-                map(self.mapping.get, cover_type)
-            )
+            if not self.mapping.get(cover_type):
+                self.mapping[cover_type] = []
+
+            c = Cover(devices, **cover)
+
+            if c.is_valid_config:
+                self.mapping[cover_type].append(c)
+
+    def by_cover_type(self, cover_type: list) -> Iterator:
+        return itertools.chain.from_iterable(
+            filter(None, map(self.mapping.get, cover_type))
         )
 
 
@@ -66,6 +72,13 @@ class Cover:
             logger.info(f"""[COVER] Calibrate "{self.friendly_name}".""")
             self._position = 0
             await self.open()
+
+    @property
+    def is_valid_config(self):
+        if self._circuit_up and self._circuit_down:
+            return True
+
+        return False
 
     @property
     def topic(self) -> str:
@@ -203,7 +216,3 @@ class Cover:
 
     def __repr__(self):
         return self.friendly_name
-
-
-class Blind(Cover):
-    cover_type = "blind"

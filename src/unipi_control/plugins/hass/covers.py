@@ -3,6 +3,7 @@ import json
 from dataclasses import asdict
 
 from config import config
+from config import COVER_TYPES
 from config import logger
 
 
@@ -36,7 +37,7 @@ class HassCoversDiscovery:
         return topic, message
 
     async def publish(self) -> None:
-        for cover in self.uc.covers.by_cover_type(["blind"]):
+        for cover in self.uc.covers.by_cover_type(COVER_TYPES):
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
             logger.info(f"""[MQTT][{topic}] Publishing message: {json_data}""")

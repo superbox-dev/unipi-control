@@ -1,6 +1,7 @@
 import asyncio
 import json
 from dataclasses import asdict
+from typing import Optional
 
 from config import config
 from config import logger
@@ -13,8 +14,11 @@ class HassBinarySensorsDiscovery:
         self._hw = uc.neuron.hw
 
     def _get_friendly_name(self, device) -> str:
-        devices_config: dict = config.devices.get(device.circuit, {})
-        friendly_name: str = devices_config.get('friendly_name', f"""{config.device_name} - {device.circuit_name}""")
+        friendly_name: str = f"""{config.device_name} - {device.circuit_name}"""
+        devices_config: Optional[dict] = config.devices.get(device.circuit, {})
+
+        if devices_config is not None:
+            friendly_name = devices_config.get("friendly_name", friendly_name)
 
         return friendly_name
 
@@ -42,7 +46,7 @@ class HassBinarySensorsDiscovery:
             topic, message = self._get_discovery(device)
             json_data: str = json.dumps(message)
             logger.info(f"""[MQTT][{topic}] Publishing message: {json_data}""")
-            await self.mqtt_client.publish(topic, json_data, qos=1)
+            await self.mqtt_client.publish(topic, json_data, qos=2)
 
 
 class HassBinarySensorsMqttPlugin:
