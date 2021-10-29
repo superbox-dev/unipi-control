@@ -56,7 +56,7 @@ $ sudo systemctl start unipi-control.service
 
 ## Usage
 
-Available mqtt topics:
+Available MQTT topics:
 
 ### Subscribe
 
