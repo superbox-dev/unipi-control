@@ -48,9 +48,26 @@ class CoverCommand:
     IDLE: str = "IDLE"
 
 
+class CoverTimer:
+    def __init__(self, timeout, callback):
+        self._timeout = timeout
+        self._callback = callback
+        self._task = asyncio.create_task(self._job())
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        await self._callback()
+
+    def cancel(self):
+        self._task.cancel()
+
+
 class Cover:
     def __init__(self, devices, *args, **kwargs):
         self.__dict__.update(kwargs)
+
+        self._timer: Optional[CoverTimer] = None
+        self._start_timer: Optional[float] = None
 
         self._current_command: Optional[str] = None
         self._command: str = CoverCommand.IDLE
@@ -64,8 +81,6 @@ class Cover:
 
         self._circuit_up = devices.by_circuit(self.circuit_up)
         self._circuit_down = devices.by_circuit(self.circuit_down)
-
-        self._event_start_time: Optional[float] = None
 
     async def calibrate_position(self):
         if self._position is None:
@@ -133,35 +148,6 @@ class Cover:
     def position_message(self) -> Optional[int]:
         return self._position
 
-    async def elapsed_time(self) -> None:
-        while True:
-            self._current_time = time.monotonic()
-
-            if self._event_start_time:
-                self._event_time = self._current_time - self._event_start_time
-
-                if self.is_closing:
-                    self.position = int(100 * (self.full_close_time - self._event_time) / self.full_close_time) - (100 - self._start_position)
-                elif self.is_opening:
-                    self.position = self._start_position + int(100 * self._event_time / self.full_open_time)
-
-                if self.position <= 0:
-                    if self.is_closing:
-                        await self.stop()
-
-                    self.position = 0
-                elif self.position >= 100:
-                    if self.is_opening:
-                        await self.stop()
-
-                    self.position = 100
-                elif self._set_position == self.position:
-                    await self.stop()
-
-                logger.debug(f"""[COVER][{self.friendly_name}] {self._state} {self.position}""")
-
-            await asyncio.sleep(20e-3)
-
     async def open(self, position: int = 100) -> None:
         if self.is_closing:
             await self.stop()
@@ -175,7 +161,10 @@ class Cover:
                 self._state = CoverState.OPENING
                 self._set_position = position
                 self._start_position = self.position
-                self._event_start_time = time.monotonic()
+                self._start_timer = time.monotonic()
+
+                stop_timer: float = (position - self._start_position) * self.full_open_time / 100
+                self._timer = CoverTimer(stop_timer, self.stop)
 
     async def close(self, position: int = 0) -> None:
         if self.is_opening:
@@ -190,11 +179,25 @@ class Cover:
                 self._state = CoverState.CLOSING
                 self._set_position = position
                 self._start_position = self.position
-                self._event_start_time = time.monotonic()
+                self._start_timer = time.monotonic()
+
+                stop_timer: float = (self._start_position - position) * self.full_open_time / 100
+                self._timer = CoverTimer(stop_timer, self.stop)
 
     async def stop(self) -> None:
         await self._circuit_down.set_state(0)
         await self._circuit_up.set_state(0)
+
+        if self._timer is not None:
+            self._timer.cancel()
+
+        if self._start_timer is not None:
+            end_timer = time.monotonic() - self._start_timer
+
+            if self.is_closing:
+                self.position = int(100 * (self.full_close_time - end_timer) / self.full_close_time) - (100 - self._start_position)
+            elif self.is_opening:
+                self.position = self._start_position + int(100 * end_timer / self.full_open_time)
 
         if self.position <= 0:
             self._state = CoverState.CLOSED
@@ -206,13 +209,25 @@ class Cover:
         self._command = CoverCommand.IDLE
         self._set_position = None
         self._start_position = self.position
-        self._event_start_time = None
+        self._start_timer = None
 
-    async def move(self, position: int) -> None:
+    async def set_position(self, position: int) -> None:
         if position > self.position:
             await self.open(position)
         elif position < self.position:
             await self.close(position)
+
+    # async def set_tilt(self, tilt: int) -> None:
+    #    print(tilt, abs(tilt - self._current_tilt), self._current_tilt)
+
+    #    if tilt > self._current_tilt:
+    #        await self.open(tilt=abs(tilt - self._current_tilt))
+    #        print("open")
+    #    elif tilt < self._current_tilt:
+    #        await self.close(tilt=abs(tilt - self._current_tilt))
+    #        print("close")
+
+    #    self._current_tilt = tilt
 
     def __repr__(self):
         return self.friendly_name

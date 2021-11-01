@@ -15,6 +15,7 @@ class CoversMqttPlugin:
 
         tasks = await self._command_topic(stack, tasks)
         tasks = await self._set_position_topic(stack, tasks)
+        tasks = await self._tilt_command_topic(stack, tasks)
 
         task = asyncio.create_task(self._publish())
         tasks.add(task)
@@ -23,9 +24,6 @@ class CoversMqttPlugin:
 
     async def _command_topic(self, stack, tasks):
         for cover in self.uc.covers.by_cover_type(COVER_TYPES):
-            task = asyncio.create_task(cover.elapsed_time())
-            tasks.add(task)
-
             topic: str = f"""{cover.topic}/set"""
 
             manager = self.mqtt_client.filtered_messages(topic)
@@ -54,6 +52,22 @@ class CoversMqttPlugin:
 
         return tasks
 
+    async def _tilt_command_topic(self, stack, tasks):
+        for cover in self.uc.covers.by_cover_type(COVER_TYPES):
+            if cover.tilt_change_time:
+                topic: str = f"""{cover.topic}/tilt/set"""
+
+                manager = self.mqtt_client.filtered_messages(topic)
+                messages = await stack.enter_async_context(manager)
+
+                task = asyncio.create_task(self._subscribe_tilt_command_topic(cover, topic, messages))
+                tasks.add(task)
+
+                await self.mqtt_client.subscribe(topic, qos=2)
+                logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+
+        return tasks
+
     async def _subscribe_command_topic(self, cover, topic: str, messages) -> None:
         template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
 
@@ -76,7 +90,19 @@ class CoversMqttPlugin:
                 position: int = int(message.payload.decode())
                 logger.info(template.format(position))
 
-                await cover.move(position)
+                await cover.set_position(position)
+            except ValueError as error:
+                logger.error(error)
+
+    async def _subscribe_tilt_command_topic(self, cover, topic: str, messages) -> None:
+        template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
+
+        async for message in messages:
+            try:
+                tilt: int = int(message.payload.decode())
+                logger.info(template.format(tilt))
+
+                await cover.set_tilt(tilt)
             except ValueError as error:
                 logger.error(error)
 
