@@ -153,8 +153,10 @@ class Config(ConfigBase):
                 if key in required_fields:
                     errors.append(colored(f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""", "red"))
 
-            for cover_time in ["full_open_time", "full_close_time"]:
-                if not isinstance(cover.get(cover_time), float) and not isinstance(cover.get(cover_time), int):
+            for cover_time in ["full_open_time", "full_close_time", "tilt_change_time"]:
+                value = cover.get(cover_time)
+
+                if value and not isinstance(value, float) and not isinstance(value, int):
                     errors.append(colored(f"""[CONFIG][COVER {index + 1}] Key "{cover_time}" is not a float or integer!""", "red"))
 
             result = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))

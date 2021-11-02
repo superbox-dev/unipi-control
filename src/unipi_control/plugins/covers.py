@@ -114,7 +114,7 @@ class CoversMqttPlugin:
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.position_message}")
                     await self.mqtt_client.publish(topic, cover.position_message, qos=2)
 
-                if cover.tilt_changed:
+                if cover.tilt_changed and cover.tilt_change_time:
                     topic: str = f"{cover.topic}/tilt"
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.tilt_message}")
                     await self.mqtt_client.publish(topic, cover.tilt_message, qos=2)

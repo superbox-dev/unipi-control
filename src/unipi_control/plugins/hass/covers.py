@@ -16,6 +16,7 @@ class HassCoversDiscovery:
 
     def _get_discovery(self, cover) -> tuple:
         topic: str = f"""{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"""
+
         message: dict = {
             "name": cover.friendly_name,
             "unique_id": f"{cover.cover_type}_{cover.topic_name}",
@@ -23,8 +24,6 @@ class HassCoversDiscovery:
             "state_topic": f"{cover.topic}/state",
             "position_topic": f"{cover.topic}/position",
             "set_position_topic": f"{cover.topic}/position/set",
-            "tilt_status_topic": f"{cover.topic}/tilt",
-            "tilt_command_topic": f"{cover.topic}/tilt/set",
             "retain": False,
             "qos": 2,
             "optimistic": False,
@@ -35,6 +34,12 @@ class HassCoversDiscovery:
                 **asdict(config.homeassistant.device),
             }
         }
+
+        if cover.tilt_change_time:
+            message.update({
+                "tilt_status_topic": f"{cover.topic}/tilt",
+                "tilt_command_topic": f"{cover.topic}/tilt/set",
+            })
 
         return topic, message
 
