@@ -72,7 +72,7 @@ class HomeAssistantConfig(ConfigBase):
 @dataclass
 class LoggingConfig(ConfigBase):
     logger: str = field(default="systemd")
-    level: str = field(default="level")
+    level: str = field(default="info")
 
 
 @dataclass
@@ -91,9 +91,11 @@ class Config(ConfigBase):
 
     @staticmethod
     def get_config(path: str) -> dict:
+        config: dict = {}
+
         if os.path.exists(path):
             with open(path) as f:
-                config: dict = yaml.load(f, Loader=yaml.FullLoader)
+                config = yaml.load(f, Loader=yaml.FullLoader)
 
         return config
 
