@@ -111,10 +111,15 @@ class CoversMqttPlugin:
             for cover in self.uc.covers.by_cover_type(COVER_TYPES):
                 await cover.calibrate_position()
 
-                if cover.update_position:
+                if cover.position_changed:
                     topic: str = f"{cover.topic}/position"
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.position_message}")
                     await self.mqtt_client.publish(topic, cover.position_message, qos=2)
+
+                if cover.tilt_changed:
+                    topic: str = f"{cover.topic}/tilt"
+                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.tilt_message}")
+                    await self.mqtt_client.publish(topic, cover.tilt_message, qos=2)
 
                 if cover.state_changed:
                     topic: str = f"{cover.topic}/state"

@@ -19,6 +19,7 @@ covers:
     topic_name: workspace_1
     full_open_time: 35.5
     full_close_time: 35.5
+    tilt_change_time: 1.5
     circuit_up: ro_3_03
     circuit_down: ro_3_02
 logging:
