@@ -50,4 +50,4 @@ class DevicesMqttPlugin:
                     logger.info(f"""[MQTT][{topic}] Publishing message: {device.state_message}""")
                     await self.mqtt_client.publish(topic, device.state_message, qos=2)
 
-            await asyncio.sleep(250e-3)
+            await asyncio.sleep(25e-3)

@@ -109,8 +109,6 @@ class CoversMqttPlugin:
     async def _publish(self) -> None:
         while True:
             for cover in self.uc.covers.by_cover_type(COVER_TYPES):
-                await cover.calibrate_position()
-
                 if cover.position_changed:
                     topic: str = f"{cover.topic}/position"
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.position_message}")
@@ -126,4 +124,4 @@ class CoversMqttPlugin:
                     logger.info(f"[MQTT][{topic}] Publishing message: {cover.state_message}")
                     await self.mqtt_client.publish(topic, cover.state_message, qos=2)
 
-            await asyncio.sleep(250e-3)
+            await asyncio.sleep(25e-3)

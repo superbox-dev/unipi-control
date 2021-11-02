@@ -170,7 +170,9 @@ class Cover:
 
     async def open(self, position: int = 100, tilt: Optional[int] = None) -> None:
         self._stop_timer()
-        self._update_position()
+
+        if self.position is not None:
+            self._update_position()
 
         response = await self._circuit_down.set_state(0)
 
@@ -187,6 +189,10 @@ class Cover:
                 if position == 100:
                     position = 105
 
+                if self.position is None:
+                    self.position = 0
+
+                self.tilt = 100
                 stop_timer: float = (position - self.position) * self.full_open_time / 100
 
             self._timer = CoverTimer(stop_timer, self.stop)
@@ -210,11 +216,18 @@ class Cover:
                 if position == 0:
                     position = -5
 
+                if self.position is None:
+                    self.position = 100
+
+                self.tilt = 0
                 stop_timer: float = (self.position - position) * self.full_open_time / 100
 
             self._timer = CoverTimer(stop_timer, self.stop)
 
     async def stop(self) -> None:
+        if self.position is None:
+            return
+
         await self._circuit_down.set_state(0)
         await self._circuit_up.set_state(0)
 
@@ -234,12 +247,18 @@ class Cover:
         self._start_timer = None
 
     async def set_position(self, position: int) -> None:
+        if self.position is None:
+            return
+
         if position > self.position:
             await self.open(position)
         elif position < self.position:
             await self.close(position)
 
     async def set_tilt(self, tilt: int) -> None:
+        if self.position is None:
+            return
+
         if tilt > self.tilt:
             await self.open(tilt=tilt)
         elif tilt < self.tilt:
