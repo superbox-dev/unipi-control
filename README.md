@@ -13,11 +13,11 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
     * https://github.com/UniPiTechnology/unipi-tools
 * Python 3.7
 
-Install the python package in your virtualenv:
-
 ```shell
 $ cd /opt
 $ git clone git@github.com:mh-superbox/unipi-control.git
+$ cd /opt/unipi-control
+$ pip install -r requirements.txt
 $ pip install -e /opt/unipi-control
 $ unipi-control --install
 ```
