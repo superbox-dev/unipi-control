@@ -96,8 +96,9 @@ Key | Value
 `friendly_name` | Friendly name is displayed in Home Assistant.
 `cover_type` | Cover types can be "blind", "roller_shutter", or "garage_door".
 `topic_name` | Unique name for the MQTT topic.
-`full_open_time` | Define the time it takes for blind to fully open in seconds.
-`full_close_time` | Define the time it takes for blind to fully close in seconds.
+`full_open_time` | Define the time (in seconds) it takes for blind to fully open.
+`full_close_time` | Define the time (in seconds) it takes for blind to fully close.
+`tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state.
 `circuit_up` | Output circuit name from a relay or digital output.
 `circuit_down` | Output circuit name from a relay or digital output.
 
@@ -109,6 +110,7 @@ covers:
     topic_name: workspace_1
     full_open_time: 35.5
     full_close_time: 35.5
+    tilt_change_time: 1.5
     circuit_up: ro_3_03
     circuit_down: ro_3_02
 ```
