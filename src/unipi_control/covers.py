@@ -169,13 +169,15 @@ class Cover:
         self._start_timer = None
 
     def _update_position(self) -> None:
-        if self._start_timer is not None:
-            end_timer = time.monotonic() - self._start_timer
+        if self._start_timer is None:
+            return
 
-            if self.is_closing:
-                self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (100 - self.position)
-            elif self.is_opening:
-                self.position = self.position + int(round(100 * end_timer / self.full_open_time))
+        end_timer = time.monotonic() - self._start_timer
+
+        if self.is_closing:
+            self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (100 - self.position)
+        elif self.is_opening:
+            self.position = self.position + int(round(100 * end_timer / self.full_open_time))
 
     async def open(self, position: int = 100, tilt: Optional[int] = None) -> None:
         if self.position is not None:
