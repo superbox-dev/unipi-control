@@ -180,9 +180,23 @@ class Cover:
             self.position = self.position + int(round(100 * end_timer / self.full_open_time))
 
     async def open(self, position: int = 100, tilt: Optional[int] = None) -> None:
-        if self.position is not None:
-            self._update_position()
+        """Close the cover.
 
+        If the cover is already opening or closing, the position is updated.
+        If a running timer exists, it will be stopped.
+
+        For safety reasons, the relay for close the cover will be deactivated.
+        If this is successful, the relay to open the cover is activated.
+
+        The device state is changed to **OPEN**, the cover state is changed
+        to **OPENING** and the timer will be started.
+
+        Parameters
+        ----------
+        position : int
+        tilt : int, optional
+        """
+        self._update_position()
         self._stop_timer()
 
         response = await self._circuit_down.set_state(0)
@@ -212,13 +226,13 @@ class Cover:
         """Close the cover.
 
         If the cover is already opening or closing, the position is updated.
-        If and running timer exists, it will be stopped.
+        If a running timer exists, it will be stopped.
 
         For safety reasons, the relay for open the cover will be deactivated.
         If this is successful, the relay to close the cover is activated.
 
         The device state is changed to **CLOSE**, the cover state is changed
-        to **CLOSING** and the cover timer will be started.
+        to **CLOSING** and the timer will be started.
 
         Parameters
         ----------
@@ -261,7 +275,7 @@ class Cover:
         closed. If position is greater than equal 100 then the cover state is
         set to open. On all other positions the cover state is set to stopped.
 
-        The device state is changed to **IDLE** and the cover timer will be
+        The device state is changed to **IDLE** and the timer will be
         reset.
         """
         if self.position is None:
