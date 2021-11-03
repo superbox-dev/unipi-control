@@ -210,6 +210,22 @@ class Cover:
                 self._timer = CoverTimer(stop_timer, self.stop)
 
     async def close(self, position: int = 0, tilt: Optional[int] = None) -> None:
+        """Close the cover.
+
+        If the cover is already opening or closing, the position is updated.
+        If and running timer exists, it will be stopped.
+
+        For safety reasons, the relay for open the cover will be deactivated.
+        If this is successful, the relay to close the cover is activated.
+
+        The device state is changed to **CLOSE**, the cover state is changed
+        to **CLOSING** and the cover timer will be started.
+
+        Parameters
+        ----------
+        position : int
+        tilt : int, optional
+        """
         self._update_position()
         self._stop_timer()
 
@@ -242,14 +258,15 @@ class Cover:
     async def stop(self) -> None:
         """Stop moving the cover.
 
-        If the cover is in calibration mode (`self.position` is not set) then the
-        cover can't will not be stopped!
+        If the cover is in calibration mode (`self.position` is not set) then
+        the cover can't be stopped!
 
-        If position is lower than equal 0 then the cover state is set to closed.
-        If position is greater than equal 100 then the cover state is set to open.
-        On all other positions the cover state is set to stopped.
+        If position is lower than equal 0 then the cover state is set to
+        closed. If position is greater than equal 100 then the cover state is
+        set to open. On all other positions the cover state is set to stopped.
 
-        The device state is changed to IDLE and the cover timer will be reset.
+        The device state is changed to **IDLE** and the cover timer will be
+        reset.
         """
         if self.position is None:
             return
