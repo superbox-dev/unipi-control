@@ -206,6 +206,7 @@ class Cover:
             self._device_state = CoverDeviceState.OPEN
             self._state = CoverState.OPENING
             self._start_timer = time.monotonic()
+            self.tilt = 100
 
             if position == 100:
                 position = 105
@@ -213,8 +214,10 @@ class Cover:
             if self.position is None:
                 self.position = 0
 
-            self.tilt = 100
             stop_timer = (position - self.position) * self.full_open_time / 100
+
+            if stop_timer < self.tilt_change_time:
+                stop_timer = self.tilt_change_time
 
             self._timer = CoverTimer(stop_timer, self.stop)
 
@@ -245,6 +248,7 @@ class Cover:
             self._device_state = CoverDeviceState.CLOSE
             self._state = CoverState.CLOSING
             self._start_timer = time.monotonic()
+            self.tilt = 0
 
             if position == 0:
                 position = -5
@@ -252,8 +256,11 @@ class Cover:
             if self.position is None:
                 self.position = 100
 
-            self.tilt = 0
             stop_timer = (self.position - position) * self.full_open_time / 100
+
+            if stop_timer < self.tilt_change_time:
+                stop_timer = self.tilt_change_time
+
             self._timer = CoverTimer(stop_timer, self.stop)
 
     async def stop(self) -> None:
