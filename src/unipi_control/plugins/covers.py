@@ -2,7 +2,7 @@ import asyncio
 
 from config import COVER_TYPES
 from config import logger
-from covers import CoverCommand
+from covers import CoverDeviceState
 
 
 class CoversMqttPlugin:
@@ -76,11 +76,11 @@ class CoversMqttPlugin:
             value: str = message.payload.decode()
             logger.info(template.format(value))
 
-            if value == CoverCommand.OPEN:
+            if value == CoverDeviceState.OPEN:
                 await cover.open()
-            elif value == CoverCommand.CLOSE:
+            elif value == CoverDeviceState.CLOSE:
                 await cover.close()
-            elif value == CoverCommand.STOP:
+            elif value == CoverDeviceState.STOP:
                 await cover.stop()
 
     @staticmethod
