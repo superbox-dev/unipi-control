@@ -149,5 +149,5 @@ Topic | Response/Request | Description
 `[device_name]/[topic_name]/cover/[cover_type]/set` | `OPEN`, `CLOSE` or `STOP` | Send a string to control the cover.
 `[device_name]/[topic_name]/cover/[cover_type]/position` | `0` to `100` | Get the cover position. `100` is fully open and `0` ist fully closed.
 `[device_name]/[topic_name]/cover/[cover_type]/position/set` |  `0` to `100` | Send an integer to set the cover position.
-`[device_name]/[topic_name]/cover/[cover_type]/tilt` |  `0` to `100` | Get the tilt position. `100` is fully open and `0` ist fully closed.
+`[device_name]/[topic_name]/cover/[cover_type]/tilt` |  `0` to `100` | Get the tilt position. `100` is fully open and `0` is fully closed.
 `[device_name]/[topic_name]/cover/[cover_type]/tilt/set` |  `0` to `100` | Send an integer to set the cover position.
