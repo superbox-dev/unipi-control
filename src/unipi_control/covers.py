@@ -194,11 +194,9 @@ class Cover:
             self._state = CoverState.OPENING
             self._start_timer = time.monotonic()
 
-            stop_timer: Optional[float] = None
-
             if tilt is not None:
                 stop_timer = (tilt - self.tilt) * self.tilt_change_time / 100
-            elif position is not None:
+            else:
                 if position == 100:
                     position = 105
 
@@ -208,8 +206,7 @@ class Cover:
                 self.tilt = 100
                 stop_timer = (position - self.position) * self.full_open_time / 100
 
-            if stop_timer is not None:
-                self._timer = CoverTimer(stop_timer, self.stop)
+            self._timer = CoverTimer(stop_timer, self.stop)
 
     async def close(self, position: int = 0, tilt: Optional[int] = None) -> None:
         """Close the cover.
@@ -240,11 +237,9 @@ class Cover:
             self._state = CoverState.CLOSING
             self._start_timer = time.monotonic()
 
-            stop_timer: Optional[float] = None
-
             if tilt is not None:
                 stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
-            elif position is not None:
+            else:
                 if position == 0:
                     position = -5
 
@@ -254,54 +249,7 @@ class Cover:
                 self.tilt = 0
                 stop_timer = (self.position - position) * self.full_open_time / 100
 
-            if stop_timer is not None:
-                self._timer = CoverTimer(stop_timer, self.stop)
-
-    async def close(self, position: int = 0, tilt: Optional[int] = None) -> None:
-        """Close the cover.
-
-        If the cover is already opening or closing, the position is updated.
-        If and running timer exists, it will be stopped.
-
-        For safety reasons, the relay for open the cover will be deactivated.
-        If this is successful, the relay to close the cover is activated.
-
-        The device state is changed to **CLOSE**, the cover state is changed
-        to **CLOSING** and the cover timer will be started.
-
-        Parameters
-        ----------
-        position : int
-        tilt : int, optional
-        """
-        self._update_position()
-        self._stop_timer()
-
-        response = await self._circuit_up.set_state(0)
-
-        if not response.isError():
-            await self._circuit_down.set_state(1)
-
-            self._device_state = CoverDeviceState.CLOSE
-            self._state = CoverState.CLOSING
-            self._start_timer = time.monotonic()
-
-            stop_timer: Optional[float] = None
-
-            if tilt is not None:
-                stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
-            elif position is not None:
-                if position == 0:
-                    position = -5
-
-                if self.position is None:
-                    self.position = 100
-
-                self.tilt = 0
-                stop_timer = (self.position - position) * self.full_open_time / 100
-
-            if stop_timer is not None:
-                self._timer = CoverTimer(stop_timer, self.stop)
+            self._timer = CoverTimer(stop_timer, self.stop)
 
     async def stop(self) -> None:
         """Stop moving the cover.
