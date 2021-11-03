@@ -211,7 +211,7 @@ class Cover:
             if stop_timer is not None:
                 self._timer = CoverTimer(stop_timer, self.stop)
 
-    async def close(self, position: int = 0, tilt: Optional[int] = None) -> None:
+    async def close(self, position: int = 0) -> None:
         """Close the cover.
 
         If the cover is already opening or closing, the position is updated.
@@ -226,7 +226,6 @@ class Cover:
         Parameters
         ----------
         position : int
-        tilt : int, optional
         """
         self._update_position()
         self._stop_timer()
@@ -240,22 +239,39 @@ class Cover:
             self._state = CoverState.CLOSING
             self._start_timer = time.monotonic()
 
-            stop_timer: Optional[float] = None
+            if position == 0:
+                position = -5
 
-            if tilt is not None:
-                stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
-            elif position is not None:
-                if position == 0:
-                    position = -5
+            if self.position is None:
+                self.position = 100
 
-                if self.position is None:
-                    self.position = 100
+            stop_timer = (self.position - position) * self.full_open_time / 100
 
+            if stop_timer < self.tilt_change_time:
                 self.tilt = 0
-                stop_timer = (self.position - position) * self.full_open_time / 100
 
-            if stop_timer is not None:
-                self._timer = CoverTimer(stop_timer, self.stop)
+            self._timer = CoverTimer(stop_timer, self.stop)
+
+    async def _close_tilt(self, tilt: int = 0) -> None:
+        """
+
+        Parameters
+        ----------
+        tilt : int
+        """
+        self._update_position()
+        self._stop_timer()
+
+        response = await self._circuit_up.set_state(0)
+
+        if not response.isError():
+            await self._circuit_down.set_state(1)
+
+            self._start_timer = time.monotonic()
+
+            stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
+            self._timer = CoverTimer(stop_timer, self.stop)
+
 
     async def stop(self) -> None:
         """Stop moving the cover.
@@ -316,8 +332,7 @@ class Cover:
             return
 
         if tilt > self.tilt:
-            # TODO: self.open or create a other method for it?
-            await self.open(tilt=tilt)
+            await self._close_tilt(tilt)
         elif tilt < self.tilt:
             # TODO: self.close or create a other method for it?
             await self.close(tilt=tilt)
