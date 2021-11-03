@@ -41,7 +41,7 @@ class CoverState:
 
 
 @dataclass(frozen=True)
-class CoverCommand:
+class CoverDeviceState:
     OPEN: str = "OPEN"
     CLOSE: str = "CLOSE"
     STOP: str = "STOP"
@@ -76,7 +76,7 @@ class Cover:
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
 
-        self._command: str = CoverCommand.IDLE
+        self._device_state: str = CoverDeviceState.IDLE
 
         self._current_state: Optional[str] = None
         self._state: str = CoverState.OPEN
@@ -137,7 +137,7 @@ class Cover:
     def position_changed(self) -> bool:
         changed: bool = self.position != self._current_position
 
-        if changed and self._command == CoverCommand.IDLE:
+        if changed and self._device_state == CoverDeviceState.IDLE:
             self._current_position = self.position
             return True
 
@@ -155,7 +155,7 @@ class Cover:
     def tilt_changed(self) -> bool:
         changed: bool = self.tilt != self._current_tilt
 
-        if changed and self._command == CoverCommand.IDLE:
+        if changed and self._device_state == CoverDeviceState.IDLE:
             self._current_tilt = self.tilt
             return True
 
@@ -165,6 +165,8 @@ class Cover:
         if self._timer is not None:
             self._timer.cancel()
             self._timer = None
+
+        self._start_timer = None
 
     def _update_position(self) -> None:
         if self._start_timer is not None:
@@ -176,17 +178,17 @@ class Cover:
                 self.position = self.position + int(round(100 * end_timer / self.full_open_time))
 
     async def open(self, position: int = 100, tilt: Optional[int] = None) -> None:
-        self._stop_timer()
-
         if self.position is not None:
             self._update_position()
+
+        self._stop_timer()
 
         response = await self._circuit_down.set_state(0)
 
         if not response.isError():
             await self._circuit_up.set_state(1)
 
-            self._command = CoverCommand.OPEN
+            self._device_state = CoverDeviceState.OPEN
             self._state = CoverState.OPENING
             self._start_timer = time.monotonic()
 
@@ -208,15 +210,15 @@ class Cover:
                 self._timer = CoverTimer(stop_timer, self.stop)
 
     async def close(self, position: int = 0, tilt: Optional[int] = None) -> None:
-        self._stop_timer()
         self._update_position()
+        self._stop_timer()
 
         response = await self._circuit_up.set_state(0)
 
         if not response.isError():
             await self._circuit_down.set_state(1)
 
-            self._command = CoverCommand.CLOSE
+            self._device_state = CoverDeviceState.CLOSE
             self._state = CoverState.CLOSING
             self._start_timer = time.monotonic()
 
@@ -238,14 +240,25 @@ class Cover:
                 self._timer = CoverTimer(stop_timer, self.stop)
 
     async def stop(self) -> None:
+        """Stop moving the cover.
+
+        If the cover is in calibration mode (`self.position` is not set) then the
+        cover can't will not be stopped!
+
+        If position is lower than equal 0 then the cover state is set to closed.
+        If position is greater than equal 100 then the cover state is set to open.
+        On all other positions the cover state is set to stopped.
+
+        The device state is changed to IDLE and the cover timer will be reset.
+        """
         if self.position is None:
             return
 
         await self._circuit_down.set_state(0)
         await self._circuit_up.set_state(0)
 
-        self._stop_timer()
         self._update_position()
+        self._stop_timer()
 
         if self.position <= 0:
             self.position = 0
@@ -256,10 +269,15 @@ class Cover:
         else:
             self._state = CoverState.STOPPED
 
-        self._command = CoverCommand.IDLE
-        self._start_timer = None
+        self._device_state = CoverDeviceState.IDLE
 
     async def set_position(self, position: int) -> None:
+        """Set the cover position.
+
+        Parameters
+        ----------
+        position : int
+        """
         if self.position is None:
             return
 
@@ -269,15 +287,24 @@ class Cover:
             await self.close(position)
 
     async def set_tilt(self, tilt: int) -> None:
+        """Set the cover tilt position.
+
+        Parameters
+        ----------
+        tilt : int
+        """
         if self.position is None:
             return
 
         if tilt > self.tilt:
+            # TODO: self.open or create a other method for it?
             await self.open(tilt=tilt)
         elif tilt < self.tilt:
+            # TODO: self.close or create a other method for it?
             await self.close(tilt=tilt)
 
         self.tilt = tilt
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a friendly name of the cover."""
         return self.friendly_name
