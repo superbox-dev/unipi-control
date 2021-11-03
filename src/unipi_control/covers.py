@@ -222,6 +222,22 @@ class Cover:
 
             self._timer = CoverTimer(stop_timer, self.stop)
 
+    async def _open_tilt(self, tilt: int = 100) -> None:
+        self._update_position()
+        self._stop_timer()
+
+        response = await self._circuit_down.set_state(0)
+
+        if not response.isError():
+            await self._circuit_up.set_state(1)
+
+            self._device_state = CoverDeviceState.OPEN
+            self._state = CoverState.OPENING
+            self._start_timer = time.monotonic()
+
+            stop_timer = (tilt - self.tilt) * self.tilt_change_time / 100
+            self._timer = CoverTimer(stop_timer, self.stop)
+
     async def close(self, position: int = 0, tilt: Optional[int] = None) -> None:
         """Close the cover.
 
@@ -263,6 +279,22 @@ class Cover:
                 self.tilt = 0
                 stop_timer = (self.position - position) * self.full_open_time / 100
 
+            self._timer = CoverTimer(stop_timer, self.stop)
+
+    async def _close_tilt(self, tilt: int = 0) -> None:
+        self._update_position()
+        self._stop_timer()
+
+        response = await self._circuit_up.set_state(0)
+
+        if not response.isError():
+            await self._circuit_down.set_state(1)
+
+            self._device_state = CoverDeviceState.CLOSE
+            self._state = CoverState.CLOSING
+            self._start_timer = time.monotonic()
+
+            stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
             self._timer = CoverTimer(stop_timer, self.stop)
 
     async def stop(self) -> None:
@@ -324,9 +356,9 @@ class Cover:
             return
 
         if tilt > self.tilt:
-            await self.open(tilt=tilt)
+            await self._open_tilt(tilt)
         elif tilt < self.tilt:
-            await self.close(tilt=tilt)
+            await self._close_tilt(tilt)
 
         self.tilt = tilt
 
