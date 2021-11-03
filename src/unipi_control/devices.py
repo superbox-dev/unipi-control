@@ -48,9 +48,12 @@ class FeatureMixin:
         self.dev_name = kwargs.get("dev_name")
         self.dev_type = kwargs.get("dev_type")
         self.name = kwargs.get("name")
-        self.reg = kwargs.get("reg")
+
+        self.major_group = kwargs.get("major_group")
+        self.type = kwargs.get("type")
         self.coil = kwargs.get("coil")
         self.cal_reg = kwargs.get("cal_reg")
+        self.reg = kwargs.get("reg")
 
         self.board = board
         self.modbus = board.neuron.modbus
@@ -225,8 +228,6 @@ class AnalogOutput(FeatureMixin):
             value_i = 0
         elif value_i > 4095:
             value_i = 4095
-
-        print(self.reg_value(), value_i)
 
         await self.modbus.write_register(self.cal_reg, value_i, unit=0)
 
