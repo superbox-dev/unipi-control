@@ -58,7 +58,7 @@ class HassCoversMqttPlugin:
 
         self._hass = HassCoversDiscovery(uc, mqtt_client)
 
-    async def init_task(self, stack) -> set:
+    async def init_task(self) -> set:
         tasks = set()
 
         task = asyncio.create_task(self._hass.publish())

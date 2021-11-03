@@ -1,6 +1,6 @@
 # Unipi Control
 
-Control Unipi I/O directly with MQTT commands and without [Evok](https://github.com/UniPiTechnology/evok). Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionaly you can enable the Home Assistant MQTT discovery for binary sensors, switches and covers.
+Control Unipi I/O directly with MQTT commands and without [Evok](https://github.com/UniPiTechnology/evok). Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionally you can enable the Home Assistant MQTT discovery for binary sensors, switches and covers.
 
 ## Installation
 
@@ -72,7 +72,7 @@ homeassistant:
 
 #### Devices
 
-It's psoible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
+It's possible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
 
 ```yaml
 # control.yaml
@@ -87,7 +87,7 @@ devices:
 
 **Warning:** Driving both signals up and down at the same time can damage the motor. There are a couple of checks to prevent such situation. Use this software at your own risk! I do not take any responsibility for it!
 
-The Home Assistant Discovery for the covers is optionaly. Covers can be control with MQTT topics without Home Assistant.
+The Home Assistant Discovery for the covers is optionally. Covers can be control with MQTT topics without Home Assistant.
 
 Key | Value
 ------ | ------
@@ -145,7 +145,9 @@ Topic | Response/Request | Description
 
 Topic | Response/Request | Description
 ------ | ------ | ------
-`[device_name]/[topic_name]/cover/[cover_type]/position` | `0` to `100` | Get the cover position. `100` is fully open and `0` ist fully closed.
 `[device_name]/[topic_name]/cover/[cover_type]/state` | `open`, `opening`, `closing`, `closed` or `stopped` | Get the cover state.
 `[device_name]/[topic_name]/cover/[cover_type]/set` | `OPEN`, `CLOSE` or `STOP` | Send a string to control the cover.
+`[device_name]/[topic_name]/cover/[cover_type]/position` | `0` to `100` | Get the cover position. `100` is fully open and `0` ist fully closed.
 `[device_name]/[topic_name]/cover/[cover_type]/position/set` |  `0` to `100` | Send an integer to set the cover position.
+`[device_name]/[topic_name]/cover/[cover_type]/tilt` |  `0` to `100` | Get the tilt position. `100` is fully open and `0` ist fully closed.
+`[device_name]/[topic_name]/cover/[cover_type]/tilt/set` |  `0` to `100` | Send an integer to set the cover position.

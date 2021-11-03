@@ -63,8 +63,15 @@ class CoverTimer:
 
 
 class Cover:
-    def __init__(self, devices, *args, **kwargs):
-        self.__dict__.update(kwargs)
+    def __init__(self, devices, **kwargs):
+        self.friendly_name = kwargs.get("friendly_name")
+        self.cover_type = kwargs.get("cover_type")
+        self.topic_name = kwargs.get("topic_name")
+        self.full_close_time = kwargs.get("full_close_time")
+        self.full_open_time = kwargs.get("full_open_time")
+        self.tilt_change_time = kwargs.get("tilt_change_time")
+        self.circuit_up = kwargs.get("circuit_up")
+        self.circuit_down = kwargs.get("circuit_down")
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
@@ -183,6 +190,8 @@ class Cover:
             self._state = CoverState.OPENING
             self._start_timer = time.monotonic()
 
+            stop_timer: Optional[float] = None
+
             if tilt is not None:
                 stop_timer = (tilt - self.tilt) * self.tilt_change_time / 100
             elif position is not None:
@@ -193,9 +202,10 @@ class Cover:
                     self.position = 0
 
                 self.tilt = 100
-                stop_timer: float = (position - self.position) * self.full_open_time / 100
+                stop_timer = (position - self.position) * self.full_open_time / 100
 
-            self._timer = CoverTimer(stop_timer, self.stop)
+            if stop_timer is not None:
+                self._timer = CoverTimer(stop_timer, self.stop)
 
     async def close(self, position: int = 0, tilt: Optional[int] = None) -> None:
         self._stop_timer()
@@ -210,6 +220,8 @@ class Cover:
             self._state = CoverState.CLOSING
             self._start_timer = time.monotonic()
 
+            stop_timer: Optional[float] = None
+
             if tilt is not None:
                 stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
             elif position is not None:
@@ -220,9 +232,10 @@ class Cover:
                     self.position = 100
 
                 self.tilt = 0
-                stop_timer: float = (self.position - position) * self.full_open_time / 100
+                stop_timer = (self.position - position) * self.full_open_time / 100
 
-            self._timer = CoverTimer(stop_timer, self.stop)
+            if stop_timer is not None:
+                self._timer = CoverTimer(stop_timer, self.stop)
 
     async def stop(self) -> None:
         if self.position is None:

@@ -13,7 +13,7 @@ class MappingMixin(Mapping):
         return iter(self.mapping)
 
     def __len__(self):
-        return len(self._mapping)
+        return len(self.mapping)
 
     def __repr__(self):
         return f"{type(self).__name__}({self.mapping})"
@@ -45,7 +45,7 @@ class MutableMappingMixin(MutableMapping):
         return iter(self.mapping)
 
     def __len__(self):
-        return len(self._mapping)
+        return len(self.mapping)
 
     def __repr__(self):
         return f"{type(self).__name__}({self.mapping})"

@@ -17,6 +17,8 @@ class DeviceMap(MutableMappingMixin):
         self.mapping[device.type].append(device)
 
     def by_circuit(self, circuit: str):
+        device = None
+
         try:
             device = next(
                 filter(
@@ -25,7 +27,6 @@ class DeviceMap(MutableMappingMixin):
                 )
             )
         except StopIteration:
-            device = None
             logger.error(f"[CONFIG] \"{circuit}\" not found in {self.__class__.__name__}!")
         finally:
             return device
@@ -44,7 +45,13 @@ class FeatureState:
 
 class FeatureMixin:
     def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
-        self.__dict__.update(kwargs)
+        self.dev_name = kwargs.get("dev_name")
+        self.dev_type = kwargs.get("dev_type")
+        self.name = kwargs.get("name")
+        self.reg = kwargs.get("reg")
+        self.coil = kwargs.get("coil")
+        self.cal_reg = kwargs.get("cal_reg")
+
         self.board = board
         self.modbus = board.neuron.modbus
         self.circuit: str = circuit
@@ -69,7 +76,7 @@ class FeatureMixin:
 
     @property
     def circuit_name(self) -> str:
-        m = re.match(r"^[a-z]+_(\d{1})_(\d{2})$", self.circuit)
+        m = re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit)
         return f"""{self.name} {m.group(1)}.{m.group(2)}"""
 
     @property
@@ -125,9 +132,10 @@ class AnalogOutput(FeatureMixin):
         self.ai_voltage_deviation = board.neuron.modbus_cache_map.get_register(1, self.cal_reg + 1, unit=0)
         self.ai_voltage_offset = board.neuron.modbus_cache_map.get_register(1, self.cal_reg + 2, unit=0)
 
-    def _uint16_to_int(self, inp):
+    @staticmethod
+    def _uint16_to_int(inp):
         if inp > 0x8000:
-            return (inp - 0x10000)
+            return inp - 0x10000
 
         return inp
 
@@ -175,18 +183,18 @@ class AnalogOutput(FeatureMixin):
         return _factor
 
     @property
-    def factorx(self) -> float:
-        _factorx: float = self.board.volt_refx / 4095 * (1 / 10000.0)
+    def factor_x(self) -> float:
+        _factor_x: float = self.board.volt_ref_x / 4095 * (1 / 10000.0)
 
         if self.circuit == "ao_1_01":
-            _factorx = self.board.volt_refx / 4095 * (1 + self._uint16_to_int(self.ai_config[0]) / 10000.0)
+            _factor_x = self.board.volt_ref_x / 4095 * (1 + self._uint16_to_int(self.ai_config[0]) / 10000.0)
 
         if self.is_voltage:
-            _factorx *= 3
+            _factor_x *= 3
         else:
-            _factorx *= 10
+            _factor_x *= 10
 
-        return _factorx
+        return _factor_x
 
     @property
     def changed(self) -> bool:
@@ -208,19 +216,19 @@ class AnalogOutput(FeatureMixin):
         return _value
 
     async def set_state(self, value: int) -> None:
-        valuei: int = int(float(value) / 0.0025)
+        value_i: int = int(float(value) / 0.0025)
 
         if self.circuit == "ao_1_01":
-            valuei = int((float(value) - self.offset) / self.factor)
+            value_i = int((float(value) - self.offset) / self.factor)
 
-        if valuei < 0:
-            valuei = 0
-        elif valuei > 4095:
-            valuei = 4095
+        if value_i < 0:
+            value_i = 0
+        elif value_i > 4095:
+            value_i = 4095
 
-        print(self.reg_value(), valuei)
+        print(self.reg_value(), value_i)
 
-        await self.modbus.write_register(self.cal_reg, valuei, unit=0)
+        await self.modbus.write_register(self.cal_reg, value_i, unit=0)
 
 
 class AnalogInput(FeatureMixin):

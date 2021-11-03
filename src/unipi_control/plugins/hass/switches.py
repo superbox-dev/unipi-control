@@ -13,7 +13,8 @@ class HassSwitchesDiscovery:
         self.mqtt_client = mqtt_client
         self._hw = uc.neuron.hw
 
-    def _get_friendly_name(self, device) -> str:
+    @staticmethod
+    def _get_friendly_name(device) -> str:
         friendly_name: str = f"""{config.device_name} - {device.circuit_name}"""
         devices_config: Optional[dict] = config.devices.get(device.circuit, {})
 
@@ -59,7 +60,7 @@ class HassSwitchesMqttPlugin:
         self.mqtt_client = mqtt_client
         self._ha = HassSwitchesDiscovery(uc, mqtt_client)
 
-    async def init_task(self, stack) -> set:
+    async def init_task(self) -> set:
         tasks = set()
 
         task = asyncio.create_task(self._ha.publish())

@@ -21,11 +21,11 @@ class Board:
         self.nao = (versions[2] & 0x00f0) >> 4
 
         if self.nao:
-            self.volt_refx = (3.3 * (1 + neuron.modbus_cache_map.get_register(1, 1009)[0]))
-            self.volt_ref = self.volt_refx / neuron.modbus_cache_map.get_register(1, 5)[0]
+            self.volt_ref_x = (3.3 * (1 + neuron.modbus_cache_map.get_register(1, 1009)[0]))
+            self.volt_ref = self.volt_ref_x / neuron.modbus_cache_map.get_register(1, 5)[0]
 
-    def _parse_feature_ro(self, max_count: int, modbus_feature: list) -> None:
-        major_group: int = modbus_feature["major_group"]
+    def _parse_feature_ro(self, max_count: int, modbus_feature: dict) -> None:
+        major_group: str = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
         if major_group == self.major_group:
@@ -43,7 +43,7 @@ class Board:
 
                 self.neuron.devices.register(ro)
 
-    def _parse_feature_di(self, max_count: int, modbus_feature: list) -> None:
+    def _parse_feature_di(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -61,7 +61,7 @@ class Board:
 
                 self.neuron.devices.register(di)
 
-    def _parse_feature_do(self, max_count: int, modbus_feature: list) -> None:
+    def _parse_feature_do(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -80,7 +80,7 @@ class Board:
 
                 self.neuron.devices.register(do)
 
-    def _parse_feature_ao(self, max_count: int, modbus_feature: list) -> None:
+    def _parse_feature_ao(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -97,7 +97,7 @@ class Board:
 
                 self.neuron.devices.register(ao)
 
-    def _parse_feature_ai(self, max_count: int, modbus_feature: list) -> None:
+    def _parse_feature_ai(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -114,7 +114,7 @@ class Board:
 
                 self.neuron.devices.register(ai)
 
-    def _parse_feature_led(self, max_count: int, modbus_feature: list) -> None:
+    def _parse_feature_led(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 

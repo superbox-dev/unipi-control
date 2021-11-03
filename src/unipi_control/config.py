@@ -85,24 +85,24 @@ class Config(ConfigBase):
     logging: dataclass = field(default=LoggingConfig())
 
     def __post_init__(self):
-        config: dict = self.get_config("/etc/unipi/control.yaml")
-        self.update(config)
+        _config: dict = self.get_config("/etc/unipi/control.yaml")
+        self.update(_config)
         self.clean()
 
     @staticmethod
     def get_config(path: str) -> dict:
-        config: dict = {}
+        _config: dict = {}
 
         if os.path.exists(path):
             with open(path) as f:
-                config = yaml.load(f, Loader=yaml.FullLoader)
+                _config = yaml.load(f, Loader=yaml.FullLoader)
 
-        return config
+        return _config
 
     @property
     def logger(self):
         logger_type: str = self.logging.logger
-        logger = logging.getLogger(__name__)
+        _logger = logging.getLogger(__name__)
 
         level: dict = {
             "debug": logging.DEBUG,
@@ -114,8 +114,8 @@ class Config(ConfigBase):
         logger_level = level[self.logging.level]
 
         if logger_type == "systemd":
-            logger.addHandler(journal.JournalHandler())
-            logger.setLevel(level=logger_level)
+            _logger.addHandler(journal.JournalHandler())
+            _logger.setLevel(level=logger_level)
         elif logger_type == "file":
             logging.basicConfig(
                 level=logger_level,
@@ -123,7 +123,7 @@ class Config(ConfigBase):
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             )
 
-        return logger
+        return _logger
 
     def get_cover_circuits(self) -> list:
         circuits: list = []
@@ -234,7 +234,7 @@ class HardwareDefinition(MappingMixin):
                     logger.info(f"""[CONFIG] YAML Definition loaded: {f}""")
 
     def _read_neuron_definition(self) -> None:
-        definition_file: str = Path(f"""{HW_CONFIGS}/neuron/{self.model}.yaml""")
+        definition_file: Path = Path(f"""{HW_CONFIGS}/neuron/{self.model}.yaml""")
 
         if definition_file.is_file():
             with open(definition_file) as yf:

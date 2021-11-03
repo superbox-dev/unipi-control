@@ -28,7 +28,7 @@ from termcolor import colored
 
 
 class UnipiControl:
-    def __init__(self, loop, modbus):
+    def __init__(self, modbus):
         self.neuron = Neuron(modbus)
         self.covers: Optional[CoverMap] = None
 
@@ -63,13 +63,13 @@ class UnipiControl:
             self._tasks.update(tasks)
 
             if config.homeassistant.enabled:
-                tasks = await HassBinarySensorsMqttPlugin(self, mqtt_client).init_task(stack)
+                tasks = await HassBinarySensorsMqttPlugin(self, mqtt_client).init_task()
                 self._tasks.update(tasks)
 
-                tasks = await HassCoversMqttPlugin(self, mqtt_client).init_task(stack)
+                tasks = await HassCoversMqttPlugin(self, mqtt_client).init_task()
                 self._tasks.update(tasks)
 
-                tasks = await HassSwitchesMqttPlugin(self, mqtt_client).init_task(stack)
+                tasks = await HassSwitchesMqttPlugin(self, mqtt_client).init_task()
                 self._tasks.update(tasks)
 
             await asyncio.gather(*self._tasks)
@@ -83,9 +83,10 @@ class UnipiControl:
 
         await asyncio.gather(*tasks)
 
-    async def shutdown(self, loop, signal=None):
-        if signal:
-            logger.info(f"Received exit signal {signal.name}...")
+    @staticmethod
+    async def shutdown(s=None):
+        if s:
+            logger.info(f"Received exit signal {s.name}...")
 
         tasks = [t for t in asyncio.all_tasks() if t is not (t.done() or asyncio.current_task())]
         [task.cancel() for task in tasks]
@@ -119,9 +120,9 @@ class UnipiControl:
 
 
 def install() -> None:
-    src_config_path: str = Path(__file__).parents[1].joinpath("etc/unipi")
-    src_systemd_path: str = Path(__file__).parents[1].joinpath("lib/systemd/system/unipi-control.service")
-    dest_config_path: str = Path("/etc/unipi")
+    src_config_path: Path = Path(__file__).parents[1].joinpath("etc/unipi")
+    src_systemd_path: Path = Path(__file__).parents[1].joinpath("lib/systemd/system/unipi-control.service")
+    dest_config_path: Path = Path("/etc/unipi")
 
     print(colored(f"-> Copy config files to {dest_config_path}", "green"))
 
@@ -154,7 +155,6 @@ def install() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
 
     parser.add_argument("-i", "--install", action="store_true", help="install Unipi Control")
@@ -167,13 +167,13 @@ def main() -> None:
 
         try:
             modbus = Modbus(loop)
-            uc = UnipiControl(loop, modbus)
+            uc = UnipiControl(modbus)
 
             signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
 
-            for s in signals:
+            for _signal in signals:
                 loop.add_signal_handler(
-                    s, lambda s=s: asyncio.create_task(uc.shutdown(loop, s))
+                    _signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s))
                 )
 
             loop.run_until_complete(uc.run())

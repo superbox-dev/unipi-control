@@ -28,7 +28,8 @@ class DevicesMqttPlugin:
 
         return tasks
 
-    async def _subscribe(self, device, topic: str, messages) -> None:
+    @staticmethod
+    async def _subscribe(device, topic: str, messages) -> None:
         template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
 
         async for message in messages:
