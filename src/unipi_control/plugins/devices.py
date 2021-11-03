@@ -48,7 +48,7 @@ class DevicesMqttPlugin:
             for device in self.uc.neuron.devices.by_device_type(["AO", "DI", "DO", "RO"]):
                 if device.changed:
                     topic: str = f"""{device.topic}/get"""
-                    logger.info(f"""[MQTT][{topic}] Publishing message: {device.state_message}""")
-                    await self.mqtt_client.publish(topic, device.state_message, qos=2)
+                    logger.info(f"""[MQTT][{topic}] Publishing message: {device.state}""")
+                    await self.mqtt_client.publish(topic, device.state, qos=2)
 
             await asyncio.sleep(25e-3)

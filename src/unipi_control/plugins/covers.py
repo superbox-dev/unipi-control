@@ -114,17 +114,17 @@ class CoversMqttPlugin:
             for cover in self.uc.covers.by_cover_type(COVER_TYPES):
                 if cover.position_changed:
                     topic: str = f"{cover.topic}/position"
-                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.position_message}")
-                    await self.mqtt_client.publish(topic, cover.position_message, qos=2)
+                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.position}")
+                    await self.mqtt_client.publish(topic, cover.position, qos=2)
 
                 if cover.tilt_changed and cover.tilt_change_time:
                     topic: str = f"{cover.topic}/tilt"
-                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.tilt_message}")
-                    await self.mqtt_client.publish(topic, cover.tilt_message, qos=2)
+                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.tilt}")
+                    await self.mqtt_client.publish(topic, cover.tilt, qos=2)
 
                 if cover.state_changed:
                     topic: str = f"{cover.topic}/state"
-                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.state_message}")
-                    await self.mqtt_client.publish(topic, cover.state_message, qos=2)
+                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.state}")
+                    await self.mqtt_client.publish(topic, cover.state, qos=2)
 
             await asyncio.sleep(25e-3)

@@ -93,7 +93,7 @@ class FeatureMixin:
         return changed
 
     @property
-    def state_message(self) -> str:
+    def state(self) -> str:
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     def __repr__(self):

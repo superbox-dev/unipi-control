@@ -79,7 +79,7 @@ class Cover:
         self._device_state: str = CoverDeviceState.IDLE
 
         self._current_state: Optional[str] = None
-        self._state: str = CoverState.OPEN
+        self.state: str = CoverState.OPEN
 
         self._current_position: Optional[int] = None
         self.position: Optional[int] = None
@@ -110,28 +110,24 @@ class Cover:
 
     @property
     def is_opening(self) -> bool:
-        return self._state == CoverState.OPENING
+        return self.state == CoverState.OPENING
 
     @property
     def is_closing(self) -> bool:
-        return self._state == CoverState.CLOSING
+        return self.state == CoverState.CLOSING
 
     @property
     def is_stopped(self) -> bool:
-        return self._state == CoverState.STOPPED
+        return self.state == CoverState.STOPPED
 
     @property
     def state_changed(self) -> bool:
-        changed: bool = self._state != self._current_state
+        changed: bool = self.state != self._current_state
 
         if changed:
-            self._current_state = self._state
+            self._current_state = self.state
 
         return changed
-
-    @property
-    def state_message(self) -> str:
-        return self._state
 
     @property
     def position_changed(self) -> bool:
@@ -142,14 +138,6 @@ class Cover:
             return True
 
         return False
-
-    @property
-    def position_message(self) -> Optional[int]:
-        return self.position
-
-    @property
-    def tilt_message(self) -> Optional[int]:
-        return self.tilt
 
     @property
     def tilt_changed(self) -> bool:
@@ -218,7 +206,7 @@ class Cover:
             await self._circuit_up.set_state(1)
 
             self._device_state = CoverDeviceState.OPEN
-            self._state = CoverState.OPENING
+            self.state = CoverState.OPENING
             self._start_timer = time.monotonic()
             self.tilt = 100
 
@@ -263,7 +251,7 @@ class Cover:
             await self._circuit_down.set_state(1)
 
             self._device_state = CoverDeviceState.CLOSE
-            self._state = CoverState.CLOSING
+            self.state = CoverState.CLOSING
             self._start_timer = time.monotonic()
             self.tilt = 0
 
@@ -307,12 +295,12 @@ class Cover:
 
         if self.position <= 0:
             self.position = 0
-            self._state = CoverState.CLOSED
+            self.state = CoverState.CLOSED
         elif self.position >= 100:
             self.position = 100
-            self._state = CoverState.OPEN
+            self.state = CoverState.OPEN
         else:
-            self._state = CoverState.STOPPED
+            self.state = CoverState.STOPPED
 
         self._device_state = CoverDeviceState.IDLE
 
@@ -326,7 +314,7 @@ class Cover:
             await self._circuit_up.set_state(1)
 
             self._device_state = CoverDeviceState.OPEN
-            self._state = CoverState.OPENING
+            self.state = CoverState.OPENING
             self._start_timer = time.monotonic()
 
             stop_timer = (tilt - self.tilt) * self.tilt_change_time / 100
@@ -342,7 +330,7 @@ class Cover:
             await self._circuit_down.set_state(1)
 
             self._device_state = CoverDeviceState.CLOSE
-            self._state = CoverState.CLOSING
+            self.state = CoverState.CLOSING
             self._start_timer = time.monotonic()
 
             stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
