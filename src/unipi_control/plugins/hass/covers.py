@@ -4,6 +4,7 @@ from dataclasses import asdict
 
 from config import config
 from config import COVER_TYPES
+from config import LOG_MQTT_PUBLISH
 from config import logger
 
 
@@ -15,7 +16,7 @@ class HassCoversDiscovery:
         self._hw = uc.neuron.hw
 
     def _get_discovery(self, cover) -> tuple:
-        topic: str = f"""{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"""
+        topic: str = f"{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
 
         message: dict = {
             "name": cover.friendly_name,
@@ -30,7 +31,8 @@ class HassCoversDiscovery:
             "device": {
                 "name": config.device_name,
                 "identifiers": config.device_name.lower(),
-                "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
+                "model":
+                f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
                 **asdict(config.homeassistant.device),
             }
         }
@@ -47,7 +49,7 @@ class HassCoversDiscovery:
         for cover in self.uc.covers.by_cover_type(COVER_TYPES):
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
-            logger.info(f"""[MQTT][{topic}] Publishing message: {json_data}""")
+            logger.info(LOG_MQTT_PUBLISH, (topic, json_data))
             await self.mqtt_client.publish(topic, json_data, qos=2)
 
 

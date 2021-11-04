@@ -32,8 +32,8 @@ class UnipiControl:
         self.neuron = Neuron(modbus)
         self.covers: Optional[CoverMap] = None
 
-        self._mqtt_client_id: str = f"""{config.device_name.lower()}-{uuid.uuid4()}"""
-        logger.info(f"[MQTT] Client ID: {self._mqtt_client_id}")
+        self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
+        logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
 
         self._tasks = None
         self._retry_reconnect: int = 0
@@ -54,7 +54,8 @@ class UnipiControl:
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info(f"""[MQTT] Connected to broker at `{config.mqtt.host}:{config.mqtt.port}`""")
+            logger.info("[MQTT] Connected to broker at `%s:%s`",
+                        (config.mqtt.host, config.mqtt.port))
 
             tasks = await DevicesMqttPlugin(self, mqtt_client).init_task(stack)
             self._tasks.update(tasks)
@@ -79,19 +80,22 @@ class UnipiControl:
         [task.cancel() for task in tasks]
 
         if tasks:
-            logger.info(f"Cancelling {len(tasks)} outstanding tasks.")
+            logger.info("Cancelling %s outstanding tasks.", len(tasks))
 
         await asyncio.gather(*tasks)
 
     @staticmethod
     async def shutdown(s=None):
         if s:
-            logger.info(f"Received exit signal {s.name}...")
+            logger.info("Received exit signal %s...", s.name)
 
-        tasks = [t for t in asyncio.all_tasks() if t is not (t.done() or asyncio.current_task())]
+        tasks = [
+            t for t in asyncio.all_tasks()
+            if t is not (t.done() or asyncio.current_task())
+        ]
         [task.cancel() for task in tasks]
 
-        logger.info(f"Cancelling {len(tasks)} outstanding tasks.")
+        logger.info("Cancelling %s outstanding tasks.", len(tasks))
 
         await asyncio.gather(*tasks)
 
@@ -109,7 +113,9 @@ class UnipiControl:
                 logger.info("[MQTT] Connecting to broker ...")
                 await self._init_tasks()
             except MqttError as error:
-                logger.error(f"""[MQTT] Error `{error}`. Connecting attempt #{self._retry_reconnect + 1}. Reconnecting in {reconnect_interval} seconds.""")
+                logger.error(
+                    "[MQTT] Error `%s`. Connecting attempt #%s. Reconnecting in %s seconds.",
+                    (error, self._retry_reconnect + 1, reconnect_interval))
             finally:
                 if retry_limit and self._retry_reconnect > retry_limit:
                     sys.exit(1)
@@ -121,7 +127,8 @@ class UnipiControl:
 
 def install() -> None:
     src_config_path: Path = Path(__file__).parents[1].joinpath("etc/unipi")
-    src_systemd_path: Path = Path(__file__).parents[1].joinpath("lib/systemd/system/unipi-control.service")
+    src_systemd_path: Path = Path(__file__).parents[1].joinpath(
+        "lib/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")
 
     print(colored(f"-> Copy config files to {dest_config_path}", "green"))
@@ -147,17 +154,29 @@ def install() -> None:
 
     if enable_and_start_systemd.lower() == "y":
         print(colored("-> Enable systemd service \"unipi-control.service\"", "green"))
-        status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
+        status = subprocess.check_output("systemctl enable --now unipi-control",
+                                         shell=True)
         logger.info(status)
     else:
-        print(colored("\nYou can enable the systemd service with the command:", "white", attrs=["bold", ]))
-        print(colored("systemctl enable --now unipi-control", "magenta", attrs=["bold", ]))
+        print(
+            colored("\nYou can enable the systemd service with the command:",
+                    "white",
+                    attrs=[
+                        "bold",
+                    ]))
+        print(
+            colored("systemctl enable --now unipi-control", "magenta", attrs=[
+                "bold",
+            ]))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
 
-    parser.add_argument("-i", "--install", action="store_true", help="install Unipi Control")
+    parser.add_argument("-i",
+                        "--install",
+                        action="store_true",
+                        help="install Unipi Control")
     args = parser.parse_args()
 
     if args.install:
@@ -173,8 +192,7 @@ def main() -> None:
 
             for _signal in signals:
                 loop.add_signal_handler(
-                    _signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s))
-                )
+                    _signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
 
             loop.run_until_complete(uc.run())
         except asyncio.exceptions.CancelledError:
@@ -183,7 +201,7 @@ def main() -> None:
             logger.error(error)
             print(colored(error, "red"))
         except ModbusException as error:
-            logger.error(f"[MODBUS] {error}")
+            logger.error("[MODBUS] %s", error)
         finally:
             # loop.close()
             logger.info("Successfully shutdown the Unipi Control service.")

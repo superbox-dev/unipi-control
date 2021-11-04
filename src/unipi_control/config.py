@@ -18,6 +18,9 @@ from termcolor import colored
 
 HW_CONFIGS = "/etc/unipi/hardware"
 COVER_TYPES = ["blind", "roller_shutter", "garage_door"]
+LOG_MQTT_PUBLISH = "[MQTT][%s] Publishing message: %s"
+LOG_MQTT_SUBSCRIBE = "[MQTT][%s] Subscribe message: %s"
+LOG_MQTT_SUBSCRIBE_TOPIC = "[MQTT] Subscribe topic %s"
 
 
 @dataclass
@@ -144,30 +147,48 @@ class Config(ConfigBase):
         result = re.search(r"^[\w\d_-]*$", self.device_name)
 
         if result is None:
-            return colored("[CONFIG] Invalid value in \"device_name\". The following characters are prohibited: A-Z a-z 0-9 -_", "red")
+            return colored(
+                "[CONFIG] Invalid value in \"device_name\". The following characters are prohibited: A-Z a-z 0-9 -_",
+                "red")
 
     def clean_covers(self) -> Optional[str]:
         errors: list = []
-        required_fields: list = ["cover_type", "topic_name", "full_open_time", "full_close_time", "circuit_up", "circuit_down"]
+        required_fields: list = [
+            "cover_type", "topic_name", "full_open_time", "full_close_time",
+            "circuit_up", "circuit_down"
+        ]
 
         for index, cover in enumerate(self.covers):
             for key in list(set(required_fields) - set(cover.keys())):
                 if key in required_fields:
-                    errors.append(colored(f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""", "red"))
+                    errors.append(
+                        colored(
+                            f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""",
+                            "red"))
 
             for cover_time in ["full_open_time", "full_close_time", "tilt_change_time"]:
                 value = cover.get(cover_time)
 
-                if value and not isinstance(value, float) and not isinstance(value, int):
-                    errors.append(colored(f"""[CONFIG][COVER {index + 1}] Key "{cover_time}" is not a float or integer!""", "red"))
+                if value and not isinstance(value, float) and not isinstance(
+                        value, int):
+                    errors.append(
+                        colored(
+                            f"""[CONFIG][COVER {index + 1}] Key "{cover_time}" is not a float or integer!""",
+                            "red"))
 
             result = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
 
             if result is None:
-                errors.append(colored(f"""[CONFIG][COVER {index + 1}] Invalid value in "topic_name". The following characters are prohibited: a-z 0-9 -_""", "red"))
+                errors.append(
+                    colored(
+                        f"""[CONFIG][COVER {index + 1}] Invalid value in "topic_name". The following characters are prohibited: a-z 0-9 -_""",
+                        "red"))
 
             if cover.get("cover_type") not in COVER_TYPES:
-                errors.append(colored(f"""[CONFIG][COVER {index + 1}] Invalid value in "cover_type". The following values are allowed: {" ".join(COVER_TYPES)}.""", "red"))
+                errors.append(
+                    colored(
+                        f"""[CONFIG][COVER {index + 1}] Invalid value in "cover_type". The following values are allowed: {" ".join(COVER_TYPES)}.""",
+                        "red"))
 
         return "\n".join(errors)
 
@@ -176,7 +197,9 @@ class Config(ConfigBase):
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
-                return colored("[CONFIG][COVER] Duplicate circuits found in \"covers\"! Driving both signals up and down at the same time can damage the motor.", "red")
+                return colored(
+                    "[CONFIG][COVER] Duplicate circuits found in \"covers\"! Driving both signals up and down at the same time can damage the motor.",
+                    "red")
 
 
 class HardwareException(Exception):
@@ -228,20 +251,22 @@ class HardwareDefinition(MappingMixin):
             if str(f).endswith(".yaml"):
                 with open(f) as yf:
                     self.mapping["definitions"].append(
-                        yaml.load(yf, Loader=yaml.FullLoader)
-                    )
+                        yaml.load(yf, Loader=yaml.FullLoader))
 
-                    logger.info(f"""[CONFIG] YAML Definition loaded: {f}""")
+                    logger.info("[CONFIG] YAML Definition loaded: %s", f)
 
     def _read_neuron_definition(self) -> None:
-        definition_file: Path = Path(f"""{HW_CONFIGS}/neuron/{self.model}.yaml""")
+        definition_file: Path = Path(f"{HW_CONFIGS}/neuron/{self.model}.yaml")
 
         if definition_file.is_file():
             with open(definition_file) as yf:
-                self.mapping["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
-                logger.info(f"""[CONFIG] YAML Definition loaded: {definition_file}""")
+                self.mapping["neuron_definition"] = yaml.load(yf,
+                                                              Loader=yaml.FullLoader)
+                logger.info("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
-            raise HardwareException(f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self.model}.")
+            raise HardwareException(
+                f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self.model}."
+            )
 
 
 config = Config()

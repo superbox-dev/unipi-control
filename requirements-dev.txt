@@ -1,5 +1,5 @@
 check-manifest==0.44
 flake8==4.0.1
+flake8_bugbear==21.9.2
 flake8_docstrings==1.6.0
 pre_commit==2.14.0
-pydocstyle==2.1.0

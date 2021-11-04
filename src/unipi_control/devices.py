@@ -21,30 +21,32 @@ class DeviceMap(MutableMappingMixin):
 
         try:
             device = next(
-                filter(
-                    lambda d: d.circuit == circuit,
-                    itertools.chain.from_iterable(self.mapping.values())
-                )
-            )
+                filter(lambda d: d.circuit == circuit,
+                       itertools.chain.from_iterable(self.mapping.values())))
         except StopIteration:
-            logger.error(f"[CONFIG] \"{circuit}\" not found in {self.__class__.__name__}!")
-        finally:
-            return device
+            logger.error("[CONFIG] `%s` not found in %s!",
+                         (circuit, self.__class__.__name__))
+
+        return device
 
     def by_device_type(self, device_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None, map(self.mapping.get, device_type))
-        )
+            filter(None, map(self.mapping.get, device_type)))
 
 
 @dataclass(frozen=True)
-class FeatureState:
+class DeviceState:
     ON: str = "ON"
     OFF: str = "OFF"
 
 
-class FeatureMixin:
-    def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
+class DeviceMixin:
+    def __init__(self,
+                 board,
+                 circuit: str,
+                 mask: Optional[int] = None,
+                 *args,
+                 **kwargs):
         self.dev_name = kwargs.get("dev_name")
         self.dev_type = kwargs.get("dev_type")
 
@@ -58,7 +60,8 @@ class FeatureMixin:
         self.modbus = board.neuron.modbus
         self.circuit: str = circuit
         self.mask: int = mask
-        self.reg_value = lambda: board.neuron.modbus_cache_map.get_register(1, self.reg, unit=0)[0]
+        self.reg_value = lambda: board.neuron.modbus_cache_map.get_register(
+            1, self.reg, unit=0)[0]
         self._value: bool = False
 
     @property
@@ -67,7 +70,7 @@ class FeatureMixin:
 
     @property
     def topic(self) -> str:
-        topic: str = f"""{config.device_name.lower()}/{self.dev_name}"""
+        topic: str = f"{config.device_name.lower()}/{self.dev_name}"
 
         if self.dev_type:
             topic += f"/{self.dev_type}"
@@ -79,7 +82,7 @@ class FeatureMixin:
     @property
     def circuit_name(self) -> str:
         m = re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit)
-        return f"""{self.name} {m.group(1)}.{m.group(2)}"""
+        return f"{self.name} {m.group(1)}.{m.group(2)}"
 
     @property
     def changed(self) -> bool:
@@ -93,13 +96,13 @@ class FeatureMixin:
 
     @property
     def state(self) -> str:
-        return FeatureState.ON if self.value == 1 else FeatureState.OFF
+        return DeviceState.ON if self.value == 1 else DeviceState.OFF
 
     def __repr__(self):
         return self.circuit_name
 
 
-class Relay(FeatureMixin):
+class Relay(DeviceMixin):
     name = "Relay"
     dev_name = "relay"
     dev_type = "physical"
@@ -108,7 +111,7 @@ class Relay(FeatureMixin):
         return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
-class DigitalOutput(FeatureMixin):
+class DigitalOutput(DeviceMixin):
     name = "Digital Output"
     dev_name = "relay"
     dev_type = "digital"
@@ -117,22 +120,31 @@ class DigitalOutput(FeatureMixin):
         await self.modbus.write_coil(self.coil, value, unit=0)
 
 
-class DigitalInput(FeatureMixin):
+class DigitalInput(DeviceMixin):
     name = "Digital Input"
     dev_name = "input"
     dev_type = "digital"
 
 
-class AnalogOutput(FeatureMixin):
+class AnalogOutput(DeviceMixin):
     name = "Analog Output"
     dev_name = "output"
     dev_type = "analog"
 
-    def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
+    def __init__(self,
+                 board,
+                 circuit: str,
+                 mask: Optional[int] = None,
+                 *args,
+                 **kwargs):
         super().__init__(board, circuit, mask, *args, **kwargs)
-        self.ai_config = board.neuron.modbus_cache_map.get_register(1, self.cal_reg, unit=0)
-        self.ai_voltage_deviation = board.neuron.modbus_cache_map.get_register(1, self.cal_reg + 1, unit=0)
-        self.ai_voltage_offset = board.neuron.modbus_cache_map.get_register(1, self.cal_reg + 2, unit=0)
+        self.ai_config = board.neuron.modbus_cache_map.get_register(1,
+                                                                    self.cal_reg,
+                                                                    unit=0)
+        self.ai_voltage_deviation = board.neuron.modbus_cache_map.get_register(
+            1, self.cal_reg + 1, unit=0)
+        self.ai_voltage_offset = board.neuron.modbus_cache_map.get_register(
+            1, self.cal_reg + 2, unit=0)
 
     @staticmethod
     def _uint16_to_int(inp):
@@ -175,7 +187,8 @@ class AnalogOutput(FeatureMixin):
         _factor: float = self.board.volt_ref / 4095 * (1 / 10000.0)
 
         if self.circuit == "ao_1_01":
-            _factor = self.board.volt_ref / 4095 * (1 + self._uint16_to_int(self.ai_voltage_deviation[0]) / 10000.0)
+            _factor = self.board.volt_ref / 4095 * (
+                1 + self._uint16_to_int(self.ai_voltage_deviation[0]) / 10000.0)
 
         if self.is_voltage:
             _factor *= 3
@@ -189,7 +202,8 @@ class AnalogOutput(FeatureMixin):
         _factor_x: float = self.board.volt_ref_x / 4095 * (1 / 10000.0)
 
         if self.circuit == "ao_1_01":
-            _factor_x = self.board.volt_ref_x / 4095 * (1 + self._uint16_to_int(self.ai_config[0]) / 10000.0)
+            _factor_x = self.board.volt_ref_x / 4095 * (
+                1 + self._uint16_to_int(self.ai_config[0]) / 10000.0)
 
         if self.is_voltage:
             _factor_x *= 3
@@ -231,13 +245,13 @@ class AnalogOutput(FeatureMixin):
         await self.modbus.write_register(self.cal_reg, value_i, unit=0)
 
 
-class AnalogInput(FeatureMixin):
+class AnalogInput(DeviceMixin):
     name = "Analog Input"
     dev_name = "input"
     dev_type = "analog"
 
 
-class Led(FeatureMixin):
+class Led(DeviceMixin):
     name = "LED"
     dev_name = "led"
     dev_type = None

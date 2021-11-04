@@ -1,6 +1,9 @@
 import asyncio
 
 from config import COVER_TYPES
+from config import LOG_MQTT_PUBLISH
+from config import LOG_MQTT_SUBSCRIBE
+from config import LOG_MQTT_SUBSCRIBE_TOPIC
 from config import logger
 from covers import CoverDeviceState
 
@@ -24,57 +27,62 @@ class CoversMqttPlugin:
 
     async def _command_topic(self, stack, tasks):
         for cover in self.uc.covers.by_cover_type(COVER_TYPES):
-            topic: str = f"""{cover.topic}/set"""
+            topic: str = f"{cover.topic}/set"
 
             manager = self.mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            task = asyncio.create_task(self._subscribe_command_topic(cover, topic, messages))
+            task = asyncio.create_task(
+                self._subscribe_command_topic(cover, topic, messages))
+
             tasks.add(task)
 
             await self.mqtt_client.subscribe(topic, qos=2)
-            logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+
+            logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
 
     async def _set_position_topic(self, stack, tasks):
         for cover in self.uc.covers.by_cover_type(COVER_TYPES):
-            topic: str = f"""{cover.topic}/position/set"""
+            topic: str = f"{cover.topic}/position/set"
 
             manager = self.mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            task = asyncio.create_task(self._subscribe_set_position_topic(cover, topic, messages))
+            task = asyncio.create_task(
+                self._subscribe_set_position_topic(cover, topic, messages))
+
             tasks.add(task)
 
             await self.mqtt_client.subscribe(topic, qos=2)
-            logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+            logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
 
     async def _tilt_command_topic(self, stack, tasks):
         for cover in self.uc.covers.by_cover_type(COVER_TYPES):
             if cover.tilt_change_time:
-                topic: str = f"""{cover.topic}/tilt/set"""
+                topic: str = f"{cover.topic}/tilt/set"
 
                 manager = self.mqtt_client.filtered_messages(topic)
                 messages = await stack.enter_async_context(manager)
 
-                task = asyncio.create_task(self._subscribe_tilt_command_topic(cover, topic, messages))
+                task = asyncio.create_task(
+                    self._subscribe_tilt_command_topic(cover, topic, messages))
+
                 tasks.add(task)
 
                 await self.mqtt_client.subscribe(topic, qos=2)
-                logger.debug(f"[MQTT] Subscribe topic `{topic}`")
+                logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
 
     @staticmethod
     async def _subscribe_command_topic(cover, topic: str, messages) -> None:
-        template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
-
         async for message in messages:
             value: str = message.payload.decode()
-            logger.info(template.format(value))
+            logger.info(LOG_MQTT_SUBSCRIBE % (topic, value))
 
             if value == CoverDeviceState.OPEN:
                 await cover.open()
@@ -85,12 +93,10 @@ class CoversMqttPlugin:
 
     @staticmethod
     async def _subscribe_set_position_topic(cover, topic: str, messages) -> None:
-        template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
-
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
-                logger.info(template.format(position))
+                logger.info(LOG_MQTT_SUBSCRIBE % (topic, position))
 
                 await cover.set_position(position)
             except ValueError as error:
@@ -98,12 +104,10 @@ class CoversMqttPlugin:
 
     @staticmethod
     async def _subscribe_tilt_command_topic(cover, topic: str, messages) -> None:
-        template: str = f"""[MQTT][{topic}] Subscribe message: {{}}"""
-
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
-                logger.info(template.format(tilt))
+                logger.info(LOG_MQTT_SUBSCRIBE % (topic, tilt))
 
                 await cover.set_tilt(tilt)
             except ValueError as error:
@@ -114,17 +118,17 @@ class CoversMqttPlugin:
             for cover in self.uc.covers.by_cover_type(COVER_TYPES):
                 if cover.position_changed:
                     topic: str = f"{cover.topic}/position"
-                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.position}")
+                    logger.info(LOG_MQTT_PUBLISH, (topic, cover.position))
                     await self.mqtt_client.publish(topic, cover.position, qos=2)
 
                 if cover.tilt_changed and cover.tilt_change_time:
                     topic: str = f"{cover.topic}/tilt"
-                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.tilt}")
+                    logger.info(LOG_MQTT_PUBLISH, (topic, cover.tilt))
                     await self.mqtt_client.publish(topic, cover.tilt, qos=2)
 
                 if cover.state_changed:
                     topic: str = f"{cover.topic}/state"
-                    logger.info(f"[MQTT][{topic}] Publishing message: {cover.state}")
+                    logger.info(LOG_MQTT_PUBLISH, (topic, cover.state))
                     await self.mqtt_client.publish(topic, cover.state, qos=2)
 
             await asyncio.sleep(25e-3)

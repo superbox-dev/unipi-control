@@ -4,6 +4,7 @@ from dataclasses import asdict
 from typing import Optional
 
 from config import config
+from config import LOG_MQTT_PUBLISH
 from config import logger
 
 
@@ -15,7 +16,7 @@ class HassSwitchesDiscovery:
 
     @staticmethod
     def _get_friendly_name(device) -> str:
-        friendly_name: str = f"""{config.device_name} - {device.circuit_name}"""
+        friendly_name: str = f"{config.device_name} - {device.circuit_name}"
         devices_config: Optional[dict] = config.devices.get(device.circuit, {})
 
         if devices_config is not None:
@@ -24,14 +25,14 @@ class HassSwitchesDiscovery:
         return friendly_name
 
     def _get_discovery(self, device) -> tuple:
-        topic: str = f"""{config.homeassistant.discovery_prefix}/switch/{config.device_name.lower()}/{device.circuit}/config"""
+        topic: str = f"{config.homeassistant.discovery_prefix}/switch/{config.device_name.lower()}/{device.circuit}/config"
 
         message: dict = {}
 
         if device.circuit not in config.get_cover_circuits():
             message = {
                 "name": self._get_friendly_name(device),
-                "unique_id": f"""{config.device_name.lower()}_{device.circuit}""",
+                "unique_id": f"{config.device_name.lower()}_{device.circuit}",
                 "command_topic": f"{device.topic}/set",
                 "state_topic": f"{device.topic}/get",
                 "retain": True,
@@ -39,8 +40,10 @@ class HassSwitchesDiscovery:
                 "device": {
                     "name": config.device_name,
                     "identifiers": config.device_name.lower(),
-                    "model": f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
-                    "sw_version": self.uc.neuron.boards[device.major_group - 1].firmware,
+                    "model":
+                    f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
+                    "sw_version":
+                    self.uc.neuron.boards[device.major_group - 1].firmware,
                     **asdict(config.homeassistant.device),
                 }
             }
@@ -48,10 +51,12 @@ class HassSwitchesDiscovery:
         return topic, message
 
     async def publish(self) -> None:
-        for device in self.uc.neuron.devices.by_device_type(["RO", "DO"]):
+        devices = self.uc.neuron.devices.by_device_type(["RO", "DO"])
+
+        for device in devices:
             topic, message = self._get_discovery(device)
             json_data: str = json.dumps(message)
-            logger.info(f"""[MQTT][{topic}] Publishing message: {json_data}""")
+            logger.info(LOG_MQTT_PUBLISH, (topic, json_data))
             await self.mqtt_client.publish(topic, json_data, qos=2)
 
 

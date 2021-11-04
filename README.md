@@ -9,7 +9,7 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
 * Unipi Neuron Kernel Module and Unipi tools
   * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
   * Or compile it
-    * https://github.com/UniPiTechnology/unipi-kernel 
+    * https://github.com/UniPiTechnology/unipi-kernel
     * https://github.com/UniPiTechnology/unipi-tools
 * Python 3.7
 
@@ -91,11 +91,11 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 
 Key | Value
 ------ | ------
-`friendly_name` | Friendly name is displayed in Home Assistant.
+`friendly_name` | Friendly name of the cover. It is used e.g. for Home Assistant.
 `cover_type` | Cover types can be "blind", "roller_shutter", or "garage_door".
 `topic_name` | Unique name for the MQTT topic.
-`full_open_time` | Define the time (in seconds) it takes for blind to fully open.
-`full_close_time` | Define the time (in seconds) it takes for blind to fully close.
+`full_open_time` | Define the time (in seconds) it takes for the cover to fully open.
+`full_close_time` | Define the time (in seconds) it takes for the cover to fully close.
 `tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state.
 `circuit_up` | Output circuit name from a relay or digital output.
 `circuit_down` | Output circuit name from a relay or digital output.

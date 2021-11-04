@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 from config import config
-from config import logger
 from helpers import MutableMappingMixin
 
 
@@ -14,7 +13,7 @@ class CoverMap(MutableMappingMixin):
     def __init__(self, devices):
         super().__init__()
 
-        for index, cover in enumerate(config.covers):
+        for cover in config.covers:
             cover_type: str = cover["cover_type"]
 
             if not self.mapping.get(cover_type):
@@ -22,7 +21,7 @@ class CoverMap(MutableMappingMixin):
 
             c = Cover(devices, **cover)
 
-            if c.is_valid_config:
+            if c._cover_up_device and c._cover_down_device:
                 self.mapping[cover_type].append(c)
 
     def by_cover_type(self, cover_type: list) -> Iterator:
@@ -63,45 +62,26 @@ class CoverTimer:
 
 class Cover:
     def __init__(self, devices, **kwargs):
-        self.friendly_name = kwargs.get("friendly_name")
-        self.cover_type = kwargs.get("cover_type")
-        self.topic_name = kwargs.get("topic_name")
-        self.full_close_time = kwargs.get("full_close_time")
-        self.full_open_time = kwargs.get("full_open_time")
-        self.tilt_change_time = kwargs.get("tilt_change_time")
-        self.circuit_up = kwargs.get("circuit_up")
-        self.circuit_down = kwargs.get("circuit_down")
+        self.friendly_name: str = kwargs.get("friendly_name")
+        self.cover_type: str = kwargs.get("cover_type")
+        self.topic_name: str = kwargs.get("topic_name")
+        self.full_open_time: float = float(kwargs.get("full_open_time"))
+        self.full_close_time: float = float(kwargs.get("full_close_time"))
+        self.tilt_change_time: float = float(kwargs.get("tilt_change_time"))
+        self.circuit_up: str = kwargs.get("circuit_up")
+        self.circuit_down: str = kwargs.get("circuit_down")
+        self.state: Optional[str] = None
+        self.position: Optional[int] = None
+        self.tilt: Optional[int] = None
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
-
         self._device_state: str = CoverDeviceState.IDLE
-
         self._current_state: Optional[str] = None
-        self.state: str = CoverState.OPEN
-
         self._current_position: Optional[int] = None
-        self.position: Optional[int] = None
-
         self._current_tilt: Optional[int] = None
-        self.tilt: Optional[int] = None
-
-        self._circuit_up = devices.by_circuit(self.circuit_up)
-        self._circuit_down = devices.by_circuit(self.circuit_down)
-
-    async def calibrate_position(self):
-        if self.position is None:
-            logger.info(f"""[COVER] Calibrate "{self.friendly_name}".""")
-            self.position = 0
-            self.tilt = 0
-            await self.open()
-
-    @property
-    def is_valid_config(self):
-        if self._circuit_up and self._circuit_down:
-            return True
-
-        return False
+        self._cover_up_device = devices.by_circuit(self.circuit_up)
+        self._cover_down_device = devices.by_circuit(self.circuit_down)
 
     @property
     def topic(self) -> str:
@@ -262,10 +242,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._circuit_down.set_state(0)
+        response = await self._cover_down_device.set_state(0)
 
         if not response.isError():
-            await self._circuit_up.set_state(1)
+            await self._cover_up_device.set_state(1)
 
             self._device_state = CoverDeviceState.OPEN
             self.state = CoverState.OPENING
@@ -307,10 +287,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._circuit_up.set_state(0)
+        response = await self._cover_up_device.set_state(0)
 
         if not response.isError():
-            await self._circuit_down.set_state(1)
+            await self._cover_down_device.set_state(1)
 
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING
@@ -349,8 +329,8 @@ class Cover:
         if self.position is None:
             return
 
-        await self._circuit_down.set_state(0)
-        await self._circuit_up.set_state(0)
+        await self._cover_down_device.set_state(0)
+        await self._cover_up_device.set_state(0)
 
         self._update_position()
         self._stop_timer()
@@ -370,10 +350,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._circuit_down.set_state(0)
+        response = await self._cover_down_device.set_state(0)
 
         if not response.isError():
-            await self._circuit_up.set_state(1)
+            await self._cover_up_device.set_state(1)
 
             self._device_state = CoverDeviceState.OPEN
             self.state = CoverState.OPENING
@@ -386,10 +366,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._circuit_up.set_state(0)
+        response = await self._cover_up_device.set_state(0)
 
         if not response.isError():
-            await self._circuit_down.set_state(1)
+            await self._cover_down_device.set_state(1)
 
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING
