@@ -47,7 +47,6 @@ class FeatureMixin:
     def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
         self.dev_name = kwargs.get("dev_name")
         self.dev_type = kwargs.get("dev_type")
-        self.name = kwargs.get("name")
 
         self.major_group = kwargs.get("major_group")
         self.type = kwargs.get("type")
