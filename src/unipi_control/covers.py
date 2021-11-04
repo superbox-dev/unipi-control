@@ -246,8 +246,8 @@ class Cover:
         If the cover is in calibration mode (``self.position`` is not set) then
         the cover will be fully open (``self.position`` is set to **100**).
 
-        If the cover is already opening or closing, the position is updated.
-        If a running timer exists, it will be stopped.
+        If the cover is already opening or closing then the position is
+        updated. If a running timer exists, it will be stopped.
 
         For safety reasons, the relay for close the cover will be deactivated.
         If this is successful, the relay to open the cover is activated.
@@ -291,8 +291,8 @@ class Cover:
         If the cover is in calibration mode (``self.position`` is not set) then
         the cover will be fully closed (``self.position`` is set to **0**).
 
-        If the cover is already opening or closing, the position is updated.
-        If a running timer exists, it will be stopped.
+        If the cover is already opening or closing then the position is
+        updated. If a running timer exists, it will be stopped.
 
         For safety reasons, the relay for open the cover will be deactivated.
         If this is successful, the relay to close the cover is activated.
@@ -336,11 +336,11 @@ class Cover:
         If the cover is in calibration mode (``self.position`` is not set) then
         the cover can't be stopped!
 
-        If the cover is already opening or closing, the position is updated.
-        If a running timer exists, it will be stopped.
+        If the cover is already opening or closing then the position is
+        updated. If a running timer exists, it will be stopped.
 
-        If position is lower than equal 0 then the cover state is set to
-        closed. If position is greater than equal 100 then the cover state is
+        If position is lower then equal 0 then the cover state is set to
+        closed. If position is greater then equal 100 then the cover state is
         set to open. On all other positions the cover state is set to stopped.
 
         The device state is changed to **IDLE** and the timer will be
