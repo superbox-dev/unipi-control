@@ -26,7 +26,8 @@ class CoverMap(MutableMappingMixin):
 
     def by_cover_type(self, cover_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None, map(self.mapping.get, cover_type)))
+            filter(None, map(self.mapping.get, cover_type))
+        )
 
 
 @dataclass(frozen=True)
@@ -61,7 +62,42 @@ class CoverTimer:
 
 
 class Cover:
+    """Class to control a cover and get the state of it.
+
+    Attributes
+    ----------
+    friendly_name: str
+        Friendly name of the cover. It is used e.g. for Home Assistant.
+    cover_type: str
+        Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
+    topic_name: str
+        Unique name for the MQTT topic.
+    full_open_time: float
+        Define the time (in seconds) it takes for the cover to fully open.
+    full_close_time: float
+        Define the time (in seconds) it takes for the cover to fully close.
+    tilt_change_time: float
+        Define the time (in seconds) that the tilt changes from fully open to
+        fully closed state.
+    circuit_up: str
+        Output circuit name from a relay or digital output.
+    circuit_down: str
+        Output circuit name from a relay or digital output.
+    state: str, optional
+        Current cover state defined in the ``CoverState()`` class.
+    position: int, optional
+        Current cover position.
+    tilt: int, optional
+        Current tilt position.
+    """
     def __init__(self, devices, **kwargs):
+        """
+
+        Parameters
+        ----------
+        devices:
+            Unipi devices e.g. Relay, DigitalInput, ...
+        """
         self.friendly_name: str = kwargs.get("friendly_name")
         self.cover_type: str = kwargs.get("cover_type")
         self.topic_name: str = kwargs.get("topic_name")
@@ -85,12 +121,21 @@ class Cover:
 
     @property
     def topic(self) -> str:
+        """MQTT topic prefix.
+
+        All available MQTT topics start with this prefix path.
+
+        Returns
+        -------
+        str:
+            Return MQTT topic prefix
+        """
         return f"{config.device_name.lower()}/{self.topic_name}/" \
                f"cover/{self.cover_type}"
 
     @property
     def is_opening(self) -> bool:
-        """Return the cover state.
+        """Check whether the status is set to opening.
 
         Returns
         -------
@@ -101,7 +146,7 @@ class Cover:
 
     @property
     def is_closing(self) -> bool:
-        """Return the cover state.
+        """Check whether the status is set to closing.
 
         Returns
         -------
@@ -112,7 +157,7 @@ class Cover:
 
     @property
     def is_stopped(self) -> bool:
-        """Return the cover state.
+        """Check whether the status is set to stopped.
 
         Returns
         -------
@@ -123,7 +168,7 @@ class Cover:
 
     @property
     def state_changed(self) -> bool:
-        """Check if the position changed.
+        """Check whether the state has changed.
 
         When the state changed then this return ``True``. The state is changed
         when the cover open, close or stopped.
@@ -149,7 +194,7 @@ class Cover:
 
     @property
     def position_changed(self) -> bool:
-        """Check if the position changed.
+        """Check whether the position has changed.
 
         When the position changed and the device state is **IDLE** then this
         return ``True``. The device state is **IDLE** when a command
@@ -176,7 +221,7 @@ class Cover:
 
     @property
     def tilt_changed(self) -> bool:
-        """Check if the tilt changed.
+        """Check whether the tilt has changed.
 
         When the tilt changed and the device state is **IDLE** then this
         return ``True``. The device state is **IDLE** when a command
@@ -214,11 +259,12 @@ class Cover:
 
         if self.is_closing:
             self.position = int(
-                round(100 * (self.full_close_time - end_timer) /
-                      self.full_close_time)) - (100 - self.position)
+                round(100 * (self.full_close_time - end_timer) / self.full_close_time)
+            ) - (100 - self.position)
         elif self.is_opening:
             self.position = self.position + int(
-                round(100 * end_timer / self.full_open_time))
+                round(100 * end_timer / self.full_open_time)
+            )
 
     async def open(self, position: int = 100) -> None:
         """Close the cover.
@@ -394,7 +440,7 @@ class Cover:
             await self.close(position)
 
     async def set_tilt(self, tilt: int) -> None:
-        """Set the cover tilt position.
+        """Set the tilt position.
 
         Parameters
         ----------
