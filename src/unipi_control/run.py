@@ -54,8 +54,8 @@ class UnipiControl:
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info("[MQTT] Connected to broker at `%s:%s`",
-                        (config.mqtt.host, config.mqtt.port))
+            logger.info("[MQTT] Connected to broker at `%s:%s`", config.mqtt.host,
+                        config.mqtt.port)
 
             tasks = await DevicesMqttPlugin(self, mqtt_client).init_task(stack)
             self._tasks.update(tasks)
