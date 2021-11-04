@@ -82,7 +82,7 @@ class CoversMqttPlugin:
     async def _subscribe_command_topic(cover, topic: str, messages) -> None:
         async for message in messages:
             value: str = message.payload.decode()
-            logger.info(LOG_MQTT_SUBSCRIBE % (topic, value))
+            logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
             if value == CoverDeviceState.OPEN:
                 await cover.open()
@@ -96,7 +96,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
-                logger.info(LOG_MQTT_SUBSCRIBE % (topic, position))
+                logger.info(LOG_MQTT_SUBSCRIBE, topic, position)
 
                 await cover.set_position(position)
             except ValueError as error:
@@ -107,7 +107,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
-                logger.info(LOG_MQTT_SUBSCRIBE % (topic, tilt))
+                logger.info(LOG_MQTT_SUBSCRIBE, topic, tilt)
 
                 await cover.set_tilt(tilt)
             except ValueError as error:
@@ -118,17 +118,17 @@ class CoversMqttPlugin:
             for cover in self.uc.covers.by_cover_type(COVER_TYPES):
                 if cover.position_changed:
                     topic: str = f"{cover.topic}/position"
-                    logger.info(LOG_MQTT_PUBLISH, (topic, cover.position))
+                    logger.info(LOG_MQTT_PUBLISH, topic, cover.position)
                     await self.mqtt_client.publish(topic, cover.position, qos=2)
 
                 if cover.tilt_changed and cover.tilt_change_time:
                     topic: str = f"{cover.topic}/tilt"
-                    logger.info(LOG_MQTT_PUBLISH, (topic, cover.tilt))
+                    logger.info(LOG_MQTT_PUBLISH, topic, cover.tilt)
                     await self.mqtt_client.publish(topic, cover.tilt, qos=2)
 
                 if cover.state_changed:
                     topic: str = f"{cover.topic}/state"
-                    logger.info(LOG_MQTT_PUBLISH, (topic, cover.state))
+                    logger.info(LOG_MQTT_PUBLISH, topic, cover.state)
                     await self.mqtt_client.publish(topic, cover.state, qos=2)
 
             await asyncio.sleep(25e-3)

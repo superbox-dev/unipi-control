@@ -37,7 +37,7 @@ class DevicesMqttPlugin:
     async def _subscribe(device, topic: str, messages) -> None:
         async for message in messages:
             value: str = message.payload.decode()
-            logger.info(LOG_MQTT_SUBSCRIBE % (topic, value))
+            logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
             if value == "ON":
                 await device.set_state(1)
@@ -53,7 +53,7 @@ class DevicesMqttPlugin:
             for device in devices:
                 if device.changed:
                     topic: str = f"{device.topic}/get"
-                    logger.info(LOG_MQTT_PUBLISH, (topic, device.state))
+                    logger.info(LOG_MQTT_PUBLISH, topic, device.state)
                     await self.mqtt_client.publish(topic, device.state, qos=2)
 
             await asyncio.sleep(25e-3)
