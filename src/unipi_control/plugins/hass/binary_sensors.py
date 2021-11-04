@@ -50,7 +50,7 @@ class HassBinarySensorsDiscovery:
         for device in devices:
             topic, message = self._get_discovery(device)
             json_data: str = json.dumps(message)
-            logger.info(LOG_MQTT_PUBLISH, (topic, json_data))
+            logger.info(LOG_MQTT_PUBLISH, topic, json_data)
             await self.mqtt_client.publish(topic, json_data, qos=2)
 
 
