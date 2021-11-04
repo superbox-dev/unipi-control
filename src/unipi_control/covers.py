@@ -110,18 +110,56 @@ class Cover:
 
     @property
     def is_opening(self) -> bool:
+        """Return the cover state.
+
+        Returns
+        -------
+        bool:
+            ``True`` if the cover state is **OPENING** else ``False``
+        """
         return self.state == CoverState.OPENING
 
     @property
     def is_closing(self) -> bool:
+        """Return the cover state.
+
+        Returns
+        -------
+        bool:
+            ``True`` if the cover state is **CLOSING** else ``False``
+        """
         return self.state == CoverState.CLOSING
 
     @property
     def is_stopped(self) -> bool:
+        """Return the cover state.
+
+        Returns
+        -------
+        bool:
+            ``True`` if the cover state is **STOPPED** else ``False``
+        """
         return self.state == CoverState.STOPPED
 
     @property
     def state_changed(self) -> bool:
+        """Check if the position changed.
+
+        When the state changed then this return ``True``. The state is changed
+        when the cover open, close or stopped.
+
+        Returns
+        -------
+        bool
+            ``True`` if position changed else ``False``
+
+        See Also
+        --------
+            covers.Cover.open(): open the cover.
+            covers.Cover.close(): close the cover.
+            covers.Cover.stop(): stop the cover.
+            covers.Cover.set_position(): set the cover position.
+        """
         changed: bool = self.state != self._current_state
 
         if changed:
@@ -131,6 +169,23 @@ class Cover:
 
     @property
     def position_changed(self) -> bool:
+        """Check if the position changed.
+
+        When the position changed and the device state is **IDLE** then this
+        return ``True``. The device state is **IDLE** when a command
+        (OPENING or CLOSE) is stopped.
+
+        Returns
+        -------
+        bool
+            ``True`` if position changed else ``False``
+
+        See Also
+        --------
+            covers.Cover.open(): open the cover.
+            covers.Cover.close(): close the cover.
+            covers.Cover.set_position(): set the cover position.
+        """
         changed: bool = self.position != self._current_position
 
         if changed and self._device_state == CoverDeviceState.IDLE:
@@ -143,14 +198,18 @@ class Cover:
     def tilt_changed(self) -> bool:
         """Check if the tilt changed.
 
-        When the tilt changed and the device state is **IDLE** then return
-        `True`. The device state is **IDLE** when a command (OPENING or CLOSE)
-        is stopped.
+        When the tilt changed and the device state is **IDLE** then this
+        return ``True``. The device state is **IDLE** when a command
+        (OPENING or CLOSE) is stopped.
 
         Returns
         -------
         bool
-            `True` if tilt changed else `False`
+            ``True`` if tilt changed else ``False``
+
+        See Also
+        --------
+            covers.Cover.set_tilt(): set the cover tilt position.
         """
         changed: bool = self.tilt != self._current_tilt
 
@@ -181,8 +240,8 @@ class Cover:
     async def open(self, position: int = 100) -> None:
         """Close the cover.
 
-        If the cover is in calibration mode (`self.position` is not set) then
-        the cover will be fully open (`self.position` is set to 100).
+        If the cover is in calibration mode (``self.position`` is not set) then
+        the cover will be fully open (``self.position`` is set to **100**).
 
         If the cover is already opening or closing, the position is updated.
         If a running timer exists, it will be stopped.
@@ -226,8 +285,8 @@ class Cover:
     async def close(self, position: int = 0) -> None:
         """Close the cover.
 
-        If the cover is in calibration mode (`self.position` is not set) then
-        the cover will be fully closed (`self.position` is set to 0).
+        If the cover is in calibration mode (``self.position`` is not set) then
+        the cover will be fully closed (``self.position`` is set to **0**).
 
         If the cover is already opening or closing, the position is updated.
         If a running timer exists, it will be stopped.
@@ -271,7 +330,7 @@ class Cover:
     async def stop(self) -> None:
         """Stop moving the cover.
 
-        If the cover is in calibration mode (`self.position` is not set) then
+        If the cover is in calibration mode (``self.position`` is not set) then
         the cover can't be stopped!
 
         If the cover is already opening or closing, the position is updated.
