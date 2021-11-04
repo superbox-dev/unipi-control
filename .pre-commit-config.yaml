@@ -14,6 +14,10 @@ repos:
       - id: mixed-line-ending
       - id: requirements-txt-fixer
       - id: trailing-whitespace
+  - repo: https://github.com/pre-commit/mirrors-yapf
+    rev: v0.31.0
+    hooks:
+      - id: yapf
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v2.6.0
     hooks:
