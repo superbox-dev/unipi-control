@@ -27,8 +27,7 @@ class CoverMap(MutableMappingMixin):
 
     def by_cover_type(self, cover_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None, map(self.mapping.get, cover_type))
-        )
+            filter(None, map(self.mapping.get, cover_type)))
 
 
 @dataclass(frozen=True)
@@ -234,9 +233,12 @@ class Cover:
         end_timer = time.monotonic() - self._start_timer
 
         if self.is_closing:
-            self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (100 - self.position)
+            self.position = int(
+                round(100 * (self.full_close_time - end_timer) /
+                      self.full_close_time)) - (100 - self.position)
         elif self.is_opening:
-            self.position = self.position + int(round(100 * end_timer / self.full_open_time))
+            self.position = self.position + int(
+                round(100 * end_timer / self.full_open_time))
 
     async def open(self, position: int = 100) -> None:
         """Close the cover.
