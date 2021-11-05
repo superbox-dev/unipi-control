@@ -58,9 +58,6 @@ class DeviceMixin:
         *args,
         **kwargs
     ):
-        self.dev_name = kwargs.get("dev_name")
-        self.dev_type = kwargs.get("dev_type")
-
         self.major_group = kwargs.get("major_group")
         self.type = kwargs.get("type")
         self.coil = kwargs.get("coil")
