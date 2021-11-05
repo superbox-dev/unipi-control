@@ -213,15 +213,15 @@ class ModbusCacheMap:
     modbus_register_blocks: list
         Modbus register blocks as ``list`` of ``dicts``.
     """
-    def __init__(self, modbus_register_blocks: list, modbus):
+    def __init__(self, modbus, modbus_register_blocks: list):
         """Initialize modbus cache map.
 
         Parameters
         ----------
-        modbus_register_blocks: list
-            The ``modbus.Modbus`` class.
         modbus: class
             Modbus register blocks as ``list`` of ``dicts``.
+        modbus_register_blocks: list
+            The ``modbus.Modbus`` class.
         """
         self.modbus = modbus
         self.modbus_register_blocks: list = modbus_register_blocks
