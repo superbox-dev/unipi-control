@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
-from helpers import MutableMappingMixin
+from helpers import DataStorage
 from systemd import journal
 from termcolor import colored
 
@@ -236,19 +236,19 @@ class Hardware:
                 self.serial = struct.unpack("i", ee_bytes[100:104])[0]
 
 
-class HardwareDefinition(MutableMappingMixin):
+class HardwareDefinition(DataStorage):
     def __init__(self):
         super().__init__()
 
         self.hardware = Hardware()
 
-        self.mapping: dict = {
+        self.data: dict = {
             "neuron": asdict(Hardware()),
             "definitions": [],
             "neuron_definition": None,
         }
 
-        self.model: str = self.mapping["neuron"]["model"]
+        self.model: str = self.data["neuron"]["model"]
 
         if self.model is None:
             raise HardwareException("[CONFIG] Hardware is not supported!")
@@ -260,7 +260,7 @@ class HardwareDefinition(MutableMappingMixin):
         for f in Path(f"{HW_CONFIGS}/extension").iterdir():
             if str(f).endswith(".yaml"):
                 with open(f) as yf:
-                    self.mapping["definitions"].append(
+                    self.data["definitions"].append(
                         yaml.load(yf, Loader=yaml.FullLoader)
                     )
 
@@ -271,9 +271,7 @@ class HardwareDefinition(MutableMappingMixin):
 
         if definition_file.is_file():
             with open(definition_file) as yf:
-                self.mapping["neuron_definition"] = yaml.load(
-                    yf, Loader=yaml.FullLoader
-                )
+                self.data["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
                 logger.info("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
             raise HardwareException(

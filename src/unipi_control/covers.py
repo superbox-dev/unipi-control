@@ -6,27 +6,27 @@ from dataclasses import dataclass
 from typing import Optional
 
 from config import config
-from helpers import MutableMappingMixin
+from helpers import DataStorage
 
 
-class CoverMap(MutableMappingMixin):
+class CoverMap(DataStorage):
     def __init__(self, devices):
         super().__init__()
 
         for cover in config.covers:
             cover_type: str = cover["cover_type"]
 
-            if not self.mapping.get(cover_type):
-                self.mapping[cover_type] = []
+            if not self.data.get(cover_type):
+                self.data[cover_type] = []
 
             c = Cover(devices, **cover)
 
             if c._cover_up_device and c._cover_down_device:
-                self.mapping[cover_type].append(c)
+                self.data[cover_type].append(c)
 
     def by_cover_type(self, cover_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None, map(self.mapping.get, cover_type))
+            filter(None, map(self.data.get, cover_type))
         )
 
 
@@ -457,5 +457,4 @@ class Cover:
         self.tilt = tilt
 
     def __repr__(self) -> str:
-        """Return a friendly name of the cover."""
         return self.friendly_name

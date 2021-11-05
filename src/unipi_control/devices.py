@@ -6,15 +6,15 @@ from typing import Optional
 
 from config import config
 from config import logger
-from helpers import MutableMappingMixin
+from helpers import DataStorage
 
 
-class DeviceMap(MutableMappingMixin):
+class DeviceMap(DataStorage):
     def register(self, device) -> None:
-        if not self.mapping.get(device.type):
-            self.mapping[device.type] = []
+        if not self.data.get(device.type):
+            self.data[device.type] = []
 
-        self.mapping[device.type].append(device)
+        self.data[device.type].append(device)
 
     def by_circuit(self, circuit: str):
         device = None
@@ -23,7 +23,7 @@ class DeviceMap(MutableMappingMixin):
             device = next(
                 filter(
                     lambda d: d.circuit == circuit,
-                    itertools.chain.from_iterable(self.mapping.values())
+                    itertools.chain.from_iterable(self.data.values())
                 )
             )
         except StopIteration:
@@ -35,7 +35,7 @@ class DeviceMap(MutableMappingMixin):
 
     def by_device_type(self, device_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None, map(self.mapping.get, device_type))
+            filter(None, map(self.data.get, device_type))
         )
 
 

@@ -1,28 +1,31 @@
 from collections.abc import MutableMapping
 
 
-class MutableMappingMixin(MutableMapping):
-    """A custom read-only mutable mappings class.
+class DataStorage(MutableMapping):
+    """A read-only container object that works like a dict.
 
     Attributes
     ----------
-    mapping: dict
-
+    data: dict
+        Store the data for this container object.
     """
     def __init__(self):
-        self.mapping: dict = {}
+        self.data: dict = {}
 
     def __getitem__(self, key):
-        return self.mapping[key]
+        return self.data[key]
 
     def __setitem__(self, key, value):
-        self.mapping[key] = value
+        self.data[key] = value
+
+    def __delitem__(self, key):
+        del self.data[key]
 
     def __iter__(self):
-        return iter(self.mapping)
+        return iter(self.data)
 
     def __len__(self):
-        return len(self.mapping)
+        return len(self.data)
 
     def __repr__(self):
-        return f"{type(self).__name__}({self.mapping})"
+        return f"{type(self).__name__}({self.data})"
