@@ -15,18 +15,20 @@ from modbus import ModbusCacheMap
 
 class Board:
     """Class to parse board features and register it to the ``FeatureMap``."""
-    def __init__(self, neuron, versions, board_group: int):
-        """ Initialize board.
+    def __init__(self, neuron, versions: list, major_group: int):
+        """Initialize board.
 
         Parameters
         ----------
         neuron: class
-        versions:
-        board_group: int
+            The Neuron class for registering features.
+        versions: list
+            The modbus firmware version register (1000).
+        major_group: int
+            The board group number.
         """
-
         self.neuron = neuron
-        self.board_group: int = board_group
+        self.major_group: int = major_group
         self.firmware = f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
 
         self._nao = (versions[2] & 0x00f0) >> 4
@@ -48,7 +50,7 @@ class Board:
         major_group: str = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.board_group:
+        if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -71,7 +73,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.board_group:
+        if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -93,7 +95,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.board_group:
+        if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -116,7 +118,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.board_group:
+        if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -137,7 +139,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.board_group:
+        if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -158,7 +160,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.board_group:
+        if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -254,8 +256,12 @@ class Neuron:
             if response.isError():
                 logger.info("[MODBUS] No board on SPI %s", index)
             else:
-                print(response.registers)
-                board = Board(self, response.registers, board_group=index)
+                board = Board(
+                    self,
+                    versions=response.registers,
+                    major_group=index
+                )
+
                 board.parse_features()
 
                 self.boards.append(board)
