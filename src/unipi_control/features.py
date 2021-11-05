@@ -49,7 +49,7 @@ class FeatureState:
     OFF: str = "OFF"
 
 
-class FeatureMixin:
+class Feature:
     def __init__(
         self,
         board,
@@ -114,7 +114,7 @@ class FeatureMixin:
         return self.circuit_name
 
 
-class Relay(FeatureMixin):
+class Relay(Feature):
     name = "Relay"
     feature_name = "relay"
     feature_type = "physical"
@@ -123,7 +123,7 @@ class Relay(FeatureMixin):
         return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
-class DigitalOutput(FeatureMixin):
+class DigitalOutput(Feature):
     name = "Digital Output"
     feature_name = "relay"
     feature_type = "digital"
@@ -132,13 +132,13 @@ class DigitalOutput(FeatureMixin):
         return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
-class DigitalInput(FeatureMixin):
+class DigitalInput(Feature):
     name = "Digital Input"
     feature_name = "input"
     feature_type = "digital"
 
 
-class AnalogOutput(FeatureMixin):
+class AnalogOutput(Feature):
     name = "Analog Output"
     feature_name = "output"
     feature_type = "analog"
@@ -271,13 +271,13 @@ class AnalogOutput(FeatureMixin):
         await self.modbus.write_register(self.cal_reg, value_i, unit=0)
 
 
-class AnalogInput(FeatureMixin):
+class AnalogInput(Feature):
     name = "Analog Input"
     feature_name = "input"
     feature_type = "analog"
 
 
-class Led(FeatureMixin):
+class Led(Feature):
     name = "LED"
     feature_name = "led"
     feature_type = None

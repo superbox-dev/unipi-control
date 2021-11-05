@@ -91,10 +91,13 @@ class Cover:
         Current cover position.
     tilt: int, optional
         Current tilt position.
-    # TODO: added self.cover_up_feature and self.cover_down_feature
+    cover_up_feature: Feature
+        The feature for opening the cover.
+    cover_down_feature: Feature
+        The feature for closing the cover.
     """
     def __init__(self, features, **kwargs):
-        """ # TODO add docstring
+        """Initialize cover.
 
         Parameters
         ----------
