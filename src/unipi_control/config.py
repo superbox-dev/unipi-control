@@ -16,7 +16,7 @@ from helpers import DataStorage
 from systemd import journal
 from termcolor import colored
 
-HW_CONFIGS = "/etc/unipi/hardware"
+HARDWARE = "/etc/unipi/hardware"
 COVER_TYPES = ["blind", "roller_shutter", "garage_door"]
 LOG_MQTT_PUBLISH = "[MQTT][%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE = "[MQTT][%s] Subscribe message: %s"
@@ -83,7 +83,7 @@ class Config(ConfigBase):
     device_name: str = field(default=socket.gethostname())
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
-    devices: dict = field(init=False, default_factory=dict)
+    features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
     logging: dataclass = field(default=LoggingConfig())
 
@@ -155,8 +155,12 @@ class Config(ConfigBase):
     def clean_covers(self) -> Optional[str]:
         errors: list = []
         required_fields: list = [
-            "cover_type", "topic_name", "full_open_time", "full_close_time",
-            "circuit_up", "circuit_down"
+            "cover_type",
+            "topic_name",
+            "full_open_time",
+            "full_close_time",
+            "circuit_up",
+            "circuit_down"
         ]
 
         for index, cover in enumerate(self.covers):
@@ -169,11 +173,17 @@ class Config(ConfigBase):
                         )
                     )
 
-            for cover_time in ["full_open_time", "full_close_time", "tilt_change_time"]:
+            for cover_time in [
+                "full_open_time",
+                "full_close_time",
+                "tilt_change_time"
+            ]:
                 value = cover.get(cover_time)
 
                 if value and not isinstance(value,
-                                            float) and not isinstance(value, int):
+                                            float
+                                            ) and not isinstance(value,
+                                                                 int):
                     errors.append(
                         colored(
                             f"""[CONFIG][COVER {index + 1}] Key "{cover_time}" is not a float or integer!""",
@@ -257,22 +267,29 @@ class HardwareDefinition(DataStorage):
         self._read_neuron_definition()
 
     def _read_definitions(self) -> None:
-        for f in Path(f"{HW_CONFIGS}/extension").iterdir():
+        for f in Path(f"{HARDWARE}/extension").iterdir():
             if str(f).endswith(".yaml"):
                 with open(f) as yf:
                     self.data["definitions"].append(
-                        yaml.load(yf, Loader=yaml.FullLoader)
+                        yaml.load(yf,
+                                  Loader=yaml.FullLoader)
                     )
 
                     logger.info("[CONFIG] YAML Definition loaded: %s", f)
 
     def _read_neuron_definition(self) -> None:
-        definition_file: Path = Path(f"{HW_CONFIGS}/neuron/{self.model}.yaml")
+        definition_file: Path = Path(f"{HARDWARE}/neuron/{self.model}.yaml")
 
         if definition_file.is_file():
             with open(definition_file) as yf:
-                self.data["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
-                logger.info("[CONFIG] YAML Definition loaded: %s", definition_file)
+                self.data["neuron_definition"] = yaml.load(
+                    yf,
+                    Loader=yaml.FullLoader
+                )
+                logger.info(
+                    "[CONFIG] YAML Definition loaded: %s",
+                    definition_file
+                )
         else:
             raise HardwareException(
                 f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self.model}."

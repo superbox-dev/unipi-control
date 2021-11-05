@@ -12,8 +12,7 @@ class HassCoversDiscovery:
     def __init__(self, uc, mqtt_client):
         self.uc = uc
         self.mqtt_client = mqtt_client
-
-        self._hw = uc.neuron.hw
+        self.hardware = uc.neuron.hardware
 
     def _get_discovery(self, cover) -> tuple:
         topic: str = f"{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
@@ -32,16 +31,18 @@ class HassCoversDiscovery:
                 "name": config.device_name,
                 "identifiers": config.device_name.lower(),
                 "model":
-                f"""{self._hw["neuron"]["name"]} {self._hw["neuron"]["model"]}""",
+                f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                 **asdict(config.homeassistant.device),
             }
         }
 
         if cover.tilt_change_time:
-            message.update({
-                "tilt_status_topic": f"{cover.topic}/tilt",
-                "tilt_command_topic": f"{cover.topic}/tilt/set",
-            })
+            message.update(
+                {
+                    "tilt_status_topic": f"{cover.topic}/tilt",
+                    "tilt_command_topic": f"{cover.topic}/tilt/set",
+                }
+            )
 
         return topic, message
 

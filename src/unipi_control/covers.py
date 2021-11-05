@@ -10,7 +10,7 @@ from helpers import DataStorage
 
 
 class CoverMap(DataStorage):
-    def __init__(self, devices):
+    def __init__(self, features):
         super().__init__()
 
         for cover in config.covers:
@@ -19,14 +19,16 @@ class CoverMap(DataStorage):
             if not self.data.get(cover_type):
                 self.data[cover_type] = []
 
-            c = Cover(devices, **cover)
+            c = Cover(features, **cover)
 
-            if c._cover_up_device and c._cover_down_device:
+            if c.cover_up_feature and c.cover_down_feature:
                 self.data[cover_type].append(c)
 
     def by_cover_type(self, cover_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None, map(self.data.get, cover_type))
+            filter(None,
+                   map(self.data.get,
+                       cover_type))
         )
 
 
@@ -89,14 +91,15 @@ class Cover:
         Current cover position.
     tilt: int, optional
         Current tilt position.
+    # TODO: added self.cover_up_feature and self.cover_down_feature
     """
-    def __init__(self, devices, **kwargs):
+    def __init__(self, features, **kwargs):
         """
 
         Parameters
         ----------
-        devices:
-            Unipi devices e.g. Relay, DigitalInput, ...
+        features:
+            Unipi features (e.g. Relay, Digital Input, ...)
         """
         self.friendly_name: str = kwargs.get("friendly_name")
         self.cover_type: str = kwargs.get("cover_type")
@@ -109,6 +112,8 @@ class Cover:
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
+        self.cover_up_feature = features.by_circuit(self.circuit_up)
+        self.cover_down_feature = features.by_circuit(self.circuit_down)
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
@@ -116,8 +121,6 @@ class Cover:
         self._current_state: Optional[str] = None
         self._current_position: Optional[int] = None
         self._current_tilt: Optional[int] = None
-        self._cover_up_device = devices.by_circuit(self.circuit_up)
-        self._cover_down_device = devices.by_circuit(self.circuit_down)
 
     @property
     def topic(self) -> str:
@@ -259,7 +262,10 @@ class Cover:
 
         if self.is_closing:
             self.position = int(
-                round(100 * (self.full_close_time - end_timer) / self.full_close_time)
+                round(
+                    100 *
+                    (self.full_close_time - end_timer) / self.full_close_time
+                )
             ) - (100 - self.position)
         elif self.is_opening:
             self.position = self.position + int(
@@ -288,10 +294,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._cover_down_device.set_state(0)
+        response = await self.cover_down_feature.set_state(0)
 
         if not response.isError():
-            await self._cover_up_device.set_state(1)
+            await self.cover_up_feature.set_state(1)
 
             self._device_state = CoverDeviceState.OPEN
             self.state = CoverState.OPENING
@@ -333,10 +339,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._cover_up_device.set_state(0)
+        response = await self.cover_up_feature.set_state(0)
 
         if not response.isError():
-            await self._cover_down_device.set_state(1)
+            await self.cover_down_feature.set_state(1)
 
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING
@@ -375,8 +381,8 @@ class Cover:
         if self.position is None:
             return
 
-        await self._cover_down_device.set_state(0)
-        await self._cover_up_device.set_state(0)
+        await self.cover_down_feature.set_state(0)
+        await self.cover_up_feature.set_state(0)
 
         self._update_position()
         self._stop_timer()
@@ -396,10 +402,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._cover_down_device.set_state(0)
+        response = await self.cover_down_feature.set_state(0)
 
         if not response.isError():
-            await self._cover_up_device.set_state(1)
+            await self.cover_up_feature.set_state(1)
 
             self._device_state = CoverDeviceState.OPEN
             self.state = CoverState.OPENING
@@ -412,10 +418,10 @@ class Cover:
         self._update_position()
         self._stop_timer()
 
-        response = await self._cover_up_device.set_state(0)
+        response = await self.cover_up_feature.set_state(0)
 
         if not response.isError():
-            await self._cover_down_device.set_state(1)
+            await self.cover_down_feature.set_state(1)
 
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING

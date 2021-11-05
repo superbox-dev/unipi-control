@@ -3,13 +3,13 @@ from typing import Optional
 
 from config import HardwareDefinition
 from config import logger
-from devices import AnalogInput
-from devices import AnalogOutput
-from devices import DeviceMap
-from devices import DigitalInput
-from devices import DigitalOutput
-from devices import Led
-from devices import Relay
+from features import AnalogInput
+from features import AnalogOutput
+from features import DigitalInput
+from features import DigitalOutput
+from features import FeatureMap
+from features import Led
+from features import Relay
 from modbus import ModbusCacheMap
 
 
@@ -48,13 +48,13 @@ class Board:
                 ro = Relay(
                     circuit=circuit,
                     board=self,
-                    coil=modbus_feature['val_coil'] + index,
-                    reg=modbus_feature['val_reg'],
+                    coil=modbus_feature["val_coil"] + index,
+                    reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
                     **modbus_feature,
                 )
 
-                self.neuron.devices.register(ro)
+                self.neuron.features.register(ro)
 
     def _parse_feature_di(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -76,7 +76,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                self.neuron.devices.register(di)
+                self.neuron.features.register(di)
 
     def _parse_feature_do(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -99,7 +99,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                self.neuron.devices.register(do)
+                self.neuron.features.register(do)
 
     def _parse_feature_ao(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -120,7 +120,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                self.neuron.devices.register(ao)
+                self.neuron.features.register(ao)
 
     def _parse_feature_ai(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -141,7 +141,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                self.neuron.devices.register(ai)
+                self.neuron.features.register(ai)
 
     def _parse_feature_led(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -164,7 +164,7 @@ class Board:
                     **modbus_feature,
                 )
 
-                self.neuron.devices.register(led)
+                self.neuron.features.register(led)
 
     def _parse_feature(self, modbus_feature: dict) -> None:
         max_count: int = modbus_feature["count"]
@@ -174,9 +174,9 @@ class Board:
         if func:
             func(max_count, modbus_feature)
 
-    def parse_definition(self) -> None:
-        hw: dict = self.neuron.hw["neuron_definition"]
-        modbus_features: list = hw["modbus_features"]
+    def parse_features(self) -> None:
+        hardware: dict = self.neuron.hardware["neuron_definition"]
+        modbus_features: list = hardware["modbus_features"]
 
         for modbus_feature in modbus_features:
             self._parse_feature(modbus_feature)
@@ -185,30 +185,30 @@ class Board:
 class Neuron:
     """Class that reads all boards and scan modbus registers from an Unipi Neuron.
 
+    The Unipi Neuron has one or more boards and each board has it's features
+    (e. g. Relay, Digital Input). This class reads all boards and append
+    it to the boards ```list``.
+
     Attributes
     ----------
     modbus: class
-        The ``modbus.Modbus`` class.
-    hw: Mapping
-        The neuron hardware definitions.
+        Extended modbus clients class.
+    hardware: Mapping
+        The Unipi Neuron hardware definitions.
     modbus_cache_map: class, optional
-        The ``modbus.ModbusCacheMap`` class.
-    # TODO add @property
+        All cached modbus input register blocks.
+    features: Mapping
+        All registered features (e. g. Relay, Digital Input, ...) from the
+        Unipi Neuron.
+    boards: list
+        All available boards from the Unipi Neuron.
     """
     def __init__(self, modbus):
         self.modbus = modbus
-        self.hw: Mapping = HardwareDefinition()
+        self.hardware: Mapping = HardwareDefinition()
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
-        self._devices = DeviceMap()
-        self._boards: list = []
-
-    @property
-    def devices(self):
-        return self._devices
-
-    @property
-    def boards(self) -> list:
-        return self._boards
+        self.features = FeatureMap()
+        self.boards: list = []
 
     async def read_boards(self) -> None:
         logger.info("[MODBUS] Reading SPI boards")
@@ -224,15 +224,15 @@ class Neuron:
                 logger.info("[MODBUS] No board on SPI %s", index)
             else:
                 board = Board(self, result.registers, major_group=index)
-                board.parse_definition()
+                board.parse_features()
 
-                self._boards.append(board)
+                self.boards.append(board)
 
     async def initialise_cache(self):
         if self.modbus_cache_map is None:
             self.modbus_cache_map = ModbusCacheMap(
                 self.modbus,
-                self.hw["neuron_definition"]["modbus_register_blocks"],
+                self.hardware["neuron_definition"]["modbus_register_blocks"],
             )
 
             await self.modbus_cache_map.scan()

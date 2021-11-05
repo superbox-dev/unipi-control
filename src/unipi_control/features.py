@@ -9,18 +9,18 @@ from config import logger
 from helpers import DataStorage
 
 
-class DeviceMap(DataStorage):
-    def register(self, device) -> None:
-        if not self.data.get(device.type):
-            self.data[device.type] = []
+class FeatureMap(DataStorage):
+    def register(self, feature) -> None:
+        if not self.data.get(feature.type):
+            self.data[feature.type] = []
 
-        self.data[device.type].append(device)
+        self.data[feature.type].append(feature)
 
     def by_circuit(self, circuit: str):
-        device = None
+        feature = None
 
         try:
-            device = next(
+            feature = next(
                 filter(
                     lambda d: d.circuit == circuit,
                     itertools.chain.from_iterable(self.data.values())
@@ -33,23 +33,23 @@ class DeviceMap(DataStorage):
                  self.__class__.__name__)
             )
 
-        return device
+        return feature
 
-    def by_device_type(self, device_type: list) -> Iterator:
+    def by_feature_type(self, feature_type: list) -> Iterator:
         return itertools.chain.from_iterable(
             filter(None,
                    map(self.data.get,
-                       device_type))
+                       feature_type))
         )
 
 
 @dataclass(frozen=True)
-class DeviceState:
+class FeatureState:
     ON: str = "ON"
     OFF: str = "OFF"
 
 
-class DeviceMixin:
+class FeatureMixin:
     def __init__(
         self,
         board,
@@ -82,10 +82,10 @@ class DeviceMixin:
 
     @property
     def topic(self) -> str:
-        topic: str = f"{config.device_name.lower()}/{self.dev_name}"
+        topic: str = f"{config.device_name.lower()}/{self.feature_name}"
 
-        if self.dev_type:
-            topic += f"/{self.dev_type}"
+        if self.feature_type:
+            topic += f"/{self.feature_type}"
 
         topic += f"/{self.circuit}"
 
@@ -108,40 +108,40 @@ class DeviceMixin:
 
     @property
     def state(self) -> str:
-        return DeviceState.ON if self.value == 1 else DeviceState.OFF
+        return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     def __repr__(self):
         return self.circuit_name
 
 
-class Relay(DeviceMixin):
+class Relay(FeatureMixin):
     name = "Relay"
-    dev_name = "relay"
-    dev_type = "physical"
+    feature_name = "relay"
+    feature_type = "physical"
 
     async def set_state(self, value: int):
         return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
-class DigitalOutput(DeviceMixin):
+class DigitalOutput(FeatureMixin):
     name = "Digital Output"
-    dev_name = "relay"
-    dev_type = "digital"
+    feature_name = "relay"
+    feature_type = "digital"
 
     async def set_state(self, value: int):
         return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
-class DigitalInput(DeviceMixin):
+class DigitalInput(FeatureMixin):
     name = "Digital Input"
-    dev_name = "input"
-    dev_type = "digital"
+    feature_name = "input"
+    feature_type = "digital"
 
 
-class AnalogOutput(DeviceMixin):
+class AnalogOutput(FeatureMixin):
     name = "Analog Output"
-    dev_name = "output"
-    dev_type = "analog"
+    feature_name = "output"
+    feature_type = "analog"
 
     def __init__(
         self,
@@ -271,16 +271,16 @@ class AnalogOutput(DeviceMixin):
         await self.modbus.write_register(self.cal_reg, value_i, unit=0)
 
 
-class AnalogInput(DeviceMixin):
+class AnalogInput(FeatureMixin):
     name = "Analog Input"
-    dev_name = "input"
-    dev_type = "analog"
+    feature_name = "input"
+    feature_type = "analog"
 
 
-class Led(DeviceMixin):
+class Led(FeatureMixin):
     name = "LED"
-    dev_name = "led"
-    dev_type = None
+    feature_name = "led"
+    feature_type = None
 
     async def set_state(self, value: int) -> None:
         await self.modbus.write_coil(self.coil, value, unit=0)

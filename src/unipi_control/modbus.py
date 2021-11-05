@@ -204,12 +204,12 @@ class Modbus:
 
 
 class ModbusCacheMap:
-    """Class that scan defined modbus register blocks and cache the result.
+    """Class that scan defined modbus register blocks and cache the response.
 
     Attributes
     ----------
     modbus: class
-        The ``modbus.Modbus`` class.
+        Extended modbus clients class.
     modbus_register_blocks: list
         Modbus register blocks as ``list`` of ``dicts``.
     """
@@ -267,8 +267,8 @@ class ModbusCacheMap:
         index: int,
         unit: int = 0,
         is_input: bool = False
-    ) -> list:
-        """Get the responses from the cached modbus registers.
+    ):
+        """Get the responses from the cached modbus register blocks.
 
         Parameters
         ----------
@@ -284,7 +284,7 @@ class ModbusCacheMap:
         Returns
         -------
         list
-            A list of cached modbus registers.
+            A list of cached modbus register blocks.
         Raises
         ------
         UnknownModbusRegister

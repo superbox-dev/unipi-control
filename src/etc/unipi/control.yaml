@@ -8,7 +8,7 @@ mqtt:
 homeassistant:
   enabled: true
   discovery_prefix: homeassistant
-devices:
+features:
   di_3_02:
     friendly_name: "Workspace - Switch up"
   di_3_03:
