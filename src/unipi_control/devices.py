@@ -113,7 +113,7 @@ class Relay(DeviceMixin):
     dev_type = "physical"
 
     async def set_state(self, value: int) -> None:
-        return await self.modbus.write_coil(self.coil, value, unit=0)
+        await self.modbus.write_coil(self.coil, value, unit=0)
 
 
 class DigitalOutput(DeviceMixin):
