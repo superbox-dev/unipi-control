@@ -183,6 +183,18 @@ class Board:
 
 
 class Neuron:
+    """Class that reads all boards and scan modbus registers from an Unipi Neuron.
+
+    Attributes
+    ----------
+    modbus: class
+        The ``modbus.Modbus`` class.
+    hw: Mapping
+        The neuron hardware definitions.
+    modbus_cache_map: class, optional
+        The ``modbus.ModbusCacheMap`` class.
+    # TODO add @property
+    """
     def __init__(self, modbus):
         self.modbus = modbus
         self.hw: Mapping = HardwareDefinition()

@@ -42,7 +42,15 @@ class NoCachedModbusRegister(Exception):
 
 
 class Modbus:
-    """Class that extend the modbus client with better error handling."""
+    """Class that extend the modbus client with better error handling.
+
+    Attributes
+    ----------
+    loop:
+        Current asyncio event loop.
+    modbus_client:
+        The Modbus TCP client.
+    """
     def __init__(self, loop):
         """Initialize modbus client.
 
