@@ -107,7 +107,6 @@ class UnipiControl:
         await asyncio.gather(*tasks)
 
     async def run(self) -> None:
-        await self.neuron.initialise_cache()
         await self.neuron.read_boards()
 
         self.covers = CoverMap(features=self.neuron.features)

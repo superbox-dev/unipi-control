@@ -14,13 +14,24 @@ from modbus import ModbusCacheMap
 
 
 class Board:
-    def __init__(self, neuron, versions, major_group: int):
-        self.neuron = neuron
-        self.major_group: int = major_group
-        self.firmware = f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
-        self.nao = (versions[2] & 0x00f0) >> 4
+    """Class to parse board features and register it to the ``FeatureMap``."""
+    def __init__(self, neuron, versions, board_group: int):
+        """ Initialize board.
 
-        if self.nao:
+        Parameters
+        ----------
+        neuron: class
+        versions:
+        board_group: int
+        """
+
+        self.neuron = neuron
+        self.board_group: int = board_group
+        self.firmware = f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
+
+        self._nao = (versions[2] & 0x00f0) >> 4
+
+        if self._nao:
             modbus_cache_map: ModbusCacheMap = neuron.modbus_cache_map
 
             self.volt_ref_x = (
@@ -37,7 +48,7 @@ class Board:
         major_group: str = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.major_group:
+        if major_group == self.board_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -60,7 +71,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.major_group:
+        if major_group == self.board_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -82,7 +93,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.major_group:
+        if major_group == self.board_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -105,7 +116,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.major_group:
+        if major_group == self.board_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -126,7 +137,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.major_group:
+        if major_group == self.board_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -147,7 +158,7 @@ class Board:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
-        if major_group == self.major_group:
+        if major_group == self.board_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
                     feature_type.lower(),
@@ -175,8 +186,9 @@ class Board:
             func(max_count, modbus_feature)
 
     def parse_features(self) -> None:
-        hardware: dict = self.neuron.hardware["neuron_definition"]
-        modbus_features: list = hardware["modbus_features"]
+        """Parse all features from the hardware mapping."""
+        neuron_definition: dict = self.neuron.hardware["neuron_definition"]
+        modbus_features: list = neuron_definition["modbus_features"]
 
         for modbus_feature in modbus_features:
             self._parse_feature(modbus_feature)
@@ -186,49 +198,38 @@ class Neuron:
     """Class that reads all boards and scan modbus registers from an Unipi Neuron.
 
     The Unipi Neuron has one or more boards and each board has it's features
-    (e. g. Relay, Digital Input). This class reads all boards and append
-    it to the boards ```list``.
+    (e. g. Relay, Digital Input). This class reads out all boards and append
+    it to the boards ``list``.
 
     Attributes
     ----------
     modbus: class
-        Extended modbus clients class.
-    hardware: Mapping
-        The Unipi Neuron hardware definitions.
+        Extended modbus client class.
     modbus_cache_map: class, optional
         All cached modbus input register blocks.
-    features: Mapping
-        All registered features (e. g. Relay, Digital Input, ...) from the
-        Unipi Neuron.
+    hardware: Mapping
+        The Unipi Neuron hardware definitions.
     boards: list
         All available boards from the Unipi Neuron.
+    features: Mapping
+        All registered features (e.g. Relay, Digital Input, ...) from the
+        Unipi Neuron.
     """
     def __init__(self, modbus):
+        """Initialize Unipi Neuron.
+
+        Parameters
+        ----------
+        modbus: class
+            Extended modbus client class.
+        """
         self.modbus = modbus
-        self.hardware: Mapping = HardwareDefinition()
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
-        self.features = FeatureMap()
+        self.hardware: Mapping = HardwareDefinition()
         self.boards: list = []
+        self.features = FeatureMap()
 
-    async def read_boards(self) -> None:
-        logger.info("[MODBUS] Reading SPI boards")
-
-        for index in (1, 2, 3):
-            result = await self.modbus.read_input_registers(
-                1000,
-                10,
-                unit=index
-            )
-
-            if result.isError():
-                logger.info("[MODBUS] No board on SPI %s", index)
-            else:
-                board = Board(self, result.registers, major_group=index)
-                board.parse_features()
-
-                self.boards.append(board)
-
-    async def initialise_cache(self):
+    async def _initialise_cache(self) -> None:
         if self.modbus_cache_map is None:
             self.modbus_cache_map = ModbusCacheMap(
                 self.modbus,
@@ -237,6 +238,29 @@ class Neuron:
 
             await self.modbus_cache_map.scan()
 
-    async def start_scanning(self):
+    async def read_boards(self) -> None:
+        """Append all available boards to a list."""
+        await self._initialise_cache()
+
+        logger.info("[MODBUS] Reading SPI boards")
+
+        for index in (1, 2, 3):
+            response = await self.modbus.read_input_registers(
+                address=1000,
+                count=10,
+                unit=index
+            )
+
+            if response.isError():
+                logger.info("[MODBUS] No board on SPI %s", index)
+            else:
+                print(response.registers)
+                board = Board(self, response.registers, board_group=index)
+                board.parse_features()
+
+                self.boards.append(board)
+
+    async def scan(self) -> None:
+        """Scan and cache modbus register blocks if no cache exists."""
         if self.modbus_cache_map is not None:
             await self.modbus_cache_map.scan()

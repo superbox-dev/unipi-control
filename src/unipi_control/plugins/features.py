@@ -50,7 +50,7 @@ class FeaturesMqttPlugin:
 
     async def _publish(self) -> None:
         while True:
-            await self.uc.neuron.start_scanning()
+            await self.uc.neuron.scan()
 
             features = self.uc.neuron.features.by_feature_type(
                 ["AO",

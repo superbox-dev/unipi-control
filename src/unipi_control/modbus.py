@@ -209,7 +209,7 @@ class ModbusCacheMap:
     Attributes
     ----------
     modbus: class
-        Extended modbus clients class.
+        Extended modbus client class.
     modbus_register_blocks: list
         Modbus register blocks as ``list`` of ``dicts``.
     """

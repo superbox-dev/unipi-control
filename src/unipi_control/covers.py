@@ -94,7 +94,7 @@ class Cover:
     # TODO: added self.cover_up_feature and self.cover_down_feature
     """
     def __init__(self, features, **kwargs):
-        """
+        """ # TODO add docstring
 
         Parameters
         ----------
