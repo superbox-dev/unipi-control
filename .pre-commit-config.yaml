@@ -31,9 +31,8 @@ repos:
     rev: "4.0.1"
     hooks:
       - id: flake8
-        args: ["--ignore=E501,D204,W504", ]
+        args: ["--ignore=E501,W504", ]
         additional_dependencies: [flake8-bugbear]
-        # additional_dependencies: [flake8-docstrings]
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.46"
     hooks:
