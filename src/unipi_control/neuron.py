@@ -21,11 +21,16 @@ class Board:
         self.nao = (versions[2] & 0x00f0) >> 4
 
         if self.nao:
+            modbus_cache_map: ModbusCacheMap = neuron.modbus_cache_map
+
             self.volt_ref_x = (
-                3.3 * (1 + neuron.modbus_cache_map.get_register(1, 1009)[0])
+                3.3 *
+                (1 + modbus_cache_map.get_register(address=1,
+                                                   index=1009)[0])
             )
-            self.volt_ref = self.volt_ref_x / neuron.modbus_cache_map.get_register(
-                1, 5
+            self.volt_ref = self.volt_ref_x / modbus_cache_map.get_register(
+                address=1,
+                index=5
             )[0]
 
     def _parse_feature_ro(self, max_count: int, modbus_feature: dict) -> None:
@@ -35,7 +40,9 @@ class Board:
         if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
-                    feature_type.lower(), major_group, index + 1
+                    feature_type.lower(),
+                    major_group,
+                    index + 1
                 )
 
                 ro = Relay(
@@ -56,7 +63,9 @@ class Board:
         if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
-                    feature_type.lower(), major_group, index + 1
+                    feature_type.lower(),
+                    major_group,
+                    index + 1
                 )
 
                 di = DigitalInput(
@@ -76,7 +85,9 @@ class Board:
         if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
-                    feature_type.lower(), major_group, index + 1
+                    feature_type.lower(),
+                    major_group,
+                    index + 1
                 )
 
                 do = DigitalOutput(
@@ -97,7 +108,9 @@ class Board:
         if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
-                    feature_type.lower(), major_group, index + 1
+                    feature_type.lower(),
+                    major_group,
+                    index + 1
                 )
 
                 ao = AnalogOutput(
@@ -116,7 +129,9 @@ class Board:
         if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
-                    feature_type.lower(), major_group, index + 1
+                    feature_type.lower(),
+                    major_group,
+                    index + 1
                 )
 
                 ai = AnalogInput(
@@ -135,7 +150,9 @@ class Board:
         if major_group == self.major_group:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (
-                    feature_type.lower(), major_group, index + 1
+                    feature_type.lower(),
+                    major_group,
+                    index + 1
                 )
 
                 led = Led(
@@ -158,7 +175,10 @@ class Board:
             func(max_count, modbus_feature)
 
     def parse_definition(self) -> None:
-        for modbus_feature in self.neuron.hw["neuron_definition"]["modbus_features"]:
+        hw: dict = self.neuron.hw["neuron_definition"]
+        modbus_features: list = hw["modbus_features"]
+
+        for modbus_feature in modbus_features:
             self._parse_feature(modbus_feature)
 
 
@@ -182,7 +202,11 @@ class Neuron:
         logger.info("[MODBUS] Reading SPI boards")
 
         for index in (1, 2, 3):
-            result = await self.modbus.read_input_registers(1000, 10, unit=index)
+            result = await self.modbus.read_input_registers(
+                1000,
+                10,
+                unit=index
+            )
 
             if result.isError():
                 logger.info("[MODBUS] No board on SPI %s", index)

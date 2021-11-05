@@ -28,14 +28,18 @@ class DeviceMap(DataStorage):
             )
         except StopIteration:
             logger.error(
-                "[CONFIG] `%s` not found in %s!", (circuit, self.__class__.__name__)
+                "[CONFIG] `%s` not found in %s!",
+                (circuit,
+                 self.__class__.__name__)
             )
 
         return device
 
     def by_device_type(self, device_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None, map(self.data.get, device_type))
+            filter(None,
+                   map(self.data.get,
+                       device_type))
         )
 
 
@@ -47,7 +51,12 @@ class DeviceState:
 
 class DeviceMixin:
     def __init__(
-        self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs
+        self,
+        board,
+        circuit: str,
+        mask: Optional[int] = None,
+        *args,
+        **kwargs
     ):
         self.dev_name = kwargs.get("dev_name")
         self.dev_type = kwargs.get("dev_type")
@@ -64,7 +73,8 @@ class DeviceMixin:
         self.mask: int = mask
 
         self.reg_value = lambda: board.neuron.modbus_cache_map.get_register(
-            1, self.reg, unit=0
+            address=1,
+            index=self.reg
         )[0]
 
         self._value: bool = False
@@ -137,20 +147,28 @@ class AnalogOutput(DeviceMixin):
     dev_type = "analog"
 
     def __init__(
-        self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs
+        self,
+        board,
+        circuit: str,
+        mask: Optional[int] = None,
+        *args,
+        **kwargs
     ):
         super().__init__(board, circuit, mask, *args, **kwargs)
 
         self.ai_config = board.neuron.modbus_cache_map.get_register(
-            1, self.cal_reg, unit=0
+            address=1,
+            index=self.cal_reg
         )
 
         self.ai_voltage_deviation = board.neuron.modbus_cache_map.get_register(
-            1, self.cal_reg + 1, unit=0
+            address=1,
+            index=self.cal_reg + 1
         )
 
         self.ai_voltage_offset = board.neuron.modbus_cache_map.get_register(
-            1, self.cal_reg + 2, unit=0
+            address=1,
+            index=self.cal_reg + 2
         )
 
     @staticmethod
@@ -165,7 +183,9 @@ class AnalogOutput(DeviceMixin):
         _offset: float = 0
 
         if self.cal_reg > 0:
-            _offset = self._uint16_to_int(self.ai_voltage_deviation[0]) / 10000.0
+            _offset = self._uint16_to_int(
+                self.ai_voltage_deviation[0]
+            ) / 10000.0
 
         return _offset
 

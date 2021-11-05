@@ -12,15 +12,31 @@ class ModbusException(Exception):
 
 class UnknownModbusRegister(Exception):
     """Exception when Modbus register not found."""
-    def __init__(self, counter):
-        message: str = f"Unknown register {counter}"
+    def __init__(self, address: int):
+        """Initialize exception.
+
+        Parameters
+        ----------
+        address: int
+            The starting address to write to.
+        """
+        message: str = f"Unknown register {address}"
         super().__init__(message)
 
 
 class NoCachedModbusRegister(Exception):
     """Exception when cached Modbus register value not found."""
-    def __init__(self, counter, unit):
-        message: str = f"No cached value of register {counter} " \
+    def __init__(self, address, unit):
+        """Initialize exception.
+
+        Parameters
+        ----------
+        address: int
+            The starting address to write to.
+        unit: int
+            The slave unit this request is targeting.
+        """
+        message: str = f"No cached value of register {address} " \
                        f"on unit {unit} - read error"
         super().__init__(message)
 
@@ -38,7 +54,12 @@ class Modbus:
         self.loop, self.modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
         self.modbus_client = self.modbus.protocol
 
-    async def write_coil(self, address: int, value: int, unit: int) -> Coroutine:
+    async def write_coil(
+        self,
+        address: int,
+        value: int,
+        unit: int
+    ) -> Coroutine:
         """Write value to modbus address.
 
         Parameters
@@ -52,7 +73,7 @@ class Modbus:
 
         Returns
         ----------
-        response: Coroutine
+        Coroutine
             A deferred response handle.
 
         Raises
@@ -65,7 +86,12 @@ class Modbus:
 
         return await self.modbus_client.write_coil(address, value, unit=unit)
 
-    async def write_register(self, address: int, value: int, unit: int) -> Coroutine:
+    async def write_register(
+        self,
+        address: int,
+        value: int,
+        unit: int
+    ) -> Coroutine:
         """Write value to modbus register.
 
         Parameters
@@ -90,12 +116,19 @@ class Modbus:
         if not self.modbus_client or not self.modbus_client.connected:
             raise ModbusException()
 
-        return await self.modbus_client.write_register(address, value, unit=unit)
+        return await self.modbus_client.write_register(
+            address,
+            value,
+            unit=unit
+        )
 
     async def read_holding_registers(
-        self, address: int, count: int, unit: int
+        self,
+        address: int,
+        count: int,
+        unit: int
     ) -> Coroutine:
-        """Read value from modbus registers.
+        """Read value from modbus holding registers.
 
         Parameters
         ----------
@@ -120,11 +153,16 @@ class Modbus:
             raise ModbusException()
 
         return await self.modbus_client.read_holding_registers(
-            address, count, unit=unit
+            address,
+            count,
+            unit=unit
         )
 
     async def read_input_registers(
-        self, address: int, count: int, unit: int
+        self,
+        address: int,
+        count: int,
+        unit: int
     ) -> Coroutine:
         """Read value from modbus input registers.
 
@@ -150,7 +188,11 @@ class Modbus:
         if not self.modbus_client or not self.modbus_client.connected:
             raise ModbusException()
 
-        return await self.modbus_client.read_input_registers(address, count, unit=unit)
+        return await self.modbus_client.read_input_registers(
+            address,
+            count,
+            unit=unit
+        )
 
 
 class ModbusCacheMap:
@@ -188,28 +230,8 @@ class ModbusCacheMap:
                 else:
                     self._registered[reg_index] = None
 
-    def get_register(self, count: int, index: int, unit=0, is_input=False) -> list:
-        ret: list = []
-
-        for counter in range(index, count + index):
-            if is_input:
-                if counter not in self._registered_input:
-                    raise UnknownModbusRegister(counter)
-                elif self._registered_input[counter] is None:
-                    raise NoCachedModbusRegister(counter, unit)
-
-                ret += [self._registered_input[counter]]
-            else:
-                if counter not in self._registered:
-                    raise UnknownModbusRegister(counter)
-                elif self._registered[counter] is None:
-                    raise NoCachedModbusRegister(counter, unit)
-
-                ret += [self._registered[counter]]
-
-        return ret
-
-    async def scan(self):
+    async def scan(self) -> None:
+        """Read modbus register blocks and cache the response."""
         for modbus_register_block in self.modbus_register_blocks:
             data: dict = {
                 "address": modbus_register_block["start_reg"],
@@ -218,14 +240,66 @@ class ModbusCacheMap:
             }
 
             if modbus_register_block.get("type") == "input":
-                val = await self.modbus.read_input_registers(**data)
+                response = await self.modbus.read_input_registers(**data)
 
                 for index in range(data["count"]):
                     reg_index: int = data["address"] + index
-                    self._registered_input[reg_index] = val.registers[index]
+                    self._registered_input[reg_index] = response.registers[index
+                                                                           ]
             else:
-                val = await self.modbus.read_holding_registers(**data)
+                response = await self.modbus.read_holding_registers(**data)
 
                 for index in range(data["count"]):
                     reg_index: int = data["address"] + index
-                    self._registered[reg_index] = val.registers[index]
+                    self._registered[reg_index] = response.registers[index]
+
+    def get_register(
+        self,
+        address: int,
+        index: int,
+        unit: int = 0,
+        is_input: bool = False
+    ) -> list:
+        """Get the responses from the cached modbus registers.
+
+        Parameters
+        ----------
+        address: int
+            The starting address to read from.
+        index: int
+            The number of registers to read.
+        unit: int, default: 0
+            The slave unit this request is targeting.
+        is_input: bool, default: False
+            ``True`` if it is modbus input registered else ``False``
+
+        Returns
+        -------
+        list
+            A list of cached modbus registers.
+        Raises
+        ------
+        UnknownModbusRegister
+            Because modbus register not found.
+        NoCachedModbusRegister
+            Because cached Modbus register value not found.
+        """
+        ret: list = []
+
+        for address in range(index, address + index):
+            if is_input:
+                if address not in self._registered_input:
+                    raise UnknownModbusRegister(address)
+                elif self._registered_input[address] is None:
+                    raise NoCachedModbusRegister(address, unit)
+
+                ret += [self._registered_input[address]]
+            else:
+                if address not in self._registered:
+                    raise UnknownModbusRegister(address)
+                elif self._registered[address] is None:
+                    raise NoCachedModbusRegister(address, unit)
+
+                ret += [self._registered[address]]
+
+        return ret
