@@ -70,13 +70,13 @@ homeassistant:
   discovery_prefix: homeassistant
 ```
 
-#### Devices
+#### Features
 
 It's possible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
 
 ```yaml
 # control.yaml
-devices:
+features:
   di_3_02:
     friendly_name: "Workspace - Switch up"
   di_3_03:
@@ -131,7 +131,7 @@ logging:
 
 Available MQTT topics:
 
-### Devices
+### Features
 
 Topic | Response/Request | Description
 ------ | ------ | ------
