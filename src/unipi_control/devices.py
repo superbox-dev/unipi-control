@@ -119,8 +119,8 @@ class Relay(DeviceMixin):
     dev_name = "relay"
     dev_type = "physical"
 
-    async def set_state(self, value: int) -> None:
-        await self.modbus.write_coil(self.coil, value, unit=0)
+    async def set_state(self, value: int):
+        return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
 class DigitalOutput(DeviceMixin):
@@ -128,8 +128,8 @@ class DigitalOutput(DeviceMixin):
     dev_name = "relay"
     dev_type = "digital"
 
-    async def set_state(self, value: int) -> None:
-        await self.modbus.write_coil(self.coil, value, unit=0)
+    async def set_state(self, value: int):
+        return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
 class DigitalInput(DeviceMixin):
