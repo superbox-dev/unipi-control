@@ -149,18 +149,13 @@ class Config(ConfigBase):
         if result is None:
             return colored(
                 "[CONFIG] Invalid value in \"device_name\". The following characters are prohibited: A-Z a-z 0-9 -_",
-                "red"
-            )
+                "red")
 
     def clean_covers(self) -> Optional[str]:
         errors: list = []
         required_fields: list = [
-            "cover_type",
-            "topic_name",
-            "full_open_time",
-            "full_close_time",
-            "circuit_up",
-            "circuit_down"
+            "cover_type", "topic_name", "full_open_time", "full_close_time",
+            "circuit_up", "circuit_down"
         ]
 
         for index, cover in enumerate(self.covers):
@@ -169,27 +164,19 @@ class Config(ConfigBase):
                     errors.append(
                         colored(
                             f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""",
-                            "red"
-                        )
-                    )
+                            "red"))
 
             for cover_time in [
-                "full_open_time",
-                "full_close_time",
-                "tilt_change_time"
+                    "full_open_time", "full_close_time", "tilt_change_time"
             ]:
                 value = cover.get(cover_time)
 
-                if value and not isinstance(value,
-                                            float
-                                            ) and not isinstance(value,
-                                                                 int):
+                if value and not isinstance(value, float) and not isinstance(
+                        value, int):
                     errors.append(
                         colored(
                             f"""[CONFIG][COVER {index + 1}] Key "{cover_time}" is not a float or integer!""",
-                            "red"
-                        )
-                    )
+                            "red"))
 
             result = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
 
@@ -197,17 +184,13 @@ class Config(ConfigBase):
                 errors.append(
                     colored(
                         f"""[CONFIG][COVER {index + 1}] Invalid value in "topic_name". The following characters are prohibited: a-z 0-9 -_""",
-                        "red"
-                    )
-                )
+                        "red"))
 
             if cover.get("cover_type") not in COVER_TYPES:
                 errors.append(
                     colored(
                         f"""[CONFIG][COVER {index + 1}] Invalid value in "cover_type". The following values are allowed: {" ".join(COVER_TYPES)}.""",
-                        "red"
-                    )
-                )
+                        "red"))
 
         return "\n".join(errors)
 
@@ -218,8 +201,7 @@ class Config(ConfigBase):
             if circuits.count(circuit) > 1:
                 return colored(
                     "[CONFIG][COVER] Duplicate circuits found in \"covers\"! Driving both signals up and down at the same time can damage the motor.",
-                    "red"
-                )
+                    "red")
 
 
 class HardwareException(Exception):
@@ -271,9 +253,7 @@ class HardwareDefinition(DataStorage):
             if str(f).endswith(".yaml"):
                 with open(f) as yf:
                     self.data["definitions"].append(
-                        yaml.load(yf,
-                                  Loader=yaml.FullLoader)
-                    )
+                        yaml.load(yf, Loader=yaml.FullLoader))
 
                     logger.info("[CONFIG] YAML Definition loaded: %s", f)
 
@@ -283,13 +263,9 @@ class HardwareDefinition(DataStorage):
         if definition_file.is_file():
             with open(definition_file) as yf:
                 self.data["neuron_definition"] = yaml.load(
-                    yf,
-                    Loader=yaml.FullLoader
-                )
-                logger.info(
-                    "[CONFIG] YAML Definition loaded: %s",
-                    definition_file
-                )
+                    yf, Loader=yaml.FullLoader)
+                logger.info("[CONFIG] YAML Definition loaded: %s",
+                            definition_file)
         else:
             raise HardwareException(
                 f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self.model}."

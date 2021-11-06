@@ -6,7 +6,7 @@ class DataStorage(MutableMapping):
 
     Attributes
     ----------
-    data: dict
+    data : dict
         Store the data for this container object.
     """
     def __init__(self):

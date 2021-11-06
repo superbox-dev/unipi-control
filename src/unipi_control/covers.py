@@ -4,12 +4,19 @@ import time
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Optional
+from typing import Union
 
 from config import config
 from helpers import DataStorage
 
 
 class CoverMap(DataStorage):
+    """A read-only container object that has saved cover classes by cover type.
+
+    See Also
+    --------
+    helpers.DataStorage
+    """
     def __init__(self, features):
         super().__init__()
 
@@ -26,10 +33,7 @@ class CoverMap(DataStorage):
 
     def by_cover_type(self, cover_type: list) -> Iterator:
         return itertools.chain.from_iterable(
-            filter(None,
-                   map(self.data.get,
-                       cover_type))
-        )
+            filter(None, map(self.data.get, cover_type)))
 
 
 @dataclass(frozen=True)
@@ -68,32 +72,32 @@ class Cover:
 
     Attributes
     ----------
-    friendly_name: str
+    friendly_name : str
         Friendly name of the cover. It is used e.g. for Home Assistant.
-    cover_type: str
+    cover_type : str
         Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
-    topic_name: str
+    topic_name : str
         Unique name for the MQTT topic.
-    full_open_time: float
+    full_open_time : float or int
         Define the time (in seconds) it takes for the cover to fully open.
-    full_close_time: float
+    full_close_time : float or int
         Define the time (in seconds) it takes for the cover to fully close.
-    tilt_change_time: float
+    tilt_change_time : float or int
         Define the time (in seconds) that the tilt changes from fully open to
         fully closed state.
-    circuit_up: str
+    circuit_up : str
         Output circuit name from a relay or digital output.
-    circuit_down: str
+    circuit_down : str
         Output circuit name from a relay or digital output.
-    state: str, optional
+    state : str, optional
         Current cover state defined in the ``CoverState()`` class.
-    position: int, optional
+    position : int, optional
         Current cover position.
-    tilt: int, optional
+    tilt : int, optional
         Current tilt position.
-    cover_up_feature: Feature
+    cover_up_feature : Feature
         The feature for opening the cover.
-    cover_down_feature: Feature
+    cover_down_feature : Feature
         The feature for closing the cover.
     """
     def __init__(self, features, **kwargs):
@@ -101,15 +105,16 @@ class Cover:
 
         Parameters
         ----------
-        features:
+        features
             Unipi features (e.g. Relay, Digital Input, ...)
         """
         self.friendly_name: str = kwargs.get("friendly_name")
         self.cover_type: str = kwargs.get("cover_type")
         self.topic_name: str = kwargs.get("topic_name")
-        self.full_open_time: float = float(kwargs.get("full_open_time"))
-        self.full_close_time: float = float(kwargs.get("full_close_time"))
-        self.tilt_change_time: float = float(kwargs.get("tilt_change_time"))
+        self.full_open_time: Union[float, int] = kwargs.get("full_open_time")
+        self.full_close_time: Union[float, int] = kwargs.get("full_close_time")
+        self.tilt_change_time: Union[float,
+                                     int] = kwargs.get("tilt_change_time")
         self.circuit_up: str = kwargs.get("circuit_up")
         self.circuit_down: str = kwargs.get("circuit_down")
         self.state: Optional[str] = None
@@ -133,7 +138,7 @@ class Cover:
 
         Returns
         -------
-        str:
+        str
             Return MQTT topic prefix
         """
         return f"{config.device_name.lower()}/{self.topic_name}/" \
@@ -145,7 +150,7 @@ class Cover:
 
         Returns
         -------
-        bool:
+        bool
             ``True`` if the cover state is **OPENING** else ``False``
         """
         return self.state == CoverState.OPENING
@@ -156,7 +161,7 @@ class Cover:
 
         Returns
         -------
-        bool:
+        bool
             ``True`` if the cover state is **CLOSING** else ``False``
         """
         return self.state == CoverState.CLOSING
@@ -167,7 +172,7 @@ class Cover:
 
         Returns
         -------
-        bool:
+        bool
             ``True`` if the cover state is **STOPPED** else ``False``
         """
         return self.state == CoverState.STOPPED
@@ -265,15 +270,11 @@ class Cover:
 
         if self.is_closing:
             self.position = int(
-                round(
-                    100 *
-                    (self.full_close_time - end_timer) / self.full_close_time
-                )
-            ) - (100 - self.position)
+                round(100 * (self.full_close_time - end_timer) /
+                      self.full_close_time)) - (100 - self.position)
         elif self.is_opening:
             self.position = self.position + int(
-                round(100 * end_timer / self.full_open_time)
-            )
+                round(100 * end_timer / self.full_open_time))
 
     async def open(self, position: int = 100) -> None:
         """Close the cover.
@@ -293,6 +294,7 @@ class Cover:
         Parameters
         ----------
         position : int
+        # TODO: add description
         """
         self._update_position()
         self._stop_timer()
@@ -338,6 +340,7 @@ class Cover:
         Parameters
         ----------
         position : int
+        # TODO: add description
         """
         self._update_position()
         self._stop_timer()
@@ -439,6 +442,7 @@ class Cover:
         Parameters
         ----------
         position : int
+        # TODO: add description
         """
         if self.position is None:
             return
@@ -454,6 +458,7 @@ class Cover:
         Parameters
         ----------
         tilt : int
+        # TODO: add description
         """
         if self.position is None:
             return
