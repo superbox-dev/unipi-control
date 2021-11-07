@@ -41,9 +41,7 @@ class CoverMap(DataStorage):
             if c.cover_up_feature and c.cover_down_feature:
                 self.data[cover_type].append(c)
             else:
-                raise ImproperlyConfigured(
-                    "[COVER][%s] `circuit_up` and/or `circuit_down` not configured!"
-                    % c)
+                raise ImproperlyConfigured("[COVER][%s] `circuit_up` and/or `circuit_down` not configured!" % c)
 
     def by_cover_type(self, cover_type: list) -> Iterator:
         """Filter covers by cover type.
@@ -139,8 +137,7 @@ class Cover:
         self.topic_name: str = kwargs.get("topic_name")
         self.full_open_time: Union[float, int] = kwargs.get("full_open_time")
         self.full_close_time: Union[float, int] = kwargs.get("full_close_time")
-        self.tilt_change_time: Union[float,
-                                     int] = kwargs.get("tilt_change_time")
+        self.tilt_change_time: Union[float, int] = kwargs.get("tilt_change_time")
         self.circuit_up: str = kwargs.get("circuit_up")
         self.circuit_down: str = kwargs.get("circuit_down")
         self.state: Optional[str] = None
