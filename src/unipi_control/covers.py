@@ -3,6 +3,7 @@ import itertools
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass
+from typing import Callable
 from typing import Optional
 from typing import Union
 
@@ -54,8 +55,9 @@ class CoverMap(DataStorage):
             filter(None, map(self.data.get, cover_type)))
 
 
-@dataclass(frozen=True)
+@dataclass(init=False, eq=False, frozen=True)
 class CoverState:
+    """State constants."""
     OPEN: str = "open"
     OPENING: str = "opening"
     CLOSING: str = "closing"
@@ -63,8 +65,9 @@ class CoverState:
     STOPPED: str = "stopped"
 
 
-@dataclass(frozen=True)
+@dataclass(init=False, eq=False, frozen=True)
 class CoverDeviceState:
+    """Device state constants."""
     OPEN: str = "OPEN"
     CLOSE: str = "CLOSE"
     STOP: str = "STOP"
@@ -72,7 +75,22 @@ class CoverDeviceState:
 
 
 class CoverTimer:
-    def __init__(self, timeout, callback):
+    """Timer for state changes.
+
+    If the state from the device changed (e.g. open, close, stop, ...) a
+    timer is required for the cover runtime. The timer run in an asyncio task
+    and run a callback function when it expired.
+    """
+    def __init__(self, timeout: float, callback: Callable):
+        """Initialize timer.
+
+        Parameters
+        ----------
+        timeout : float
+            The timer timeout in seconds.
+        callback: Callable
+            The callback function that is executed at the end of the timer.
+        """
         self._timeout = timeout
         self._callback = callback
         self._task = asyncio.create_task(self._job())
@@ -82,6 +100,7 @@ class CoverTimer:
         await self._callback()
 
     def cancel(self):
+        """Cancel a running timer before it ends."""
         self._task.cancel()
 
 
