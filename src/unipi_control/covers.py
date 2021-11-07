@@ -7,6 +7,8 @@ from typing import Optional
 from typing import Union
 
 from config import config
+from config import ImproperlyConfigured
+from features import FeatureMap
 from helpers import DataStorage
 
 
@@ -17,7 +19,15 @@ class CoverMap(DataStorage):
     --------
     helpers.DataStorage
     """
-    def __init__(self, features):
+    def __init__(self, features: FeatureMap):
+        """Initialize cover map.
+
+        Parameters
+        ----------
+        features : FeatureMap
+            All registered features (e.g. Relay, Digital Input, ...) from the
+            Unipi Neuron.
+        """
         super().__init__()
 
         for cover in config.covers:
@@ -30,8 +40,23 @@ class CoverMap(DataStorage):
 
             if c.cover_up_feature and c.cover_down_feature:
                 self.data[cover_type].append(c)
+            else:
+                raise ImproperlyConfigured(
+                    "[COVER][%s] `circuit_up` and/or `circuit_down` not configured!"
+                    % c)
 
     def by_cover_type(self, cover_type: list) -> Iterator:
+        """Filter covers by cover type.
+
+        Parameters
+        ----------
+        cover_type : list
+
+        Returns
+        ----------
+        Iterator
+            A list of covers filtered by cover type.
+        """
         return itertools.chain.from_iterable(
             filter(None, map(self.data.get, cover_type)))
 
@@ -105,8 +130,9 @@ class Cover:
 
         Parameters
         ----------
-        features
-            Unipi features (e.g. Relay, Digital Input, ...)
+        features : FeatureMap
+            All registered features (e.g. Relay, Digital Input, ...) from the
+            Unipi Neuron.
         """
         self.friendly_name: str = kwargs.get("friendly_name")
         self.cover_type: str = kwargs.get("cover_type")

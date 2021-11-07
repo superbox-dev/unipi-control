@@ -92,7 +92,8 @@ class CoversMqttPlugin:
                 await cover.stop()
 
     @staticmethod
-    async def _subscribe_set_position_topic(cover, topic: str, messages) -> None:
+    async def _subscribe_set_position_topic(cover, topic: str,
+                                            messages) -> None:
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
@@ -103,7 +104,8 @@ class CoversMqttPlugin:
                 logger.error(error)
 
     @staticmethod
-    async def _subscribe_tilt_command_topic(cover, topic: str, messages) -> None:
+    async def _subscribe_tilt_command_topic(cover, topic: str,
+                                            messages) -> None:
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
@@ -119,7 +121,10 @@ class CoversMqttPlugin:
                 if cover.position_changed:
                     topic: str = f"{cover.topic}/position"
                     logger.info(LOG_MQTT_PUBLISH, topic, cover.position)
-                    await self.mqtt_client.publish(topic, cover.position, qos=2)
+                    logger.info(LOG_MQTT_PUBLISH, topic, cover.position)
+                    await self.mqtt_client.publish(topic,
+                                                   cover.position,
+                                                   qos=2)
 
                 if cover.tilt_changed and cover.tilt_change_time:
                     topic: str = f"{cover.topic}/tilt"

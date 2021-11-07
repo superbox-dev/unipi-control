@@ -23,6 +23,15 @@ LOG_MQTT_SUBSCRIBE = "[MQTT][%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC = "[MQTT] Subscribe topic %s"
 
 
+class HardwareException(Exception):
+    pass
+
+
+class ImproperlyConfigured(Exception):
+    """Unipi Control is somehow improperly configured."""
+    pass
+
+
 @dataclass
 class ConfigBase:
     def clean(self):
@@ -202,10 +211,6 @@ class Config(ConfigBase):
                 return colored(
                     "[CONFIG][COVER] Duplicate circuits found in \"covers\"! Driving both signals up and down at the same time can damage the motor.",
                     "red")
-
-
-class HardwareException(Exception):
-    pass
 
 
 @dataclass

@@ -5,13 +5,13 @@ from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPCl
 
 
 class ModbusException(Exception):
-    """Exception when can't connect to Modbus TCP."""
+    """Unipi Control can't connect to Modbus TCP."""
     def __str__(self):
         return "Can't connect to Modbus TCP!"
 
 
 class UnknownModbusRegister(Exception):
-    """Exception when Modbus register not found."""
+    """Modbus register not found."""
     def __init__(self, address: int):
         """Initialize exception.
 
@@ -25,7 +25,7 @@ class UnknownModbusRegister(Exception):
 
 
 class NoCachedModbusRegister(Exception):
-    """Exception when cached Modbus register value not found."""
+    """No cached modbus register value found."""
     def __init__(self, address, unit):
         """Initialize exception.
 
@@ -59,7 +59,8 @@ class Modbus:
         loop :
             Current asyncio event loop.
         """
-        self.loop, self.modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
+        self.loop, self.modbus = ModbusTCPClient(schedulers.ASYNC_IO,
+                                                 loop=loop)
         self.modbus_client = self.modbus.protocol
 
     async def write_coil(self, address: int, value: int,
@@ -165,7 +166,7 @@ class Modbus:
 
         Returns
         ----------
-        response: Coroutine
+        Coroutine
             A deferred response handle.
 
         Raises
@@ -182,7 +183,7 @@ class Modbus:
 
 
 class ModbusCacheMap:
-    """Class that scan defined modbus register blocks and cache the response.
+    """Class that scan modbus register blocks and cache the response.
 
     Attributes
     ----------

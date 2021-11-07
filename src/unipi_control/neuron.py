@@ -207,7 +207,7 @@ class Neuron:
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
         self.hardware: Mapping = HardwareDefinition()
         self.boards: list = []
-        self.features = FeatureMap()
+        self.features: Mapping = FeatureMap()
 
     async def _initialise_cache(self) -> None:
         if self.modbus_cache_map is None:
