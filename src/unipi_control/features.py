@@ -10,6 +10,12 @@ from helpers import DataStorage
 
 
 class FeatureMap(DataStorage):
+    """A read-only container object that has saved Unipi Neuron feature classes.
+
+    See Also
+    --------
+    helpers.DataStorage
+    """
     def register(self, feature) -> None:
         if not self.data.get(feature.type):
             self.data[feature.type] = []
@@ -50,14 +56,7 @@ class FeatureState:
 
 
 class Feature:
-    def __init__(
-        self,
-        board,
-        circuit: str,
-        mask: Optional[int] = None,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
         self.major_group = kwargs.get("major_group")
         self.type = kwargs.get("type")
         self.coil = kwargs.get("coil")
@@ -115,33 +114,48 @@ class Feature:
 
 
 class Relay(Feature):
-    name = "Relay"
-    feature_name = "relay"
-    feature_type = "physical"
+    name: str = "Relay"
+    feature_name: str = "relay"
+    feature_type: Optional[str] = "physical"
 
     async def set_state(self, value: int):
+        """Set the state for the relay feature.
+
+        Parameters
+        ----------
+        value : int
+            Allowed values for the state are 0 (ON) or 1 (OFF).
+        """
         return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
 class DigitalOutput(Feature):
-    name = "Digital Output"
-    feature_name = "relay"
-    feature_type = "digital"
+    name: str = "Digital Output"
+    feature_name: str = "relay"
+    feature_type: Optional[str] = "digital"
 
     async def set_state(self, value: int):
+        """Set the state for the digital output feature.
+
+        Parameters
+        ----------
+        value : int
+            Allowed values for the state are 0 (ON) or 1 (OFF).
+        """
         return await self.modbus.write_coil(self.coil, value, unit=0)
 
 
 class DigitalInput(Feature):
-    name = "Digital Input"
-    feature_name = "input"
-    feature_type = "digital"
+    name: str = "Digital Input"
+    feature_name: str = "input"
+    feature_type: Optional[str] = "digital"
 
 
 class AnalogOutput(Feature):
-    name = "Analog Output"
-    feature_name = "output"
-    feature_type = "analog"
+    """Class for the analog output feature from the Unipi Neuron."""
+    name: str = "Analog Output"
+    feature_name: str = "output"
+    feature_type: Optional[str] = "analog"
 
     def __init__(
         self,
@@ -258,6 +272,13 @@ class AnalogOutput(Feature):
         return _value
 
     async def set_state(self, value: int) -> None:
+        """Set the state for the analog output feature.
+
+        Parameters
+        ----------
+        value : int
+            Allowed values for the state are 0 (ON) or 1 (OFF).
+        """
         value_i: int = int(float(value) / 0.0025)
 
         if self.circuit == "ao_1_01":
@@ -272,15 +293,24 @@ class AnalogOutput(Feature):
 
 
 class AnalogInput(Feature):
-    name = "Analog Input"
-    feature_name = "input"
-    feature_type = "analog"
+    """Class for the analog input feature from the Unipi Neuron."""
+    name: str = "Analog Input"
+    feature_name: str = "input"
+    feature_type: Optional[str] = "analog"
 
 
 class Led(Feature):
-    name = "LED"
-    feature_name = "led"
-    feature_type = None
+    """Class for the LED feature from the Unipi Neuron."""
+    name: str = "LED"
+    feature_name: str = "led"
+    feature_type: Optional[str] = None
 
     async def set_state(self, value: int) -> None:
+        """Set the state for the LED feature.
+
+        Parameters
+        ----------
+        value : int
+            Allowed values for the state are 0 (ON) or 1 (OFF).
+        """
         await self.modbus.write_coil(self.coil, value, unit=0)

@@ -1,4 +1,3 @@
-from collections.abc import Mapping
 from typing import Optional
 
 from config import HardwareDefinition
@@ -187,11 +186,11 @@ class Neuron:
         Extended modbus client class.
     modbus_cache_map : class, optional
         All cached modbus input register blocks.
-    hardware : Mapping
+    hardware : HardwareDefinition
         The Unipi Neuron hardware definitions.
     boards : list
         All available boards from the Unipi Neuron.
-    features : Mapping
+    features : FeatureMap
         All registered features (e.g. Relay, Digital Input, ...) from the
         Unipi Neuron.
     """
@@ -205,9 +204,9 @@ class Neuron:
         """
         self.modbus = modbus
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
-        self.hardware: Mapping = HardwareDefinition()
+        self.hardware = HardwareDefinition()
         self.boards: list = []
-        self.features: Mapping = FeatureMap()
+        self.features = FeatureMap()
 
     async def _initialise_cache(self) -> None:
         if self.modbus_cache_map is None:

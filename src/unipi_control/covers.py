@@ -13,7 +13,7 @@ from helpers import DataStorage
 
 
 class CoverMap(DataStorage):
-    """A read-only container object that has saved cover classes by cover type.
+    """A read-only container object that has saved cover classes.
 
     See Also
     --------
