@@ -7,7 +7,6 @@ from typing import Optional
 from typing import Union
 
 from config import config
-from config import ImproperlyConfigured
 from features import FeatureMap
 from helpers import DataStorage
 
@@ -37,11 +36,7 @@ class CoverMap(DataStorage):
                 self.data[cover_type] = []
 
             c = Cover(features, **cover)
-
-            if c.cover_up_feature and c.cover_down_feature:
-                self.data[cover_type].append(c)
-            else:
-                raise ImproperlyConfigured("[COVER][%s] `circuit_up` and/or `circuit_down` not configured!" % c)
+            self.data[cover_type].append(c)
 
     def by_cover_type(self, cover_type: list) -> Iterator:
         """Filter covers by cover type.
