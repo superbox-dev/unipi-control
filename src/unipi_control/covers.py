@@ -2,8 +2,7 @@ import asyncio
 import itertools
 import time
 from collections.abc import Iterator
-from enum import Enum
-from enum import unique
+from dataclasses import dataclass
 from typing import Optional
 from typing import Union
 
@@ -55,8 +54,8 @@ class CoverMap(DataStorage):
             filter(None, map(self.data.get, cover_type)))
 
 
-@unique
-class CoverState(Enum):
+@dataclass(frozen=True)
+class CoverState:
     OPEN: str = "open"
     OPENING: str = "opening"
     CLOSING: str = "closing"
@@ -64,8 +63,8 @@ class CoverState(Enum):
     STOPPED: str = "stopped"
 
 
-@unique
-class CoverDeviceState(Enum):
+@dataclass(frozen=True)
+class CoverDeviceState:
     OPEN: str = "OPEN"
     CLOSE: str = "CLOSE"
     STOP: str = "STOP"
