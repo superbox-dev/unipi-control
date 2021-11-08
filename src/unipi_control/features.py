@@ -51,7 +51,7 @@ class Feature:
             The machine readable circuit name e.g. ro_2_01.
         """
         self.type = kwargs.get("type")
-        self._major_group = kwargs.get("major_group")
+        self.major_group = kwargs.get("major_group")
         self._coil = kwargs.get("coil")
         self._cal_reg = kwargs.get("cal_reg")
         self._reg = kwargs.get("reg")

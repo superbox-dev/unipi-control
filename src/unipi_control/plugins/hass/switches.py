@@ -9,18 +9,23 @@ from config import logger
 
 
 class HassSwitchesDiscovery:
+    """Provide the switches (e.g. relay) as Home Assistant MQTT discovery.
+
+    Attributes
+    ----------
+    hardware : HardwareDefinition
+        The Unipi Neuron hardware definitions.
+    """
     def __init__(self, uc, mqtt_client):
-        self.uc = uc
-        self.mqtt_client = mqtt_client
+        """Initialize Home Assistant MQTT discovery."""
+        self._uc = uc
+        self._mqtt_client = mqtt_client
         self.hardware = uc.neuron.hardware
 
     @staticmethod
     def _get_friendly_name(feature) -> str:
         friendly_name: str = f"{config.device_name} - {feature.circuit_name}"
-        features_config: Optional[dict] = config.features.get(
-            feature.circuit,
-            {}
-        )
+        features_config: Optional[dict] = config.features.get(feature.circuit, {})
 
         if features_config is not None:
             friendly_name = features_config.get("friendly_name", friendly_name)
@@ -47,7 +52,7 @@ class HassSwitchesDiscovery:
                     "model":
                     f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                     "sw_version":
-                    self.uc.neuron.boards[feature._major_group - 1].firmware,
+                    self._uc.neuron.boards[feature.major_group - 1].firmware,
                     **asdict(config.homeassistant.device),
                 }
             }
@@ -55,21 +60,25 @@ class HassSwitchesDiscovery:
         return topic, message
 
     async def publish(self) -> None:
-        features = self.uc.neuron.features.by_feature_type(["RO", "DO"])
+        """Publish the discovery as MQTT."""
+        features = self._uc.neuron.features.by_feature_type(["RO", "DO"])
 
         for feature in features:
             topic, message = self._get_discovery(feature)
             json_data: str = json.dumps(message)
             logger.info(LOG_MQTT_PUBLISH, topic, json_data)
-            await self.mqtt_client.publish(topic, json_data, qos=2)
+            await self._mqtt_client.publish(topic, json_data, qos=2)
 
 
 class HassSwitchesMqttPlugin:
+    """Provide Home Assistant MQTT commands for switches."""
     def __init__(self, uc, mqtt_client):
-        self.mqtt_client = mqtt_client
+        """Initialize Home Assistant MQTT plugin."""
+        self._mqtt_client = mqtt_client
         self._ha = HassSwitchesDiscovery(uc, mqtt_client)
 
-    async def init_task(self) -> set:
+    async def init_tasks(self) -> set:
+        """Add tasks to the ``AsyncExitStack``."""
         tasks = set()
 
         task = asyncio.create_task(self._ha.publish())
