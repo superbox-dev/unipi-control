@@ -112,7 +112,7 @@ class Cover:
         self.circuit_up: str = kwargs.get("circuit_up")
         self.circuit_down: str = kwargs.get("circuit_down")
         self.state: Optional[str] = None
-        self.position: Optional[int] = None
+        self._position: Optional[int] = None
         self.tilt: Optional[int] = None
         self.cover_up_feature = features.by_circuit(self.circuit_up)
         self.cover_down_feature = features.by_circuit(self.circuit_down)
@@ -140,6 +140,14 @@ class Cover:
         """
         return f"{config.device_name.lower()}/{self.topic_name}/" \
                f"cover/{self.cover_type}"
+
+    @property
+    def position(self) -> int:
+        return self._position
+
+    @position.setter
+    def position(self, position):
+        self._position = position
 
     @property
     def is_opening(self) -> bool:
