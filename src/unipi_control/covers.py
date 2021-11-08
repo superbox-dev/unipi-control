@@ -406,7 +406,7 @@ class Cover:
 
         self._device_state = CoverDeviceState.IDLE
 
-    async def _save_position(self):
+    async def _save_position(self) -> None:
         tmp_filename = Path(gettempdir(), "cover.txt")
 
         async with async_open(tmp_filename, "w+") as afp:
