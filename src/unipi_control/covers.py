@@ -3,16 +3,16 @@ import itertools
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass
-from pathlib import Path
-from tempfile import gettempdir
 from typing import Callable
 from typing import Optional
 from typing import Union
 
-from aiofile import async_open
 from config import config
 from features import FeatureMap
 from helpers import DataStorage
+# from pathlib import Path
+# from tempfile import gettempdir
+# from aiofile import async_open
 
 
 @dataclass(init=False, eq=False, frozen=True)
@@ -402,15 +402,15 @@ class Cover:
         else:
             self.state = CoverState.STOPPED
 
-        await self._save_position()
+        # await self._save_position()
 
         self._device_state = CoverDeviceState.IDLE
 
-    async def _save_position(self) -> None:
-        tmp_filename = Path(gettempdir(), "cover.txt")
-
-        async with async_open(tmp_filename, "w+") as afp:
-            await afp.write(self.position)
+    # async def _save_position(self) -> None:
+    #     tmp_filename = Path(gettempdir(), "cover.txt")
+    #
+    #     async with async_open(tmp_filename, "w+") as afp:
+    #         await afp.write(self.position)
 
     async def _open_tilt(self, tilt: int = 100) -> None:
         self._update_position()
