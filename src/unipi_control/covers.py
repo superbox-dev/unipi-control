@@ -291,7 +291,7 @@ class Cover:
         Parameters
         ----------
         position : int
-        # TODO: add description
+            The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
         self._update_position()
         self._stop_timer()
@@ -337,7 +337,7 @@ class Cover:
         Parameters
         ----------
         position : int
-        # TODO: add description
+            The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
         self._update_position()
         self._stop_timer()
@@ -439,7 +439,7 @@ class Cover:
         Parameters
         ----------
         position : int
-        # TODO: add description
+            The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
         if self.position is None:
             return
@@ -455,7 +455,7 @@ class Cover:
         Parameters
         ----------
         tilt : int
-        # TODO: add description
+            The tilt position. ``100`` is fully open and ``0`` is fully closed.
         """
         if self.position is None:
             return

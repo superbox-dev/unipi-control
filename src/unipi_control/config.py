@@ -169,7 +169,6 @@ class Config(ConfigBase):
             for key in list(set(required_fields) - set(cover.keys())):
                 if key in required_fields:
                     errors.append(colored(f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""", "red"))
-                    # TODO: raise errors?
                     raise ImproperlyConfigured(f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""")
 
             for cover_time in ["full_open_time", "full_close_time", "tilt_change_time"]:
