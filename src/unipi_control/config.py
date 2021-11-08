@@ -24,6 +24,7 @@ LOG_MQTT_SUBSCRIBE_TOPIC = "[MQTT] Subscribe topic %s"
 
 
 class HardwareException(Exception):
+    """Unipi Control detect unsupported hardware."""
     pass
 
 
