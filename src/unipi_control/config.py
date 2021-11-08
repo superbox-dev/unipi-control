@@ -49,10 +49,10 @@ class ConfigBase:
             clean_method = getattr(self, f"clean_{key}", None)
 
             if clean_method and callable(clean_method):
-                error_msg: Optional[str] = clean_method()
-
-                if error_msg:
-                    errors.append(error_msg)
+                try: 
+                    clean_method()
+                except ImproperlyConfigured as error:
+                    errors.append(colored(str(error), "red"))
 
         if errors:
             sys.exit("\n".join(errors))
@@ -179,43 +179,72 @@ class Config(ConfigBase):
 
         return circuits
 
-    def clean_device_name(self) -> Optional[str]:
+    def clean1_device_name(self):
         result = re.search(r"^[\w\d_-]*$", self.device_name)
 
         if result is None:
-            return colored("[CONFIG] Invalid value in \"device_name\". The following characters are prohibited: A-Z a-z 0-9 -_", "red")
+            raise ImproperlyConfigured(
+                "[CONFIG] Invalid value in `device_name`. The following characters are prohibited: A-Z a-z 0-9 -_"
+            )
 
-    def clean_covers(self) -> Optional[str]:
-        errors: list = []
-        required_fields: list = [
-            "cover_type", "topic_name", "full_open_time", "full_close_time",
-            "circuit_up", "circuit_down"
-        ]
-
+    def clean1_covers(self):
         for index, cover in enumerate(self.covers):
-            for key in list(set(required_fields) - set(cover.keys())):
-                if key in required_fields:
-                    errors.append(colored(f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""", "red"))
-                    raise ImproperlyConfigured(f"""[CONFIG][COVER {index + 1}] Required key "{key}" is missing!""")
+            self._clean_covers_cover_type(cover, index)
+            self._clean_covers_topic_name(cover, index)
+            self._clean_covers_full_open_time(cover, index)
+            self._clean_covers_full_close_time(cover, index)
+            self._clean_covers_tilt_change_time(cover, index)
+            self._clean_covers_circuit_up(cover, index)
+            self._clean_covers_circuit_down(cover, index)
 
-            for cover_time in ["full_open_time", "full_close_time", "tilt_change_time"]:
-                value = cover.get(cover_time)
+    def _clean_covers_cover_type(self, cover, index):
+        if "cover_type" not in cover:
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Required key `cover_type` is missing!")
+        
+        if cover.get("cover_type") not in COVER_TYPES:
+            raise ImproperlyConfigured(f"""[CONFIG][COVER {index + 1}] Invalid value in `cover_type`. The following values are allowed: {" ".join(COVER_TYPES)}.""")
+    
+    def _clean_covers_topic_name(self, cover, index):
+        if "topic_name" not in cover:
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Required key `topic_name` is missing!")
+        
+        result = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
 
-                if value and not isinstance(value, float) and not isinstance(value, int):
-                    errors.append(
-                        colored(f"""[CONFIG][COVER {index + 1}] Key "{cover_time}" is not a float or integer!""", "red"))
+        if result is None:
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Invalid value in `topic_name`. The following characters are prohibited: a-z 0-9 -_")
 
-            result = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
-
-            if result is None:
-                errors.append(
-                    colored(f"""[CONFIG][COVER {index + 1}] Invalid value in "topic_name". The following characters are prohibited: a-z 0-9 -_""", "red"))
-
-            if cover.get("cover_type") not in COVER_TYPES:
-                errors.append(
-                    colored(f"""[CONFIG][COVER {index + 1}] Invalid value in "cover_type". The following values are allowed: {" ".join(COVER_TYPES)}.""", "red"))
-
-        return "\n".join(errors)
+    
+    def _clean_covers_full_open_time(self, cover, index):
+        if "full_open_time" not in cover:
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Required key `full_open_time` is missing!")
+        
+        value = cover.get("full_open_time")
+        
+        if value and not isinstance(value, float) and not isinstance(value, int):
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Key `full_open_time` is not a float or integer!")
+    
+    def _clean_covers_full_close_time(self, cover, index):
+        if "full_close_time" not in cover:
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Required key `full_close_time` is missing!")
+        
+        value = cover.get("full_close_time")
+        
+        if value and not isinstance(value, float) and not isinstance(value, int):
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Key `full_close_time` is not a float or integer!")
+    
+    def _clean_covers_tilt_change_time(self, cover, index):
+        value = cover.get("tilt_change_time")
+        
+        if value and not isinstance(value, float) and not isinstance(value, int):
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Key `tilt_change_time` is not a float or integer!")
+    
+    def _clean_covers_circuit_up(self, cover, index):
+        if "circuit_up" not in cover:
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Required key `circuit_up` is missing!")
+    
+    def _clean_covers_circuit_down(self, cover, index):
+        if "circuit_down" not in cover:
+            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Required key `circuit_down` is missing!")
 
     def clean_dupicate_covers_circuits(self) -> Optional[str]:
         circuits: list = self.get_cover_circuits()
