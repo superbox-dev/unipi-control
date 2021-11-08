@@ -12,49 +12,6 @@ from features import FeatureMap
 from helpers import DataStorage
 
 
-class CoverMap(DataStorage):
-    """A read-only container object that has saved cover classes.
-
-    See Also
-    --------
-    helpers.DataStorage
-    """
-    def __init__(self, features: FeatureMap):
-        """Initialize cover map.
-
-        Parameters
-        ----------
-        features : FeatureMap
-            All registered features (e.g. Relay, Digital Input, ...) from the
-            Unipi Neuron.
-        """
-        super().__init__()
-
-        for cover in config.covers:
-            cover_type: str = cover["cover_type"]
-
-            if not self.data.get(cover_type):
-                self.data[cover_type] = []
-
-            c = Cover(features, **cover)
-            self.data[cover_type].append(c)
-
-    def by_cover_type(self, cover_type: list) -> Iterator:
-        """Filter covers by cover type.
-
-        Parameters
-        ----------
-        cover_type : list
-
-        Returns
-        ----------
-        Iterator
-            A list of covers filtered by cover type.
-        """
-        return itertools.chain.from_iterable(
-            filter(None, map(self.data.get, cover_type)))
-
-
 @dataclass(init=False, eq=False, frozen=True)
 class CoverState:
     """State constants."""
@@ -509,3 +466,46 @@ class Cover:
 
     def __repr__(self) -> str:
         return self.friendly_name
+
+
+class CoverMap(DataStorage):
+    """A read-only container object that has saved cover classes.
+
+    See Also
+    --------
+    helpers.DataStorage
+    """
+    def __init__(self, features: FeatureMap):
+        """Initialize cover map.
+
+        Parameters
+        ----------
+        features : FeatureMap
+            All registered features (e.g. Relay, Digital Input, ...) from the
+            Unipi Neuron.
+        """
+        super().__init__()
+
+        for cover in config.covers:
+            cover_type: str = cover["cover_type"]
+
+            if not self.data.get(cover_type):
+                self.data[cover_type] = []
+
+            c = Cover(features, **cover)
+            self.data[cover_type].append(c)
+
+    def by_cover_type(self, cover_type: list) -> Iterator:
+        """Filter covers by cover type.
+
+        Parameters
+        ----------
+        cover_type : list
+
+        Returns
+        ----------
+        Iterator
+            A list of covers filtered by cover type.
+        """
+        return itertools.chain.from_iterable(
+            filter(None, map(self.data.get, cover_type)))

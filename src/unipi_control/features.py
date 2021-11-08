@@ -9,48 +9,9 @@ from config import logger
 from helpers import DataStorage
 
 
-class FeatureMap(DataStorage):
-    """A read-only container object that has saved Unipi Neuron feature classes.
-
-    See Also
-    --------
-    helpers.DataStorage
-    """
-    def register(self, feature) -> None:
-        if not self.data.get(feature.type):
-            self.data[feature.type] = []
-
-        self.data[feature.type].append(feature)
-
-    def by_circuit(self, circuit: str):
-        feature = None
-
-        try:
-            feature = next(
-                filter(
-                    lambda d: d.circuit == circuit,
-                    itertools.chain.from_iterable(self.data.values())
-                )
-            )
-        except StopIteration:
-            logger.error(
-                "[CONFIG] `%s` not found in %s!",
-                (circuit,
-                 self.__class__.__name__)
-            )
-
-        return feature
-
-    def by_feature_type(self, feature_type: list) -> Iterator:
-        return itertools.chain.from_iterable(
-            filter(None,
-                   map(self.data.get,
-                       feature_type))
-        )
-
-
 @dataclass(frozen=True)
 class FeatureState:
+    """Feature state constants."""
     ON: str = "ON"
     OFF: str = "OFF"
 
@@ -114,6 +75,7 @@ class Feature:
 
 
 class Relay(Feature):
+    """Class for the relay feature from the Unipi Neuron."""
     name: str = "Relay"
     feature_name: str = "relay"
     feature_type: Optional[str] = "physical"
@@ -130,6 +92,7 @@ class Relay(Feature):
 
 
 class DigitalOutput(Feature):
+    """Class for the digital output feature from the Unipi Neuron."""
     name: str = "Digital Output"
     feature_name: str = "relay"
     feature_type: Optional[str] = "digital"
@@ -146,6 +109,7 @@ class DigitalOutput(Feature):
 
 
 class DigitalInput(Feature):
+    """Class for the digital input feature from the Unipi Neuron."""
     name: str = "Digital Input"
     feature_name: str = "input"
     feature_type: Optional[str] = "digital"
@@ -157,14 +121,7 @@ class AnalogOutput(Feature):
     feature_name: str = "output"
     feature_type: Optional[str] = "analog"
 
-    def __init__(
-        self,
-        board,
-        circuit: str,
-        mask: Optional[int] = None,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, board, circuit: str, mask: Optional[int] = None, *args, **kwargs):
         super().__init__(board, circuit, mask, *args, **kwargs)
 
         self.ai_config = board.neuron.modbus_cache_map.get_register(
@@ -314,3 +271,67 @@ class Led(Feature):
             Allowed values for the state are 0 (ON) or 1 (OFF).
         """
         await self.modbus.write_coil(self.coil, value, unit=0)
+
+
+class FeatureMap(DataStorage):
+    """A read-only container object that has saved Unipi Neuron feature classes.
+
+    See Also
+    --------
+    helpers.DataStorage
+    """
+    def register(self, feature: Feature) -> None:
+        """Add a feature to the data storage.
+
+        Parameters
+        ----------
+        feature : Feature
+        """
+        if not self.data.get(feature.type):
+            self.data[feature.type] = []
+
+        self.data[feature.type].append(feature)
+
+    def by_circuit(self, circuit: str) -> Feature:
+        """Get feature by circuit name.
+
+        Parameters
+        ----------
+        circuit : list
+
+        Returns
+        ----------
+        Feature
+            The ``Feature`` class.
+        """
+        feature = None
+
+        try:
+            feature = next(
+                filter(
+                    lambda d: d.circuit == circuit,
+                    itertools.chain.from_iterable(self.data.values())
+                )
+            )
+        except StopIteration:
+            logger.error("[CONFIG] `%s` not found in %s!", (circuit, self.__class__.__name__))
+
+        return feature
+
+    def by_feature_type(self, feature_type: list) -> Iterator:
+        """Filter features by feature type.
+
+        Parameters
+        ----------
+        feature_type : list
+
+        Returns
+        ----------
+        Iterator
+            A list of features filtered by feature type.
+        """
+        return itertools.chain.from_iterable(
+            filter(None,
+                   map(self.data.get,
+                       feature_type))
+        )
