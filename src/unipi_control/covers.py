@@ -143,10 +143,12 @@ class Cover:
 
     @property
     def position(self) -> int:
+        """Get the current cover position."""
         return self._position
 
     @position.setter
     def position(self, position):
+        """Set the current cover position"""
         self._position = position
 
     @property
