@@ -15,7 +15,6 @@ from logging import INFO
 from logging import Logger
 from logging import WARNING
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from helpers import DataStorage
@@ -45,6 +44,13 @@ class ImproperlyConfigured(Exception):
 class ConfigBase:
     """Base data class for the unipi control configs."""
     def clean(self):
+        """If a clean function for key exists then validate it.
+
+        Raises
+        ------
+        ImproperlyConfigured
+            If errors exists then exit the script and print the errors.
+        """
         errors = []
 
         for key in self.__dict__.keys():
@@ -60,6 +66,7 @@ class ConfigBase:
             sys.exit("\n".join(errors))
 
     def update(self, new):
+        """Update the default config with custom config from the yaml file."""
         for key, value in new.items():
             if hasattr(self, key):
                 item = getattr(self, key)
@@ -167,6 +174,13 @@ class Config(ConfigBase):
         return _logger
 
     def get_cover_circuits(self) -> list:
+        """Get all circuits that are defined in the cover config.
+
+        Returns
+        ----------
+        list
+            A list of cover circuits.
+        """
         circuits: list = []
 
         for cover in self.covers:
@@ -181,7 +195,8 @@ class Config(ConfigBase):
 
         return circuits
 
-    def clean1_device_name(self):
+    def clean_device_name(self):
+        """Check if device name is valid."""
         result = re.search(r"^[\w\d_-]*$", self.device_name)
 
         if result is None:
@@ -190,6 +205,7 @@ class Config(ConfigBase):
             )
 
     def clean_covers(self):
+        """Check if covers config is valid."""
         for index, cover in enumerate(self.covers):
             self._clean_covers_cover_type(cover, index)
             self._clean_covers_topic_name(cover, index)
@@ -255,12 +271,15 @@ class Config(ConfigBase):
         if "circuit_down" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_down"))
 
-    def _clean_dupicate_covers_circuits(self) -> Optional[str]:
+    def _clean_dupicate_covers_circuits(self):
         circuits: list = self.get_cover_circuits()
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
-                raise ImproperlyConfigured("[CONFIG][COVER] Duplicate circuits found in `covers`! Driving both signals up and down at the same time can damage the motor.")
+                raise ImproperlyConfigured(
+                    "[CONFIG][COVER] Duplicate circuits found in `covers`! "
+                    "Driving both signals up and down at the same time can damage the motor."
+                )
 
 
 @dataclass
