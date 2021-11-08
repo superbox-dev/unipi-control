@@ -47,8 +47,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                circuit: str = "%s_%s_%02d" % (feature_type.lower(),
-                                               major_group, index + 1)
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
                 ro = Relay(
                     circuit=circuit,
@@ -67,8 +66,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                circuit: str = "%s_%s_%02d" % (feature_type.lower(),
-                                               major_group, index + 1)
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
                 di = DigitalInput(
                     circuit=circuit,
@@ -86,8 +84,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                circuit: str = "%s_%s_%02d" % (feature_type.lower(),
-                                               major_group, index + 1)
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
                 do = DigitalOutput(
                     circuit=circuit,
@@ -106,8 +103,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                circuit: str = "%s_%s_%02d" % (feature_type.lower(),
-                                               major_group, index + 1)
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
                 ao = AnalogOutput(
                     circuit=circuit,
@@ -124,8 +120,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                circuit: str = "%s_%s_%02d" % (feature_type.lower(),
-                                               major_group, index + 1)
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
                 ai = AnalogInput(
                     circuit=circuit,
@@ -142,8 +137,7 @@ class Board:
 
         if major_group == self.major_group:
             for index in range(0, max_count):
-                circuit: str = "%s_%s_%02d" % (feature_type.lower(),
-                                               major_group, index + 1)
+                circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
                 led = Led(
                     circuit=circuit,
@@ -224,17 +218,12 @@ class Neuron:
         logger.info("[MODBUS] Reading SPI boards")
 
         for index in (1, 2, 3):
-            response = await self.modbus.read_input_registers(address=1000,
-                                                              count=10,
-                                                              unit=index)
+            response = await self.modbus.read_input_registers(address=1000, count=10, unit=index)
 
             if response.isError():
                 logger.info("[MODBUS] No board on SPI %s", index)
             else:
-                board = Board(self,
-                              versions=response.registers,
-                              major_group=index)
-
+                board = Board(self, versions=response.registers, major_group=index)
                 board.parse_features()
 
                 self.boards.append(board)

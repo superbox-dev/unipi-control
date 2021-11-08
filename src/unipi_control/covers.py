@@ -124,6 +124,9 @@ class Cover:
         self._current_position: Optional[int] = None
         self._current_tilt: Optional[int] = None
 
+    def __repr__(self) -> str:
+        return self.friendly_name
+
     @property
     def topic(self) -> str:
         """MQTT topic prefix.
@@ -463,9 +466,6 @@ class Cover:
             await self._close_tilt(tilt)
 
         self.tilt = tilt
-
-    def __repr__(self) -> str:
-        return self.friendly_name
 
 
 class CoverMap(DataStorage):
