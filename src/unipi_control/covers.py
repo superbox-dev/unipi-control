@@ -136,7 +136,7 @@ class Cover:
         Returns
         -------
         str
-            Return MQTT topic prefix
+            Return MQTT topic prefix.
         """
         return f"{config.device_name.lower()}/{self.topic_name}/" \
                f"cover/{self.cover_type}"
@@ -158,7 +158,7 @@ class Cover:
         Returns
         -------
         bool
-            ``True`` if the cover state is **OPENING** else ``False``
+            ``True`` if the cover state is **OPENING** else ``False``.
         """
         return self.state == CoverState.OPENING
 
@@ -169,7 +169,7 @@ class Cover:
         Returns
         -------
         bool
-            ``True`` if the cover state is **CLOSING** else ``False``
+            ``True`` if the cover state is **CLOSING** else ``False``.
         """
         return self.state == CoverState.CLOSING
 
@@ -180,7 +180,7 @@ class Cover:
         Returns
         -------
         bool
-            ``True`` if the cover state is **STOPPED** else ``False``
+            ``True`` if the cover state is **STOPPED** else ``False``.
         """
         return self.state == CoverState.STOPPED
 
@@ -194,7 +194,7 @@ class Cover:
         Returns
         -------
         bool
-            ``True`` if position changed else ``False``
+            ``True`` if position changed else ``False``.
 
         See Also
         --------
@@ -221,7 +221,7 @@ class Cover:
         Returns
         -------
         bool
-            ``True`` if position changed else ``False``
+            ``True`` if position changed else ``False``.
 
         See Also
         --------
@@ -248,7 +248,7 @@ class Cover:
         Returns
         -------
         bool
-            ``True`` if tilt changed else ``False``
+            ``True`` if tilt changed else ``False``.
 
         See Also
         --------
