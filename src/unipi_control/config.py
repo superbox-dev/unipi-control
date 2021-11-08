@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 import socket
@@ -8,6 +7,13 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import is_dataclass
+from logging import basicConfig
+from logging import DEBUG
+from logging import ERROR
+from logging import getLogger
+from logging import INFO
+from logging import Logger
+from logging import WARNING
 from pathlib import Path
 from typing import Optional
 
@@ -35,6 +41,7 @@ class ImproperlyConfigured(Exception):
 
 @dataclass
 class ConfigBase:
+    """Base data class for the unipi control configs."""
     def clean(self):
         errors = []
 
@@ -63,6 +70,7 @@ class ConfigBase:
 
 @dataclass
 class MqttConfig(ConfigBase):
+    """Data class for the default MQTT client config."""
     host: str = field(default="localhost")
     port: int = field(default=1883)
     keepalive: int = field(default=15)
@@ -72,11 +80,13 @@ class MqttConfig(ConfigBase):
 
 @dataclass
 class DeviceInfo(ConfigBase):
+    """Data class for the default device info."""
     manufacturer: str = field(default="Unipi technology")
 
 
 @dataclass
 class HomeAssistantConfig(ConfigBase):
+    """Data class for the default Home Assistant config."""
     enabled: bool = field(default=True)
     discovery_prefix: str = field(default="homeassistant")
     device: dataclass = field(default=DeviceInfo())
@@ -84,12 +94,14 @@ class HomeAssistantConfig(ConfigBase):
 
 @dataclass
 class LoggingConfig(ConfigBase):
+    """Data class for the default logging config."""
     logger: str = field(default="systemd")
     level: str = field(default="info")
 
 
 @dataclass
 class Config(ConfigBase):
+    """Data class for the default unipi control base config."""
     device_name: str = field(default=socket.gethostname())
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
@@ -104,6 +116,13 @@ class Config(ConfigBase):
 
     @staticmethod
     def get_config(path: str) -> dict:
+        """Read the unipi control yaml config file.
+
+        Returns
+        ----------
+        dict
+            The unipi control config as dict.
+        """
         _config: dict = {}
 
         if os.path.exists(path):
@@ -114,14 +133,21 @@ class Config(ConfigBase):
 
     @property
     def logger(self):
+        """Initialize logger with config settings.
+
+        Returns
+        -------
+        Logger
+            Return ``Logger`` class.
+        """
         logger_type: str = self.logging.logger
-        _logger = logging.getLogger(__name__)
+        _logger: Logger = getLogger(__name__)
 
         level: dict = {
-            "debug": logging.DEBUG,
-            "info": logging.INFO,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
+            "debug": DEBUG,
+            "info": INFO,
+            "warning": WARNING,
+            "error": ERROR,
         }
 
         logger_level = level[self.logging.level]
@@ -130,7 +156,7 @@ class Config(ConfigBase):
             _logger.addHandler(journal.JournalHandler())
             _logger.setLevel(level=logger_level)
         elif logger_type == "file":
-            logging.basicConfig(
+            basicConfig(
                 level=logger_level,
                 filename="/var/log/unipi-control.log",
                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -200,7 +226,8 @@ class Config(ConfigBase):
 
 
 @dataclass
-class Hardware:
+class HardwareInfo:
+    """Data class for the Unipi neuron hardware information."""
     name: str = field(default="unknown", init=False)
     model: str = field(default="unknown", init=False)
     version: str = field(default="unknown", init=False)
@@ -219,21 +246,28 @@ class Hardware:
                 self.serial = struct.unpack("i", ee_bytes[100:104])[0]
 
 
-class HardwareDefinition(DataStorage):
+class HardwareData(DataStorage):
+    """A read-only container object that has saved Unipi Neuron hardware data.
+
+    The hardware data is imported from yaml files from ``/etc/unipi/hardware``.
+
+    See Also
+    --------
+    helpers.DataStorage
+    """
     def __init__(self):
+        """Initialize hardware data."""
         super().__init__()
 
-        self.hardware = Hardware()
-
         self.data: dict = {
-            "neuron": asdict(Hardware()),
+            "neuron": asdict(HardwareInfo()),
             "definitions": [],
             "neuron_definition": None,
         }
 
-        self.model: str = self.data["neuron"]["model"]
+        self._model: str = self.data["neuron"]["model"]
 
-        if self.model is None:
+        if self._model is None:
             raise HardwareException("[CONFIG] Hardware is not supported!")
 
         self._read_definitions()
@@ -243,20 +277,18 @@ class HardwareDefinition(DataStorage):
         for f in Path(f"{HARDWARE}/extension").iterdir():
             if str(f).endswith(".yaml"):
                 with open(f) as yf:
-                    self.data["definitions"].append(
-                        yaml.load(yf, Loader=yaml.FullLoader))
-
+                    self.data["definitions"].append(yaml.load(yf, Loader=yaml.FullLoader))
                     logger.info("[CONFIG] YAML Definition loaded: %s", f)
 
     def _read_neuron_definition(self) -> None:
-        definition_file: Path = Path(f"{HARDWARE}/neuron/{self.model}.yaml")
+        definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():
             with open(definition_file) as yf:
                 self.data["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
                 logger.info("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
-            raise HardwareException(f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self.model}.")
+            raise HardwareException(f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self._model}.")
 
 
 config = Config()

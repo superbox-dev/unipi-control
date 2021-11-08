@@ -106,7 +106,7 @@ class Modbus:
 
         Returns
         ----------
-        response : Coroutine
+        Coroutine
             A deferred response handle.
 
         Raises
@@ -136,7 +136,7 @@ class Modbus:
 
         Returns
         ----------
-        response : Coroutine
+        Coroutine
             A deferred response handle.
 
         Raises

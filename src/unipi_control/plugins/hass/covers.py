@@ -13,7 +13,7 @@ class HassCoversDiscovery:
 
     Attributes
     ----------
-    hardware : HardwareDefinition
+    hardware : HardwareData
         The Unipi Neuron hardware definitions.
     """
     def __init__(self, uc, mqtt_client):
