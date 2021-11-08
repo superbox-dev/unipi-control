@@ -151,3 +151,10 @@ Topic | Response/Request | Description
 `[device_name]/[topic_name]/cover/[cover_type]/position/set` |  `0` to `100` | Send an integer to set the cover position.
 `[device_name]/[topic_name]/cover/[cover_type]/tilt` |  `0` to `100` | Get the tilt position. `100` is fully open and `0` is fully closed.
 `[device_name]/[topic_name]/cover/[cover_type]/tilt/set` |  `0` to `100` | Send an integer to set the cover position.
+
+
+## TODO
+
+* Support Modbus RTU for extension modules (I don't have an extension).
+* Support analogue input/output (The implemented code is still untested).
+* Support 1-Wire bus.
