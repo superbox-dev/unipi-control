@@ -28,7 +28,14 @@ from termcolor import colored
 
 
 class UnipiControl:
+    """Control Unipi I/O directly with MQTT commands.
+
+    Unipi Control use Modbus for fast access to the I/O and provide MQTT
+    topics for reading and writing the circuits. Optionally you can enable
+    the Home Assistant MQTT discovery for binary sensors, switches and covers.
+    """
     def __init__(self, modbus):
+        """Initialize unipi control."""
         self.neuron = Neuron(modbus)
         self.covers: Optional[CoverMap] = None
 
@@ -80,6 +87,7 @@ class UnipiControl:
             await asyncio.gather(*self._tasks)
 
     async def cancel_tasks(self):
+        """Cancel all outstanding asyncio tasks."""
         tasks = [t for t in self._tasks if not t.done()]
         [task.cancel() for task in tasks]
 
@@ -131,6 +139,7 @@ class UnipiControl:
 
 
 def install() -> None:
+    # TODO: Create a install class
     src_config_path: Path = Path(__file__).parents[1].joinpath("etc/unipi")
     src_systemd_path: Path = Path(__file__).parents[1].joinpath("lib/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")
