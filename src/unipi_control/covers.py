@@ -148,7 +148,7 @@ class Cover:
 
     @position.setter
     def position(self, position):
-        """Set the current cover position"""
+        """Set the current cover position."""
         self._position = position
 
     @property
