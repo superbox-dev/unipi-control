@@ -2,8 +2,8 @@ from typing import Optional
 
 from config import HardwareData
 from config import logger
-from features import AnalogInput
-from features import AnalogOutput
+from features import AnalogueInput
+from features import AnalogueOutput
 from features import DigitalInput
 from features import DigitalOutput
 from features import FeatureMap
@@ -105,7 +105,7 @@ class Board:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                ao = AnalogOutput(
+                ao = AnalogueOutput(
                     circuit=circuit,
                     board=self,
                     reg=modbus_feature["val_reg"],
@@ -122,7 +122,7 @@ class Board:
             for index in range(0, max_count):
                 circuit: str = "%s_%s_%02d" % (feature_type.lower(), major_group, index + 1)
 
-                ai = AnalogInput(
+                ai = AnalogueInput(
                     circuit=circuit,
                     board=self,
                     reg=modbus_feature["val_reg"],

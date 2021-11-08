@@ -152,8 +152,8 @@ class DigitalInput(Feature):
     feature_type: Optional[str] = "digital"
 
 
-class AnalogOutput(Feature):
-    """Class for the analog output feature from the Unipi Neuron."""
+class AnalogueOutput(Feature):
+    """Class for the analogue output feature from the Unipi Neuron."""
     name: Optional[str] = "Analog Output"
     feature_name: Optional[str] = "output"
     feature_type: Optional[str] = "analog"
@@ -286,7 +286,7 @@ class AnalogOutput(Feature):
         await self.modbus.write_register(self._cal_reg, value_i, unit=0)
 
 
-class AnalogInput(Feature):
+class AnalogueInput(Feature):
     """Class for the analog input feature from the Unipi Neuron."""
     name: Optional[str] = "Analog Input"
     feature_name: Optional[str] = "input"
