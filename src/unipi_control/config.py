@@ -201,7 +201,8 @@ class Config(ConfigBase):
 
         if result is None:
             raise ImproperlyConfigured(
-                "[CONFIG] Invalid value in `device_name`. The following characters are prohibited: A-Z a-z 0-9 -_"
+                "[CONFIG] Invalid value in `device_name`. "
+                "The following characters are prohibited: A-Z a-z 0-9 -_"
             )
 
     def clean_covers(self):
@@ -222,7 +223,10 @@ class Config(ConfigBase):
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "cover_type"))
 
         if cover.get("cover_type") not in COVER_TYPES:
-            raise ImproperlyConfigured(f"""[CONFIG][COVER {index + 1}] Invalid value in `cover_type`. The following values are allowed: {" ".join(COVER_TYPES)}.""")
+            raise ImproperlyConfigured(
+                f"""[CONFIG][COVER {index + 1}] Invalid value in `cover_type`.
+                The following values are allowed: {" ".join(COVER_TYPES)}."""
+            )
 
     @staticmethod
     def _clean_covers_topic_name(cover, index):
@@ -232,7 +236,10 @@ class Config(ConfigBase):
         result = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
 
         if result is None:
-            raise ImproperlyConfigured(f"[CONFIG][COVER {index + 1}] Invalid value in `topic_name`. The following characters are prohibited: a-z 0-9 -_")
+            raise ImproperlyConfigured(
+                f"[CONFIG][COVER {index + 1}] Invalid value in `topic_name`."
+                f" The following characters are prohibited: a-z 0-9 -_"
+            )
 
     @staticmethod
     def _clean_covers_full_open_time(cover, index):
@@ -345,7 +352,10 @@ class HardwareData(DataStorage):
                 self.data["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
                 logger.info("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
-            raise HardwareException(f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self._model}.")
+            raise HardwareException(
+                f"[CONFIG] No valid YAML definition for active Neuron device! "
+                f"Device name is {self._model}."
+            )
 
 
 config = Config()
