@@ -7,7 +7,6 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import Callable
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 import aiofiles
@@ -117,6 +116,8 @@ class Cover:
         self.circuit_up: str = kwargs.get("circuit_up")
         self.circuit_down: str = kwargs.get("circuit_down")
         self.state: Optional[str] = None
+        self.position: Optional[int] = None
+        self.tilt: Optional[int] = None
         self.cover_up_feature = features.by_circuit(self.circuit_up)
         self.cover_down_feature = features.by_circuit(self.circuit_down)
 
@@ -130,10 +131,7 @@ class Cover:
         temp_dir = Path(gettempdir(), "unipi")
         temp_dir.mkdir(exist_ok=True)
         self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
-
-        position_data: Tuple[Optional[int], Optional[int]] = self._read_position()
-        self.position: Optional[int] = position_data[0]
-        self.tilt: Optional[int] = position_data[1]
+        self._read_position()
 
     def __repr__(self) -> str:
         return self.friendly_name
@@ -293,17 +291,15 @@ class Cover:
     def _delete_position(self):
         self._temp_filename.unlink(missing_ok=True)
 
-    def _read_position(self) -> Tuple[Optional[int], Optional[int]]:
+    def _read_position(self) -> None:
         try:
             with open(self._temp_filename) as f:
                 data = f.read().split("/")
-                position = int(data[0])
-                tilt = int(data[1])
+                self.position = int(data[0])
+                self.tilt = int(data[1])
         except (FileNotFoundError, ValueError):
-            position = None
-            tilt = None
-
-        return position, tilt
+            self.position = None
+            self.tilt = None
 
     async def _write_position(self) -> None:
         async with aiofiles.open(self._temp_filename, "w") as f:
