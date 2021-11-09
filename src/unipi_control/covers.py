@@ -1,5 +1,4 @@
 import asyncio
-import aiofiles 
 import itertools
 import time
 from collections.abc import Iterator
@@ -9,7 +8,9 @@ from tempfile import gettempdir
 from typing import Callable
 from typing import Optional
 from typing import Union
-from config import config, logger
+
+import aiofiles
+from config import config
 from features import FeatureMap
 from helpers import DataStorage
 
@@ -124,11 +125,11 @@ class Cover:
         self._current_state: Optional[str] = None
         self._current_position: Optional[int] = None
         self._current_tilt: Optional[int] = None
-        
+
         temp_dir = Path(gettempdir(), "unipi")
         temp_dir.mkdir(exist_ok=True)
         self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
-        
+
         self.position: Optional[int] = self._read_position()
 
     def __repr__(self) -> str:
@@ -278,24 +279,24 @@ class Cover:
         elif self.is_opening:
             self.position = self.position + int(
                 round(100 * end_timer / self.full_open_time))
-        
+
         if self.position <= 0:
             self.position = 0
         elif self.position >= 100:
             self.position = 100
-     
+
         await self._write_position()
-    
+
     def _delete_position(self):
         self._temp_filename.unlink(missing_ok=True)
 
     def _read_position(self) -> Optional[int]:
         try:
-            with open(self._temp_filename, "r") as f:
+            with open(self._temp_filename) as f:
                 position = int(f.read())
-        except (FileNotFoundError, ValueError) as error:
+        except (FileNotFoundError, ValueError):
             position = None
-        
+
         return position
 
     async def _write_position(self) -> None:
