@@ -349,6 +349,9 @@ class FeatureMap(DataStorage):
         """
         feature = None
 
+        # TODO: added feature_type as optional parameter
+        # This is required for covers that only support RO!
+
         try:
             feature = next(
                 filter(
@@ -374,7 +377,5 @@ class FeatureMap(DataStorage):
             A list of features filtered by feature type.
         """
         return itertools.chain.from_iterable(
-            filter(None,
-                   map(self.data.get,
-                       feature_type))
+            filter(None, map(self.data.get, feature_type))
         )
