@@ -35,11 +35,8 @@ class Board:
         if self._nao:
             modbus_cache_map: ModbusCacheMap = neuron.modbus_cache_map
 
-            self.volt_ref_x = (
-                3.3 *
-                (1 + modbus_cache_map.get_register(address=1, index=1009)[0]))
-            self.volt_ref = self.volt_ref_x / modbus_cache_map.get_register(
-                address=1, index=5)[0]
+            self.volt_ref_x = (3.3 * (1 + modbus_cache_map.get_register(address=1, index=1009)[0]))
+            self.volt_ref = self.volt_ref_x / modbus_cache_map.get_register(address=1, index=5)[0]
 
     def _parse_feature_ro(self, max_count: int, modbus_feature: dict) -> None:
         major_group: str = modbus_feature["major_group"]

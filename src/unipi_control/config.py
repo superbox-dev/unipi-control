@@ -15,6 +15,7 @@ from logging import INFO
 from logging import Logger
 from logging import WARNING
 from pathlib import Path
+from typing import List
 
 import yaml
 from helpers import DataStorage
@@ -173,7 +174,7 @@ class Config(ConfigBase):
 
         return _logger
 
-    def get_cover_circuits(self) -> list:
+    def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config.
 
         Returns
@@ -181,7 +182,7 @@ class Config(ConfigBase):
         list
             A list of cover circuits.
         """
-        circuits: list = []
+        circuits: List[str] = []
 
         for cover in self.covers:
             circuit_up: str = cover.get("circuit_up")
