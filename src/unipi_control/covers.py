@@ -298,7 +298,7 @@ class Cover:
                 data = f.read().split("/")
                 self.position = int(data[0])
                 self.tilt = int(data[1])
-        except (FileNotFoundError, ValueError):
+        except (FileNotFoundError, IndexError, ValueError):
             self.position = None
             self.tilt = None
 
