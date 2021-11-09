@@ -262,6 +262,7 @@ class ModbusCacheMap:
         -------
         list
             A list of cached modbus register blocks.
+
         Raises
         ------
         UnknownModbusRegister

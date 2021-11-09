@@ -2,6 +2,7 @@ import itertools
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
+from types import Union
 from typing import Optional
 
 from config import config
@@ -329,7 +330,7 @@ class FeatureMap(DataStorage):
 
         self.data[feature.type].append(feature)
 
-    def by_circuit(self, circuit: str):
+    def by_circuit(self, circuit: str) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
         """Get feature by circuit name.
 
         Parameters
@@ -338,8 +339,13 @@ class FeatureMap(DataStorage):
 
         Returns
         ----------
-        Feature
-            The ``Feature`` class.
+        DigitalInput, DigitalOutput, Relay, Led
+            The feature class.
+
+        Raises
+        ------
+        StopIteration
+            Get an exception if circuit not found.
         """
         feature = None
 
