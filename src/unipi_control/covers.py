@@ -1,4 +1,5 @@
 import asyncio
+import aiofiles 
 import itertools
 import time
 from collections.abc import Iterator
@@ -8,9 +9,7 @@ from tempfile import gettempdir
 from typing import Callable
 from typing import Optional
 from typing import Union
-
-from aiofile import async_open
-from config import config
+from config import config, logger
 from features import FeatureMap
 from helpers import DataStorage
 
@@ -115,7 +114,6 @@ class Cover:
         self.circuit_up: str = kwargs.get("circuit_up")
         self.circuit_down: str = kwargs.get("circuit_down")
         self.state: Optional[str] = None
-        self.position: Optional[int] = None
         self.tilt: Optional[int] = None
         self.cover_up_feature = features.by_circuit(self.circuit_up)
         self.cover_down_feature = features.by_circuit(self.circuit_down)
@@ -126,6 +124,12 @@ class Cover:
         self._current_state: Optional[str] = None
         self._current_position: Optional[int] = None
         self._current_tilt: Optional[int] = None
+        
+        temp_dir = Path(gettempdir(), "unipi")
+        temp_dir.mkdir(exist_ok=True)
+        self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
+        
+        self.position: Optional[int] = self._read_position()
 
     def __repr__(self) -> str:
         return self.friendly_name
@@ -262,7 +266,7 @@ class Cover:
 
         self._start_timer = None
 
-    def _update_position(self) -> None:
+    async def _update_position(self) -> None:
         if self._start_timer is None:
             return
 
@@ -275,6 +279,26 @@ class Cover:
         elif self.is_opening:
             self.position = self.position + int(
                 round(100 * end_timer / self.full_open_time))
+        
+        if self.position <= 0:
+            self.position = 0
+        elif self.position >= 100:
+            self.position = 100
+     
+        await self._write_position()
+    
+    def _read_position(self) -> Optional[int]:
+        try:
+            with open(self._temp_filename, "r") as f:
+                position = int(f.read())
+        except (FileNotFoundError, ValueError) as error:
+            position = None
+        
+        return position
+
+    async def _write_position(self) -> None:
+        async with aiofiles.open(self._temp_filename, "w") as f:
+            await f.write(str(self.position))
 
     async def open(self, position: int = 100) -> None:
         """Close the cover.
@@ -296,7 +320,7 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
-        self._update_position()
+        await self._update_position()
         self._stop_timer()
 
         response = await self.cover_down_feature.set_state(0)
@@ -342,7 +366,7 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
-        self._update_position()
+        await self._update_position()
         self._stop_timer()
 
         response = await self.cover_up_feature.set_state(0)
@@ -390,29 +414,20 @@ class Cover:
         await self.cover_down_feature.set_state(0)
         await self.cover_up_feature.set_state(0)
 
-        self._update_position()
+        await self._update_position()
         self._stop_timer()
 
         if self.position <= 0:
-            self.position = 0
             self.state = CoverState.CLOSED
         elif self.position >= 100:
-            self.position = 100
             self.state = CoverState.OPEN
         else:
             self.state = CoverState.STOPPED
 
         self._device_state = CoverDeviceState.IDLE
-        await self._save_position()
-
-    async def _save_position(self) -> None:
-        tmp_filename = Path(gettempdir(), "cover.txt")
-
-        async with async_open(tmp_filename, "w+") as afp:
-            await afp.write(self.position)
 
     async def _open_tilt(self, tilt: int = 100) -> None:
-        self._update_position()
+        await self._update_position()
         self._stop_timer()
 
         response = await self.cover_down_feature.set_state(0)
@@ -428,7 +443,7 @@ class Cover:
             self._timer = CoverTimer(stop_timer, self.stop)
 
     async def _close_tilt(self, tilt: int = 0) -> None:
-        self._update_position()
+        await self._update_position()
         self._stop_timer()
 
         response = await self.cover_up_feature.set_state(0)

@@ -184,6 +184,7 @@ def main() -> None:
         install()
     else:
         loop = asyncio.new_event_loop()
+        loop.set_debug(True)
 
         try:
             modbus = Modbus(loop)
