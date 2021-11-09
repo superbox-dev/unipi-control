@@ -32,7 +32,7 @@ class HassCoversDiscovery:
             "state_topic": f"{cover.topic}/state",
             "position_topic": f"{cover.topic}/position",
             "set_position_topic": f"{cover.topic}/position/set",
-            "retain": False,
+            "retain": True,
             "qos": 2,
             "optimistic": False,
             "device": {
