@@ -7,6 +7,7 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import Callable
 from typing import Optional
+from typing import Tuple
 from typing import Union
 
 import aiofiles
@@ -97,6 +98,7 @@ class Cover:
     cover_down_feature : Feature
         The feature for closing the cover.
     """
+
     def __init__(self, features, **kwargs):
         """Initialize cover.
 
@@ -115,7 +117,6 @@ class Cover:
         self.circuit_up: str = kwargs.get("circuit_up")
         self.circuit_down: str = kwargs.get("circuit_down")
         self.state: Optional[str] = None
-        self.tilt: Optional[int] = None
         self.cover_up_feature = features.by_circuit(self.circuit_up)
         self.cover_down_feature = features.by_circuit(self.circuit_down)
 
@@ -130,7 +131,9 @@ class Cover:
         temp_dir.mkdir(exist_ok=True)
         self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
 
-        self.position: Optional[int] = self._read_position()
+        position_data: Tuple[Optional[int], Optional[int]] = self._read_position()
+        self.position: Optional[int] = position_data[0]
+        self.tilt: Optional[int] = position_data[1]
 
     def __repr__(self) -> str:
         return self.friendly_name
@@ -290,18 +293,21 @@ class Cover:
     def _delete_position(self):
         self._temp_filename.unlink(missing_ok=True)
 
-    def _read_position(self) -> Optional[int]:
+    def _read_position(self) -> Tuple[Optional[int], Optional[int]]:
         try:
             with open(self._temp_filename) as f:
-                position = int(f.read())
+                data = f.read().split("/")
+                position = int(data[0])
+                tilt = int(data[1])
         except (FileNotFoundError, ValueError):
             position = None
+            tilt = None
 
-        return position
+        return position, tilt
 
     async def _write_position(self) -> None:
         async with aiofiles.open(self._temp_filename, "w") as f:
-            await f.write(str(self.position))
+            await f.write(f"{self.position}/{self.tilt}")
 
     async def open(self, position: int = 100) -> None:
         """Close the cover.
@@ -446,6 +452,7 @@ class Cover:
 
             stop_timer = (tilt - self.tilt) * self.tilt_change_time / 100
             self._timer = CoverTimer(stop_timer, self.stop)
+            self._delete_position()
 
     async def _close_tilt(self, tilt: int = 0) -> None:
         await self._update_position()
@@ -462,6 +469,7 @@ class Cover:
 
             stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
             self._timer = CoverTimer(stop_timer, self.stop)
+            self._delete_position()
 
     async def set_position(self, position: int) -> None:
         """Set the cover position.

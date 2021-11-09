@@ -329,7 +329,7 @@ class FeatureMap(DataStorage):
 
         self.data[feature.type].append(feature)
 
-    def by_circuit(self, circuit: str) -> Feature:
+    def by_circuit(self, circuit: str):
         """Get feature by circuit name.
 
         Parameters
