@@ -36,9 +36,9 @@ class CoverDeviceState:
 class CoverTimer:
     """Timer for state changes.
 
-    If the state from the device changed (e.g. open, close, stop, ...) a
-    timer is required for the cover runtime. The timer run in an asyncio task
-    and run a callback function when it expired.
+    If the state from the device changed (e.g. open, close, stop, ...)
+    a timer is required for the cover runtime. The timer run in an asyncio
+    task and run a callback function when it expired.
     """
     def __init__(self, timeout: float, callback: Callable):
         """Initialize timer.
@@ -227,7 +227,6 @@ class Cover:
             covers.Cover.set_position(): set the cover position.
         """
         changed: bool = self.position != self._current_position
-
         if changed and self._device_state == CoverDeviceState.IDLE:
             self._current_position = self.position
             return True
@@ -287,6 +286,9 @@ class Cover:
      
         await self._write_position()
     
+    def _delete_position(self):
+        self._temp_filename.unlink(missing_ok=True)
+
     def _read_position(self) -> Optional[int]:
         try:
             with open(self._temp_filename, "r") as f:
@@ -345,6 +347,7 @@ class Cover:
                 stop_timer = self.tilt_change_time
 
             self._timer = CoverTimer(stop_timer, self.stop)
+            self._delete_position()
 
     async def close(self, position: int = 0) -> None:
         """Close the cover.
@@ -391,6 +394,7 @@ class Cover:
                 stop_timer = self.tilt_change_time
 
             self._timer = CoverTimer(stop_timer, self.stop)
+            self._delete_position()
 
     async def stop(self) -> None:
         """Stop moving the cover.

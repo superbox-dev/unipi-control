@@ -125,7 +125,6 @@ class CoversMqttPlugin:
                 if cover.position_changed:
                     topic: str = f"{cover.topic}/position"
                     logger.info(LOG_MQTT_PUBLISH, topic, cover.position)
-                    logger.info(LOG_MQTT_PUBLISH, topic, cover.position)
                     await self._mqtt_client.publish(topic, cover.position, qos=2)
 
                 if cover.tilt_changed and cover.tilt_change_time:
