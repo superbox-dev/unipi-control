@@ -11,6 +11,7 @@ from typing import Union
 
 import aiofiles
 from config import config
+from features import DigitalOutput
 from features import FeatureMap
 from features import Relay
 from helpers import DataStorage
@@ -119,8 +120,8 @@ class Cover:
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
-        self.cover_up_feature: Relay = features.by_circuit(self.circuit_up, feature_type=["RO", ])
-        self.cover_down_feature: Relay = features.by_circuit(self.circuit_down, feature_type=["RO", ])
+        self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_up, feature_type=["DO", "RO", ])
+        self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_down, feature_type=["DO", "RO", ])
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None

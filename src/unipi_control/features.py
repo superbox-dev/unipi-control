@@ -337,6 +337,8 @@ class FeatureMap(DataStorage):
         Parameters
         ----------
         circuit : str
+            The machine readable circuit name e.g. ro_2_01.
+        feature_type : list
 
         Returns
         ----------
@@ -348,18 +350,13 @@ class FeatureMap(DataStorage):
         StopIteration
             Get an exception if circuit not found.
         """
-        feature = None
-
-        # TODO: added feature_type as optional parameter
-        # This is required for covers that only support RO!
+        if feature_type:
+            data: Iterator = self.by_feature_type(feature_type)
+        else:
+            data: Iterator = itertools.chain.from_iterable(self.data.values())
 
         try:
-            feature = next(
-                filter(
-                    lambda d: d.circuit == circuit,
-                    itertools.chain.from_iterable(self.data.values())
-                )
-            )
+            feature = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
             sys.exit(colored(f"[CONFIG] `{circuit}` not found in {self.__class__.__name__}!", "red"))
 
