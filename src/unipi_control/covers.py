@@ -338,8 +338,6 @@ class Cover:
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
         print("pre open", position)
-        if self._unknown_position:
-            return
 
         await self._update_position()
         self._stop_timer()
