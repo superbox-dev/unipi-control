@@ -32,7 +32,6 @@ class HassCoversDiscovery:
             "state_topic": f"{cover.topic}/state",
             "position_topic": f"{cover.topic}/position",
             "set_position_topic": f"{cover.topic}/position/set",
-            "retain": True,
             "qos": 2,
             "optimistic": False,
             "device": {
@@ -60,7 +59,7 @@ class HassCoversDiscovery:
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
             logger.info(LOG_MQTT_PUBLISH, topic, json_data)
-            await self._mqtt_client.publish(topic, json_data, qos=2)
+            await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
 
 
 class HassCoversMqttPlugin:

@@ -44,7 +44,6 @@ class HassSwitchesDiscovery:
                 "unique_id": f"{config.device_name.lower()}_{feature.circuit}",
                 "command_topic": f"{feature.topic}/set",
                 "state_topic": f"{feature.topic}/get",
-                "retain": True,
                 "qos": 2,
                 "device": {
                     "name": config.device_name,
@@ -67,7 +66,7 @@ class HassSwitchesDiscovery:
             topic, message = self._get_discovery(feature)
             json_data: str = json.dumps(message)
             logger.info(LOG_MQTT_PUBLISH, topic, json_data)
-            await self._mqtt_client.publish(topic, json_data, qos=2)
+            await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
 
 
 class HassSwitchesMqttPlugin:

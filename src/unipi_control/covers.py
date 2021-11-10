@@ -133,6 +133,7 @@ class Cover:
         temp_dir.mkdir(exist_ok=True)
         self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
         self._read_position()
+        print("init position/tilt", self.position, self.tilt)
 
     def __repr__(self) -> str:
         return self.friendly_name
@@ -160,6 +161,7 @@ class Cover:
         bool
             ``True`` if the cover state is **OPENING** else ``False``.
         """
+        print("is_opening", self.state == CoverState.OPENING)
         return self.state == CoverState.OPENING
 
     @property
@@ -171,6 +173,7 @@ class Cover:
         bool
             ``True`` if the cover state is **CLOSING** else ``False``.
         """
+        print("is_closing", self.state == CoverState.CLOSING)
         return self.state == CoverState.CLOSING
 
     @property
@@ -182,6 +185,7 @@ class Cover:
         bool
             ``True`` if the cover state is **STOPPED** else ``False``.
         """
+        print("is_stopped")
         return self.state == CoverState.STOPPED
 
     @property
@@ -206,6 +210,7 @@ class Cover:
         changed: bool = self.state != self._current_state
 
         if changed:
+            print("state_changed", changed)
             self._current_state = self.state
 
         return changed
@@ -230,8 +235,10 @@ class Cover:
             covers.Cover.set_position(): set the cover position.
         """
         changed: bool = self.position != self._current_position
+
         if changed and self._device_state == CoverDeviceState.IDLE:
             self._current_position = self.position
+            print("position_changed")
             return True
 
         return False
@@ -257,6 +264,7 @@ class Cover:
 
         if changed and self._device_state == CoverDeviceState.IDLE:
             self._current_tilt = self.tilt
+            print("tilt_changed")
             return True
 
         return False
@@ -286,10 +294,12 @@ class Cover:
             self.position = 0
         elif self.position >= 100:
             self.position = 100
+        print("_update_position", self.position)
 
         await self._write_position()
 
     def _delete_position(self):
+        print("_delete_position")
         self._temp_filename.unlink(missing_ok=True)
 
     def _read_position(self) -> None:
@@ -303,6 +313,7 @@ class Cover:
             self.tilt = None
 
     async def _write_position(self) -> None:
+        print("_write_position")
         async with aiofiles.open(self._temp_filename, "w") as f:
             await f.write(f"{self.position}/{self.tilt}")
 
@@ -326,6 +337,7 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
+        print("pre open", position)
         await self._update_position()
         self._stop_timer()
 
@@ -349,6 +361,8 @@ class Cover:
 
             if stop_timer < self.tilt_change_time:
                 stop_timer = self.tilt_change_time
+
+            print("open", position, self.tilt)
 
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
@@ -397,6 +411,8 @@ class Cover:
             if stop_timer < self.tilt_change_time:
                 stop_timer = self.tilt_change_time
 
+            print("close", position, self.tilt)
+
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
 
@@ -432,6 +448,8 @@ class Cover:
         else:
             self.state = CoverState.STOPPED
 
+        print("stop")
+
         self._device_state = CoverDeviceState.IDLE
 
     async def _open_tilt(self, tilt: int = 100) -> None:
@@ -446,7 +464,7 @@ class Cover:
             self._device_state = CoverDeviceState.OPEN
             self.state = CoverState.OPENING
             self._start_timer = time.monotonic()
-
+            print("_open_tilt", tilt)
             stop_timer = (tilt - self.tilt) * self.tilt_change_time / 100
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
@@ -463,7 +481,7 @@ class Cover:
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING
             self._start_timer = time.monotonic()
-
+            print("_close_tilt", tilt)
             stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
@@ -478,6 +496,8 @@ class Cover:
         """
         if self.position is None:
             return
+
+        print("set_position", position, ">", self.position)
 
         if position > self.position:
             await self.open(position)
@@ -494,6 +514,8 @@ class Cover:
         """
         if self.position is None:
             return
+
+        print("set_tilt", tilt, "<", self.tilt)
 
         if tilt > self.tilt:
             await self._open_tilt(tilt)

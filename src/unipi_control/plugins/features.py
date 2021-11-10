@@ -33,11 +33,7 @@ class FeaturesMqttPlugin:
             manager = self._mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            task = asyncio.create_task(
-                self._subscribe(feature,
-                                topic,
-                                messages)
-            )
+            task = asyncio.create_task(self._subscribe(feature, topic, messages))
             tasks.add(task)
 
             await self._mqtt_client.subscribe(topic)
@@ -69,6 +65,6 @@ class FeaturesMqttPlugin:
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
                     logger.info(LOG_MQTT_PUBLISH, topic, feature.state)
-                    await self._mqtt_client.publish(topic, feature.state, qos=2)
+                    await self._mqtt_client.publish(topic, feature.state, qos=2, retain=True)
 
             await asyncio.sleep(25e-3)
