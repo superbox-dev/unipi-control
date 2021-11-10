@@ -33,11 +33,7 @@ class FeaturesMqttPlugin:
             manager = self._mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            task = asyncio.create_task(
-                self._subscribe(feature,
-                                topic,
-                                messages)
-            )
+            task = asyncio.create_task(self._subscribe(feature, topic, messages))
             tasks.add(task)
 
             await self._mqtt_client.subscribe(topic)
