@@ -24,10 +24,11 @@ class HassCoversDiscovery:
 
     def _get_discovery(self, cover) -> tuple:
         topic: str = f"{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
+        unique_id: str = f"{cover.cover_type}_{cover.topic_name}"
 
         message: dict = {
-            "name": cover.friendly_name,
-            "unique_id": f"{cover.cover_type}_{cover.topic_name}",
+            "name": cover.friendly_name or unique_id,
+            "unique_id": unique_id,
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
             "position_topic": f"{cover.topic}/position",
