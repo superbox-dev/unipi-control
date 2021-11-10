@@ -129,6 +129,7 @@ class Cover:
         self._current_state: Optional[str] = None
         self._current_position: Optional[int] = None
         self._current_tilt: Optional[int] = None
+        self._unknown_position: bool = False
 
         temp_dir = Path(gettempdir(), "unipi")
         temp_dir.mkdir(exist_ok=True)
@@ -300,8 +301,9 @@ class Cover:
                 self.position = int(data[0])
                 self.tilt = int(data[1])
         except (FileNotFoundError, IndexError, ValueError):
-            self.position = None
-            self.tilt = None
+            self._unknown_position = True
+            self.position = 0
+            self.tilt = 0
 
     async def _write_position(self) -> None:
         async with aiofiles.open(self._temp_filename, "w") as f:
@@ -310,11 +312,8 @@ class Cover:
     async def open(self, position: int = 100) -> None:
         """Close the cover.
 
-        If the cover is in calibration mode (``self.position`` is not set) then
-        the cover will be fully open (``self.position`` is set to **100**).
-
-        If the cover is already opening or closing then the position is
-        updated. If a running timer exists, it will be stopped.
+        If the cover is in calibration mode (``self._unknown_position`` is True)
+        then the cover can't be open!
 
         For safety reasons, the relay for close the cover will be deactivated.
         If this is successful, the relay to open the cover is activated.
@@ -327,6 +326,9 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
+        if self._unknown_position:
+            return
+
         await self._update_position()
         self._stop_timer()
 
@@ -342,9 +344,6 @@ class Cover:
 
             if position == 100:
                 position = 105
-
-            if self.position is None:
-                self.position = 0
 
             stop_timer = (position - self.position) * self.full_open_time / 100
 
@@ -390,7 +389,7 @@ class Cover:
             if position == 0:
                 position = -5
 
-            if self.position is None:
+            if self._unknown_position:
                 self.position = 100
 
             stop_timer = (self.position - position) * self.full_open_time / 100
@@ -404,8 +403,8 @@ class Cover:
     async def stop(self) -> None:
         """Stop moving the cover.
 
-        If the cover is in calibration mode (``self.position`` is not set) then
-        the cover can't be stopped!
+        If the cover is in calibration mode (``self._unknown_position`` is True)
+        then the cover can't be stopped!
 
         If the cover is already opening or closing then the position is
         updated. If a running timer exists, it will be stopped.
@@ -417,7 +416,7 @@ class Cover:
         The device state is changed to **IDLE** and the timer will be
         reset.
         """
-        if self.position is None:
+        if self._unknown_position:
             return
 
         await self.cover_down_feature.set_state(0)
@@ -477,13 +476,11 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
-        if self.position is None:
-            return
-
-        if position > self.position:
-            await self.open(position)
-        elif position < self.position:
-            await self.close(position)
+        if not self._unknown_position:
+            if position > self.position:
+                await self.open(position)
+            elif position < self.position:
+                await self.close(position)
 
     async def set_tilt(self, tilt: int) -> None:
         """Set the tilt position.
@@ -493,15 +490,13 @@ class Cover:
         tilt : int
             The tilt position. ``100`` is fully open and ``0`` is fully closed.
         """
-        if self.position is None:
-            return
+        if not self._unknown_position:
+            if tilt > self.tilt:
+                await self._open_tilt(tilt)
+            elif tilt < self.tilt:
+                await self._close_tilt(tilt)
 
-        if tilt > self.tilt:
-            await self._open_tilt(tilt)
-        elif tilt < self.tilt:
-            await self._close_tilt(tilt)
-
-        self.tilt = tilt
+            self.tilt = tilt
 
 
 class CoverMap(DataStorage):
