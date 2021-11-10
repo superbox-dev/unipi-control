@@ -9,6 +9,7 @@ class DataStorage(MutableMapping):
     data : dict
         Store the data for this container object.
     """
+
     def __init__(self):
         self.data: dict = {}
 

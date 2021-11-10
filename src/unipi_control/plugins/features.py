@@ -10,6 +10,7 @@ from config import logger
 
 class FeaturesMqttPlugin:
     """Provide features control as MQTT commands."""
+
     def __init__(self, uc, mqtt_client):
         """Initialize features MQTT plugin."""
         self._uc = uc

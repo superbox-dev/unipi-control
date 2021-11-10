@@ -33,17 +33,20 @@ LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
 
 class HardwareException(Exception):
     """Unipi Control detect unsupported hardware."""
+
     pass
 
 
 class ImproperlyConfigured(Exception):
     """Unipi Control is somehow improperly configured."""
+
     pass
 
 
 @dataclass
 class ConfigBase:
     """Base data class for the unipi control configs."""
+
     def clean(self):
         """If a clean function for key exists then validate it.
 
@@ -81,6 +84,7 @@ class ConfigBase:
 @dataclass
 class MqttConfig(ConfigBase):
     """Data class for the default MQTT client config."""
+
     host: str = field(default="localhost")
     port: int = field(default=1883)
     keepalive: int = field(default=15)
@@ -91,12 +95,14 @@ class MqttConfig(ConfigBase):
 @dataclass
 class DeviceInfo(ConfigBase):
     """Data class for the default device info."""
+
     manufacturer: str = field(default="Unipi technology")
 
 
 @dataclass
 class HomeAssistantConfig(ConfigBase):
     """Data class for the default Home Assistant config."""
+
     enabled: bool = field(default=True)
     discovery_prefix: str = field(default="homeassistant")
     device: dataclass = field(default=DeviceInfo())
@@ -105,6 +111,7 @@ class HomeAssistantConfig(ConfigBase):
 @dataclass
 class LoggingConfig(ConfigBase):
     """Data class for the default logging config."""
+
     logger: str = field(default="systemd")
     level: str = field(default="info")
 
@@ -112,6 +119,7 @@ class LoggingConfig(ConfigBase):
 @dataclass
 class Config(ConfigBase):
     """Data class for the default unipi control base config."""
+
     device_name: str = field(default=socket.gethostname())
     mqtt: dataclass = field(default=MqttConfig())
     homeassistant: dataclass = field(default=HomeAssistantConfig())
@@ -216,7 +224,7 @@ class Config(ConfigBase):
             self._clean_covers_tilt_change_time(cover, index)
             self._clean_covers_circuit_up(cover, index)
             self._clean_covers_circuit_down(cover, index)
-            self._clean_dupicate_covers_circuits()
+            self._clean_duplicate_covers_circuits()
 
     @staticmethod
     def _clean_covers_cover_type(cover, index):
@@ -279,7 +287,7 @@ class Config(ConfigBase):
         if "circuit_down" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_down"))
 
-    def _clean_dupicate_covers_circuits(self):
+    def _clean_duplicate_covers_circuits(self):
         circuits: list = self.get_cover_circuits()
 
         for circuit in circuits:
@@ -293,6 +301,7 @@ class Config(ConfigBase):
 @dataclass
 class HardwareInfo:
     """Data class for the Unipi neuron hardware information."""
+
     name: str = field(default="unknown", init=False)
     model: str = field(default="unknown", init=False)
     version: str = field(default="unknown", init=False)
@@ -320,6 +329,7 @@ class HardwareData(DataStorage):
     --------
     helpers.DataStorage
     """
+
     def __init__(self):
         """Initialize hardware data."""
         super().__init__()

@@ -6,12 +6,14 @@ from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPCl
 
 class ModbusException(Exception):
     """Unipi Control can't connect to Modbus TCP."""
+
     def __str__(self):
         return "Can't connect to Modbus TCP!"
 
 
 class UnknownModbusRegister(Exception):
     """Modbus register not found."""
+
     def __init__(self, address: int):
         """Initialize exception.
 
@@ -26,6 +28,7 @@ class UnknownModbusRegister(Exception):
 
 class NoCachedModbusRegister(Exception):
     """No cached modbus register value found."""
+
     def __init__(self, address, unit):
         """Initialize exception.
 
@@ -51,6 +54,7 @@ class Modbus:
     modbus_client
         The Modbus TCP client.
     """
+
     def __init__(self, loop):
         """Initialize modbus client.
 
@@ -59,8 +63,7 @@ class Modbus:
         loop :
             Current asyncio event loop.
         """
-        self.loop, self.modbus = ModbusTCPClient(schedulers.ASYNC_IO,
-                                                 loop=loop)
+        self.loop, self.modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
         self.modbus_client = self.modbus.protocol
 
     async def write_coil(self, address: int, value: int,
@@ -117,12 +120,9 @@ class Modbus:
         if not self.modbus_client or not self.modbus_client.connected:
             raise ModbusException()
 
-        return await self.modbus_client.write_register(address,
-                                                       value,
-                                                       unit=unit)
+        return await self.modbus_client.write_register(address, value, unit=unit)
 
-    async def read_holding_registers(self, address: int, count: int,
-                                     unit: int) -> Coroutine:
+    async def read_holding_registers(self, address: int, count: int, unit: int) -> Coroutine:
         """Read value from modbus holding registers.
 
         Parameters
@@ -147,12 +147,9 @@ class Modbus:
         if not self.modbus_client or not self.modbus_client.connected:
             raise ModbusException()
 
-        return await self.modbus_client.read_holding_registers(address,
-                                                               count,
-                                                               unit=unit)
+        return await self.modbus_client.read_holding_registers(address, count, unit=unit)
 
-    async def read_input_registers(self, address: int, count: int,
-                                   unit: int) -> Coroutine:
+    async def read_input_registers(self, address: int, count: int, unit: int) -> Coroutine:
         """Read value from modbus input registers.
 
         Parameters
@@ -177,9 +174,7 @@ class Modbus:
         if not self.modbus_client or not self.modbus_client.connected:
             raise ModbusException()
 
-        return await self.modbus_client.read_input_registers(address,
-                                                             count,
-                                                             unit=unit)
+        return await self.modbus_client.read_input_registers(address, count, unit=unit)
 
 
 class ModbusCacheMap:
@@ -192,6 +187,7 @@ class ModbusCacheMap:
     modbus_register_blocks : list of dicts
         The modbus register blocks.
     """
+
     def __init__(self, modbus, modbus_register_blocks: list):
         """Initialize modbus cache map.
 
@@ -240,11 +236,7 @@ class ModbusCacheMap:
                     reg_index: int = data["address"] + index
                     self._registered[reg_index] = response.registers[index]
 
-    def get_register(self,
-                     address: int,
-                     index: int,
-                     unit: int = 0,
-                     is_input: bool = False):
+    def get_register(self, address: int, index: int, unit: int = 0, is_input: bool = False):
         """Get the responses from the cached modbus register blocks.
 
         Parameters

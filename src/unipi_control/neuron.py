@@ -14,6 +14,7 @@ from modbus import ModbusCacheMap
 
 class Board:
     """Class to parse board features and register it to the ``FeatureMap``."""
+
     def __init__(self, neuron, versions: list, major_group: int):
         """Initialize board.
 
@@ -185,6 +186,7 @@ class Neuron:
         All registered features (e.g. Relay, Digital Input, ...) from the
         Unipi Neuron.
     """
+
     def __init__(self, modbus):
         """Initialize Unipi Neuron.
 

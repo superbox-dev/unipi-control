@@ -20,6 +20,7 @@ from helpers import DataStorage
 @dataclass(init=False, eq=False, frozen=True)
 class CoverState:
     """State constants."""
+
     OPEN: str = "open"
     OPENING: str = "opening"
     CLOSING: str = "closing"
@@ -30,6 +31,7 @@ class CoverState:
 @dataclass(init=False, eq=False, frozen=True)
 class CoverDeviceState:
     """Device state constants."""
+
     OPEN: str = "OPEN"
     CLOSE: str = "CLOSE"
     STOP: str = "STOP"
@@ -43,6 +45,7 @@ class CoverTimer:
     a timer is required for the cover runtime. The timer run in an asyncio
     task and run a callback function when it expired.
     """
+
     def __init__(self, timeout: float, callback: Callable):
         """Initialize timer.
 
@@ -71,6 +74,8 @@ class Cover:
 
     Attributes
     ----------
+    calibrate_mode : bool
+        Set the cover in calibration mode.
     friendly_name : str
         Friendly name of the cover. It is used e.g. for Home Assistant.
     cover_type : str
@@ -109,7 +114,7 @@ class Cover:
             All registered features (e.g. Relay, Digital Input, ...) from the
             Unipi Neuron.
         """
-        self.is_calibrate_mode: bool = False
+        self.calibrate_mode: bool = False
         self.friendly_name: str = kwargs.get("friendly_name")
         self.cover_type: str = kwargs.get("cover_type")
         self.topic_name: str = kwargs.get("topic_name")
@@ -305,14 +310,15 @@ class Cover:
             self.position = 0
             self.tilt = 0
 
-            self.is_calibrate_mode = True
+            self.calibrate_mode = True
 
     async def _write_position(self) -> None:
         async with aiofiles.open(self._temp_filename, "w") as f:
             await f.write(f"{self.position}/{self.tilt}")
 
     async def calibrate(self) -> None:
-        if self.is_calibrate_mode and not self._calibration_started:
+        """Calibrate the cover if calibration mode is enabled."""
+        if self.calibrate_mode and not self._calibration_started:
             self._calibration_started = True
             await self.open(calibrate=True)
 
@@ -332,9 +338,9 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         calibrate : bool
-            Enable the calibrate mode if ``True``.
+            Set position to ``0`` if ``True``.
         """
-        if self.is_calibrate_mode and not calibrate:
+        if self.calibrate_mode and not calibrate:
             return
 
         self._update_position()
@@ -382,9 +388,9 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         calibrate : bool
-            Enable the calibrate mode if ``True``.
+            Set position to ``100`` if ``True``.
         """
-        if self.is_calibrate_mode and not calibrate:
+        if self.calibrate_mode and not calibrate:
             return
 
         self._update_position()
@@ -428,9 +434,9 @@ class Cover:
         """
         self._update_position()
 
-        if self.is_calibrate_mode:
+        if self.calibrate_mode:
             if self.position == 100:
-                self.is_calibrate_mode = False
+                self.calibrate_mode = False
             else:
                 self.position = 0
                 return
@@ -490,7 +496,7 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
-        if not self.is_calibrate_mode:
+        if not self.calibrate_mode:
             if position > self.position:
                 await self.open(position)
             elif position < self.position:
@@ -504,7 +510,7 @@ class Cover:
         tilt : int
             The tilt position. ``100`` is fully open and ``0`` is fully closed.
         """
-        if not self.is_calibrate_mode:
+        if not self.calibrate_mode:
             if tilt > self.tilt:
                 await self._open_tilt(tilt)
             elif tilt < self.tilt:
@@ -520,6 +526,7 @@ class CoverMap(DataStorage):
     --------
     helpers.DataStorage
     """
+
     def __init__(self, features: FeatureMap):
         """Initialize cover map.
 

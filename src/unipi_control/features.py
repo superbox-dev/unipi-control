@@ -14,6 +14,7 @@ from termcolor import colored
 @dataclass(frozen=True)
 class FeatureState:
     """Feature state constants."""
+
     ON: str = "ON"
     OFF: str = "OFF"
 
@@ -40,6 +41,7 @@ class Feature:
     changed : bool
         Detect whether the status has changed.
     """
+
     name: Optional[str] = None
     feature_name: Optional[str] = None
     feature_type: Optional[str] = None
@@ -115,6 +117,7 @@ class Feature:
 
 class Relay(Feature):
     """Class for the relay feature from the Unipi Neuron."""
+
     name: Optional[str] = "Relay"
     feature_name: Optional[str] = "relay"
     feature_type: Optional[str] = "physical"
@@ -132,6 +135,7 @@ class Relay(Feature):
 
 class DigitalOutput(Feature):
     """Class for the digital output feature from the Unipi Neuron."""
+
     name: Optional[str] = "Digital Output"
     feature_name: Optional[str] = "relay"
     feature_type: Optional[str] = "digital"
@@ -149,6 +153,7 @@ class DigitalOutput(Feature):
 
 class DigitalInput(Feature):
     """Class for the digital input feature from the Unipi Neuron."""
+
     name: Optional[str] = "Digital Input"
     feature_name: Optional[str] = "input"
     feature_type: Optional[str] = "digital"
@@ -156,6 +161,7 @@ class DigitalInput(Feature):
 
 class AnalogueOutput(Feature):
     """Class for the analogue output feature from the Unipi Neuron."""
+
     name: Optional[str] = "Analog Output"
     feature_name: Optional[str] = "output"
     feature_type: Optional[str] = "analog"
@@ -290,6 +296,7 @@ class AnalogueOutput(Feature):
 
 class AnalogueInput(Feature):
     """Class for the analog input feature from the Unipi Neuron."""
+
     name: Optional[str] = "Analog Input"
     feature_name: Optional[str] = "input"
     feature_type: Optional[str] = "analog"
@@ -297,6 +304,7 @@ class AnalogueInput(Feature):
 
 class Led(Feature):
     """Class for the LED feature from the Unipi Neuron."""
+
     name: Optional[str] = "LED"
     feature_name: Optional[str] = "led"
     feature_type: Optional[str] = None
@@ -319,6 +327,7 @@ class FeatureMap(DataStorage):
     --------
     helpers.DataStorage
     """
+
     def register(self, feature: Feature) -> None:
         """Add a feature to the data storage.
 

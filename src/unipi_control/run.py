@@ -34,6 +34,7 @@ class UnipiControl:
     topics for reading and writing the circuits. Optionally you can enable
     the Home Assistant MQTT discovery for binary sensors, switches and covers.
     """
+
     def __init__(self, modbus):
         """Initialize unipi control."""
         self.neuron = Neuron(modbus)

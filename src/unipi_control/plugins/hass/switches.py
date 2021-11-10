@@ -16,6 +16,7 @@ class HassSwitchesDiscovery:
     hardware : HardwareData
         The Unipi Neuron hardware definitions.
     """
+
     def __init__(self, uc, mqtt_client):
         """Initialize Home Assistant MQTT discovery."""
         self._uc = uc
@@ -71,6 +72,7 @@ class HassSwitchesDiscovery:
 
 class HassSwitchesMqttPlugin:
     """Provide Home Assistant MQTT commands for switches."""
+
     def __init__(self, uc, mqtt_client):
         """Initialize Home Assistant MQTT plugin."""
         self._mqtt_client = mqtt_client
