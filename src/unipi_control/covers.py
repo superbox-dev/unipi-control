@@ -239,8 +239,8 @@ class Cover:
         changed: bool = self.position != self._current_position
 
         if changed and self._device_state == CoverDeviceState.IDLE:
+            print("position_changed", self._current_position, self.position)
             self._current_position = self.position
-            print("position_changed")
             return True
 
         return False
@@ -437,8 +437,10 @@ class Cover:
         if self._unknown_position:
             if self.position == 100:
                 self._unknown_position = False
+                print("stop!")
             else:
                 self.position = 0
+                print("no stop!")
                 return
 
         self._stop_timer()
