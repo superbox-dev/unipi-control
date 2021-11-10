@@ -24,10 +24,10 @@ from termcolor import colored
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
-COVER_KEY_MISSING: str = "[CONFIG][COVER %s] Required key `%s` is missing!"
-COVER_TIME: str = "[CONFIG][COVER %s] Key `%s` is not a float or integer!"
-LOG_MQTT_PUBLISH: str = "[MQTT][%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: str = "[MQTT][%s] Subscribe message: %s"
+COVER_KEY_MISSING: str = "[CONFIG] [COVER %s] Required key `%s` is missing!"
+COVER_TIME: str = "[CONFIG] [COVER %s] Key `%s` is not a float or integer!"
+LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
+LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
 
 
@@ -225,7 +225,7 @@ class Config(ConfigBase):
 
         if cover.get("cover_type") not in COVER_TYPES:
             raise ImproperlyConfigured(
-                f"""[CONFIG][COVER {index + 1}] Invalid value in `cover_type`.
+                f"""[CONFIG] [COVER {index + 1}] Invalid value in `cover_type`.
                 The following values are allowed: {" ".join(COVER_TYPES)}."""
             )
 
@@ -238,7 +238,7 @@ class Config(ConfigBase):
 
         if result is None:
             raise ImproperlyConfigured(
-                f"[CONFIG][COVER {index + 1}] Invalid value in `topic_name`."
+                f"[CONFIG] [COVER {index + 1}] Invalid value in `topic_name`."
                 f" The following characters are prohibited: a-z 0-9 -_"
             )
 
@@ -285,7 +285,7 @@ class Config(ConfigBase):
         for circuit in circuits:
             if circuits.count(circuit) > 1:
                 raise ImproperlyConfigured(
-                    "[CONFIG][COVER] Duplicate circuits found in `covers`! "
+                    "[CONFIG] [COVER] Duplicate circuits found in `covers`! "
                     "Driving both signals up and down at the same time can damage the motor."
                 )
 
@@ -343,7 +343,7 @@ class HardwareData(DataStorage):
             if str(f).endswith(".yaml"):
                 with open(f) as yf:
                     self.data["definitions"].append(yaml.load(yf, Loader=yaml.FullLoader))
-                    logger.info("[CONFIG] YAML Definition loaded: %s", f)
+                    logger.debug("[CONFIG] YAML Definition loaded: %s", f)
 
     def _read_neuron_definition(self) -> None:
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
@@ -351,7 +351,7 @@ class HardwareData(DataStorage):
         if definition_file.is_file():
             with open(definition_file) as yf:
                 self.data["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
-                logger.info("[CONFIG] YAML Definition loaded: %s", definition_file)
+                logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
             raise HardwareException(
                 f"[CONFIG] No valid YAML definition for active Neuron device! "

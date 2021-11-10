@@ -63,25 +63,25 @@ class UnipiControl:
 
             logger.info("[MQTT] Connected to broker at `%s:%s`", config.mqtt.host, config.mqtt.port)
 
-            plugin = FeaturesMqttPlugin(self, mqtt_client)
-            tasks = await plugin.init_tasks(stack)
+            features = FeaturesMqttPlugin(self, mqtt_client)
+            tasks = await features.init_tasks(stack)
             self._tasks.update(tasks)
 
-            plugin = CoversMqttPlugin(self, mqtt_client)
-            tasks = await plugin.init_tasks(stack)
+            covers = CoversMqttPlugin(self, mqtt_client)
+            tasks = await covers.init_tasks(stack)
             self._tasks.update(tasks)
 
             if config.homeassistant.enabled:
-                plugin = HassBinarySensorsMqttPlugin(self, mqtt_client)
-                tasks = await plugin.init_tasks()
+                hass_binary_sensors = HassBinarySensorsMqttPlugin(self, mqtt_client)
+                tasks = await hass_binary_sensors.init_tasks()
                 self._tasks.update(tasks)
 
-                plugin = HassCoversMqttPlugin(self, mqtt_client)
-                tasks = await plugin.init_tasks()
+                hass_covers = HassCoversMqttPlugin(self, mqtt_client)
+                tasks = await hass_covers.init_tasks()
                 self._tasks.update(tasks)
 
-                plugin = HassSwitchesMqttPlugin(self, mqtt_client)
-                tasks = await plugin.init_tasks()
+                hass_switches = HassSwitchesMqttPlugin(self, mqtt_client)
+                tasks = await hass_switches.init_tasks()
                 self._tasks.update(tasks)
 
             await asyncio.gather(*self._tasks)
@@ -107,7 +107,6 @@ class UnipiControl:
         ]
 
         [task.cancel() for task in tasks]
-
         logger.info("Cancelling %s outstanding tasks.", len(tasks))
 
         await asyncio.gather(*tasks)

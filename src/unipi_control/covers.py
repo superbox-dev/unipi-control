@@ -109,6 +109,7 @@ class Cover:
             All registered features (e.g. Relay, Digital Input, ...) from the
             Unipi Neuron.
         """
+        self.is_calibrate_mode: bool = False
         self.friendly_name: str = kwargs.get("friendly_name")
         self.cover_type: str = kwargs.get("cover_type")
         self.topic_name: str = kwargs.get("topic_name")
@@ -129,7 +130,7 @@ class Cover:
         self._current_state: Optional[str] = None
         self._current_position: Optional[int] = None
         self._current_tilt: Optional[int] = None
-        self._unknown_position: bool = False
+        self._calibration_started: bool = False
 
         temp_dir = Path(gettempdir(), "unipi")
         temp_dir.mkdir(exist_ok=True)
@@ -271,7 +272,7 @@ class Cover:
 
         self._start_timer = None
 
-    async def _update_position(self) -> None:
+    def _update_position(self) -> None:
         if self._start_timer is None:
             return
 
@@ -304,17 +305,21 @@ class Cover:
             self.position = 0
             self.tilt = 0
 
-            self._unknown_position = True
+            self.is_calibrate_mode = True
 
     async def _write_position(self) -> None:
         async with aiofiles.open(self._temp_filename, "w") as f:
             await f.write(f"{self.position}/{self.tilt}")
 
-    async def open(self, position: int = 100) -> None:
+    async def calibrate(self) -> None:
+        if self.is_calibrate_mode and not self._calibration_started:
+            self._calibration_started = True
+            await self.open(calibrate=True)
+
+    async def open(self, position: int = 100, calibrate: bool = False) -> None:
         """Close the cover.
 
-        If the cover is in calibration mode (``self.position`` is not set) then
-        the cover will be fully closed (``self.position`` is set to **100**).
+        If the cover is in calibration mode then the cover will be fully open.
 
         For safety reasons, the relay for close the cover will be deactivated.
         If this is successful, the relay to open the cover is activated.
@@ -326,11 +331,14 @@ class Cover:
         ----------
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
+        calibrate : bool
+            Enable the calibrate mode if ``True``.
         """
-        await self._update_position()
+        if self.is_calibrate_mode and not calibrate:
+            return
 
+        self._update_position()
         response = await self.cover_down_feature.set_state(0)
-
         self._stop_timer()
 
         if not response.isError():
@@ -349,19 +357,16 @@ class Cover:
             if stop_timer < self.tilt_change_time:
                 stop_timer = self.tilt_change_time
 
-            if self._unknown_position:
+            if calibrate:
                 self.position = 0
 
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
 
-        await self._write_position()
-
-    async def close(self, position: int = 0) -> None:
+    async def close(self, position: int = 0, calibrate: bool = False) -> None:
         """Close the cover.
 
-        If the cover is in calibration mode (``self._unknown_position`` is True)
-        then the cover can't be closed!
+        If the cover is in calibration mode then the cover will be fully closed.
 
         If the cover is already opening or closing then the position is
         updated. If a running timer exists, it will be stopped.
@@ -376,14 +381,14 @@ class Cover:
         ----------
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
+        calibrate : bool
+            Enable the calibrate mode if ``True``.
         """
-        if self._unknown_position:
+        if self.is_calibrate_mode and not calibrate:
             return
 
-        await self._update_position()
-
+        self._update_position()
         response = await self.cover_up_feature.set_state(0)
-
         self._stop_timer()
 
         if not response.isError():
@@ -402,10 +407,11 @@ class Cover:
             if stop_timer < self.tilt_change_time:
                 stop_timer = self.tilt_change_time
 
+            if calibrate:
+                self.position = 100
+
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
-
-        await self._write_position()
 
     async def stop(self) -> None:
         """Stop moving the cover.
@@ -420,11 +426,11 @@ class Cover:
         The device state is changed to **IDLE** and the timer will be
         reset.
         """
-        await self._update_position()
+        self._update_position()
 
-        if self._unknown_position:
+        if self.is_calibrate_mode:
             if self.position == 100:
-                self._unknown_position = False
+                self.is_calibrate_mode = False
             else:
                 self.position = 0
                 return
@@ -432,6 +438,7 @@ class Cover:
         await self.cover_down_feature.set_state(0)
         await self.cover_up_feature.set_state(0)
 
+        await self._write_position()
         self._stop_timer()
 
         if self.position <= 0:
@@ -442,13 +449,10 @@ class Cover:
             self.state = CoverState.STOPPED
 
         self._device_state = CoverDeviceState.IDLE
-        await self._write_position()
 
     async def _open_tilt(self, tilt: int = 100) -> None:
-        await self._update_position()
-
+        self._update_position()
         response = await self.cover_down_feature.set_state(0)
-
         self._stop_timer()
 
         if not response.isError():
@@ -462,13 +466,9 @@ class Cover:
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
 
-        await self._write_position()
-
     async def _close_tilt(self, tilt: int = 0) -> None:
-        await self._update_position()
-
+        self._update_position()
         response = await self.cover_up_feature.set_state(0)
-
         self._stop_timer()
 
         if not response.isError():
@@ -482,8 +482,6 @@ class Cover:
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
 
-        await self._write_position()
-
     async def set_position(self, position: int) -> None:
         """Set the cover position.
 
@@ -492,7 +490,7 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
-        if not self._unknown_position:
+        if not self.is_calibrate_mode:
             if position > self.position:
                 await self.open(position)
             elif position < self.position:
@@ -506,7 +504,7 @@ class Cover:
         tilt : int
             The tilt position. ``100`` is fully open and ``0`` is fully closed.
         """
-        if not self._unknown_position:
+        if not self.is_calibrate_mode:
             if tilt > self.tilt:
                 await self._open_tilt(tilt)
             elif tilt < self.tilt:

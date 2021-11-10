@@ -65,7 +65,7 @@ class HassSwitchesDiscovery:
         for feature in features:
             topic, message = self._get_discovery(feature)
             json_data: str = json.dumps(message)
-            logger.info(LOG_MQTT_PUBLISH, topic, json_data)
+            logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
             await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
 
 

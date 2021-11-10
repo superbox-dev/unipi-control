@@ -48,7 +48,6 @@ class CoversMqttPlugin:
             tasks.add(task)
 
             await self._mqtt_client.subscribe(topic, qos=2)
-
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
@@ -137,4 +136,5 @@ class CoversMqttPlugin:
                     logger.info(LOG_MQTT_PUBLISH, topic, cover.state)
                     await self._mqtt_client.publish(topic, cover.state, qos=2, retain=True)
 
+                await cover.calibrate()
             await asyncio.sleep(25e-3)
