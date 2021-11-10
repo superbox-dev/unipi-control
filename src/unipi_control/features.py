@@ -2,8 +2,8 @@ import itertools
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
-from types import Union
 from typing import Optional
+from typing import Union
 
 from config import config
 from config import logger
