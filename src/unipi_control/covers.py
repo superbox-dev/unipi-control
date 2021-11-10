@@ -442,11 +442,14 @@ class Cover:
                 self.position = 0
                 print("no stop!")
                 return
-
+        print("1")
         self._stop_timer()
+        print("2")
 
         await self.cover_down_feature.set_state(0)
+        print("3")
         await self.cover_up_feature.set_state(0)
+        print("4")
 
         if self.position <= 0:
             self.state = CoverState.CLOSED
