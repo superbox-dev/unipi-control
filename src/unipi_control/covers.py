@@ -311,7 +311,7 @@ class Cover:
                 self.position = int(data[0])
                 self.tilt = int(data[1])
         except (FileNotFoundError, IndexError, ValueError):
-            self.state = CoverState.OPEN
+            self.state = CoverState.CLOSED
             self.position = 0
             self.tilt = 0
 
