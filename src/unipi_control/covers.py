@@ -323,8 +323,8 @@ class Cover:
     async def open(self, position: int = 100) -> None:
         """Close the cover.
 
-        If the cover is in calibration mode (``self._unknown_position`` is True)
-        then the cover can't be open!
+        If the cover is in calibration mode (``self.position`` is not set) then
+        the cover will be fully closed (``self.position`` is set to **100**).
 
         For safety reasons, the relay for close the cover will be deactivated.
         If this is successful, the relay to open the cover is activated.
@@ -362,6 +362,9 @@ class Cover:
             if stop_timer < self.tilt_change_time:
                 stop_timer = self.tilt_change_time
 
+            if self._unknown_position:
+                self.position = 0
+
             print("open", position, self.tilt)
 
             self._timer = CoverTimer(stop_timer, self.stop)
@@ -370,8 +373,8 @@ class Cover:
     async def close(self, position: int = 0) -> None:
         """Close the cover.
 
-        If the cover is in calibration mode (``self.position`` is not set) then
-        the cover will be fully closed (``self.position`` is set to **0**).
+        If the cover is in calibration mode (``self._unknown_position`` is True)
+        then the cover can't be closed!
 
         If the cover is already opening or closing then the position is
         updated. If a running timer exists, it will be stopped.
@@ -387,6 +390,9 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
+        if self._unknown_position:
+            return
+
         await self._update_position()
         self._stop_timer()
 
@@ -402,9 +408,6 @@ class Cover:
 
             if position == 0:
                 position = -5
-
-            if self._unknown_position:
-                self.position = 100
 
             stop_timer = (self.position - position) * self.full_open_time / 100
 
