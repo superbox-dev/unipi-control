@@ -330,7 +330,7 @@ class FeatureMap(DataStorage):
 
         self.data[feature.type].append(feature)
 
-    def by_circuit(self, circuit: str) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
+    def by_circuit(self, circuit: str, allowed_features: Optional[list] = None) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
         """Get feature by circuit name.
 
         Parameters
@@ -360,7 +360,7 @@ class FeatureMap(DataStorage):
                 )
             )
         except StopIteration:
-            logger.error("[CONFIG] `%s` not found in %s!", (circuit, self.__class__.__name__))
+            logger.error("[CONFIG] `%s` not found in %s!", circuit, self.__class__.__name__)
 
         return feature
 
