@@ -419,9 +419,6 @@ class Cover:
     async def stop(self) -> None:
         """Stop moving the cover.
 
-        If the cover is in calibration mode (``self._unknown_position`` is True)
-        then the cover can't be stopped!
-
         If the cover is already opening or closing then the position is
         updated. If a running timer exists, it will be stopped.
 
@@ -432,9 +429,6 @@ class Cover:
         The device state is changed to **IDLE** and the timer will be
         reset.
         """
-        if self._unknown_position:
-            return
-
         await self.cover_down_feature.set_state(0)
         await self.cover_up_feature.set_state(0)
 
