@@ -336,7 +336,7 @@ class FeatureMap(DataStorage):
 
         Parameters
         ----------
-        circuit : list
+        circuit : str
 
         Returns
         ----------
@@ -362,7 +362,6 @@ class FeatureMap(DataStorage):
             )
         except StopIteration:
             sys.exit(colored(f"[CONFIG] `{circuit}` not found in {self.__class__.__name__}!", "red"))
-            # logger.error("[CONFIG] `%s` not found in %s!", circuit, self.__class__.__name__)
 
         return feature
 
