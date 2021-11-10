@@ -1,13 +1,14 @@
 import itertools
 import re
+import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Optional
 from typing import Union
 
 from config import config
-from config import logger
 from helpers import DataStorage
+from termcolor import colored
 
 
 @dataclass(frozen=True)
@@ -360,7 +361,8 @@ class FeatureMap(DataStorage):
                 )
             )
         except StopIteration:
-            logger.error("[CONFIG] `%s` not found in %s!", circuit, self.__class__.__name__)
+            sys.exit(colored(f"[CONFIG] `{circuit}` not found in {self.__class__.__name__}!", "red"))
+            # logger.error("[CONFIG] `%s` not found in %s!", circuit, self.__class__.__name__)
 
         return feature
 
