@@ -135,7 +135,6 @@ class Cover:
         temp_dir.mkdir(exist_ok=True)
         self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
         self._read_position()
-        print("init position/tilt", self.position, self.tilt)
 
     def __repr__(self) -> str:
         return self.friendly_name
@@ -163,7 +162,6 @@ class Cover:
         bool
             ``True`` if the cover state is **OPENING** else ``False``.
         """
-        print("is_opening", self.state == CoverState.OPENING)
         return self.state == CoverState.OPENING
 
     @property
@@ -175,7 +173,6 @@ class Cover:
         bool
             ``True`` if the cover state is **CLOSING** else ``False``.
         """
-        print("is_closing", self.state == CoverState.CLOSING)
         return self.state == CoverState.CLOSING
 
     @property
@@ -187,7 +184,6 @@ class Cover:
         bool
             ``True`` if the cover state is **STOPPED** else ``False``.
         """
-        print("is_stopped")
         return self.state == CoverState.STOPPED
 
     @property
@@ -212,7 +208,6 @@ class Cover:
         changed: bool = self.state != self._current_state
 
         if changed:
-            print("state_changed", changed)
             self._current_state = self.state
 
         return changed
@@ -239,7 +234,6 @@ class Cover:
         changed: bool = self.position != self._current_position
 
         if changed and self._device_state == CoverDeviceState.IDLE:
-            print("position_changed", self._current_position, self.position)
             self._current_position = self.position
             return True
 
@@ -266,7 +260,6 @@ class Cover:
 
         if changed and self._device_state == CoverDeviceState.IDLE:
             self._current_tilt = self.tilt
-            print("tilt_changed")
             return True
 
         return False
