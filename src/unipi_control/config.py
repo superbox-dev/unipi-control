@@ -229,8 +229,8 @@ class Config(ConfigBase):
 
     @staticmethod
     def _clean_covers_friendly_name(cover, index):
-        if "firendly_name" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "firendly_name"))
+        if "friendly_name" not in cover:
+            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "friendly_name"))
 
     @staticmethod
     def _clean_covers_cover_type(cover, index):
