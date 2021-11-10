@@ -217,6 +217,7 @@ class Config(ConfigBase):
     def clean_covers(self):
         """Check if covers config is valid."""
         for index, cover in enumerate(self.covers):
+            self._clean_covers_friendly_name(cover, index)
             self._clean_covers_cover_type(cover, index)
             self._clean_covers_topic_name(cover, index)
             self._clean_covers_full_open_time(cover, index)
@@ -225,6 +226,11 @@ class Config(ConfigBase):
             self._clean_covers_circuit_up(cover, index)
             self._clean_covers_circuit_down(cover, index)
             self._clean_duplicate_covers_circuits()
+
+    @staticmethod
+    def _clean_covers_friendly_name(cover, index):
+        if "firendly_name" not in cover:
+            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "firendly_name"))
 
     @staticmethod
     def _clean_covers_cover_type(cover, index):
