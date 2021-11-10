@@ -298,8 +298,6 @@ class Cover:
             self.position = 100
         print("_update_position", self.position)
 
-        await self._write_position()
-
     def _delete_position(self):
         print("_delete_position")
         self._temp_filename.unlink(missing_ok=True)
@@ -370,6 +368,8 @@ class Cover:
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
 
+        await self._write_position()
+
     async def close(self, position: int = 0) -> None:
         """Close the cover.
 
@@ -419,6 +419,8 @@ class Cover:
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
 
+        await self._write_position()
+
     async def stop(self) -> None:
         """Stop moving the cover.
 
@@ -461,6 +463,7 @@ class Cover:
         print("stop")
 
         self._device_state = CoverDeviceState.IDLE
+        await self._write_position()
 
     async def _open_tilt(self, tilt: int = 100) -> None:
         await self._update_position()
@@ -479,6 +482,8 @@ class Cover:
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
 
+        await self._write_position()
+
     async def _close_tilt(self, tilt: int = 0) -> None:
         await self._update_position()
         self._stop_timer()
@@ -495,6 +500,8 @@ class Cover:
             stop_timer = (self.tilt - tilt) * self.tilt_change_time / 100
             self._timer = CoverTimer(stop_timer, self.stop)
             self._delete_position()
+
+        await self._write_position()
 
     async def set_position(self, position: int) -> None:
         """Set the cover position.
