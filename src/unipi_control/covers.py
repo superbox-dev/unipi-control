@@ -430,11 +430,19 @@ class Cover:
         The device state is changed to **IDLE** and the timer will be
         reset.
         """
+        await self._update_position()
+
+        if self._unknown_position:
+            if self.position == 100:
+                self._unknown_position = False
+            else:
+                self.position = 0
+                return
+
+        self._stop_timer()
+
         await self.cover_down_feature.set_state(0)
         await self.cover_up_feature.set_state(0)
-
-        await self._update_position()
-        self._stop_timer()
 
         if self.position <= 0:
             self.state = CoverState.CLOSED
