@@ -1,8 +1,5 @@
 global-exclude *.pyc
-
-
 global-exclude *.pyc
-
 global-include .editorconfig
 
 include LICENSE
@@ -13,5 +10,6 @@ exclude .pre-commit-config.yaml
 exclude requirements-dev.txt
 exclude requirements.txt
 
+prune extras
 prune src/etc
 prune src/lib
