@@ -66,8 +66,7 @@ class Modbus:
         self.loop, self.modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
         self.modbus_client = self.modbus.protocol
 
-    async def write_coil(self, address: int, value: int,
-                         unit: int) -> Coroutine:
+    async def write_coil(self, address: int, value: int, unit: int) -> Coroutine:
         """Write value to modbus address.
 
         Parameters
@@ -94,8 +93,7 @@ class Modbus:
 
         return await self.modbus_client.write_coil(address, value, unit=unit)
 
-    async def write_register(self, address: int, value: int,
-                             unit: int) -> Coroutine:
+    async def write_register(self, address: int, value: int, unit: int) -> Coroutine:
         """Write value to modbus register.
 
         Parameters
