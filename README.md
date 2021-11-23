@@ -158,6 +158,10 @@ Topic | Response/Request | Description
 `[device_name]/[topic_name]/cover/[cover_type]/tilt/set` |  `0` to `100` | Send an integer to set the cover position.
 
 
+## Extras
+
+I have wrote a homeassistant blueprint automation to control covers with binary sensors. Take a look in the extras folder.
+
 ## TODO
 
 * Support Modbus RTU for extension modules (I don't have an extension).
