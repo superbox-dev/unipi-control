@@ -139,7 +139,6 @@ class UnipiControl:
 
 
 def install() -> None:
-    # TODO: Create a install class
     src_config_path: Path = Path(__file__).parents[1].joinpath("etc/unipi")
     src_systemd_path: Path = Path(__file__).parents[1].joinpath("lib/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")

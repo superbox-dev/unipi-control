@@ -284,9 +284,7 @@ class Cover:
         end_timer = time.monotonic() - self._start_timer
 
         if self.is_closing:
-            self.position = int(
-                round(100 * (self.full_close_time - end_timer) /
-                      self.full_close_time)) - (100 - self.position)
+            self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (100 - self.position)
         elif self.is_opening:
             self.position = self.position + int(
                 round(100 * end_timer / self.full_open_time))
@@ -340,6 +338,9 @@ class Cover:
         calibrate : bool
             Set position to ``0`` if ``True``.
         """
+        if self.position >= 100:
+            return
+
         if self.calibrate_mode and not calibrate:
             return
 
@@ -390,6 +391,9 @@ class Cover:
         calibrate : bool
             Set position to ``100`` if ``True``.
         """
+        if self.position <= 0:
+            return
+
         if self.calibrate_mode and not calibrate:
             return
 
@@ -457,6 +461,9 @@ class Cover:
         self._device_state = CoverDeviceState.IDLE
 
     async def _open_tilt(self, tilt: int = 100) -> None:
+        if self.tilt == 100:
+            return
+
         self._update_position()
         response = await self.cover_down_feature.set_state(0)
         self._stop_timer()
@@ -473,6 +480,9 @@ class Cover:
             self._delete_position()
 
     async def _close_tilt(self, tilt: int = 0) -> None:
+        if self.tilt == 0:
+            return
+
         self._update_position()
         response = await self.cover_up_feature.set_state(0)
         self._stop_timer()
