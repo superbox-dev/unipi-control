@@ -5,8 +5,8 @@ global-include .editorconfig
 include LICENSE
 
 recursive-include src *.py
-recursive-include src/etc *
-recursive-include src/lib *
+recursive-include src *.service
+recursive-include src *.yaml
 
 exclude .pre-commit-config.yaml
 exclude requirements-dev.txt
