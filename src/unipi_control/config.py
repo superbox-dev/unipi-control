@@ -355,14 +355,14 @@ class HardwareData(DataStorage):
         self._read_neuron_definition()
 
     def _read_definitions(self) -> None:
-        for f in Path(f"{HARDWARE}/extension").iterdir():
-            if str(f).endswith(".yaml"):
-                try:
+        try:
+            for f in Path(f"{HARDWARE}/extension").iterdir():
+                if str(f).endswith(".yaml"):
                     with open(f) as yf:
                         self.data["definitions"].append(yaml.load(yf, Loader=yaml.FullLoader))
                         logger.debug("[CONFIG] YAML Definition loaded: %s", f)
-                except FileNotFoundError as error:
-                    print(colored(error, "red"))
+        except FileNotFoundError as error:
+            print(colored(error, "red"))
 
     def _read_neuron_definition(self) -> None:
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
