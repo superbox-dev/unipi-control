@@ -5,11 +5,11 @@ global-include .editorconfig
 include LICENSE
 
 recursive-include src *.py
+recursive-include src/etc *
+recursive-include src/lib *
 
 exclude .pre-commit-config.yaml
 exclude requirements-dev.txt
 exclude requirements.txt
 
 prune extras
-prune src/etc
-prune src/lib
