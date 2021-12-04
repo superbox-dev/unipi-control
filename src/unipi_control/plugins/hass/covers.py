@@ -32,7 +32,6 @@ class HassCoversDiscovery:
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
             "position_topic": f"{cover.topic}/position",
-            "set_position_topic": f"{cover.topic}/position/set",
             "qos": 2,
             "optimistic": False,
             "device": {
@@ -44,13 +43,16 @@ class HassCoversDiscovery:
             }
         }
 
-        if cover.tilt_change_time:
-            message.update(
-                {
-                    "tilt_status_topic": f"{cover.topic}/tilt",
-                    "tilt_command_topic": f"{cover.topic}/tilt/set",
-                }
-            )
+        if cover.settings.set_position:
+            message.update({
+                "set_position_topic": f"{cover.topic}/position/set",
+            })
+
+        if cover.settings.set_tilt:
+            message.update({
+                "tilt_status_topic": f"{cover.topic}/tilt",
+                "tilt_command_topic": f"{cover.topic}/tilt/set",
+            })
 
         return topic, message
 

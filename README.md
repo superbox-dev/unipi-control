@@ -107,7 +107,7 @@ Key | Value
 `topic_name` | Unique name for the MQTT topic.
 `full_open_time` | Define the time (in seconds) it takes for the cover to fully open.
 `full_close_time` | Define the time (in seconds) it takes for the cover to fully close.
-`tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state.
+`tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state. Tilt is only available for cover type "blind".
 `circuit_up` | Output circuit name from a relay or digital output.
 `circuit_down` | Output circuit name from a relay or digital output.
 

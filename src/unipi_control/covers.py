@@ -3,6 +3,7 @@ import itertools
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Callable
@@ -15,6 +16,19 @@ from features import DigitalOutput
 from features import FeatureMap
 from features import Relay
 from helpers import DataStorage
+
+
+@dataclass(eq=False)
+class CoverFeatures:
+    set_tilt: bool = field(default=True)
+    set_position: bool = field(default=True)
+
+
+@dataclass(eq=False)
+class CoverSettings:
+    blind: dataclass = CoverFeatures(set_tilt=True, set_position=True)
+    roller_shutter: dataclass = CoverFeatures(set_tilt=False, set_position=False)
+    garage_door: dataclass = CoverFeatures(set_tilt=False, set_position=False)
 
 
 @dataclass(init=False, eq=False, frozen=True)
@@ -120,7 +134,7 @@ class Cover:
         self.topic_name: str = kwargs.get("topic_name")
         self.full_open_time: Union[float, int] = kwargs.get("full_open_time")
         self.full_close_time: Union[float, int] = kwargs.get("full_close_time")
-        self.tilt_change_time: Union[float, int] = kwargs.get("tilt_change_time")
+        self.tilt_change_time: Union[float, int] = kwargs.get("tilt_change_time", 0)
         self.circuit_up: str = kwargs.get("circuit_up")
         self.circuit_down: str = kwargs.get("circuit_down")
         self.state: Optional[str] = None
@@ -128,6 +142,7 @@ class Cover:
         self.tilt: Optional[int] = None
         self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_up, feature_type=["DO", "RO", ])
         self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_down, feature_type=["DO", "RO", ])
+        self.settings: dataclass = getattr(CoverSettings, self.cover_type)
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
@@ -161,35 +176,14 @@ class Cover:
 
     @property
     def is_opening(self) -> bool:
-        """Check whether the status is set to opening.
-
-        Returns
-        -------
-        bool
-            ``True`` if the cover state is **OPENING** else ``False``.
-        """
         return self.state == CoverState.OPENING
 
     @property
     def is_closing(self) -> bool:
-        """Check whether the status is set to closing.
-
-        Returns
-        -------
-        bool
-            ``True`` if the cover state is **CLOSING** else ``False``.
-        """
         return self.state == CoverState.CLOSING
 
     @property
     def is_stopped(self) -> bool:
-        """Check whether the status is set to stopped.
-
-        Returns
-        -------
-        bool
-            ``True`` if the cover state is **STOPPED** else ``False``.
-        """
         return self.state == CoverState.STOPPED
 
     @property
@@ -262,11 +256,12 @@ class Cover:
         --------
             covers.Cover.set_tilt(): set the cover tilt position.
         """
-        changed: bool = self.tilt != self._current_tilt
+        if self.settings.set_tilt:
+            changed: bool = self.tilt != self._current_tilt
 
-        if changed and self._device_state == CoverDeviceState.IDLE:
-            self._current_tilt = self.tilt
-            return True
+            if changed and self._device_state == CoverDeviceState.IDLE:
+                self._current_tilt = self.tilt
+                return True
 
         return False
 
@@ -506,6 +501,9 @@ class Cover:
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
         """
+        if not self.settings.set_position:
+            return
+
         if not self.calibrate_mode:
             if position > self.position:
                 await self.open(position)
@@ -520,6 +518,9 @@ class Cover:
         tilt : int
             The tilt position. ``100`` is fully open and ``0`` is fully closed.
         """
+        if not self.settings.set_tilt:
+            return
+
         if not self.calibrate_mode:
             if tilt > self.tilt:
                 await self._open_tilt(tilt)

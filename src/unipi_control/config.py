@@ -151,13 +151,6 @@ class Config(ConfigBase):
 
     @property
     def logger(self):
-        """Initialize logger with config settings.
-
-        Returns
-        -------
-        Logger
-            Return ``Logger`` class.
-        """
         logger_type: str = self.logging.logger
         _logger: Logger = getLogger(__name__)
 
