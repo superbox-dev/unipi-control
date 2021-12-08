@@ -35,7 +35,7 @@ blueprint:
         number:
           min: 0.0
           max: 100.0
-          unit_of_measurement: percent
+          unit_of_measurement: "%"
           step: 1.0
           mode: slider
 trigger:
