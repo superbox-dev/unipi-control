@@ -23,7 +23,6 @@ from typing import Union
 
 import yaml
 from helpers import DataStorage
-from systemd import journal  # type: ignore
 from termcolor import colored
 
 HARDWARE: str = "/etc/unipi/hardware"
@@ -116,7 +115,6 @@ class HomeAssistantConfig(ConfigBase):
 class LoggingConfig(ConfigBase):
     """Data class for the default logging config."""
 
-    logger: str = field(default="systemd")
     level: str = field(default="info")
 
 
@@ -155,7 +153,6 @@ class Config(ConfigBase):
 
     @property
     def logger(self) -> Logger:
-        logger_type: str = self.logging.logger
         _logger: Logger = getLogger("asyncio")
 
         level: Dict[str, int] = {
@@ -167,15 +164,10 @@ class Config(ConfigBase):
 
         logger_level = level[self.logging.level]
 
-        if logger_type == "systemd":
-            _logger.addHandler(journal.JournalHandler())
-            _logger.setLevel(level=logger_level)
-        elif logger_type == "file":
-            basicConfig(
-                level=logger_level,
-                filename="/var/log/unipi-control.log",
-                format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            )
+        basicConfig(
+            level=logger_level,
+            format="%(levelname)s - %(message)s",
+        )
 
         return _logger
 

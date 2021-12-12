@@ -23,5 +23,4 @@ covers:
     circuit_up: ro_3_03
     circuit_down: ro_3_02
 logging:
-  logger: systemd
   level: info

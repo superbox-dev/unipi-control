@@ -133,13 +133,11 @@ When the Unipi control starts in calibration mode, the cover fully open and disa
 
 Key | Value
 ------ | ------
-`logger` | Set logger to `systemd` or `file`. Default is `systemd`.
-`level` | Set level to debug, info, warning or error. Default is `info`.
+`level` | Set level to `debug`, `info`, `warning` or `error`. Default is `info`.
 
 ```yaml
 # control.yaml
 logging:
-  logger: systemd
   level: info
 ```
 
