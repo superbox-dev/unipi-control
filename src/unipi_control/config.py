@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 import socket
@@ -13,8 +14,12 @@ from logging import ERROR
 from logging import getLogger
 from logging import INFO
 from logging import Logger
+from logging import LogRecord
 from logging import WARNING
+from logging.handlers import QueueHandler
+from logging.handlers import QueueListener
 from pathlib import Path
+from queue import SimpleQueue
 from typing import Dict
 from typing import List
 from typing import Match
@@ -32,6 +37,16 @@ COVER_TIME: str = "[CONFIG] [COVER %s] Key `%s` is not a float or integer!"
 LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
+
+
+class LocalQueueHandler(QueueHandler):
+    def emit(self, record: LogRecord) -> None:
+        try:
+            self.enqueue(record)
+        except asyncio.CancelledError as error:
+            raise error
+        except Exception:
+            self.handleError(record)
 
 
 class HardwareException(Exception):
@@ -151,9 +166,12 @@ class Config(ConfigBase):
 
         return _config
 
-    @property
     def logger(self) -> Logger:
+        queue: SimpleQueue[LocalQueueHandler] = SimpleQueue()
+        handler = LocalQueueHandler(queue)
+
         _logger: Logger = getLogger("asyncio")
+        _logger.addHandler(handler)
 
         level: Dict[str, int] = {
             "debug": DEBUG,
@@ -166,6 +184,9 @@ class Config(ConfigBase):
             level=level[self.logging.level],
             format="%(levelname)s - %(message)s",
         )
+
+        listener = QueueListener(queue, handler, respect_handler_level=True)
+        listener.start()
 
         return _logger
 
@@ -366,4 +387,4 @@ class HardwareData(DataStorage):
 
 
 config = Config()
-logger = config.logger
+logger = config.logger()

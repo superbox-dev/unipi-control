@@ -1,4 +1,5 @@
 aiofiles==0.7.0
+aiologger==0.6.1
 asyncio_mqtt==0.10.0
 pymodbus==2.5.2
 pyyaml==5.4.1
