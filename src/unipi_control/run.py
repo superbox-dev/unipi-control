@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Optional
 from typing import Set
 
+import uvloop
 from asyncio_mqtt import Client
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
@@ -185,7 +186,7 @@ def main() -> None:
     if args.install:
         install()
     else:
-        loop = asyncio.new_event_loop()
+        loop = uvloop.new_event_loop()
         loop.set_debug(False)
 
         try:
