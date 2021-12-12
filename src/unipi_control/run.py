@@ -198,8 +198,8 @@ def main() -> None:
                 loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
 
             loop.run_until_complete(uc.run())
-        except asyncio.exceptions.CancelledError as error:
-            logger.error(error)
+        except asyncio.exceptions.CancelledError:
+            pass
         except HardwareException as error:
             logger.error(error)
             print(colored(str(error), "red"))
