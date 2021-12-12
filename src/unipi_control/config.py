@@ -15,11 +15,15 @@ from logging import INFO
 from logging import Logger
 from logging import WARNING
 from pathlib import Path
+from typing import Dict
 from typing import List
+from typing import Match
+from typing import Optional
+from typing import Union
 
 import yaml
 from helpers import DataStorage
-from systemd import journal
+from systemd import journal  # type: ignore
 from termcolor import colored
 
 HARDWARE: str = "/etc/unipi/hardware"
@@ -105,7 +109,7 @@ class HomeAssistantConfig(ConfigBase):
 
     enabled: bool = field(default=True)
     discovery_prefix: str = field(default="homeassistant")
-    device: dataclass = field(default=DeviceInfo())
+    device: DeviceInfo = field(default=DeviceInfo())
 
 
 @dataclass
@@ -121,11 +125,11 @@ class Config(ConfigBase):
     """Data class for the default unipi control base config."""
 
     device_name: str = field(default=socket.gethostname())
-    mqtt: dataclass = field(default=MqttConfig())
-    homeassistant: dataclass = field(default=HomeAssistantConfig())
+    mqtt: MqttConfig = field(default=MqttConfig())
+    homeassistant: HomeAssistantConfig = field(default=HomeAssistantConfig())
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
-    logging: dataclass = field(default=LoggingConfig())
+    logging: LoggingConfig = field(default=LoggingConfig())
 
     def __post_init__(self):
         _config: dict = self.get_config("/etc/unipi/control.yaml")
@@ -150,11 +154,11 @@ class Config(ConfigBase):
         return _config
 
     @property
-    def logger(self):
+    def logger(self) -> Logger:
         logger_type: str = self.logging.logger
-        _logger: Logger = getLogger(__name__)
+        _logger: Logger = getLogger("asyncio")
 
-        level: dict = {
+        level: Dict[str, int] = {
             "debug": DEBUG,
             "info": INFO,
             "warning": WARNING,
@@ -197,7 +201,7 @@ class Config(ConfigBase):
 
         return circuits
 
-    def clean_device_name(self):
+    def clean_device_name(self) -> None:
         """Check if device name is valid."""
         result = re.search(r"^[\w\d_-]*$", self.device_name)
 
@@ -207,7 +211,7 @@ class Config(ConfigBase):
                 "The following characters are prohibited: A-Z a-z 0-9 -_"
             )
 
-    def clean_covers(self):
+    def clean_covers(self) -> None:
         """Check if covers config is valid."""
         for index, cover in enumerate(self.covers):
             self._clean_covers_friendly_name(cover, index)
@@ -221,12 +225,12 @@ class Config(ConfigBase):
             self._clean_duplicate_covers_circuits()
 
     @staticmethod
-    def _clean_covers_friendly_name(cover, index):
+    def _clean_covers_friendly_name(cover: Dict[str, str], index: int) -> None:
         if "friendly_name" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "friendly_name"))
 
     @staticmethod
-    def _clean_covers_cover_type(cover, index):
+    def _clean_covers_cover_type(cover: Dict[str, str], index: int) -> None:
         if "cover_type" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "cover_type"))
 
@@ -237,11 +241,11 @@ class Config(ConfigBase):
             )
 
     @staticmethod
-    def _clean_covers_topic_name(cover, index):
+    def _clean_covers_topic_name(cover: Dict[str, str], index: int) -> None:
         if "topic_name" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "topic_name"))
 
-        result = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
+        result: Optional[Match[str]] = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
 
         if result is None:
             raise ImproperlyConfigured(
@@ -250,7 +254,7 @@ class Config(ConfigBase):
             )
 
     @staticmethod
-    def _clean_covers_full_open_time(cover, index):
+    def _clean_covers_full_open_time(cover: Dict[str, Union[float, int]], index: int) -> None:
         if "full_open_time" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "full_open_time"))
 
@@ -260,7 +264,7 @@ class Config(ConfigBase):
             raise ImproperlyConfigured(COVER_TIME % (index + 1, "full_open_time"))
 
     @staticmethod
-    def _clean_covers_full_close_time(cover, index):
+    def _clean_covers_full_close_time(cover: Dict[str, Union[float, int]], index: int) -> None:
         if "full_close_time" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "full_close_time"))
 
@@ -270,24 +274,24 @@ class Config(ConfigBase):
             raise ImproperlyConfigured(COVER_TIME % (index + 1, "full_close_time"))
 
     @staticmethod
-    def _clean_covers_tilt_change_time(cover, index):
+    def _clean_covers_tilt_change_time(cover: Dict[str, Union[float, int]], index: int) -> None:
         value = cover.get("tilt_change_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
             raise ImproperlyConfigured(COVER_TIME % (index + 1, "tilt_change_time"))
 
     @staticmethod
-    def _clean_covers_circuit_up(cover, index):
+    def _clean_covers_circuit_up(cover: Dict[str, str], index: int) -> None:
         if "circuit_up" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_up"))
 
     @staticmethod
-    def _clean_covers_circuit_down(cover, index):
+    def _clean_covers_circuit_down(cover: Dict[str, str], index: int) -> None:
         if "circuit_down" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_down"))
 
-    def _clean_duplicate_covers_circuits(self):
-        circuits: list = self.get_cover_circuits()
+    def _clean_duplicate_covers_circuits(self) -> None:
+        circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
@@ -355,7 +359,7 @@ class HardwareData(DataStorage):
                         self.data["definitions"].append(yaml.load(yf, Loader=yaml.FullLoader))
                         logger.debug("[CONFIG] YAML Definition loaded: %s", f)
         except FileNotFoundError as error:
-            print(colored(error, "red"))
+            print(colored(str(error), "red"))
 
     def _read_neuron_definition(self) -> None:
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")

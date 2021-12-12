@@ -6,10 +6,13 @@ import signal
 import subprocess
 import sys
 import uuid
+from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Optional
+from typing import Set
 
+from asyncio_mqtt import Client
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
 from config import config
@@ -35,7 +38,7 @@ class UnipiControl:
     the Home Assistant MQTT discovery for binary sensors, switches and covers.
     """
 
-    def __init__(self, modbus):
+    def __init__(self, modbus: Modbus):
         """Initialize unipi control."""
         self.neuron = Neuron(modbus)
         self.covers: Optional[CoverMap] = None
@@ -43,7 +46,7 @@ class UnipiControl:
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
         logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
 
-        self._tasks = None
+        self._tasks: Set[Task] = set()
         self._retry_reconnect: int = 0
 
     async def _init_tasks(self) -> None:
@@ -52,14 +55,14 @@ class UnipiControl:
 
             stack.push_async_callback(self.cancel_tasks)
 
-            mqtt_client = MqttClient(
+            mqtt_client: Client = MqttClient(
                 config.mqtt.host,
                 config.mqtt.port,
                 client_id=self._mqtt_client_id,
                 keepalive=config.mqtt.keepalive,
             )
 
-            await stack.enter_async_context(mqtt_client)
+            await stack.enter_async_context(mqtt_client)  # type: ignore
             self._retry_reconnect = 0
 
             logger.info("[MQTT] Connected to broker at `%s:%s`", config.mqtt.host, config.mqtt.port)
@@ -192,16 +195,14 @@ def main() -> None:
             signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
 
             for _signal in signals:
-                loop.add_signal_handler(
-                    _signal,
-                    lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
+                loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
 
             loop.run_until_complete(uc.run())
-        except asyncio.exceptions.CancelledError:
-            pass
+        except asyncio.exceptions.CancelledError as error:
+            logger.error(error)
         except HardwareException as error:
             logger.error(error)
-            print(colored(error, "red"))
+            print(colored(str(error), "red"))
         except ModbusException as error:
             logger.error("[MODBUS] %s", error)
         finally:

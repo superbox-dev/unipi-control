@@ -7,6 +7,7 @@ from dataclasses import field
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Callable
+from typing import List
 from typing import Optional
 from typing import Union
 
@@ -26,9 +27,9 @@ class CoverFeatures:
 
 @dataclass(eq=False)
 class CoverSettings:
-    blind: dataclass = CoverFeatures(set_tilt=True, set_position=True)
-    roller_shutter: dataclass = CoverFeatures(set_tilt=False, set_position=False)
-    garage_door: dataclass = CoverFeatures(set_tilt=False, set_position=False)
+    blind: CoverFeatures = CoverFeatures(set_tilt=True, set_position=True)
+    roller_shutter: CoverFeatures = CoverFeatures(set_tilt=False, set_position=False)
+    garage_door: CoverFeatures = CoverFeatures(set_tilt=False, set_position=False)
 
 
 @dataclass(init=False, eq=False, frozen=True)
@@ -129,20 +130,20 @@ class Cover:
             Unipi Neuron.
         """
         self.calibrate_mode: bool = False
-        self.friendly_name: str = kwargs.get("friendly_name")
-        self.cover_type: str = kwargs.get("cover_type")
-        self.topic_name: str = kwargs.get("topic_name")
-        self.full_open_time: Union[float, int] = kwargs.get("full_open_time")
-        self.full_close_time: Union[float, int] = kwargs.get("full_close_time")
+        self.friendly_name: str = kwargs.get("friendly_name", "")
+        self.cover_type: Optional[str] = kwargs.get("cover_type")
+        self.topic_name: Optional[str] = kwargs.get("topic_name")
+        self.full_open_time: Union[float, int] = kwargs.get("full_open_time", 300)
+        self.full_close_time: Union[float, int] = kwargs.get("full_close_time", 300)
         self.tilt_change_time: Union[float, int] = kwargs.get("tilt_change_time", 0)
-        self.circuit_up: str = kwargs.get("circuit_up")
-        self.circuit_down: str = kwargs.get("circuit_down")
+        self.circuit_up: Optional[str] = kwargs.get("circuit_up")
+        self.circuit_down: Optional[str] = kwargs.get("circuit_down")
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
         self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_up, feature_type=["DO", "RO", ])
         self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_down, feature_type=["DO", "RO", ])
-        self.settings: dataclass = getattr(CoverSettings, self.cover_type)
+        self.settings: CoverFeatures = getattr(CoverSettings, self.cover_type)
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
@@ -273,6 +274,9 @@ class Cover:
         self._start_timer = None
 
     def _update_position(self) -> None:
+        if self.position is None:
+            return
+
         if self._start_timer is None:
             return
 
@@ -281,8 +285,7 @@ class Cover:
         if self.is_closing:
             self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (100 - self.position)
         elif self.is_opening:
-            self.position = self.position + int(
-                round(100 * end_timer / self.full_open_time))
+            self.position = self.position + int(round(100 * end_timer / self.full_open_time))
 
         if self.position <= 0:
             self.position = 0
@@ -333,6 +336,9 @@ class Cover:
         calibrate : bool
             Set position to ``0`` if ``True``.
         """
+        if self.position is None:
+            return
+
         if self.position >= 100:
             return
 
@@ -386,6 +392,9 @@ class Cover:
         calibrate : bool
             Set position to ``100`` if ``True``.
         """
+        if self.position is None:
+            return
+
         if self.position <= 0:
             return
 
@@ -431,6 +440,9 @@ class Cover:
         The device state is changed to **IDLE** and the timer will be
         reset.
         """
+        if self.position is None:
+            return
+
         self._update_position()
 
         if self.calibrate_mode:
@@ -456,6 +468,9 @@ class Cover:
         self._device_state = CoverDeviceState.IDLE
 
     async def _open_tilt(self, tilt: int = 100) -> None:
+        if self.tilt is None:
+            return
+
         if self.tilt == 100:
             return
 
@@ -475,6 +490,9 @@ class Cover:
             self._delete_position()
 
     async def _close_tilt(self, tilt: int = 0) -> None:
+        if self.tilt is None:
+            return
+
         if self.tilt == 0:
             return
 
@@ -505,10 +523,11 @@ class Cover:
             return
 
         if not self.calibrate_mode:
-            if position > self.position:
-                await self.open(position)
-            elif position < self.position:
-                await self.close(position)
+            if self.position is not None:
+                if position > self.position:
+                    await self.open(position)
+                elif position < self.position:
+                    await self.close(position)
 
     async def set_tilt(self, tilt: int) -> None:
         """Set the tilt position.
@@ -522,10 +541,11 @@ class Cover:
             return
 
         if not self.calibrate_mode:
-            if tilt > self.tilt:
-                await self._open_tilt(tilt)
-            elif tilt < self.tilt:
-                await self._close_tilt(tilt)
+            if self.tilt is not None:
+                if tilt > self.tilt:
+                    await self._open_tilt(tilt)
+                elif tilt < self.tilt:
+                    await self._close_tilt(tilt)
 
             self.tilt = tilt
 
@@ -558,7 +578,7 @@ class CoverMap(DataStorage):
             c = Cover(features, **cover)
             self.data[cover_type].append(c)
 
-    def by_cover_type(self, cover_type: list) -> Iterator:
+    def by_cover_type(self, cover_type: List[str]) -> Iterator:
         """Filter covers by cover type.
 
         Parameters

@@ -3,6 +3,8 @@ import re
 import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
+from typing import List
+from typing import Match
 from typing import Optional
 from typing import Union
 
@@ -30,7 +32,7 @@ class Feature:
         Extended modbus client class.
     circuit : str
         The machine readable circuit name e.g. ro_2_01.
-    value : int
+    value : int or float
         The feature state as integer.
     state : str
         The feature state as friendly name.
@@ -42,7 +44,7 @@ class Feature:
         Detect whether the status has changed.
     """
 
-    name: Optional[str] = None
+    name: str = "Feature"
     feature_name: Optional[str] = None
     feature_type: Optional[str] = None
 
@@ -57,13 +59,13 @@ class Feature:
         self.type = kwargs.get("type")
         self.major_group = kwargs.get("major_group")
         self._coil = kwargs.get("coil")
-        self._cal_reg = kwargs.get("cal_reg")
+        self._cal_reg = kwargs.get("cal_reg", 0)
         self._reg = kwargs.get("reg")
 
         self.board = board
         self.modbus = board.neuron.modbus
         self.circuit: str = circuit
-        self._mask: int = mask
+        self._mask = mask
 
         self._reg_value = lambda: board.neuron.modbus_cache_map.get_register(
             address=1,
@@ -76,7 +78,7 @@ class Feature:
         return self.circuit_name
 
     @property
-    def value(self) -> int:
+    def value(self) -> Union[float, int]:
         """Get the feature state as integer."""
         return 1 if self._reg_value() & self._mask else 0
 
@@ -100,8 +102,13 @@ class Feature:
     @property
     def circuit_name(self) -> str:
         """Get the friendly name for the circuit."""
-        m = re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit)
-        return f"{self.name} {m.group(1)}.{m.group(2)}"
+        _circuit_name: str = self.name
+        _re_match: Optional[Match[str]] = re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit)
+
+        if _re_match:
+            _circuit_name = f"{_circuit_name} {_re_match.group(1)}.{_re_match.group(2)}"
+
+        return _circuit_name
 
     @property
     def changed(self) -> bool:
@@ -118,7 +125,7 @@ class Feature:
 class Relay(Feature):
     """Class for the relay feature from the Unipi Neuron."""
 
-    name: Optional[str] = "Relay"
+    name: str = "Relay"
     feature_name: Optional[str] = "relay"
     feature_type: Optional[str] = "physical"
 
@@ -136,7 +143,7 @@ class Relay(Feature):
 class DigitalOutput(Feature):
     """Class for the digital output feature from the Unipi Neuron."""
 
-    name: Optional[str] = "Digital Output"
+    name: str = "Digital Output"
     feature_name: Optional[str] = "relay"
     feature_type: Optional[str] = "digital"
 
@@ -154,7 +161,7 @@ class DigitalOutput(Feature):
 class DigitalInput(Feature):
     """Class for the digital input feature from the Unipi Neuron."""
 
-    name: Optional[str] = "Digital Input"
+    name: str = "Digital Input"
     feature_name: Optional[str] = "input"
     feature_type: Optional[str] = "digital"
 
@@ -162,7 +169,7 @@ class DigitalInput(Feature):
 class AnalogueOutput(Feature):
     """Class for the analogue output feature from the Unipi Neuron."""
 
-    name: Optional[str] = "Analog Output"
+    name: str = "Analog Output"
     feature_name: Optional[str] = "output"
     feature_type: Optional[str] = "analog"
 
@@ -196,9 +203,7 @@ class AnalogueOutput(Feature):
         _offset: float = 0
 
         if self._cal_reg > 0:
-            _offset = self._uint16_to_int(
-                self.ai_voltage_deviation[0]
-            ) / 10000.0
+            _offset = self._uint16_to_int(self.ai_voltage_deviation[0]) / 10000.0
 
         return _offset
 
@@ -216,7 +221,7 @@ class AnalogueOutput(Feature):
         _mode: str = "Resistance"
 
         if self.is_voltage:
-            _mode: str = "Voltage"
+            _mode = "Voltage"
         elif self.ai_config[0] == 1:
             _mode = "Current"
 
@@ -265,8 +270,8 @@ class AnalogueOutput(Feature):
         return changed
 
     @property
-    def value(self) -> int:
-        _value = self._reg_value() * 0.0025
+    def value(self) -> float:
+        _value: float = self._reg_value() * 0.0025
 
         if self.circuit == "ao_1_01":
             _value = self._reg_value() * self.factor + self.offset
@@ -297,7 +302,7 @@ class AnalogueOutput(Feature):
 class AnalogueInput(Feature):
     """Class for the analog input feature from the Unipi Neuron."""
 
-    name: Optional[str] = "Analog Input"
+    name: str = "Analogue Input"
     feature_name: Optional[str] = "input"
     feature_type: Optional[str] = "analog"
 
@@ -305,7 +310,7 @@ class AnalogueInput(Feature):
 class Led(Feature):
     """Class for the LED feature from the Unipi Neuron."""
 
-    name: Optional[str] = "LED"
+    name: str = "LED"
     feature_name: Optional[str] = "led"
     feature_type: Optional[str] = None
 
@@ -340,7 +345,7 @@ class FeatureMap(DataStorage):
 
         self.data[feature.type].append(feature)
 
-    def by_circuit(self, circuit: str, feature_type: Optional[list] = None) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
+    def by_circuit(self, circuit: str, feature_type: Optional[List[str]] = None) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
         """Get feature by circuit name.
 
         Parameters
@@ -359,10 +364,10 @@ class FeatureMap(DataStorage):
         StopIteration
             Get an exception if circuit not found.
         """
+        data: Iterator = itertools.chain.from_iterable(self.data.values())
+
         if feature_type:
-            data: Iterator = self.by_feature_type(feature_type)
-        else:
-            data: Iterator = itertools.chain.from_iterable(self.data.values())
+            data = self.by_feature_type(feature_type)
 
         try:
             feature = next(filter(lambda d: d.circuit == circuit, data))
@@ -371,7 +376,7 @@ class FeatureMap(DataStorage):
 
         return feature
 
-    def by_feature_type(self, feature_type: list) -> Iterator:
+    def by_feature_type(self, feature_type: List[str]) -> Iterator:
         """Filter features by feature type.
 
         Parameters

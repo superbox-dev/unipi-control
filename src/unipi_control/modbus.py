@@ -1,7 +1,7 @@
-from typing import Coroutine
+from typing import List
 
-from pymodbus.client.asynchronous import schedulers
-from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
+from pymodbus.client.asynchronous import schedulers  # type: ignore
+from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient  # type: ignore
 
 
 class ModbusException(Exception):
@@ -66,7 +66,7 @@ class Modbus:
         self.loop, self.modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
         self.modbus_client = self.modbus.protocol
 
-    async def write_coil(self, address: int, value: int, unit: int) -> Coroutine:
+    async def write_coil(self, address: int, value: int, unit: int):
         """Write value to modbus address.
 
         Parameters
@@ -80,7 +80,7 @@ class Modbus:
 
         Returns
         ----------
-        Coroutine
+        Response
             A deferred response handle.
 
         Raises
@@ -93,7 +93,7 @@ class Modbus:
 
         return await self.modbus_client.write_coil(address, value, unit=unit)
 
-    async def write_register(self, address: int, value: int, unit: int) -> Coroutine:
+    async def write_register(self, address: int, value: int, unit: int):
         """Write value to modbus register.
 
         Parameters
@@ -107,7 +107,7 @@ class Modbus:
 
         Returns
         ----------
-        Coroutine
+        Response
             A deferred response handle.
 
         Raises
@@ -120,7 +120,7 @@ class Modbus:
 
         return await self.modbus_client.write_register(address, value, unit=unit)
 
-    async def read_holding_registers(self, address: int, count: int, unit: int) -> Coroutine:
+    async def read_holding_registers(self, address: int, count: int, unit: int):
         """Read value from modbus holding registers.
 
         Parameters
@@ -134,7 +134,7 @@ class Modbus:
 
         Returns
         ----------
-        Coroutine
+        Response
             A deferred response handle.
 
         Raises
@@ -147,7 +147,7 @@ class Modbus:
 
         return await self.modbus_client.read_holding_registers(address, count, unit=unit)
 
-    async def read_input_registers(self, address: int, count: int, unit: int) -> Coroutine:
+    async def read_input_registers(self, address: int, count: int, unit: int):
         """Read value from modbus input registers.
 
         Parameters
@@ -161,7 +161,7 @@ class Modbus:
 
         Returns
         ----------
-        Coroutine
+        Response
             A deferred response handle.
 
         Raises
@@ -186,7 +186,7 @@ class ModbusCacheMap:
         The modbus register blocks.
     """
 
-    def __init__(self, modbus, modbus_register_blocks: list):
+    def __init__(self, modbus, modbus_register_blocks: List[dict]):
         """Initialize modbus cache map.
 
         Parameters
@@ -197,7 +197,7 @@ class ModbusCacheMap:
             The modbus register blocks.
         """
         self.modbus = modbus
-        self.modbus_register_blocks: list = modbus_register_blocks
+        self.modbus_register_blocks: List[dict] = modbus_register_blocks
 
         self._registered: dict = {}
         self._registered_input: dict = {}
@@ -224,17 +224,14 @@ class ModbusCacheMap:
                 response = await self.modbus.read_input_registers(**data)
 
                 for index in range(data["count"]):
-                    reg_index: int = data["address"] + index
-                    self._registered_input[reg_index] = response.registers[
-                        index]
+                    self._registered_input[data["address"] + index] = response.registers[index]
             else:
                 response = await self.modbus.read_holding_registers(**data)
 
                 for index in range(data["count"]):
-                    reg_index: int = data["address"] + index
-                    self._registered[reg_index] = response.registers[index]
+                    self._registered[data["address"] + index] = response.registers[index]
 
-    def get_register(self, address: int, index: int, unit: int = 0, is_input: bool = False):
+    def get_register(self, address: int, index: int, unit: int = 0, is_input: bool = False) -> list:
         """Get the responses from the cached modbus register blocks.
 
         Parameters

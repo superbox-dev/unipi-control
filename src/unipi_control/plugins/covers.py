@@ -1,6 +1,9 @@
 import asyncio
+from asyncio import Task
 from contextlib import AsyncExitStack
+from typing import Any
 from typing import AsyncIterable
+from typing import Set
 
 from config import COVER_TYPES
 from config import LOG_MQTT_PUBLISH
@@ -18,7 +21,7 @@ class CoversMqttPlugin:
         self._uc = uc
         self._mqtt_client = mqtt_client
 
-    async def init_tasks(self, stack: AsyncExitStack) -> set:
+    async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
 
         Parameters
@@ -26,18 +29,18 @@ class CoversMqttPlugin:
         stack : AsyncExitStack
             The asynchronous context manager for the MQTT client.
         """
-        tasks = set()
+        tasks: Set[Task] = set()
 
         tasks = await self._command_topic(stack, tasks)
         tasks = await self._set_position_topic(stack, tasks)
         tasks = await self._tilt_command_topic(stack, tasks)
 
-        task = asyncio.create_task(self._publish())
+        task: Task[Any] = asyncio.create_task(self._publish())
         tasks.add(task)
 
         return tasks
 
-    async def _command_topic(self, stack: AsyncExitStack, tasks: set) -> set:
+    async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
         for cover in self._uc.covers.by_cover_type(COVER_TYPES):
             topic: str = f"{cover.topic}/set"
 
@@ -52,7 +55,7 @@ class CoversMqttPlugin:
 
         return tasks
 
-    async def _set_position_topic(self, stack: AsyncExitStack, tasks: set) -> set:
+    async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
         for cover in self._uc.covers.by_cover_type(COVER_TYPES):
             topic: str = f"{cover.topic}/position/set"
 
@@ -67,7 +70,7 @@ class CoversMqttPlugin:
 
         return tasks
 
-    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: set) -> set:
+    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
         for cover in self._uc.covers.by_cover_type(COVER_TYPES):
             if cover.tilt_change_time:
                 topic: str = f"{cover.topic}/tilt/set"
@@ -122,19 +125,19 @@ class CoversMqttPlugin:
         while True:
             for cover in self._uc.covers.by_cover_type(COVER_TYPES):
                 if cover.position_changed:
-                    topic: str = f"{cover.topic}/position"
-                    logger.info(LOG_MQTT_PUBLISH, topic, cover.position)
-                    await self._mqtt_client.publish(topic, cover.position, qos=2, retain=True)
+                    position_topic: str = f"{cover.topic}/position"
+                    logger.info(LOG_MQTT_PUBLISH, position_topic, cover.position)
+                    await self._mqtt_client.publish(position_topic, cover.position, qos=2, retain=True)
 
                 if cover.tilt_changed:
-                    topic: str = f"{cover.topic}/tilt"
-                    logger.info(LOG_MQTT_PUBLISH, topic, cover.tilt)
-                    await self._mqtt_client.publish(topic, cover.tilt, qos=2, retain=True)
+                    tilt_topic: str = f"{cover.topic}/tilt"
+                    logger.info(LOG_MQTT_PUBLISH, tilt_topic, cover.tilt)
+                    await self._mqtt_client.publish(tilt_topic, cover.tilt, qos=2, retain=True)
 
                 if cover.state_changed:
-                    topic: str = f"{cover.topic}/state"
-                    logger.info(LOG_MQTT_PUBLISH, topic, cover.state)
-                    await self._mqtt_client.publish(topic, cover.state, qos=2, retain=True)
+                    state_topic: str = f"{cover.topic}/state"
+                    logger.info(LOG_MQTT_PUBLISH, state_topic, cover.state)
+                    await self._mqtt_client.publish(state_topic, cover.state, qos=2, retain=True)
 
                 await cover.calibrate()
             await asyncio.sleep(25e-3)
