@@ -51,12 +51,13 @@ class FeaturesMqttPlugin:
     async def _subscribe(feature, topic: str, messages: AsyncIterable) -> None:
         async for message in messages:
             value: str = message.payload.decode()
-            logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
             if value == "ON":
                 await feature.set_state(1)
             elif value == "OFF":
                 await feature.set_state(0)
+
+            logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
     async def _publish(self) -> None:
         while True:
@@ -67,7 +68,7 @@ class FeaturesMqttPlugin:
             for feature in features:
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
-                    logger.info(LOG_MQTT_PUBLISH, topic, feature.state)
                     await self._mqtt_client.publish(topic, feature.state, qos=2, retain=True)
+                    logger.info(LOG_MQTT_PUBLISH, topic, feature.state)
 
             await asyncio.sleep(25e-3)

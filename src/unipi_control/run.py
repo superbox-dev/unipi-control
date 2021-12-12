@@ -95,10 +95,10 @@ class UnipiControl:
         tasks = [t for t in self._tasks if not t.done()]
         [task.cancel() for task in tasks]
 
+        await asyncio.gather(*tasks)
+
         if tasks:
             logger.info("Cancelling %s outstanding tasks.", len(tasks))
-
-        await asyncio.gather(*tasks)
 
     @staticmethod
     async def shutdown(s=None):
@@ -111,9 +111,9 @@ class UnipiControl:
         ]
 
         [task.cancel() for task in tasks]
-        logger.info("Cancelling %s outstanding tasks.", len(tasks))
-
         await asyncio.gather(*tasks)
+
+        logger.info("Cancelling %s outstanding tasks.", len(tasks))
 
     async def run(self) -> None:
         await self.neuron.read_boards()

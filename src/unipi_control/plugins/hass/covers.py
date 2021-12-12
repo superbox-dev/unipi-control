@@ -64,8 +64,8 @@ class HassCoversDiscovery:
         for cover in self._uc.covers.by_cover_type(COVER_TYPES):
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
-            logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
             await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
+            logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassCoversMqttPlugin:

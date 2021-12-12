@@ -216,7 +216,6 @@ class Neuron:
     async def read_boards(self) -> None:
         """Append all available boards to a list."""
         await self._initialise_cache()
-
         logger.info("[MODBUS] Reading SPI boards")
 
         for index in (1, 2, 3):

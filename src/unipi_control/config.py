@@ -162,10 +162,8 @@ class Config(ConfigBase):
             "error": ERROR,
         }
 
-        logger_level = level[self.logging.level]
-
         basicConfig(
-            level=logger_level,
+            level=level[self.logging.level],
             format="%(levelname)s - %(message)s",
         )
 
