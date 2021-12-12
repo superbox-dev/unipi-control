@@ -75,11 +75,11 @@ class CoverTimer:
         self._callback = callback
         self._task = asyncio.create_task(self._job())
 
-    async def _job(self):
+    async def _job(self) -> None:
         await asyncio.sleep(self._timeout)
         await self._callback()
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Cancel a running timer before it ends."""
         self._task.cancel()
 
@@ -131,7 +131,7 @@ class Cover:
         """
         self.calibrate_mode: bool = False
         self.friendly_name: str = kwargs.get("friendly_name", "")
-        self.cover_type: Optional[str] = kwargs.get("cover_type")
+        self.cover_type: str = kwargs.get("cover_type", "roller_shutter")
         self.topic_name: Optional[str] = kwargs.get("topic_name")
         self.full_open_time: Union[float, int] = kwargs.get("full_open_time", 300)
         self.full_close_time: Union[float, int] = kwargs.get("full_close_time", 300)
@@ -292,7 +292,7 @@ class Cover:
         elif self.position >= 100:
             self.position = 100
 
-    def _delete_position(self):
+    def _delete_position(self) -> None:
         self._temp_filename.unlink(missing_ok=True)
 
     def _read_position(self) -> None:

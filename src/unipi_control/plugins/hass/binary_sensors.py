@@ -1,7 +1,9 @@
 import asyncio
 import json
+from asyncio import Task
 from dataclasses import asdict
-from typing import Optional
+from typing import Set
+from typing import Tuple
 
 from config import config
 from config import LOG_MQTT_PUBLISH
@@ -26,14 +28,14 @@ class HassBinarySensorsDiscovery:
     @staticmethod
     def _get_friendly_name(feature) -> str:
         friendly_name: str = f"{config.device_name} - {feature.circuit_name}"
-        features_config: Optional[dict] = config.features.get(feature.circuit, {})
+        features_config: dict = config.features.get(feature.circuit, {})
 
-        if features_config is not None:
+        if features_config:
             friendly_name = features_config.get("friendly_name", friendly_name)
 
         return friendly_name
 
-    def _get_discovery(self, feature) -> tuple:
+    def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = f"{config.homeassistant.discovery_prefix}/binary_sensor/{config.device_name.lower()}/{feature.circuit}/config"
 
         message: dict = {
@@ -73,9 +75,9 @@ class HassBinarySensorsMqttPlugin:
         self._mqtt_client = mqtt_client
         self._hass = HassBinarySensorsDiscovery(uc, mqtt_client)
 
-    async def init_tasks(self) -> set:
+    async def init_tasks(self) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``."""
-        tasks = set()
+        tasks: Set[Task] = set()
 
         task = asyncio.create_task(self._hass.publish())
         tasks.add(task)

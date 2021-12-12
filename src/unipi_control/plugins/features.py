@@ -1,6 +1,8 @@
 import asyncio
+from asyncio import Task
 from contextlib import AsyncExitStack
 from typing import AsyncIterable
+from typing import Set
 
 from config import LOG_MQTT_PUBLISH
 from config import LOG_MQTT_SUBSCRIBE
@@ -16,7 +18,7 @@ class FeaturesMqttPlugin:
         self._uc = uc
         self._mqtt_client = mqtt_client
 
-    async def init_tasks(self, stack: AsyncExitStack) -> set:
+    async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
 
         Parameters
@@ -24,7 +26,7 @@ class FeaturesMqttPlugin:
         stack : AsyncExitStack
             The asynchronous context manager for the MQTT client.
         """
-        tasks = set()
+        tasks: Set[Task] = set()
 
         features = self._uc.neuron.features.by_feature_type(["AO", "DO", "RO"])
 

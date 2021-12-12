@@ -1,7 +1,10 @@
 import asyncio
 import json
+from asyncio import Task
 from dataclasses import asdict
 from typing import Optional
+from typing import Set
+from typing import Tuple
 
 from config import config
 from config import LOG_MQTT_PUBLISH
@@ -33,7 +36,7 @@ class HassSwitchesDiscovery:
 
         return friendly_name
 
-    def _get_discovery(self, feature) -> tuple:
+    def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = f"{config.homeassistant.discovery_prefix}/switch/" \
                      f"{config.device_name.lower()}/{feature.circuit}/config"
 
@@ -78,9 +81,9 @@ class HassSwitchesMqttPlugin:
         self._mqtt_client = mqtt_client
         self._ha = HassSwitchesDiscovery(uc, mqtt_client)
 
-    async def init_tasks(self) -> set:
+    async def init_tasks(self) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``."""
-        tasks = set()
+        tasks: Set[Task] = set()
 
         task = asyncio.create_task(self._ha.publish())
         tasks.add(task)

@@ -370,7 +370,7 @@ class FeatureMap(DataStorage):
             data = self.by_feature_type(feature_type)
 
         try:
-            feature = next(filter(lambda d: d.circuit == circuit, data))
+            feature: Union[DigitalInput, DigitalOutput, Relay, Led] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
             sys.exit(colored(f"[CONFIG] `{circuit}` not found in {self.__class__.__name__}!", "red"))
 

@@ -90,7 +90,7 @@ class UnipiControl:
 
             await asyncio.gather(*self._tasks)
 
-    async def cancel_tasks(self):
+    async def cancel_tasks(self) -> None:
         """Cancel all outstanding asyncio tasks."""
         tasks = [t for t in self._tasks if not t.done()]
         [task.cancel() for task in tasks]

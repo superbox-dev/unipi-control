@@ -1,6 +1,9 @@
 import asyncio
 import json
+from asyncio import Task
 from dataclasses import asdict
+from typing import Set
+from typing import Tuple
 
 from config import config
 from config import COVER_TYPES
@@ -23,7 +26,7 @@ class HassCoversDiscovery:
         self._mqtt_client = mqtt_client
         self.hardware = uc.neuron.hardware
 
-    def _get_discovery(self, cover) -> tuple:
+    def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = f"{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
 
         message: dict = {
@@ -74,9 +77,9 @@ class HassCoversMqttPlugin:
         self._mqtt_client = mqtt_client
         self._hass = HassCoversDiscovery(uc, mqtt_client)
 
-    async def init_tasks(self) -> set:
+    async def init_tasks(self) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``."""
-        tasks = set()
+        tasks: Set[Task] = set()
 
         task = asyncio.create_task(self._hass.publish())
         tasks.add(task)
