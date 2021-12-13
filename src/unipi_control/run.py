@@ -129,10 +129,7 @@ class UnipiControl:
                 logger.info("[MQTT] Connecting to broker ...")
                 await self._init_tasks()
             except MqttError as error:
-                logger.error(
-                    "[MQTT] Error `%s`. Connecting attempt #%s. Reconnecting in %s seconds.",
-                    (error, self._retry_reconnect + 1, reconnect_interval)
-                )
+                logger.error("[MQTT] Error `%s`. Connecting attempt #%s. Reconnecting in %s seconds.", error, self._retry_reconnect + 1, reconnect_interval)
             finally:
                 if retry_limit and self._retry_reconnect > retry_limit:
                     sys.exit(1)
