@@ -50,7 +50,7 @@ class CoversMqttPlugin:
             task = asyncio.create_task(self._subscribe_command_topic(cover, topic, messages))
             tasks.add(task)
 
-            await self._mqtt_client.subscribe(topic, qos=2)
+            await self._mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
@@ -65,7 +65,7 @@ class CoversMqttPlugin:
             task = asyncio.create_task(self._subscribe_set_position_topic(cover, topic, messages))
             tasks.add(task)
 
-            await self._mqtt_client.subscribe(topic, qos=2)
+            await self._mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
@@ -81,7 +81,7 @@ class CoversMqttPlugin:
                 task = asyncio.create_task(self._subscribe_tilt_command_topic(cover, topic, messages))
                 tasks.add(task)
 
-                await self._mqtt_client.subscribe(topic, qos=2)
+                await self._mqtt_client.subscribe(topic, qos=0)
                 logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
@@ -125,17 +125,17 @@ class CoversMqttPlugin:
             for cover in self._uc.covers.by_cover_type(COVER_TYPES):
                 if cover.position_changed:
                     position_topic: str = f"{cover.topic}/position"
-                    await self._mqtt_client.publish(position_topic, cover.position, qos=2, retain=True)
+                    await self._mqtt_client.publish(position_topic, cover.position, qos=1, retain=True)
                     logger.info(LOG_MQTT_PUBLISH, position_topic, cover.position)
 
                 if cover.tilt_changed:
                     tilt_topic: str = f"{cover.topic}/tilt"
-                    await self._mqtt_client.publish(tilt_topic, cover.tilt, qos=2, retain=True)
+                    await self._mqtt_client.publish(tilt_topic, cover.tilt, qos=1, retain=True)
                     logger.info(LOG_MQTT_PUBLISH, tilt_topic, cover.tilt)
 
                 if cover.state_changed:
                     state_topic: str = f"{cover.topic}/state"
-                    await self._mqtt_client.publish(state_topic, cover.state, qos=2, retain=True)
+                    await self._mqtt_client.publish(state_topic, cover.state, qos=1, retain=True)
                     logger.info(LOG_MQTT_PUBLISH, state_topic, cover.state)
 
                 await cover.calibrate()
