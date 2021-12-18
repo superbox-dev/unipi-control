@@ -42,7 +42,7 @@ class Board:
             self.volt_ref_x = (3.3 * (1 + modbus_cache_map.get_register(address=1, index=1009)[0]))
             self.volt_ref = self.volt_ref_x / modbus_cache_map.get_register(address=1, index=5)[0]
 
-    def _parse_feature_ro(self, max_count: int, modbus_feature: Dict[str, Any]) -> None:
+    def _parse_feature_ro(self, max_count: int, modbus_feature: dict) -> None:
         major_group: str = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -61,7 +61,7 @@ class Board:
 
                 self.neuron.features.register(ro)
 
-    def _parse_feature_di(self, max_count: int, modbus_feature: Dict[str, Any]) -> None:
+    def _parse_feature_di(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -79,7 +79,7 @@ class Board:
 
                 self.neuron.features.register(di)
 
-    def _parse_feature_do(self, max_count: int, modbus_feature: Dict[str, Any]) -> None:
+    def _parse_feature_do(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -98,7 +98,7 @@ class Board:
 
                 self.neuron.features.register(do)
 
-    def _parse_feature_ao(self, max_count: int, modbus_feature: Dict[str, Any]) -> None:
+    def _parse_feature_ao(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -113,9 +113,12 @@ class Board:
                     **modbus_feature,
                 )
 
-                self.neuron.features.register(ao)
+                print(ao)
 
-    def _parse_feature_ai(self, max_count: int, modbus_feature: Dict[str, Any]) -> None:
+                # TODO: add support for analogue output
+                # self.neuron.features.register(ao)
+
+    def _parse_feature_ai(self, max_count: int, modbus_feature: dict) -> None:
         major_group: int = modbus_feature["major_group"]
         feature_type: str = modbus_feature["type"]
 
@@ -130,7 +133,10 @@ class Board:
                     **modbus_feature,
                 )
 
-                self.neuron.features.register(ai)
+                print(ai)
+
+                # TODO: add support for analogue input
+                # self.neuron.features.register(ai)
 
     def _parse_feature_led(self, max_count: int, modbus_feature: Dict[str, Any]) -> None:
         major_group: int = modbus_feature["major_group"]
@@ -151,7 +157,7 @@ class Board:
 
                 self.neuron.features.register(led)
 
-    def _parse_feature(self, modbus_feature: Dict[str, Any]) -> None:
+    def _parse_feature(self, modbus_feature: dict) -> None:
         max_count: int = modbus_feature["count"]
         feature_type: str = modbus_feature["type"].lower()
         func = getattr(self, f"_parse_feature_{feature_type}", None)
