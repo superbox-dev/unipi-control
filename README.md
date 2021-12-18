@@ -169,7 +169,7 @@ Topic | Response/Request | Description
 
 ## Extras
 
-I have wrote a homeassistant blueprint automation to control covers with binary sensors. Take a look in the extras folder.
+I have wrote a Home Asistant blueprint automation to control covers with binary sensors. Take a look in the extras folder.
 
 ## TODO
 
