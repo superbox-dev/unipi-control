@@ -2,6 +2,7 @@ import asyncio
 import json
 from asyncio import Task
 from dataclasses import asdict
+from typing import Any
 from typing import Optional
 from typing import Set
 from typing import Tuple
@@ -21,7 +22,6 @@ class HassSwitchesDiscovery:
     """
 
     def __init__(self, uc, mqtt_client):
-        """Initialize Home Assistant MQTT discovery."""
         self._uc = uc
         self._mqtt_client = mqtt_client
         self.hardware = uc.neuron.hardware
@@ -62,11 +62,8 @@ class HassSwitchesDiscovery:
 
         return topic, message
 
-    async def publish(self) -> None:
-        """Publish the discovery as MQTT."""
-        features = self._uc.neuron.features.by_feature_type(["RO", "DO"])
-
-        for feature in features:
+    async def publish(self):
+        for feature in self._uc.neuron.features.by_feature_type(["RO", "DO"]):
             topic, message = self._get_discovery(feature)
             json_data: str = json.dumps(message)
             await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
@@ -77,15 +74,12 @@ class HassSwitchesMqttPlugin:
     """Provide Home Assistant MQTT commands for switches."""
 
     def __init__(self, uc, mqtt_client):
-        """Initialize Home Assistant MQTT plugin."""
-        self._mqtt_client = mqtt_client
         self._ha = HassSwitchesDiscovery(uc, mqtt_client)
 
     async def init_tasks(self) -> Set[Task]:
-        """Add tasks to the ``AsyncExitStack``."""
         tasks: Set[Task] = set()
 
-        task = asyncio.create_task(self._ha.publish())
+        task: Task[Any] = asyncio.create_task(self._ha.publish())
         tasks.add(task)
 
         return tasks

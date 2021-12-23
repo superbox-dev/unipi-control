@@ -1,6 +1,7 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
+from typing import Any
 from typing import AsyncIterable
 from typing import Set
 
@@ -14,41 +15,32 @@ class FeaturesMqttPlugin:
     """Provide features control as MQTT commands."""
 
     def __init__(self, uc, mqtt_client):
-        """Initialize features MQTT plugin."""
         self._uc = uc
         self._mqtt_client = mqtt_client
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
-        """Add tasks to the ``AsyncExitStack``.
-
-        Parameters
-        ----------
-        stack : AsyncExitStack
-            The asynchronous context manager for the MQTT client.
-        """
         tasks: Set[Task] = set()
 
-        features = self._uc.neuron.features.by_feature_type(["AO", "DO", "RO"])
-
-        for feature in features:
+        for feature in self._uc.neuron.features.by_feature_type(["DO", "RO"]):
             topic: str = f"{feature.topic}/set"
 
             manager = self._mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            task = asyncio.create_task(self._subscribe(feature, topic, messages))
-            tasks.add(task)
+            subscribe_task: Task[Any] = asyncio.create_task(self._subscribe(feature, topic, messages))
+            tasks.add(subscribe_task)
 
             await self._mqtt_client.subscribe(topic)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-        task = asyncio.create_task(self._publish())
-        tasks.add(task)
+        for feature in self._uc.neuron.features.by_feature_type(["AO", "DI", "DO", "RO"]):
+            publish_task: Task[Any] = asyncio.create_task(self._publish(feature))
+            tasks.add(publish_task)
 
         return tasks
 
     @staticmethod
-    async def _subscribe(feature, topic: str, messages: AsyncIterable) -> None:
+    async def _subscribe(feature, topic: str, messages: AsyncIterable):
         async for message in messages:
             value: str = message.payload.decode()
 
@@ -59,16 +51,12 @@ class FeaturesMqttPlugin:
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
-    async def _publish(self) -> None:
+    async def _publish(self, feature):
         while True:
-            await self._uc.neuron.scan()
-
-            features = self._uc.neuron.features.by_feature_type(["AO", "DI", "DO", "RO"])
-
-            for feature in features:
-                if feature.changed:
-                    topic: str = f"{feature.topic}/get"
-                    await self._mqtt_client.publish(topic, feature.state, qos=2, retain=True)
-                    logger.info(LOG_MQTT_PUBLISH, topic, feature.state)
+            if feature.changed:
+                topic: str = f"{feature.topic}/get"
+                state: str = feature.state
+                await self._mqtt_client.publish(topic, state, qos=1, retain=True)
+                logger.info(LOG_MQTT_PUBLISH, topic, state)
 
             await asyncio.sleep(25e-3)

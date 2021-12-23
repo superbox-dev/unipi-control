@@ -28,7 +28,7 @@ repos:
     rev: "4.0.1"
     hooks:
       - id: flake8
-        args: ["--ignore=E501,D100,D101,D102,D103,D104,D107,D105,W504", "--docstring-convention numpy", ]
+        args: ["--ignore=E501,D100,D101,D102,D103,D104,D107,D105,W504"]
         additional_dependencies: [flake8-bugbear]
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.46"

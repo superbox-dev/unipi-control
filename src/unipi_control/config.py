@@ -1,4 +1,4 @@
-import asyncio
+import logging
 import os
 import re
 import socket
@@ -8,19 +8,9 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import is_dataclass
-from logging import basicConfig
-from logging import DEBUG
-from logging import ERROR
-from logging import getLogger
-from logging import INFO
-from logging import Logger
-from logging import LogRecord
-from logging import WARNING
-from logging.handlers import QueueHandler
-from logging.handlers import QueueListener
 from pathlib import Path
-from queue import SimpleQueue
 from typing import Dict
+from typing import Final
 from typing import List
 from typing import Match
 from typing import Optional
@@ -30,49 +20,26 @@ import yaml
 from helpers import DataStorage
 from termcolor import colored
 
-HARDWARE: str = "/etc/unipi/hardware"
-COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
-COVER_KEY_MISSING: str = "[CONFIG] [COVER %s] Required key `%s` is missing!"
-COVER_TIME: str = "[CONFIG] [COVER %s] Key `%s` is not a float or integer!"
-LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
-LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
-
-
-class LocalQueueHandler(QueueHandler):
-    def emit(self, record: LogRecord) -> None:
-        try:
-            self.enqueue(record)
-        except asyncio.CancelledError as error:
-            raise error
-        except Exception:
-            self.handleError(record)
+HARDWARE: Final[str] = "/etc/unipi/hardware"
+COVER_TYPES: Final[list] = ["blind", "roller_shutter", "garage_door"]
+COVER_KEY_MISSING: Final[str] = "[CONFIG] [COVER %s] Required key `%s` is missing!"
+COVER_TIME: Final[str] = "[CONFIG] [COVER %s] Key `%s` is not a float or integer!"
+LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
+LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
+LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
 
 
 class HardwareException(Exception):
-    """Unipi Control detect unsupported hardware."""
-
     pass
 
 
 class ImproperlyConfigured(Exception):
-    """Unipi Control is somehow improperly configured."""
-
     pass
 
 
 @dataclass
 class ConfigBase:
-    """Base data class for the unipi control configs."""
-
     def clean(self):
-        """If a clean function for key exists then validate it.
-
-        Raises
-        ------
-        ImproperlyConfigured
-            If errors exists then exit the script and print the errors.
-        """
         errors = []
 
         for key in self.__dict__.keys():
@@ -88,7 +55,6 @@ class ConfigBase:
             sys.exit("\n".join(errors))
 
     def update(self, new):
-        """Update the default config with custom config from the yaml file."""
         for key, value in new.items():
             if hasattr(self, key):
                 item = getattr(self, key)
@@ -101,8 +67,6 @@ class ConfigBase:
 
 @dataclass
 class MqttConfig(ConfigBase):
-    """Data class for the default MQTT client config."""
-
     host: str = field(default="localhost")
     port: int = field(default=1883)
     keepalive: int = field(default=15)
@@ -112,15 +76,11 @@ class MqttConfig(ConfigBase):
 
 @dataclass
 class DeviceInfo(ConfigBase):
-    """Data class for the default device info."""
-
     manufacturer: str = field(default="Unipi technology")
 
 
 @dataclass
 class HomeAssistantConfig(ConfigBase):
-    """Data class for the default Home Assistant config."""
-
     enabled: bool = field(default=True)
     discovery_prefix: str = field(default="homeassistant")
     device: DeviceInfo = field(default=DeviceInfo())
@@ -128,15 +88,11 @@ class HomeAssistantConfig(ConfigBase):
 
 @dataclass
 class LoggingConfig(ConfigBase):
-    """Data class for the default logging config."""
-
     level: str = field(default="info")
 
 
 @dataclass
 class Config(ConfigBase):
-    """Data class for the default unipi control base config."""
-
     device_name: str = field(default=socket.gethostname())
     mqtt: MqttConfig = field(default=MqttConfig())
     homeassistant: HomeAssistantConfig = field(default=HomeAssistantConfig())
@@ -151,13 +107,6 @@ class Config(ConfigBase):
 
     @staticmethod
     def get_config(path: str) -> dict:
-        """Read the unipi control yaml config file.
-
-        Returns
-        ----------
-        dict
-            The unipi control config as dict.
-        """
         _config: dict = {}
 
         if os.path.exists(path):
@@ -166,35 +115,26 @@ class Config(ConfigBase):
 
         return _config
 
-    def logger(self) -> Logger:
-        queue: SimpleQueue[LocalQueueHandler] = SimpleQueue()
-        handler = LocalQueueHandler(queue)
-
-        _logger: Logger = getLogger("asyncio")
-        _logger.addHandler(handler)
-
+    def logger(self):
         level: Dict[str, int] = {
-            "debug": DEBUG,
-            "info": INFO,
-            "warning": WARNING,
-            "error": ERROR,
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "warning": logging.WARNING,
+            "error": logging.ERROR,
         }
 
-        basicConfig(
+        logging.basicConfig(
             level=level[self.logging.level],
             format="%(levelname)s - %(message)s",
         )
 
-        listener = QueueListener(queue, handler, respect_handler_level=True)
-        listener.start()
-
-        return _logger
+        return logging.getLogger("asyncio")
 
     def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config.
 
         Returns
-        ----------
+        -------
         list
             A list of cover circuits.
         """
@@ -212,8 +152,7 @@ class Config(ConfigBase):
 
         return circuits
 
-    def clean_device_name(self) -> None:
-        """Check if device name is valid."""
+    def clean_device_name(self):
         result = re.search(r"^[\w\d_-]*$", self.device_name)
 
         if result is None:
@@ -222,8 +161,7 @@ class Config(ConfigBase):
                 "The following characters are prohibited: A-Z a-z 0-9 -_"
             )
 
-    def clean_covers(self) -> None:
-        """Check if covers config is valid."""
+    def clean_covers(self):
         for index, cover in enumerate(self.covers):
             self._clean_covers_friendly_name(cover, index)
             self._clean_covers_cover_type(cover, index)
@@ -236,12 +174,12 @@ class Config(ConfigBase):
             self._clean_duplicate_covers_circuits()
 
     @staticmethod
-    def _clean_covers_friendly_name(cover: Dict[str, str], index: int) -> None:
+    def _clean_covers_friendly_name(cover: Dict[str, str], index: int):
         if "friendly_name" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "friendly_name"))
 
     @staticmethod
-    def _clean_covers_cover_type(cover: Dict[str, str], index: int) -> None:
+    def _clean_covers_cover_type(cover: Dict[str, str], index: int):
         if "cover_type" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "cover_type"))
 
@@ -252,7 +190,7 @@ class Config(ConfigBase):
             )
 
     @staticmethod
-    def _clean_covers_topic_name(cover: Dict[str, str], index: int) -> None:
+    def _clean_covers_topic_name(cover: Dict[str, str], index: int):
         if "topic_name" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "topic_name"))
 
@@ -265,7 +203,7 @@ class Config(ConfigBase):
             )
 
     @staticmethod
-    def _clean_covers_full_open_time(cover: Dict[str, Union[float, int]], index: int) -> None:
+    def _clean_covers_full_open_time(cover: Dict[str, Union[float, int]], index: int):
         if "full_open_time" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "full_open_time"))
 
@@ -275,7 +213,7 @@ class Config(ConfigBase):
             raise ImproperlyConfigured(COVER_TIME % (index + 1, "full_open_time"))
 
     @staticmethod
-    def _clean_covers_full_close_time(cover: Dict[str, Union[float, int]], index: int) -> None:
+    def _clean_covers_full_close_time(cover: Dict[str, Union[float, int]], index: int):
         if "full_close_time" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "full_close_time"))
 
@@ -285,23 +223,23 @@ class Config(ConfigBase):
             raise ImproperlyConfigured(COVER_TIME % (index + 1, "full_close_time"))
 
     @staticmethod
-    def _clean_covers_tilt_change_time(cover: Dict[str, Union[float, int]], index: int) -> None:
+    def _clean_covers_tilt_change_time(cover: Dict[str, Union[float, int]], index: int):
         value = cover.get("tilt_change_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
             raise ImproperlyConfigured(COVER_TIME % (index + 1, "tilt_change_time"))
 
     @staticmethod
-    def _clean_covers_circuit_up(cover: Dict[str, str], index: int) -> None:
+    def _clean_covers_circuit_up(cover: Dict[str, str], index: int):
         if "circuit_up" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_up"))
 
     @staticmethod
-    def _clean_covers_circuit_down(cover: Dict[str, str], index: int) -> None:
+    def _clean_covers_circuit_down(cover: Dict[str, str], index: int):
         if "circuit_down" not in cover:
             raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_down"))
 
-    def _clean_duplicate_covers_circuits(self) -> None:
+    def _clean_duplicate_covers_circuits(self):
         circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
@@ -314,8 +252,6 @@ class Config(ConfigBase):
 
 @dataclass
 class HardwareInfo:
-    """Data class for the Unipi neuron hardware information."""
-
     name: str = field(default="unknown", init=False)
     model: str = field(default="unknown", init=False)
     version: str = field(default="unknown", init=False)
@@ -335,17 +271,7 @@ class HardwareInfo:
 
 
 class HardwareData(DataStorage):
-    """A read-only container object that has saved Unipi Neuron hardware data.
-
-    The hardware data is imported from yaml files from ``/etc/unipi/hardware``.
-
-    See Also
-    --------
-    helpers.DataStorage
-    """
-
     def __init__(self):
-        """Initialize hardware data."""
         super().__init__()
 
         self.data: dict = {
@@ -362,7 +288,7 @@ class HardwareData(DataStorage):
         self._read_definitions()
         self._read_neuron_definition()
 
-    def _read_definitions(self) -> None:
+    def _read_definitions(self):
         try:
             for f in Path(f"{HARDWARE}/extension").iterdir():
                 if str(f).endswith(".yaml"):
@@ -372,7 +298,7 @@ class HardwareData(DataStorage):
         except FileNotFoundError as error:
             print(colored(str(error), "red"))
 
-    def _read_neuron_definition(self) -> None:
+    def _read_neuron_definition(self):
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():

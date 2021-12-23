@@ -2,7 +2,6 @@
 import argparse
 import asyncio
 import shutil
-import signal
 import subprocess
 import sys
 import uuid
@@ -12,22 +11,19 @@ from pathlib import Path
 from typing import Optional
 from typing import Set
 
-import uvloop
 from asyncio_mqtt import Client
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
 from config import config
-from config import HardwareException
 from config import logger
 from covers import CoverMap
-from modbus import Modbus
-from modbus import ModbusException
 from neuron import Neuron
 from plugins.covers import CoversMqttPlugin
 from plugins.features import FeaturesMqttPlugin
 from plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
 from plugins.hass.covers import HassCoversMqttPlugin
 from plugins.hass.switches import HassSwitchesMqttPlugin
+from pymodbus.client.sync import ModbusTcpClient  # type: ignore
 from termcolor import colored
 
 
@@ -39,10 +35,8 @@ class UnipiControl:
     the Home Assistant MQTT discovery for binary sensors, switches and covers.
     """
 
-    def __init__(self, modbus: Modbus):
-        """Initialize unipi control."""
-        self.neuron = Neuron(modbus)
-        self.covers: Optional[CoverMap] = None
+    def __init__(self, modbus_client):
+        self.neuron = Neuron(modbus_client)
 
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
         logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
@@ -50,10 +44,8 @@ class UnipiControl:
         self._tasks: Set[Task] = set()
         self._retry_reconnect: int = 0
 
-    async def _init_tasks(self) -> None:
+    async def _init_tasks(self):
         async with AsyncExitStack() as stack:
-            self._tasks = set()
-
             stack.push_async_callback(self.cancel_tasks)
 
             mqtt_client: Client = MqttClient(
@@ -63,7 +55,7 @@ class UnipiControl:
                 keepalive=config.mqtt.keepalive,
             )
 
-            await stack.enter_async_context(mqtt_client)  # type: ignore
+            await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
             logger.info("[MQTT] Connected to broker at `%s:%s`", config.mqtt.host, config.mqtt.port)
@@ -72,54 +64,43 @@ class UnipiControl:
             tasks = await features.init_tasks(stack)
             self._tasks.update(tasks)
 
-            covers = CoversMqttPlugin(self, mqtt_client)
-            tasks = await covers.init_tasks(stack)
+            covers = CoverMap(features=self.neuron.features)
+
+            covers_plugin = CoversMqttPlugin(mqtt_client, covers)
+            tasks = await covers_plugin.init_tasks(stack)
             self._tasks.update(tasks)
 
             if config.homeassistant.enabled:
-                hass_binary_sensors = HassBinarySensorsMqttPlugin(self, mqtt_client)
-                tasks = await hass_binary_sensors.init_tasks()
+                hass_covers_plugin = HassCoversMqttPlugin(self, mqtt_client, covers)
+                tasks = await hass_covers_plugin.init_tasks()
                 self._tasks.update(tasks)
 
-                hass_covers = HassCoversMqttPlugin(self, mqtt_client)
-                tasks = await hass_covers.init_tasks()
+                hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(self, mqtt_client)
+                tasks = await hass_binary_sensors_plugin.init_tasks()
                 self._tasks.update(tasks)
 
-                hass_switches = HassSwitchesMqttPlugin(self, mqtt_client)
-                tasks = await hass_switches.init_tasks()
+                hass_switches_plugin = HassSwitchesMqttPlugin(self, mqtt_client)
+                tasks = await hass_switches_plugin.init_tasks()
                 self._tasks.update(tasks)
 
             await asyncio.gather(*self._tasks)
 
     async def cancel_tasks(self) -> None:
-        """Cancel all outstanding asyncio tasks."""
-        tasks = [t for t in self._tasks if not t.done()]
-        [task.cancel() for task in tasks]
+        if self._tasks:
+            logger.info("Cancelling %s outstanding tasks.", len(self._tasks))
 
-        await asyncio.gather(*tasks)
+        for task in self._tasks:
+            if task.done():
+                continue
 
-        if tasks:
-            logger.info("Cancelling %s outstanding tasks.", len(tasks))
+            try:
+                task.cancel()
+                await task
+            except asyncio.CancelledError:
+                pass
 
-    @staticmethod
-    async def shutdown(s=None):
-        if s:
-            logger.info("Received exit signal %s...", s.name)
-
-        tasks = [
-            t for t in asyncio.all_tasks()
-            if t is not (t.done() or asyncio.current_task())
-        ]
-
-        [task.cancel() for task in tasks]
-        await asyncio.gather(*tasks)
-
-        logger.info("Cancelling %s outstanding tasks.", len(tasks))
-
-    async def run(self) -> None:
-        await self.neuron.read_boards()
-
-        self.covers = CoverMap(features=self.neuron.features)
+    async def run(self):
+        self.neuron.read_boards()
 
         reconnect_interval: int = config.mqtt.reconnect_interval
         retry_limit: Optional[int] = config.mqtt.retry_limit
@@ -129,7 +110,14 @@ class UnipiControl:
                 logger.info("[MQTT] Connecting to broker ...")
                 await self._init_tasks()
             except MqttError as error:
-                logger.error("[MQTT] Error `%s`. Connecting attempt #%s. Reconnecting in %s seconds.", error, self._retry_reconnect + 1, reconnect_interval)
+                logger.error(
+                    "[MQTT] Error `%s`. Connecting attempt #%s. Reconnecting in %s seconds.",
+                    error,
+                    self._retry_reconnect + 1,
+                    reconnect_interval
+                )
+            except KeyboardInterrupt:
+                break
             finally:
                 if retry_limit and self._retry_reconnect > retry_limit:
                     sys.exit(1)
@@ -139,7 +127,7 @@ class UnipiControl:
                 await asyncio.sleep(reconnect_interval)
 
 
-def install() -> None:
+def install_unipi_control():
     src_config_path: Path = Path(__file__).parents[0].joinpath("installer/etc/unipi")
     src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/lib/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")
@@ -175,37 +163,24 @@ def install() -> None:
         print(colored("systemctl enable --now unipi-control", "magenta", attrs=["bold", ]))
 
 
-def main() -> None:
+def main():
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
-    parser.add_argument("-i", "--install", action="store_true", help="install Unipi Control")
+    parser.add_argument("-i", "--install", action="store_true", help="Install Unipi Control")
     args = parser.parse_args()
 
     if args.install:
-        install()
+        install_unipi_control()
     else:
-        loop = uvloop.new_event_loop()
-        loop.set_debug(False)
+        modbus_client = ModbusTcpClient()
 
         try:
-            modbus = Modbus(loop)
-            uc = UnipiControl(modbus)
-
-            signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-
-            for _signal in signals:
-                loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
-
-            loop.run_until_complete(uc.run())
-        except asyncio.exceptions.CancelledError:
+            uc = UnipiControl(modbus_client)
+            asyncio.run(uc.run())
+        except KeyboardInterrupt:
             pass
-        except HardwareException as error:
-            logger.error(error)
-            print(colored(str(error), "red"))
-        except ModbusException as error:
-            logger.error("[MODBUS] %s", error)
         finally:
-            # loop.close()
             logger.info("Successfully shutdown the Unipi Control service.")
+            modbus_client.close()
 
 
 if __name__ == "__main__":
