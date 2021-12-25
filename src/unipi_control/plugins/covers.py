@@ -100,7 +100,8 @@ class CoversMqttPlugin:
 
         return tasks
 
-    async def _subscribe_command_topic(self, cover, topic: str, messages: AsyncIterable):
+    @staticmethod
+    async def _subscribe_command_topic(cover, topic: str, messages: AsyncIterable):
         async for message in messages:
             value: str = message.payload.decode()
 
@@ -113,7 +114,8 @@ class CoversMqttPlugin:
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
-    async def _subscribe_set_position_topic(self, cover, topic: str, messages: AsyncIterable):
+    @staticmethod
+    async def _subscribe_set_position_topic(cover, topic: str, messages: AsyncIterable):
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
@@ -123,7 +125,8 @@ class CoversMqttPlugin:
             except ValueError as error:
                 logger.error(error)
 
-    async def _subscribe_tilt_command_topic(self, cover, topic: str, messages: AsyncIterable):
+    @staticmethod
+    async def _subscribe_tilt_command_topic(cover, topic: str, messages: AsyncIterable):
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
