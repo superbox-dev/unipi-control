@@ -19,6 +19,7 @@ class CoversMqttPlugin:
     def __init__(self, mqtt_client, covers):
         self._covers = covers
         self._mqtt_client = mqtt_client
+        # self._queues: Dict[Cover, asyncio.Queue] = {}
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
@@ -38,7 +39,24 @@ class CoversMqttPlugin:
             task: Task[Any] = asyncio.create_task(self._publish(cover))
             tasks.add(task)
 
+            # self._queues[cover] = asyncio.Queue()
+
+            task: Task[Any] = asyncio.create_task(self._worker(cover))
+            tasks.add(task)
+
         return tasks
+
+    # async def _worker(self, cover):
+    #     while True:
+    #         logger.info("[WORKER] [%s]", cover)
+    #         queue: dict = await self._queues[cover].get()
+    #         print("queue", queue)
+    #         cover.set_tilt(queue["value"])
+    #         logger.info(LOG_MQTT_SUBSCRIBE, queue["topic"], queue["value"])
+    #
+    #         self._queues[cover].task_done()
+    #
+    #         await asyncio.sleep(25e-3)
 
     async def _command_topic(self, cover, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
         topic: str = f"{cover.topic}/set"
@@ -83,8 +101,7 @@ class CoversMqttPlugin:
 
         return tasks
 
-    @staticmethod
-    async def _subscribe_command_topic(cover, topic: str, messages: AsyncIterable):
+    async def _subscribe_command_topic(self, cover, topic: str, messages: AsyncIterable):
         async for message in messages:
             value: str = message.payload.decode()
 
@@ -97,23 +114,28 @@ class CoversMqttPlugin:
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
-    @staticmethod
-    async def _subscribe_set_position_topic(cover, topic: str, messages: AsyncIterable):
+    async def _subscribe_set_position_topic(self, cover, topic: str, messages: AsyncIterable):
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
+
                 cover.set_position(position)
                 logger.info(LOG_MQTT_SUBSCRIBE, topic, position)
             except ValueError as error:
                 logger.error(error)
 
-    @staticmethod
-    async def _subscribe_tilt_command_topic(cover, topic: str, messages: AsyncIterable):
+    async def _subscribe_tilt_command_topic(self, cover, topic: str, messages: AsyncIterable):
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
+                # self._queues[cover].put_nowait({
+                #     "topic": topic,
+                #     "value": tilt,
+                # })
+                # print("ADD", self._queues[cover])
                 cover.set_tilt(tilt)
                 logger.info(LOG_MQTT_SUBSCRIBE, topic, tilt)
+
             except ValueError as error:
                 logger.error(error)
 
