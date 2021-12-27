@@ -170,7 +170,7 @@ Available MQTT topics:
 
 I have wrote a Home Asistant blueprint automation to control covers with binary sensors. Take a look in the extras folder.
 
-## CHANGELOG
+## Changelog
 
 ### 1.0.2
 
