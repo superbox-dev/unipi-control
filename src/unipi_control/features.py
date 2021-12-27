@@ -61,8 +61,8 @@ class Feature:
         return self.circuit_name
 
     @property
-    def value(self) -> Union[float, int]:
-        result = self.modbus_client.read_coils(self.coil, 1, unit=0)
+    async def value(self) -> Union[float, int]:
+        result = await self.modbus_client.read_coils(self.coil, 1, unit=0)
 
         if result.function_code < 0x80:
             return 1 if result.bits[0] else 0
@@ -70,8 +70,8 @@ class Feature:
         return 0
 
     @property
-    def state(self) -> str:
-        return FeatureState.ON if self.value == 1 else FeatureState.OFF
+    async def state(self) -> str:
+        return FeatureState.ON if await self.value == 1 else FeatureState.OFF
 
     @property
     def topic(self) -> str:
@@ -95,8 +95,8 @@ class Feature:
         return _circuit_name
 
     @property
-    def changed(self) -> bool:
-        value: bool = self.value == True  # noqa
+    async def changed(self) -> bool:
+        value: bool = await self.value == True  # noqa
         changed: bool = value != self._value
 
         if changed:
@@ -112,8 +112,8 @@ class Relay(Feature):
     feature_name: Optional[str] = "relay"
     feature_type: Optional[str] = "physical"
 
-    def set_state(self, value: int):
-        return self.modbus_client.write_coil(self.coil, value, unit=0)
+    async def set_state(self, value: int):
+        return await self.modbus_client.write_coil(self.coil, value, unit=0)
 
 
 class DigitalOutput(Feature):
@@ -123,8 +123,8 @@ class DigitalOutput(Feature):
     feature_name: Optional[str] = "relay"
     feature_type: Optional[str] = "digital"
 
-    def set_state(self, value: int):
-        return self.modbus_client.write_coil(self.coil, value, unit=0)
+    async def set_state(self, value: int):
+        return await self.modbus_client.write_coil(self.coil, value, unit=0)
 
 
 class DigitalInput(Feature):
@@ -142,8 +142,8 @@ class Led(Feature):
     feature_name: Optional[str] = "led"
     feature_type: Optional[str] = None
 
-    def set_state(self, value: int):
-        return self.modbus_client.write_coil(self.coil, value, unit=0)
+    async def set_state(self, value: int):
+        return await self.modbus_client.write_coil(self.coil, value, unit=0)
 
 
 class FeatureMap(DataStorage):

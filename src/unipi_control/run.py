@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 import shutil
+import signal
 import subprocess
 import sys
 import uuid
@@ -23,7 +24,8 @@ from plugins.features import FeaturesMqttPlugin
 from plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
 from plugins.hass.covers import HassCoversMqttPlugin
 from plugins.hass.switches import HassSwitchesMqttPlugin
-from pymodbus.client.sync import ModbusTcpClient  # type: ignore
+from pymodbus.client.asynchronous import schedulers
+from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
 from termcolor import colored
 
 
@@ -46,8 +48,6 @@ class UnipiControl:
 
     async def _init_tasks(self):
         async with AsyncExitStack() as stack:
-            stack.push_async_callback(self.cancel_tasks)
-
             mqtt_client: Client = MqttClient(
                 config.mqtt.host,
                 config.mqtt.port,
@@ -85,22 +85,21 @@ class UnipiControl:
 
             await asyncio.gather(*self._tasks)
 
-    async def cancel_tasks(self) -> None:
-        if self._tasks:
-            logger.info("Cancelling %s outstanding tasks.", len(self._tasks))
+    async def shutdown(self, s=None):
+        if s:
+            logger.info("Received exit signal %s...", s.name)
 
-        for task in self._tasks:
-            if task.done():
-                continue
+        tasks = [t for t in self._tasks if t is not t.done()]
 
-            try:
-                task.cancel()
-                await task
-            except asyncio.CancelledError:
-                pass
+        if tasks:
+            logger.info("Cancelling %s outstanding tasks.", len(tasks))
+
+        [task.cancel() for task in tasks]
+
+        await asyncio.gather(*tasks)
 
     async def run(self):
-        self.neuron.read_boards()
+        await self.neuron.read_boards()
 
         reconnect_interval: int = config.mqtt.reconnect_interval
         retry_limit: Optional[int] = config.mqtt.retry_limit
@@ -116,8 +115,6 @@ class UnipiControl:
                     self._retry_reconnect + 1,
                     reconnect_interval
                 )
-            except KeyboardInterrupt:
-                break
             finally:
                 if retry_limit and self._retry_reconnect > retry_limit:
                     sys.exit(1)
@@ -171,16 +168,22 @@ def main():
     if args.install:
         install_unipi_control()
     else:
-        modbus_client = ModbusTcpClient()
+        loop = asyncio.new_event_loop()
+        loop, modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
+
+        uc = UnipiControl(modbus.protocol)
+
+        for _signal in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
+            loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
 
         try:
-            uc = UnipiControl(modbus_client)
-            asyncio.run(uc.run())
+            loop.run_until_complete(uc.run())
         except KeyboardInterrupt:
+            pass
+        except asyncio.CancelledError:
             pass
         finally:
             logger.info("Successfully shutdown the Unipi Control service.")
-            modbus_client.close()
 
 
 if __name__ == "__main__":

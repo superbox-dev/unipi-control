@@ -53,9 +53,9 @@ class FeaturesMqttPlugin:
 
     async def _publish(self, feature):
         while True:
-            if feature.changed:
+            if await feature.changed:
                 topic: str = f"{feature.topic}/get"
-                state: str = feature.state
+                state: str = await feature.state
                 await self._mqtt_client.publish(topic, state, qos=1, retain=True)
                 logger.info(LOG_MQTT_PUBLISH, topic, state)
 

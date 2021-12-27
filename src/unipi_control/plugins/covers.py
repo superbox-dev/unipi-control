@@ -19,7 +19,6 @@ class CoversMqttPlugin:
     def __init__(self, mqtt_client, covers):
         self._covers = covers
         self._mqtt_client = mqtt_client
-        # self._queues: Dict[Cover, asyncio.Queue] = {}
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
@@ -39,23 +38,7 @@ class CoversMqttPlugin:
             task: Task[Any] = asyncio.create_task(self._publish(cover))
             tasks.add(task)
 
-            # self._queues[cover] = asyncio.Queue()
-            # task: Task[Any] = asyncio.create_task(self._worker(cover))
-            # tasks.add(task)
-
         return tasks
-
-    # async def _worker(self, cover):
-    #     while True:
-    #         logger.info("[WORKER] [%s]", cover)
-    #         queue: dict = await self._queues[cover].get()
-    #         print("queue", queue)
-    #         cover.set_tilt(queue["value"])
-    #         logger.info(LOG_MQTT_SUBSCRIBE, queue["topic"], queue["value"])
-    #
-    #         self._queues[cover].task_done()
-    #
-    #         await asyncio.sleep(25e-3)
 
     async def _command_topic(self, cover, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
         topic: str = f"{cover.topic}/set"
@@ -106,9 +89,9 @@ class CoversMqttPlugin:
             value: str = message.payload.decode()
 
             if value == CoverDeviceState.OPEN:
-                cover.open()
+                await cover.open()
             elif value == CoverDeviceState.CLOSE:
-                cover.close()
+                await cover.close()
             elif value == CoverDeviceState.STOP:
                 await cover.stop()
 
@@ -119,8 +102,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
-
-                cover.set_position(position)
+                await cover.set_position(position)
                 logger.info(LOG_MQTT_SUBSCRIBE, topic, position)
             except ValueError as error:
                 logger.error(error)
@@ -130,12 +112,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
-                # self._queues[cover].put_nowait({
-                #     "topic": topic,
-                #     "value": tilt,
-                # })
-                # print("ADD", self._queues[cover])
-                cover.set_tilt(tilt)
+                await cover.set_tilt(tilt)
                 logger.info(LOG_MQTT_SUBSCRIBE, topic, tilt)
 
             except ValueError as error:
