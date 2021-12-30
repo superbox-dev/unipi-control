@@ -166,7 +166,9 @@ class FeatureMap(DataStorage):
 
         self.data[feature.short_name].append(feature)
 
-    def by_circuit(self, circuit: str, feature_type: Optional[List[str]] = None) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
+    def by_circuit(
+        self, circuit: str, feature_type: Optional[List[str]] = None
+    ) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
         """Get feature by circuit name.
 
         Parameters
@@ -193,7 +195,7 @@ class FeatureMap(DataStorage):
         try:
             feature: Union[DigitalInput, DigitalOutput, Relay, Led] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
-            sys.exit(colored(f"[CONFIG] `{circuit}` not found in {self.__class__.__name__}!", "red"))
+            sys.exit(colored(f'[CONFIG] "{circuit}" not found in {self.__class__.__name__}!', "red"))
 
         return feature
 
@@ -209,6 +211,4 @@ class FeatureMap(DataStorage):
         Iterator
             A list of features filtered by feature type.
         """
-        return itertools.chain.from_iterable(
-            filter(None, map(self.data.get, feature_type))
-        )
+        return itertools.chain.from_iterable(filter(None, map(self.data.get, feature_type)))

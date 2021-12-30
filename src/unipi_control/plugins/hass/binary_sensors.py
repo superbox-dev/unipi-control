@@ -46,12 +46,10 @@ class HassBinarySensorsDiscovery:
             "device": {
                 "name": config.device_name,
                 "identifiers": config.device_name.lower(),
-                "model":
-                f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
-                "sw_version":
-                self._uc.neuron.boards[feature.major_group - 1].firmware,
+                "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
+                "sw_version": self._uc.neuron.boards[feature.major_group - 1].firmware,
                 **asdict(config.homeassistant.device),
-            }
+            },
         }
 
         return topic, message

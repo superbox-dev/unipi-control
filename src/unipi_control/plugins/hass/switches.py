@@ -37,8 +37,9 @@ class HassSwitchesDiscovery:
         return friendly_name
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
-        topic: str = f"{config.homeassistant.discovery_prefix}/switch/" \
-                     f"{config.device_name.lower()}/{feature.circuit}/config"
+        topic: str = (
+            f"{config.homeassistant.discovery_prefix}/switch/" f"{config.device_name.lower()}/{feature.circuit}/config"
+        )
 
         message: dict = {}
 
@@ -52,12 +53,10 @@ class HassSwitchesDiscovery:
                 "device": {
                     "name": config.device_name,
                     "identifiers": config.device_name.lower(),
-                    "model":
-                    f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
-                    "sw_version":
-                    self._uc.neuron.boards[feature.major_group - 1].firmware,
+                    "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
+                    "sw_version": self._uc.neuron.boards[feature.major_group - 1].firmware,
                     **asdict(config.homeassistant.device),
-                }
+                },
             }
 
         return topic, message

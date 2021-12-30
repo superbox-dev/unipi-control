@@ -40,22 +40,25 @@ class HassCoversDiscovery:
             "device": {
                 "name": config.device_name,
                 "identifiers": config.device_name.lower(),
-                "model":
-                f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
+                "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                 **asdict(config.homeassistant.device),
-            }
+            },
         }
 
         if cover.settings.set_position:
-            message.update({
-                "set_position_topic": f"{cover.topic}/position/set",
-            })
+            message.update(
+                {
+                    "set_position_topic": f"{cover.topic}/position/set",
+                }
+            )
 
         if cover.settings.set_tilt:
-            message.update({
-                "tilt_status_topic": f"{cover.topic}/tilt",
-                "tilt_command_topic": f"{cover.topic}/tilt/set",
-            })
+            message.update(
+                {
+                    "tilt_status_topic": f"{cover.topic}/tilt",
+                    "tilt_command_topic": f"{cover.topic}/tilt/set",
+                }
+            )
 
         return topic, message
 

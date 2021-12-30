@@ -58,7 +58,7 @@ class UnipiControl:
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info("[MQTT] Connected to broker at `%s:%s`", config.mqtt.host, config.mqtt.port)
+            logger.info('[MQTT] Connected to broker at "%s:%s"', config.mqtt.host, config.mqtt.port)
 
             features = FeaturesMqttPlugin(self, mqtt_client)
             tasks = await features.init_tasks(stack)
@@ -110,10 +110,10 @@ class UnipiControl:
                 await self._init_tasks()
             except MqttError as error:
                 logger.error(
-                    "[MQTT] Error `%s`. Connecting attempt #%s. Reconnecting in %s seconds.",
+                    '[MQTT] Error "%s". Connecting attempt #%s. Reconnecting in %s seconds.',
                     error,
                     self._retry_reconnect + 1,
-                    reconnect_interval
+                    reconnect_interval,
                 )
             finally:
                 if retry_limit and self._retry_reconnect > retry_limit:
@@ -145,19 +145,34 @@ def install_unipi_control():
     if copy_config_files:
         shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
 
-    print(colored("-> Copy systemd service \"unipi-control.service\"", "green"))
+    print(colored('-> Copy systemd service "unipi-control.service"', "green"))
     shutil.copyfile(src_systemd_path, "/lib/systemd/system/unipi-control.service")
 
-    enable_and_start_systemd: str = input(
-        "Enable and start systemd service? [Y/n]")
+    enable_and_start_systemd: str = input("Enable and start systemd service? [Y/n]")
 
     if enable_and_start_systemd.lower() == "y":
-        print(colored("-> Enable systemd service \"unipi-control.service\"", "green"))
+        print(colored('-> Enable systemd service "unipi-control.service"', "green"))
         status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
         logger.info(status)
     else:
-        print(colored("\nYou can enable the systemd service with the command:", "white", attrs=["bold", ]))
-        print(colored("systemctl enable --now unipi-control", "magenta", attrs=["bold", ]))
+        print(
+            colored(
+                "\nYou can enable the systemd service with the command:",
+                "white",
+                attrs=[
+                    "bold",
+                ],
+            )
+        )
+        print(
+            colored(
+                "systemctl enable --now unipi-control",
+                "magenta",
+                attrs=[
+                    "bold",
+                ],
+            )
+        )
 
 
 def main():

@@ -10,7 +10,6 @@ from dataclasses import field
 from dataclasses import is_dataclass
 from pathlib import Path
 from typing import Dict
-from typing import Final
 from typing import List
 from typing import Match
 from typing import Optional
@@ -20,13 +19,13 @@ import yaml
 from helpers import DataStorage
 from termcolor import colored
 
-HARDWARE: Final[str] = "/etc/unipi/hardware"
-COVER_TYPES: Final[list] = ["blind", "roller_shutter", "garage_door"]
-COVER_KEY_MISSING: Final[str] = "[CONFIG] [COVER %s] Required key `%s` is missing!"
-COVER_TIME: Final[str] = "[CONFIG] [COVER %s] Key `%s` is not a float or integer!"
-LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
-LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
+HARDWARE: str = "/etc/unipi/hardware"
+COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
+COVER_KEY_MISSING: str = '[CONFIG] [COVER %s] Required key "%s" is missing!'
+COVER_TIME: str = '[CONFIG] [COVER %s] Key "%s" is not a float or integer!'
+LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
+LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
+LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
 
 
 class HardwareException(Exception):
@@ -157,8 +156,7 @@ class Config(ConfigBase):
 
         if result is None:
             raise ImproperlyConfigured(
-                "[CONFIG] Invalid value in `device_name`. "
-                "The following characters are prohibited: A-Z a-z 0-9 -_"
+                '[CONFIG] Invalid value in "device_name". ' "The following characters are prohibited: A-Z a-z 0-9 -_"
             )
 
     def clean_covers(self):
@@ -185,7 +183,7 @@ class Config(ConfigBase):
 
         if cover.get("cover_type") not in COVER_TYPES:
             raise ImproperlyConfigured(
-                f"""[CONFIG] [COVER {index + 1}] Invalid value in `cover_type`.
+                f"""[CONFIG] [COVER {index + 1}] Invalid value in \"cover_type\".
                 The following values are allowed: {" ".join(COVER_TYPES)}."""
             )
 
@@ -198,7 +196,7 @@ class Config(ConfigBase):
 
         if result is None:
             raise ImproperlyConfigured(
-                f"[CONFIG] [COVER {index + 1}] Invalid value in `topic_name`."
+                f'[CONFIG] [COVER {index + 1}] Invalid value in "topic_name".'
                 f" The following characters are prohibited: a-z 0-9 -_"
             )
 
@@ -245,7 +243,7 @@ class Config(ConfigBase):
         for circuit in circuits:
             if circuits.count(circuit) > 1:
                 raise ImproperlyConfigured(
-                    "[CONFIG] [COVER] Duplicate circuits found in `covers`! "
+                    '[CONFIG] [COVER] Duplicate circuits found in "covers"! '
                     "Driving both signals up and down at the same time can damage the motor."
                 )
 
@@ -307,8 +305,7 @@ class HardwareData(DataStorage):
                 logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
             raise HardwareException(
-                f"[CONFIG] No valid YAML definition for active Neuron device! "
-                f"Device name is {self._model}."
+                f"[CONFIG] No valid YAML definition for active Neuron device! " f"Device name is {self._model}."
             )
 
 

@@ -8,7 +8,6 @@ from dataclasses import field
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Callable
-from typing import Final
 from typing import List
 from typing import Optional
 from typing import Union
@@ -20,7 +19,7 @@ from features import FeatureMap
 from features import Relay
 from helpers import DataStorage
 
-ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
+ASYNCIO_SLEEP_DELAY_FIX: float = 0.04
 
 
 @dataclass(eq=False)
@@ -144,8 +143,23 @@ class Cover:
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
-        self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_up, feature_type=["DO", "RO", ])
-        self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_circuit(self.circuit_down, feature_type=["DO", "RO", ])
+
+        self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_circuit(
+            self.circuit_up,
+            feature_type=[
+                "DO",
+                "RO",
+            ],
+        )
+
+        self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_circuit(
+            self.circuit_down,
+            feature_type=[
+                "DO",
+                "RO",
+            ],
+        )
+
         self.settings: CoverFeatures = getattr(CoverSettings, self.cover_type)
 
         self._timer: Optional[CoverTimer] = None
@@ -166,8 +180,7 @@ class Cover:
 
     @property
     def topic(self) -> str:
-        return f"{config.device_name.lower()}/{self.topic_name}/" \
-               f"cover/{self.cover_type}"
+        return f"{config.device_name.lower()}/{self.topic_name}/" f"cover/{self.cover_type}"
 
     @property
     def is_opening(self) -> bool:
@@ -277,7 +290,9 @@ class Cover:
         end_timer = time.monotonic() - self._start_timer
 
         if self.is_closing:
-            self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (100 - self.position)
+            self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (
+                100 - self.position
+            )
         elif self.is_opening:
             self.position = self.position + int(round(100 * end_timer / self.full_open_time))
 
@@ -578,5 +593,4 @@ class CoverMap(DataStorage):
             self.data[cover_type].append(c)
 
     def by_cover_type(self, cover_type: List[str]) -> Iterator:
-        return itertools.chain.from_iterable(
-            filter(None, map(self.data.get, cover_type)))
+        return itertools.chain.from_iterable(filter(None, map(self.data.get, cover_type)))
