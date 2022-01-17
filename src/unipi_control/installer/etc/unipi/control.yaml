@@ -5,6 +5,15 @@ mqtt:
     keepalive: 15
     retry_limit: 30
     reconnect_interval: 10
+ow:
+  - owbus: /dev/i2c-1
+    interval: 3
+    scan_interval: 300
+ow_devices:
+  - bus: 1
+    address: 264851680200002E
+    type: DS2438
+    interval: 1
 homeassistant:
   enabled: true
   discovery_prefix: homeassistant
