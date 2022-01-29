@@ -108,7 +108,9 @@ class Config(ConfigBase):
     def get_config(path: str) -> dict:
         _config: dict = {}
 
+        # TODO Pathlib not os.path
         if os.path.exists(path):
+            # TODO: pathlib read_text
             with open(path) as f:
                 _config = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -259,6 +261,7 @@ class HardwareInfo:
         neuron: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")
 
         if neuron.is_file():
+            # TODO: Pathlib read_bytes
             with open(neuron, "rb") as f:
                 ee_bytes = f.read(128)
 
@@ -290,6 +293,7 @@ class HardwareData(DataStorage):
         try:
             for f in Path(f"{HARDWARE}/extension").iterdir():
                 if str(f).endswith(".yaml"):
+                    #TODO: pathlib read_text
                     with open(f) as yf:
                         self.data["definitions"].append(yaml.load(yf, Loader=yaml.FullLoader))
                         logger.debug("[CONFIG] YAML Definition loaded: %s", f)
@@ -300,6 +304,7 @@ class HardwareData(DataStorage):
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():
+            # TODO: pathlib read_text
             with open(definition_file) as yf:
                 self.data["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
                 logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)

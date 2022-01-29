@@ -306,6 +306,7 @@ class Cover:
 
     def _read_position(self):
         try:
+            # TODO: pathlib read_text
             with open(self._temp_filename) as f:
                 data = f.read().split("/")
                 self.position = int(data[0])
