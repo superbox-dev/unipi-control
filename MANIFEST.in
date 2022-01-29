@@ -1,15 +1,3 @@
-global-exclude *.pyc
-global-exclude *.pyc
-global-include .editorconfig
-
+graft src
 include LICENSE
-
-recursive-include src *.py
-recursive-include src *.service
-recursive-include src *.yaml
-
-exclude .pre-commit-config.yaml
-exclude requirements-dev.txt
-exclude requirements.txt
-
-prune extras
+global-exclude *.pyc

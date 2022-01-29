@@ -2,9 +2,9 @@
 *.egg-info
 *.pyc
 .DS_Store
+.mypy_cache
 .idea
 ._*
 *.swp
 build/*
 dist/*
-venv
