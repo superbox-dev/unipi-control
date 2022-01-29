@@ -182,4 +182,3 @@ I have wrote a Home Asistant blueprint automation to control covers with binary 
 
 * Support Modbus RTU for extension modules (I don't have an extension).
 * Support analogue input/output (The implemented code is still untested).
-* Support 1-Wire bus.
