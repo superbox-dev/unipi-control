@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.0.1"
+    rev: "v4.1.0"
     hooks:
       - id: check-builtin-literals
       - id: check-byte-order-marker
@@ -13,14 +13,13 @@ repos:
         args: ["--unsafe"]
       - id: detect-private-key
       - id: mixed-line-ending
-      - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/asottile/reorder_python_imports
-    rev: "v2.6.0"
+    rev: "v2.7.1"
     hooks:
       - id: reorder-python-imports
   - repo: https://github.com/asottile/pyupgrade
-    rev: "v2.29.0"
+    rev: "v2.31.0"
     hooks:
       - id: pyupgrade
         args: [--py37-plus]
@@ -31,6 +30,6 @@ repos:
         args: ["--ignore=E501,D100,D101,D102,D103,D104,D107,D105,W504"]
         additional_dependencies: [flake8-bugbear]
   - repo: https://github.com/mgedmin/check-manifest
-    rev: "0.46"
+    rev: "0.47"
     hooks:
       - id: check-manifest

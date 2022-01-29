@@ -126,7 +126,7 @@ class UnipiControl:
 
 def install_unipi_control():
     src_config_path: Path = Path(__file__).parents[0].joinpath("installer/etc/unipi")
-    src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/lib/systemd/system/unipi-control.service")
+    src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/etc/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")
 
     print(colored(f"-> Copy config files to {dest_config_path}", "green"))
@@ -146,7 +146,7 @@ def install_unipi_control():
         shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
 
     print(colored('-> Copy systemd service "unipi-control.service"', "green"))
-    shutil.copyfile(src_systemd_path, "/lib/systemd/system/unipi-control.service")
+    shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
 
     enable_and_start_systemd: str = input("Enable and start systemd service? [Y/n]")
 

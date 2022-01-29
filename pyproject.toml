@@ -2,6 +2,9 @@
 requires = ["setuptools>=43.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.check-manifest]
+ignore-bad-ideas = ["*.mo"]
+
 [tool.black]
 line-length = 120
 target-version = ["py37"]
