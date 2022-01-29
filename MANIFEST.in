@@ -2,9 +2,4 @@ graft src
 include LICENSE
 global-exclude *.pyc
 
-exclude .pre-commit-config.yaml
-exclude .editorconfig
-exclude Pipfile
-exclude Pipfile.lock
-
 prune extras
