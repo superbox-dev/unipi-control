@@ -1,3 +1,5 @@
+import asyncio
+import functools
 from collections.abc import MutableMapping
 
 
@@ -30,3 +32,15 @@ class DataStorage(MutableMapping):
 
     def __repr__(self):
         return f"{type(self).__name__}({self.data})"
+
+
+def run_in_executor(_func):
+    """Decorator to run blocking code."""
+
+    @functools.wraps(_func)
+    def wrapped(*args, **kwargs):
+        loop = asyncio.get_running_loop()
+        func = functools.partial(_func, *args, **kwargs)
+        return loop.run_in_executor(executor=None, func=func)
+
+    return wrapped

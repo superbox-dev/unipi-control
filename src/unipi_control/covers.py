@@ -12,7 +12,6 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-import aiofiles
 from config import config
 from config import COVER_DEVICE_LOCKED
 from config import logger
@@ -20,6 +19,7 @@ from features import DigitalOutput
 from features import FeatureMap
 from features import Relay
 from helpers import DataStorage
+from helpers import run_in_executor
 
 ASYNCIO_SLEEP_DELAY_FIX: float = 0.04
 
@@ -319,9 +319,9 @@ class Cover:
 
             self.calibrate_mode = True
 
-    async def _write_position(self):
-        async with aiofiles.open(self._temp_filename, "w") as f:
-            await f.write(f"{self.position}/{self.tilt}")
+    @run_in_executor
+    def _write_position(self):
+        self._temp_filename.write_text(f"{self.position}/{self.tilt}")
 
     async def calibrate(self):
         if self.calibrate_mode and not self._calibration_started:
