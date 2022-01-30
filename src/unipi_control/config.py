@@ -21,8 +21,9 @@ from termcolor import colored
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
-COVER_KEY_MISSING: str = '[CONFIG] [COVER %s] Required key "%s" is missing!'
-COVER_TIME: str = '[CONFIG] [COVER %s] Key "%s" is not a float or integer!'
+COVER_DEVICE_LOCKED: str = "[COVER] [%s] Device is locked! Other position change is currently running."
+COVER_KEY_MISSING: str = """[CONFIG] [COVER %s] Required key "%s" is missing!"""
+COVER_TIME: str = """[CONFIG] [COVER %s] Key "%s" is not a float or integer!"""
 LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
@@ -293,7 +294,7 @@ class HardwareData(DataStorage):
         try:
             for f in Path(f"{HARDWARE}/extension").iterdir():
                 if str(f).endswith(".yaml"):
-                    #TODO: pathlib read_text
+                    # TODO: pathlib read_text
                     with open(f) as yf:
                         self.data["definitions"].append(yaml.load(yf, Loader=yaml.FullLoader))
                         logger.debug("[CONFIG] YAML Definition loaded: %s", f)
