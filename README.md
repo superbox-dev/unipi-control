@@ -168,9 +168,14 @@ Available MQTT topics:
 
 ## Extras
 
-I have wrote a Home Asistant blueprint automation to control covers with binary sensors. Take a look in the extras folder.
+I have written a Home Assistant blueprint automation to control covers with binary sensors. Take a look in the extra's folder.
 
 ## Changelog
+
+### 1.0.3
+
+* Fixed bug: position and tilt change at the same time is no longer possible.
+* Refactor logger output. Output in terminal is now colored.
 
 ### 1.0.2
 

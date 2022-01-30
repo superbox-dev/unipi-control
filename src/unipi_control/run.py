@@ -43,7 +43,15 @@ class UnipiControl:
         self.neuron = Neuron(modbus_client)
 
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
-        logger.info("[medium_turquoise][MQTT][/] Client ID: %s", self._mqtt_client_id, extra={"markup": True})
+
+        logger.info(
+            "[medium_turquoise][MQTT][/] Client ID: [purple]%s[/]",
+            self._mqtt_client_id,
+            extra={
+                "markup": True,
+                "highlighter": None,
+            },
+        )
 
         self._tasks: Set[Task] = set()
         self._retry_reconnect: int = 0
@@ -61,10 +69,13 @@ class UnipiControl:
             self._retry_reconnect = 0
 
             logger.info(
-                '[medium_turquoise][MQTT][/] Connected to broker at "%s:%s"',
+                "[medium_turquoise][MQTT][/] Connected to broker at [purple]'%s:%s'[/]",
                 config.mqtt.host,
                 config.mqtt.port,
-                extra={"markup": True},
+                extra={
+                    "markup": True,
+                    "highlighter": None,
+                },
             )
 
             features = FeaturesMqttPlugin(self, mqtt_client)
