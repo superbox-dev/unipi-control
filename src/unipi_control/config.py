@@ -16,7 +16,9 @@ from typing import Union
 
 import yaml
 from helpers import DataStorage
-from termcolor import colored
+from rich.console import Console
+
+console = Console()
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
@@ -39,7 +41,7 @@ class ImproperlyConfigured(Exception):
 @dataclass
 class ConfigBase:
     def clean(self):
-        errors = []
+        errors: List[str] = []
 
         for key in self.__dict__.keys():
             clean_method = getattr(self, f"clean_{key}", None)
@@ -48,10 +50,11 @@ class ConfigBase:
                 try:
                     clean_method()
                 except ImproperlyConfigured as error:
-                    errors.append(colored(str(error), "red"))
+                    errors.append(str(error))
 
         if errors:
-            sys.exit("\n".join(errors))
+            [console.print(e, style="red") for e in errors]
+            sys.exit(1)
 
     def update(self, new):
         for key, value in new.items():
@@ -293,7 +296,7 @@ class HardwareData(DataStorage):
                     self.data["definitions"].append(yaml.load(f.read_text(), Loader=yaml.FullLoader))
                     logger.debug("[CONFIG] YAML Definition loaded: %s", f)
         except FileNotFoundError as error:
-            print(colored(str(error), "red"))
+            console.print(str(error), style="red")
 
     def _read_neuron_definition(self):
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")

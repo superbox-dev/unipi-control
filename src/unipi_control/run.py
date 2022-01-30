@@ -26,7 +26,9 @@ from plugins.hass.covers import HassCoversMqttPlugin
 from plugins.hass.switches import HassSwitchesMqttPlugin
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
-from termcolor import colored
+from rich.console import Console
+
+console = Console()
 
 
 class UnipiControl:
@@ -129,13 +131,15 @@ def install_unipi_control():
     src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/etc/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")
 
-    print(colored(f"-> Copy config files to {dest_config_path}", "green"))
+    console.print(f"-> Copy config files to {dest_config_path}", style="green")
 
     dirs_exist_ok: bool = False
     copy_config_files: bool = True
 
     if dest_config_path.exists():
-        overwrite_config: str = input("Overwrite existing config files? [Y/n]")
+        overwrite_config: str = console.input(
+            "[bold]Overwrite[/] existing config files? [[bold green]Y[/]/[bold red]n[/]]"
+        )
 
         if overwrite_config.lower() == "y":
             dirs_exist_ok = True
@@ -145,34 +149,18 @@ def install_unipi_control():
     if copy_config_files:
         shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
 
-    print(colored('-> Copy systemd service "unipi-control.service"', "green"))
+    console.print('-> Copy systemd service "unipi-control.service"', style="green")
     shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
 
-    enable_and_start_systemd: str = input("Enable and start systemd service? [Y/n]")
+    enable_and_start_systemd: str = console.input("Enable and start systemd service? [[bold green]Y[/]/[bold red]n[/]]")
 
     if enable_and_start_systemd.lower() == "y":
-        print(colored('-> Enable systemd service "unipi-control.service"', "green"))
+        console.print('-> Enable systemd service "unipi-control.service"', style="green")
         status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
         logger.info(status)
     else:
-        print(
-            colored(
-                "\nYou can enable the systemd service with the command:",
-                "white",
-                attrs=[
-                    "bold",
-                ],
-            )
-        )
-        print(
-            colored(
-                "systemctl enable --now unipi-control",
-                "magenta",
-                attrs=[
-                    "bold",
-                ],
-            )
-        )
+        console.print("You can enable the systemd service with the command:", style="bold white")
+        console.print("systemctl enable --now unipi-control", style="bold magenta")
 
 
 def main():
