@@ -309,11 +309,9 @@ class Cover:
 
     def _read_position(self):
         try:
-            # TODO: pathlib read_text
-            with open(self._temp_filename) as f:
-                data = f.read().split("/")
-                self.position = int(data[0])
-                self.tilt = int(data[1])
+            data: list = self._temp_filename.read_text().split("/")
+            self.position = int(data[0])
+            self.tilt = int(data[1])
         except (FileNotFoundError, IndexError, ValueError):
             self.state = CoverState.CLOSED
             self.position = 0
