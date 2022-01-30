@@ -43,7 +43,7 @@ class UnipiControl:
         self.neuron = Neuron(modbus_client)
 
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
-        logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
+        logger.info("[medium_turquoise][MQTT][/] Client ID: %s", self._mqtt_client_id, extra={"markup": True})
 
         self._tasks: Set[Task] = set()
         self._retry_reconnect: int = 0
@@ -60,7 +60,12 @@ class UnipiControl:
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info('[MQTT] Connected to broker at "%s:%s"', config.mqtt.host, config.mqtt.port)
+            logger.info(
+                '[medium_turquoise][MQTT][/] Connected to broker at "%s:%s"',
+                config.mqtt.host,
+                config.mqtt.port,
+                extra={"markup": True},
+            )
 
             features = FeaturesMqttPlugin(self, mqtt_client)
             tasks = await features.init_tasks(stack)
@@ -94,7 +99,7 @@ class UnipiControl:
         tasks = [t for t in self._tasks if t is not t.done()]
 
         if tasks:
-            logger.info("Cancelling %s outstanding tasks.", len(tasks))
+            logger.info("Cancelling [bold red]%s[/] outstanding tasks.", len(tasks), extra={"markup": True})
 
         [task.cancel() for task in tasks]
 
@@ -108,14 +113,15 @@ class UnipiControl:
 
         while True:
             try:
-                logger.info("[MQTT] Connecting to broker ...")
+                logger.info("[medium_turquoise][MQTT][/] Connecting to broker ...", extra={"markup": True})
                 await self._init_tasks()
             except MqttError as error:
                 logger.error(
-                    '[MQTT] Error "%s". Connecting attempt #%s. Reconnecting in %s seconds.',
+                    """[medium_turquoise][MQTT][/] [bold red]Error "%s"[/]. Connecting attempt #%s. Reconnecting in %s seconds.""",
                     error,
                     self._retry_reconnect + 1,
                     reconnect_interval,
+                    extra={"markup": True},
                 )
             finally:
                 if retry_limit and self._retry_reconnect > retry_limit:
@@ -186,7 +192,7 @@ def main():
         except asyncio.CancelledError:
             pass
         finally:
-            logger.info("Successfully shutdown the Unipi Control service.")
+            logger.info("[bold green]Successfully shutdown the Unipi Control service.[/]", extra={"markup": True})
 
 
 if __name__ == "__main__":

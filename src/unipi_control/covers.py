@@ -347,7 +347,7 @@ class Cover:
             Set position to ``0`` if ``True``.
         """
         if self._device_locked is True:
-            logger.warning(COVER_DEVICE_LOCKED, self.topic)
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
             return
 
         if self.position is None:
@@ -409,7 +409,7 @@ class Cover:
             Set position to ``100`` if ``True``.
         """
         if self._device_locked is True:
-            logger.warning(COVER_DEVICE_LOCKED, self.topic)
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
             return
 
         if self.position is None:
@@ -492,7 +492,7 @@ class Cover:
 
     async def _open_tilt(self, tilt: int = 100):
         if self._device_locked is True:
-            logger.warning(COVER_DEVICE_LOCKED, self.topic)
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
             return
 
         if self.tilt is None:
@@ -519,7 +519,7 @@ class Cover:
 
     async def _close_tilt(self, tilt: int = 0):
         if self._device_locked is True:
-            logger.warning(COVER_DEVICE_LOCKED, self.topic)
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
             return
 
         if self.tilt is None:

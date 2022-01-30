@@ -17,21 +17,23 @@ from typing import Union
 import yaml
 from helpers import DataStorage
 from rich.console import Console
+from rich.logging import RichHandler
 
 console = Console()
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
-COVER_DEVICE_LOCKED: str = "[COVER] [%s] Device is locked! Other position change is currently running."
+COVER_DEVICE_LOCKED: str = (
+    "[medium_turquoise][COVER][/] [%s] Device is locked! Other position change is currently running."
+)
+# TODO: Change ImproperlyConfigured to rich output
+# COVER_KEY_MISSING: str = """[medium_turquoise][CONFIG][/] [COVER %s] Required key "%s" is missing!"""
 COVER_KEY_MISSING: str = """[CONFIG] [COVER %s] Required key "%s" is missing!"""
+# COVER_TIME: str = """[medium_turquoise][CONFIG][/] [COVER %s] Key "%s" is not a float or integer!"""
 COVER_TIME: str = """[CONFIG] [COVER %s] Key "%s" is not a float or integer!"""
-LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
-LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
-
-
-class HardwareException(Exception):
-    pass
+LOG_MQTT_PUBLISH: str = "[medium_turquoise][MQTT][/] [%s] Publishing message: %s"
+LOG_MQTT_SUBSCRIBE: str = "[medium_turquoise][MQTT][/] [%s] Subscribe message: %s"
+LOG_MQTT_SUBSCRIBE_TOPIC: str = "[medium_turquoise][MQTT][/] Subscribe topic %s"
 
 
 class ImproperlyConfigured(Exception):
@@ -127,7 +129,8 @@ class Config(ConfigBase):
 
         logging.basicConfig(
             level=level[self.logging.level],
-            format="%(levelname)s - %(message)s",
+            format="%(message)s",
+            handlers=[RichHandler(show_time=False)],
         )
 
         return logging.getLogger("asyncio")
@@ -284,7 +287,8 @@ class HardwareData(DataStorage):
         self._model: str = self.data["neuron"]["model"]
 
         if self._model is None:
-            raise HardwareException("[CONFIG] Hardware is not supported!")
+            logger.error("[medium_turquoise][CONFIG][/] Hardware is not supported!", extra={"markup": True})
+            sys.exit(1)
 
         self._read_definitions()
         self._read_neuron_definition()
@@ -294,7 +298,7 @@ class HardwareData(DataStorage):
             for f in Path(f"{HARDWARE}/extension").iterdir():
                 if f.suffix == ".yaml":
                     self.data["definitions"].append(yaml.load(f.read_text(), Loader=yaml.FullLoader))
-                    logger.debug("[CONFIG] YAML Definition loaded: %s", f)
+                    logger.debug("[medium_turquoise][CONFIG][/] YAML Definition loaded: %s", f, extra={"markup": True})
         except FileNotFoundError as error:
             console.print(str(error), style="red")
 
@@ -303,11 +307,16 @@ class HardwareData(DataStorage):
 
         if definition_file.is_file():
             self.data["neuron_definition"] = yaml.load(definition_file.read_text(), Loader=yaml.FullLoader)
-            logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
-        else:
-            raise HardwareException(
-                f"[CONFIG] No valid YAML definition for active Neuron device! " f"Device name is {self._model}."
+            logger.debug(
+                "[medium_turquoise][CONFIG][/] YAML Definition loaded: %s", definition_file, extra={"markup": True}
             )
+        else:
+            logger.error(
+                "[medium_turquoise][CONFIG][/] No valid YAML definition for active Neuron device! Device name is %s",
+                self._model,
+                extra={"markup": True},
+            )
+            sys.exit(1)
 
 
 config = Config()

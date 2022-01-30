@@ -144,13 +144,13 @@ class Neuron:
         self.features = FeatureMap()
 
     async def read_boards(self):
-        logger.info("[MODBUS] Reading SPI boards")
+        logger.info("[medium_turquoise][MODBUS][/] Reading SPI boards", extra={"markup": True})
 
         for index in (1, 2, 3):
             response = await self.modbus_client.read_input_registers(address=1000, count=10, unit=index)
 
             if response.isError():
-                logger.info("[MODBUS] No board on SPI %s", index)
+                logger.info("[medium_turquoise][MODBUS][/] No board on SPI %s", index, extra={"markup": True})
             else:
                 board = Board(self, versions=response.registers, major_group=index)
                 board.parse_features()
