@@ -40,7 +40,7 @@ logging.basicConfig(
             console=Console(soft_wrap=True, tab_size=4),
             show_time=False,
             omit_repeated_times=False,
-        )
+        ),
     ],
 )
 

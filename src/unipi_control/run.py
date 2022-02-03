@@ -105,7 +105,7 @@ class UnipiControl:
 
     async def shutdown(self, s=None):
         if s:
-            logger.info("Received exit signal %s...", s.name)
+            logger.info("Received [red]exit[/] signal %s...", s.name)
 
         tasks = [t for t in self._tasks if t is not t.done()]
 
@@ -148,7 +148,7 @@ def install_unipi_control():
     src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/etc/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")
 
-    console.print(f"-> Copy config files to {dest_config_path}", style="green")
+    console.print(f"[green]-> Copy config files to {dest_config_path}[/]")
 
     dirs_exist_ok: bool = False
     copy_config_files: bool = True
@@ -166,18 +166,18 @@ def install_unipi_control():
     if copy_config_files:
         shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
 
-    console.print('-> Copy systemd service "unipi-control.service"', style="green")
+    console.print("[green]-> Copy systemd service 'unipi-control.service'[/]")
     shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
 
     enable_and_start_systemd: str = console.input("Enable and start systemd service? [[bold green]Y[/]/[bold red]n[/]]")
 
     if enable_and_start_systemd.lower() == "y":
-        console.print('-> Enable systemd service "unipi-control.service"', style="green")
+        console.print("[green]-> Enable systemd service 'unipi-control.service'[/green]")
         status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
         logger.info(status)
     else:
-        console.print("You can enable the systemd service with the command:", style="bold white")
-        console.print("systemctl enable --now unipi-control", style="bold magenta")
+        console.print("[bold white]You can enable the systemd service with the command:[/]")
+        console.print("[bold magenta]systemctl enable --now unipi-control[/]")
 
 
 def main():
