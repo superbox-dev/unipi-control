@@ -35,6 +35,8 @@ jobs:
         python -m pip install --upgrade pipenv
         pipenv sync
         pipenv shell
+    - name: Black
+      run: black --diff --check $(git ls-files '*.py')
     - name: Mypy
       run: mypy $(git ls-files '*.py')
     - name: Build package
