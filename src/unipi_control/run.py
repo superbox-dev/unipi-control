@@ -174,7 +174,9 @@ def install_unipi_control():
     if enable_and_start_systemd.lower() == "y":
         console.print("[green]-> Enable systemd service 'unipi-control.service'[/green]")
         status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
-        logger.info(status)
+
+        if status:
+            logger.info(status)
     else:
         console.print("[bold white]You can enable the systemd service with the command:[/]")
         console.print("[bold magenta]systemctl enable --now unipi-control[/]")
@@ -206,5 +208,4 @@ def main():
             logger.info("[bold green]Successfully shutdown the Unipi Control service.[/]", extra={"markup": True})
 
 
-if __name__ == "__main__":
-    main()
+if __name__ ==
