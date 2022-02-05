@@ -35,11 +35,11 @@ jobs:
         python -m pip install --upgrade pipenv
         pipenv install --deploy --dev
     - name: black
-      run: pipenv run python black --diff --check $(git ls-files '*.py')
+      run: pipenv run black --diff --check $(git ls-files '*.py')
     - name: flake8
-      run: pipenv run python flake8 $(git ls-files '*.py')
+      run: pipenv run flake8 $(git ls-files '*.py')
     - name: mypy
-      run: pipenv run python mypy $(git ls-files '*.py')
+      run: pipenv run mypy $(git ls-files '*.py')
     - name: Build package
       run: python -m build
     - name: Publish test package
