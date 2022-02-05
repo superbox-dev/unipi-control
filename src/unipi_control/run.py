@@ -152,8 +152,10 @@ def install_unipi_control():
 
     if enable_and_start_systemd.lower() == "y":
         print(colored('-> Enable systemd service "unipi-control.service"', "green"))
-        status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
-        logger.info(status)
+        status: str = str(subprocess.check_output("systemctl enable --now unipi-control", shell=True))
+
+        if status:
+            logger.info(status)
     else:
         print(
             colored(
