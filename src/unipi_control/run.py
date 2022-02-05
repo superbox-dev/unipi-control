@@ -208,4 +208,5 @@ def main():
             logger.info("[bold green]Successfully shutdown the Unipi Control service.[/]", extra={"markup": True})
 
 
-if __name__ ==
+if __name__ == "__main__":
+    main()
