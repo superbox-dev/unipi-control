@@ -59,7 +59,7 @@ class HassBinarySensorsDiscovery:
             topic, message = self._get_discovery(feature)
             json_data: str = json.dumps(message)
             await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
-            logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+            logger.debug(LOG_MQTT_PUBLISH, topic, json_data, extra={"markup": True})
 
 
 class HassBinarySensorsMqttPlugin:

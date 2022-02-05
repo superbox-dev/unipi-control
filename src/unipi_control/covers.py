@@ -12,12 +12,14 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-import aiofiles
 from config import config
+from config import COVER_DEVICE_LOCKED
+from config import logger
 from features import DigitalOutput
 from features import FeatureMap
 from features import Relay
 from helpers import DataStorage
+from helpers import run_in_executor
 
 ASYNCIO_SLEEP_DELAY_FIX: float = 0.04
 
@@ -134,7 +136,7 @@ class Cover:
         self.calibrate_mode: bool = False
         self.friendly_name: str = kwargs.get("friendly_name", "")
         self.cover_type: str = kwargs.get("cover_type", "roller_shutter")
-        self.topic_name: Optional[str] = kwargs.get("topic_name")
+        self.topic_name: str = kwargs.get("topic_name")
         self.full_open_time: Union[float, int] = kwargs.get("full_open_time", 300)
         self.full_close_time: Union[float, int] = kwargs.get("full_close_time", 300)
         self.tilt_change_time: Union[float, int] = kwargs.get("tilt_change_time", 0)
@@ -164,6 +166,7 @@ class Cover:
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
+        self._device_locked: bool = False
         self._device_state: str = CoverDeviceState.IDLE
         self._current_state: Optional[str] = None
         self._current_position: Optional[int] = None
@@ -306,10 +309,9 @@ class Cover:
 
     def _read_position(self):
         try:
-            with open(self._temp_filename) as f:
-                data = f.read().split("/")
-                self.position = int(data[0])
-                self.tilt = int(data[1])
+            data: list = self._temp_filename.read_text().split("/")
+            self.position = int(data[0])
+            self.tilt = int(data[1])
         except (FileNotFoundError, IndexError, ValueError):
             self.state = CoverState.CLOSED
             self.position = 0
@@ -317,9 +319,9 @@ class Cover:
 
             self.calibrate_mode = True
 
-    async def _write_position(self):
-        async with aiofiles.open(self._temp_filename, "w") as f:
-            await f.write(f"{self.position}/{self.tilt}")
+    @run_in_executor
+    def _write_position(self):
+        self._temp_filename.write_text(f"{self.position}/{self.tilt}")
 
     async def calibrate(self):
         if self.calibrate_mode and not self._calibration_started:
@@ -344,6 +346,10 @@ class Cover:
         calibrate : bool
             Set position to ``0`` if ``True``.
         """
+        if self._device_locked is True:
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
+            return
+
         if self.position is None:
             return
 
@@ -402,6 +408,10 @@ class Cover:
         calibrate : bool
             Set position to ``100`` if ``True``.
         """
+        if self._device_locked is True:
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
+            return
+
         if self.position is None:
             return
 
@@ -478,8 +488,13 @@ class Cover:
             self.state = CoverState.STOPPED
 
         self._device_state = CoverDeviceState.IDLE
+        self._device_locked = False
 
     async def _open_tilt(self, tilt: int = 100):
+        if self._device_locked is True:
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
+            return
+
         if self.tilt is None:
             return
 
@@ -503,6 +518,10 @@ class Cover:
             self._delete_position()
 
     async def _close_tilt(self, tilt: int = 0):
+        if self._device_locked is True:
+            logger.warning(COVER_DEVICE_LOCKED, self.topic, extra={"markup": True})
+            return
+
         if self.tilt is None:
             return
 

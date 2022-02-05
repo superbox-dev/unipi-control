@@ -9,8 +9,11 @@ from typing import Optional
 from typing import Union
 
 from config import config
+from config import logger
 from helpers import DataStorage
-from termcolor import colored
+from rich.console import Console
+
+console = Console()
 
 
 @dataclass(frozen=True)
@@ -195,7 +198,12 @@ class FeatureMap(DataStorage):
         try:
             feature: Union[DigitalInput, DigitalOutput, Relay, Led] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
-            sys.exit(colored(f'[CONFIG] "{circuit}" not found in {self.__class__.__name__}!', "red"))
+            logger.error(
+                "[medium_turquoise][CONFIG][/] [red]'{circuit}' not found in %s![/]",
+                self.__class__.__name__,
+                extra={"markup": True},
+            )
+            sys.exit(1)
 
         return feature
 

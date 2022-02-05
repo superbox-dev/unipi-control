@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 import socket
 import struct
@@ -17,41 +16,57 @@ from typing import Union
 
 import yaml
 from helpers import DataStorage
-from termcolor import colored
+from rich.console import Console
+from rich.logging import RichHandler
+
+console = Console()
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
-COVER_KEY_MISSING: str = '[CONFIG] [COVER %s] Required key "%s" is missing!'
-COVER_TIME: str = '[CONFIG] [COVER %s] Key "%s" is not a float or integer!'
-LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
-LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
+COVER_DEVICE_LOCKED: str = (
+    "[medium_turquoise][COVER][/] [dark_orange][%s][/] Device is locked! Other position change is currently running."
+)
+COVER_KEY_MISSING: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Required key '%s' is missing!"
+COVER_TIME: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Key '%s' is not a float or integer!"
+LOG_MQTT_PUBLISH: str = r"[medium_turquoise][MQTT][/] [light_coral]\[%s][/] Publishing message: [bright_cyan]%s[/]"
+LOG_MQTT_SUBSCRIBE: str = r"[medium_turquoise][MQTT][/] [light_coral]\[%s][/] Subscribe message: [bright_cyan]%s[/]"
+LOG_MQTT_SUBSCRIBE_TOPIC: str = "[medium_turquoise][MQTT][/] Subscribe topic [bright_cyan]%s[/]"
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    handlers=[
+        RichHandler(
+            console=Console(soft_wrap=True, tab_size=4),
+            show_time=False,
+            omit_repeated_times=False,
+        ),
+    ],
+)
 
-class HardwareException(Exception):
-    pass
-
-
-class ImproperlyConfigured(Exception):
-    pass
+logger = logging.getLogger("asyncio")
 
 
 @dataclass
 class ConfigBase:
     def clean(self):
-        errors = []
+        errors: List[str] = []
 
         for key in self.__dict__.keys():
             clean_method = getattr(self, f"clean_{key}", None)
 
             if clean_method and callable(clean_method):
-                try:
-                    clean_method()
-                except ImproperlyConfigured as error:
-                    errors.append(colored(str(error), "red"))
+                error: Optional[Union[str, List[str]]] = clean_method()
+
+                if error is not None:
+                    if isinstance(error, list):
+                        errors += error
+                    else:
+                        errors.append(error)
 
         if errors:
-            sys.exit("\n".join(errors))
+            [logger.error(e, extra={"markup": True}) for e in errors]
+            sys.exit(1)
 
     def update(self, new):
         for key, value in new.items():
@@ -100,21 +115,24 @@ class Config(ConfigBase):
     logging: LoggingConfig = field(default=LoggingConfig())
 
     def __post_init__(self):
-        _config: dict = self.get_config("/etc/unipi/control.yaml")
+        config_path: Path = Path("/etc/unipi/control.yaml")
+        _config: dict = self.get_config(config_path)
+
         self.update(_config)
         self.clean()
 
+        self._change_logger_level()
+
     @staticmethod
-    def get_config(path: str) -> dict:
+    def get_config(config_path: Path) -> dict:
         _config: dict = {}
 
-        if os.path.exists(path):
-            with open(path) as f:
-                _config = yaml.load(f, Loader=yaml.FullLoader)
+        if config_path.exists():
+            _config = yaml.load(config_path.read_text(), Loader=yaml.FullLoader)
 
         return _config
 
-    def logger(self):
+    def _change_logger_level(self):
         level: Dict[str, int] = {
             "debug": logging.DEBUG,
             "info": logging.INFO,
@@ -122,12 +140,7 @@ class Config(ConfigBase):
             "error": logging.ERROR,
         }
 
-        logging.basicConfig(
-            level=level[self.logging.level],
-            format="%(levelname)s - %(message)s",
-        )
-
-        return logging.getLogger("asyncio")
+        logger.setLevel(level[self.logging.level])
 
     def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config.
@@ -151,101 +164,126 @@ class Config(ConfigBase):
 
         return circuits
 
-    def clean_device_name(self):
+    def clean_device_name(self) -> Optional[str]:
         result = re.search(r"^[\w\d_-]*$", self.device_name)
 
         if result is None:
-            raise ImproperlyConfigured(
-                '[CONFIG] Invalid value in "device_name". ' "The following characters are prohibited: A-Z a-z 0-9 -_"
+            return (
+                "[medium_turquoise][CONFIG][/] Invalid value in 'device_name'. "
+                "The following characters are prohibited: [bright_cyan]A-Z a-z 0-9 -_[/]"
             )
 
-    def clean_covers(self):
+        return None
+
+    def clean_covers(self) -> Optional[List[str]]:
+        errors: List[Optional[str]] = []
+
         for index, cover in enumerate(self.covers):
-            self._clean_covers_friendly_name(cover, index)
-            self._clean_covers_cover_type(cover, index)
-            self._clean_covers_topic_name(cover, index)
-            self._clean_covers_full_open_time(cover, index)
-            self._clean_covers_full_close_time(cover, index)
-            self._clean_covers_tilt_change_time(cover, index)
-            self._clean_covers_circuit_up(cover, index)
-            self._clean_covers_circuit_down(cover, index)
-            self._clean_duplicate_covers_circuits()
+            errors.append(self._clean_covers_friendly_name(cover, index))
+            errors.append(self._clean_covers_cover_type(cover, index))
+            errors.append(self._clean_covers_topic_name(cover, index))
+            errors.append(self._clean_covers_full_open_time(cover, index))
+            errors.append(self._clean_covers_full_close_time(cover, index))
+            errors.append(self._clean_covers_tilt_change_time(cover, index))
+            errors.append(self._clean_covers_circuit_up(cover, index))
+            errors.append(self._clean_covers_circuit_down(cover, index))
+            errors.append(self._clean_duplicate_covers_circuits())
+
+        return [error for error in errors if error is not None]
 
     @staticmethod
-    def _clean_covers_friendly_name(cover: Dict[str, str], index: int):
+    def _clean_covers_friendly_name(cover: Dict[str, str], index: int) -> Optional[str]:
         if "friendly_name" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "friendly_name"))
+            return COVER_KEY_MISSING % (index + 1, "friendly_name")
+
+        return None
 
     @staticmethod
-    def _clean_covers_cover_type(cover: Dict[str, str], index: int):
+    def _clean_covers_cover_type(cover: Dict[str, str], index: int) -> Optional[str]:
         if "cover_type" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "cover_type"))
+            return COVER_KEY_MISSING % (index + 1, "cover_type")
 
         if cover.get("cover_type") not in COVER_TYPES:
-            raise ImproperlyConfigured(
-                f"""[CONFIG] [COVER {index + 1}] Invalid value in \"cover_type\".
-                The following values are allowed: {" ".join(COVER_TYPES)}."""
+            return (
+                f"[medium_turquoise][CONFIG][/] [light_coral][COVER {index + 1}][/] Invalid value in 'cover_type'. "
+                f"The following values are allowed: [bright_cyan]{' '.join(COVER_TYPES)}[/]."
             )
 
+        return None
+
     @staticmethod
-    def _clean_covers_topic_name(cover: Dict[str, str], index: int):
+    def _clean_covers_topic_name(cover: Dict[str, str], index: int) -> Optional[str]:
         if "topic_name" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "topic_name"))
+            return COVER_KEY_MISSING % (index + 1, "topic_name")
 
         result: Optional[Match[str]] = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
 
         if result is None:
-            raise ImproperlyConfigured(
-                f'[CONFIG] [COVER {index + 1}] Invalid value in "topic_name".'
-                f" The following characters are prohibited: a-z 0-9 -_"
+            return (
+                f"[medium_turquoise][CONFIG][/] [light_coral][COVER {index + 1}][/] Invalid value in 'topic_name'. "
+                f"The following characters are prohibited: [bright_cyan]a-z 0-9 -_[/]"
             )
 
+        return None
+
     @staticmethod
-    def _clean_covers_full_open_time(cover: Dict[str, Union[float, int]], index: int):
+    def _clean_covers_full_open_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
         if "full_open_time" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "full_open_time"))
+            return COVER_KEY_MISSING % (index + 1, "full_open_time")
 
         value = cover.get("full_open_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
-            raise ImproperlyConfigured(COVER_TIME % (index + 1, "full_open_time"))
+            return COVER_TIME % (index + 1, "full_open_time")
+
+        return None
 
     @staticmethod
-    def _clean_covers_full_close_time(cover: Dict[str, Union[float, int]], index: int):
+    def _clean_covers_full_close_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
         if "full_close_time" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "full_close_time"))
+            return COVER_KEY_MISSING % (index + 1, "full_close_time")
 
         value = cover.get("full_close_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
-            raise ImproperlyConfigured(COVER_TIME % (index + 1, "full_close_time"))
+            return COVER_TIME % (index + 1, "full_close_time")
+
+        return None
 
     @staticmethod
-    def _clean_covers_tilt_change_time(cover: Dict[str, Union[float, int]], index: int):
+    def _clean_covers_tilt_change_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
         value = cover.get("tilt_change_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
-            raise ImproperlyConfigured(COVER_TIME % (index + 1, "tilt_change_time"))
+            return COVER_TIME % (index + 1, "tilt_change_time")
+
+        return None
 
     @staticmethod
-    def _clean_covers_circuit_up(cover: Dict[str, str], index: int):
+    def _clean_covers_circuit_up(cover: Dict[str, str], index: int) -> Optional[str]:
         if "circuit_up" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_up"))
+            return COVER_KEY_MISSING % (index + 1, "circuit_up")
+
+        return None
 
     @staticmethod
-    def _clean_covers_circuit_down(cover: Dict[str, str], index: int):
+    def _clean_covers_circuit_down(cover: Dict[str, str], index: int) -> Optional[str]:
         if "circuit_down" not in cover:
-            raise ImproperlyConfigured(COVER_KEY_MISSING % (index + 1, "circuit_down"))
+            return COVER_KEY_MISSING % (index + 1, "circuit_down")
 
-    def _clean_duplicate_covers_circuits(self):
+        return None
+
+    def _clean_duplicate_covers_circuits(self) -> Optional[str]:
         circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
-                raise ImproperlyConfigured(
-                    '[CONFIG] [COVER] Duplicate circuits found in "covers"! '
-                    "Driving both signals up and down at the same time can damage the motor."
+                return (
+                    "[medium_turquoise][CONFIG][/] [light_coral][COVER][/] Duplicate circuits found in 'covers'. "
+                    "Driving both signals up and down at the same time can damage the motor!"
                 )
+
+        return None
 
 
 @dataclass
@@ -281,7 +319,8 @@ class HardwareData(DataStorage):
         self._model: str = self.data["neuron"]["model"]
 
         if self._model is None:
-            raise HardwareException("[CONFIG] Hardware is not supported!")
+            logger.error("[medium_turquoise][CONFIG][/] Hardware is not supported!", extra={"markup": True})
+            sys.exit(1)
 
         self._read_definitions()
         self._read_neuron_definition()
@@ -289,25 +328,27 @@ class HardwareData(DataStorage):
     def _read_definitions(self):
         try:
             for f in Path(f"{HARDWARE}/extension").iterdir():
-                if str(f).endswith(".yaml"):
-                    with open(f) as yf:
-                        self.data["definitions"].append(yaml.load(yf, Loader=yaml.FullLoader))
-                        logger.debug("[CONFIG] YAML Definition loaded: %s", f)
+                if f.suffix == ".yaml":
+                    self.data["definitions"].append(yaml.load(f.read_text(), Loader=yaml.FullLoader))
+                    logger.debug("[medium_turquoise][CONFIG][/] YAML Definition loaded: %s", f, extra={"markup": True})
         except FileNotFoundError as error:
-            print(colored(str(error), "red"))
+            logger.info("[medium_turquoise][CONFIG][/] %s", str(error), extra={"markup": True})
 
     def _read_neuron_definition(self):
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():
-            with open(definition_file) as yf:
-                self.data["neuron_definition"] = yaml.load(yf, Loader=yaml.FullLoader)
-                logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
-        else:
-            raise HardwareException(
-                f"[CONFIG] No valid YAML definition for active Neuron device! " f"Device name is {self._model}."
+            self.data["neuron_definition"] = yaml.load(definition_file.read_text(), Loader=yaml.FullLoader)
+            logger.debug(
+                "[medium_turquoise][CONFIG][/] YAML Definition loaded: %s", definition_file, extra={"markup": True}
             )
+        else:
+            logger.error(
+                "[medium_turquoise][CONFIG][/] No valid YAML definition for active Neuron device! Device name is %s",
+                self._model,
+                extra={"markup": True},
+            )
+            sys.exit(1)
 
 
 config = Config()
-logger = config.logger()

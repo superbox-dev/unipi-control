@@ -26,7 +26,9 @@ from plugins.hass.covers import HassCoversMqttPlugin
 from plugins.hass.switches import HassSwitchesMqttPlugin
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
-from termcolor import colored
+from rich.console import Console
+
+console = Console()
 
 
 class UnipiControl:
@@ -41,7 +43,15 @@ class UnipiControl:
         self.neuron = Neuron(modbus_client)
 
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
-        logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
+
+        logger.info(
+            "[medium_turquoise][MQTT][/] Client ID: [purple]%s[/]",
+            self._mqtt_client_id,
+            extra={
+                "markup": True,
+                "highlighter": None,
+            },
+        )
 
         self._tasks: Set[Task] = set()
         self._retry_reconnect: int = 0
@@ -58,7 +68,15 @@ class UnipiControl:
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info('[MQTT] Connected to broker at "%s:%s"', config.mqtt.host, config.mqtt.port)
+            logger.info(
+                "[medium_turquoise][MQTT][/] Connected to broker at [purple]'%s:%s'[/]",
+                config.mqtt.host,
+                config.mqtt.port,
+                extra={
+                    "markup": True,
+                    "highlighter": None,
+                },
+            )
 
             features = FeaturesMqttPlugin(self, mqtt_client)
             tasks = await features.init_tasks(stack)
@@ -87,12 +105,12 @@ class UnipiControl:
 
     async def shutdown(self, s=None):
         if s:
-            logger.info("Received exit signal %s...", s.name)
+            logger.info("Received [red]exit[/] signal %s...", s.name)
 
         tasks = [t for t in self._tasks if t is not t.done()]
 
         if tasks:
-            logger.info("Cancelling %s outstanding tasks.", len(tasks))
+            logger.info("Cancelling [bold red]%s[/] outstanding tasks.", len(tasks), extra={"markup": True})
 
         [task.cancel() for task in tasks]
 
@@ -106,14 +124,15 @@ class UnipiControl:
 
         while True:
             try:
-                logger.info("[MQTT] Connecting to broker ...")
+                logger.info("[medium_turquoise][MQTT][/] Connecting to broker ...", extra={"markup": True})
                 await self._init_tasks()
             except MqttError as error:
                 logger.error(
-                    '[MQTT] Error "%s". Connecting attempt #%s. Reconnecting in %s seconds.',
+                    """[medium_turquoise][MQTT][/] [bold red]Error "%s"[/]. Connecting attempt #%s. Reconnecting in %s seconds.""",
                     error,
                     self._retry_reconnect + 1,
                     reconnect_interval,
+                    extra={"markup": True},
                 )
             finally:
                 if retry_limit and self._retry_reconnect > retry_limit:
@@ -126,16 +145,18 @@ class UnipiControl:
 
 def install_unipi_control():
     src_config_path: Path = Path(__file__).parents[0].joinpath("installer/etc/unipi")
-    src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/lib/systemd/system/unipi-control.service")
+    src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/etc/systemd/system/unipi-control.service")
     dest_config_path: Path = Path("/etc/unipi")
 
-    print(colored(f"-> Copy config files to {dest_config_path}", "green"))
+    console.print(f"[green]-> Copy config files to {dest_config_path}[/]")
 
     dirs_exist_ok: bool = False
     copy_config_files: bool = True
 
     if dest_config_path.exists():
-        overwrite_config: str = input("Overwrite existing config files? [Y/n]")
+        overwrite_config: str = console.input(
+            "[bold]Overwrite[/] existing config files? [[bold green]Y[/]/[bold red]n[/]]"
+        )
 
         if overwrite_config.lower() == "y":
             dirs_exist_ok = True
@@ -145,36 +166,20 @@ def install_unipi_control():
     if copy_config_files:
         shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
 
-    print(colored('-> Copy systemd service "unipi-control.service"', "green"))
-    shutil.copyfile(src_systemd_path, "/lib/systemd/system/unipi-control.service")
+    console.print("[green]-> Copy systemd service 'unipi-control.service'[/]")
+    shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
 
-    enable_and_start_systemd: str = input("Enable and start systemd service? [Y/n]")
+    enable_and_start_systemd: str = console.input("Enable and start systemd service? [[bold green]Y[/]/[bold red]n[/]]")
 
     if enable_and_start_systemd.lower() == "y":
-        print(colored('-> Enable systemd service "unipi-control.service"', "green"))
+        console.print("[green]-> Enable systemd service 'unipi-control.service'[/green]")
         status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
 
         if status:
             logger.info(status)
     else:
-        print(
-            colored(
-                "\nYou can enable the systemd service with the command:",
-                "white",
-                attrs=[
-                    "bold",
-                ],
-            )
-        )
-        print(
-            colored(
-                "systemctl enable --now unipi-control",
-                "magenta",
-                attrs=[
-                    "bold",
-                ],
-            )
-        )
+        console.print("[bold white]You can enable the systemd service with the command:[/]")
+        console.print("[bold magenta]systemctl enable --now unipi-control[/]")
 
 
 def main():
@@ -200,7 +205,7 @@ def main():
         except asyncio.CancelledError:
             pass
         finally:
-            logger.info("Successfully shutdown the Unipi Control service.")
+            logger.info("[bold green]Successfully shutdown the Unipi Control service.[/]", extra={"markup": True})
 
 
 if __name__ == "__main__":

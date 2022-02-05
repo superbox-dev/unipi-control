@@ -1,5 +1,9 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=43.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.check-manifest]
+ignore = [".editorconfig", ".pre-commit-config.yaml", "Pipfile", "Pipfile.lock"]
 
 [tool.black]
 line-length = 120
