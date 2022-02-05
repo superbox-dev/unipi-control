@@ -41,7 +41,7 @@ jobs:
     - name: mypy
       run: pipenv run mypy $(git ls-files '*.py')
     - name: Build package
-      run: python -m build
+      run: pipenv run build
     - name: Publish test package
       if: needs.check-tag.outputs.release-type == 'prerelease'
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
