@@ -14,9 +14,9 @@ jobs:
       - name: check tag ${{ github.ref }}
         id: check-tag
         run: |
-          if [[ ${{ github.event.ref }} =~ ^refs/tags/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ${{ github.event.ref }} =~ ^refs\/tags\/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo ::set-output name=run_jobs::release
-          elif [[ ${{ github.event.ref }} =~ ^refs/tags/[0-9]+\.[0-9]+\.[0-9]+\-beta[0-9]$ ]]; then
+          elif [[ ${{ github.event.ref }} =~ ^refs\/tags\/[0-9]+\.[0-9]+\.[0-9]+-beta[0-9]+$ ]]; then
             echo ::set-output name=run_jobs::prerelease
           fi
 
