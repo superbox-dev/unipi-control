@@ -24,7 +24,7 @@ jobs:
 
   deploy:
     needs: [check-tag]
-    if: needs.check_tag.outputs.release-type == 'release' or needs.check_tag.outputs.release-type == 'prerelease'
+    if: needs.check_tag.outputs.release-type == 'release' || needs.check_tag.outputs.release-type == 'prerelease'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
