@@ -33,8 +33,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pipenv
-        pipenv sync
-        pipenv install -d
+        pipenv sync --dev
         pipenv shell
     - name: black
       run: black --diff --check $(git ls-files '*.py')
