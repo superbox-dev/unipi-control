@@ -27,6 +27,7 @@ from plugins.hass.switches import HassSwitchesMqttPlugin
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
 from rich.console import Console
+from version import __version__
 
 console = Console()
 
@@ -184,7 +185,8 @@ def install_unipi_control():
 
 def main():
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
-    parser.add_argument("-i", "--install", action="store_true", help="Install Unipi Control")
+    parser.add_argument("-i", "--install", action="store_true", help="install unipi control")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
     if args.install:
