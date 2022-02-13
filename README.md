@@ -172,6 +172,11 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## Changelog
 
+### 1.0.4
+
+* Fixed log messages
+* Added "Show version" argument parameter
+
 ### 1.0.3
 
 * Fixed bug: position and tilt change at the same time is no longer possible.
