@@ -23,11 +23,12 @@ console = Console()
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
-COVER_DEVICE_LOCKED: str = (
+
+LOG_COVER_DEVICE_LOCKED: str = (
     "[medium_turquoise][COVER][/] [dark_orange][%s][/] Device is locked! Other position change is currently running."
 )
-COVER_KEY_MISSING: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Required key '%s' is missing!"
-COVER_TIME: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Key '%s' is not a float or integer!"
+LOG_COVER_KEY_MISSING: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Required key '%s' is missing!"
+LOG_COVER_TIME: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Key '%s' is not a float or integer!"
 LOG_MQTT_PUBLISH: str = r"[medium_turquoise][MQTT][/] [light_coral]\[%s][/] Publishing message: [bright_cyan]%s[/]"
 LOG_MQTT_SUBSCRIBE: str = r"[medium_turquoise][MQTT][/] [light_coral]\[%s][/] Subscribe message: [bright_cyan]%s[/]"
 LOG_MQTT_SUBSCRIBE_TOPIC: str = "[medium_turquoise][MQTT][/] Subscribe topic [bright_cyan]%s[/]"
@@ -194,14 +195,14 @@ class Config(ConfigBase):
     @staticmethod
     def _clean_covers_friendly_name(cover: Dict[str, str], index: int) -> Optional[str]:
         if "friendly_name" not in cover:
-            return COVER_KEY_MISSING % (index + 1, "friendly_name")
+            return LOG_COVER_KEY_MISSING % (index + 1, "friendly_name")
 
         return None
 
     @staticmethod
     def _clean_covers_cover_type(cover: Dict[str, str], index: int) -> Optional[str]:
         if "cover_type" not in cover:
-            return COVER_KEY_MISSING % (index + 1, "cover_type")
+            return LOG_COVER_KEY_MISSING % (index + 1, "cover_type")
 
         if cover.get("cover_type") not in COVER_TYPES:
             return (
@@ -214,7 +215,7 @@ class Config(ConfigBase):
     @staticmethod
     def _clean_covers_topic_name(cover: Dict[str, str], index: int) -> Optional[str]:
         if "topic_name" not in cover:
-            return COVER_KEY_MISSING % (index + 1, "topic_name")
+            return LOG_COVER_KEY_MISSING % (index + 1, "topic_name")
 
         result: Optional[Match[str]] = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
 
@@ -229,24 +230,24 @@ class Config(ConfigBase):
     @staticmethod
     def _clean_covers_full_open_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
         if "full_open_time" not in cover:
-            return COVER_KEY_MISSING % (index + 1, "full_open_time")
+            return LOG_COVER_KEY_MISSING % (index + 1, "full_open_time")
 
         value = cover.get("full_open_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
-            return COVER_TIME % (index + 1, "full_open_time")
+            return LOG_COVER_TIME % (index + 1, "full_open_time")
 
         return None
 
     @staticmethod
     def _clean_covers_full_close_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
         if "full_close_time" not in cover:
-            return COVER_KEY_MISSING % (index + 1, "full_close_time")
+            return LOG_COVER_KEY_MISSING % (index + 1, "full_close_time")
 
         value = cover.get("full_close_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
-            return COVER_TIME % (index + 1, "full_close_time")
+            return LOG_COVER_TIME % (index + 1, "full_close_time")
 
         return None
 
@@ -255,21 +256,21 @@ class Config(ConfigBase):
         value = cover.get("tilt_change_time")
 
         if value and not isinstance(value, float) and not isinstance(value, int):
-            return COVER_TIME % (index + 1, "tilt_change_time")
+            return LOG_COVER_TIME % (index + 1, "tilt_change_time")
 
         return None
 
     @staticmethod
     def _clean_covers_circuit_up(cover: Dict[str, str], index: int) -> Optional[str]:
         if "circuit_up" not in cover:
-            return COVER_KEY_MISSING % (index + 1, "circuit_up")
+            return LOG_COVER_KEY_MISSING % (index + 1, "circuit_up")
 
         return None
 
     @staticmethod
     def _clean_covers_circuit_down(cover: Dict[str, str], index: int) -> Optional[str]:
         if "circuit_down" not in cover:
-            return COVER_KEY_MISSING % (index + 1, "circuit_down")
+            return LOG_COVER_KEY_MISSING % (index + 1, "circuit_down")
 
         return None
 

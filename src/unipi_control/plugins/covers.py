@@ -136,4 +136,4 @@ class CoversMqttPlugin:
                 logger.info(LOG_MQTT_PUBLISH, state_topic, cover.state, extra={"markup": True})
 
             await cover.calibrate()
-            await asyncio.sleep(25e-3)
+            await asyncio.sleep(22e-3)
