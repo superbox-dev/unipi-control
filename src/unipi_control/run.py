@@ -106,7 +106,7 @@ class UnipiControl:
 
     async def shutdown(self, s=None):
         if s:
-            logger.info("Received [red]exit[/] signal %s...", s.name)
+            logger.info("Received [red]exit[/] signal %s...", s.name, extra={"markup": True})
 
         tasks = [t for t in self._tasks if t is not t.done()]
 
