@@ -16,33 +16,20 @@ from typing import Union
 
 import yaml
 from helpers import DataStorage
-from rich.console import Console
-from rich.logging import RichHandler
-
-console = Console()
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
 
-LOG_COVER_DEVICE_LOCKED: str = (
-    "[medium_turquoise][COVER][/] [dark_orange][%s][/] Device is locked! Other position change is currently running."
-)
-LOG_COVER_KEY_MISSING: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Required key '%s' is missing!"
-LOG_COVER_TIME: str = "[medium_turquoise][CONFIG][/] [light_coral][COVER %s][/] Key '%s' is not a float or integer!"
-LOG_MQTT_PUBLISH: str = r"[medium_turquoise][MQTT][/] [light_coral]\[%s][/] Publishing message: [bright_cyan]%s[/]"
-LOG_MQTT_SUBSCRIBE: str = r"[medium_turquoise][MQTT][/] [light_coral]\[%s][/] Subscribe message: [bright_cyan]%s[/]"
-LOG_MQTT_SUBSCRIBE_TOPIC: str = "[medium_turquoise][MQTT][/] Subscribe topic [bright_cyan]%s[/]"
+LOG_COVER_DEVICE_LOCKED: str = "[COVER] [%s] Device is locked! Other position change is currently running."
+LOG_COVER_KEY_MISSING: str = "[CONFIG] [COVER %s] Required key '%s' is missing!"
+LOG_COVER_TIME: str = "[CONFIG] [COVER %s] Key '%s' is not a float or integer!"
+LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
+LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
+LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(message)s",
-    handlers=[
-        RichHandler(
-            console=Console(soft_wrap=True, tab_size=4),
-            show_time=False,
-            omit_repeated_times=False,
-        ),
-    ],
+    format="%(levelname)s - %(message)s",
 )
 
 logger = logging.getLogger("asyncio")
@@ -66,7 +53,7 @@ class ConfigBase:
                         errors.append(error)
 
         if errors:
-            [logger.error(e, extra={"markup": True}) for e in errors]
+            [logger.error(e) for e in errors]
             sys.exit(1)
 
     def update(self, new):
@@ -169,10 +156,7 @@ class Config(ConfigBase):
         result = re.search(r"^[\w\d_-]*$", self.device_name)
 
         if result is None:
-            return (
-                "[medium_turquoise][CONFIG][/] Invalid value in 'device_name'. "
-                "The following characters are prohibited: [bright_cyan]A-Z a-z 0-9 -_[/]"
-            )
+            return "[CONFIG] Invalid value in 'device_name'. The following characters are prohibited: A-Z a-z 0-9 -_"
 
         return None
 
@@ -206,8 +190,8 @@ class Config(ConfigBase):
 
         if cover.get("cover_type") not in COVER_TYPES:
             return (
-                f"[medium_turquoise][CONFIG][/] [light_coral][COVER {index + 1}][/] Invalid value in 'cover_type'. "
-                f"The following values are allowed: [bright_cyan]{' '.join(COVER_TYPES)}[/]."
+                f"[CONFIG] [COVER {index + 1}] Invalid value in 'cover_type'. "
+                f"The following values are allowed: {' '.join(COVER_TYPES)}."
             )
 
         return None
@@ -221,8 +205,8 @@ class Config(ConfigBase):
 
         if result is None:
             return (
-                f"[medium_turquoise][CONFIG][/] [light_coral][COVER {index + 1}][/] Invalid value in 'topic_name'. "
-                f"The following characters are prohibited: [bright_cyan]a-z 0-9 -_[/]"
+                f"[CONFIG] [COVER {index + 1}] Invalid value in 'topic_name'. "
+                f"The following characters are prohibited: a-z 0-9 -_"
             )
 
         return None
@@ -280,7 +264,7 @@ class Config(ConfigBase):
         for circuit in circuits:
             if circuits.count(circuit) > 1:
                 return (
-                    "[medium_turquoise][CONFIG][/] [light_coral][COVER][/] Duplicate circuits found in 'covers'. "
+                    "[CONFIG] [COVER] Duplicate circuits found in 'covers'. "
                     "Driving both signals up and down at the same time can damage the motor!"
                 )
 
@@ -320,7 +304,7 @@ class HardwareData(DataStorage):
         self._model: str = self.data["neuron"]["model"]
 
         if self._model is None:
-            logger.error("[medium_turquoise][CONFIG][/] Hardware is not supported!", extra={"markup": True})
+            logger.error("[CONFIG] Hardware is not supported!")
             sys.exit(1)
 
         self._read_definitions()
@@ -331,24 +315,18 @@ class HardwareData(DataStorage):
             for f in Path(f"{HARDWARE}/extension").iterdir():
                 if f.suffix == ".yaml":
                     self.data["definitions"].append(yaml.load(f.read_text(), Loader=yaml.FullLoader))
-                    logger.debug("[medium_turquoise][CONFIG][/] YAML Definition loaded: %s", f, extra={"markup": True})
+                    logger.debug("[CONFIG] YAML Definition loaded: %s", f)
         except FileNotFoundError as error:
-            logger.info("[medium_turquoise][CONFIG][/] %s", str(error), extra={"markup": True})
+            logger.info("[CONFIG] %s", str(error))
 
     def _read_neuron_definition(self):
         definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():
             self.data["neuron_definition"] = yaml.load(definition_file.read_text(), Loader=yaml.FullLoader)
-            logger.debug(
-                "[medium_turquoise][CONFIG][/] YAML Definition loaded: %s", definition_file, extra={"markup": True}
-            )
+            logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
-            logger.error(
-                "[medium_turquoise][CONFIG][/] No valid YAML definition for active Neuron device! Device name is %s",
-                self._model,
-                extra={"markup": True},
-            )
+            logger.error("[CONFIG] No valid YAML definition for active Neuron device! Device name is %s", self._model)
             sys.exit(1)
 
 
