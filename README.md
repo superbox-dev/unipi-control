@@ -172,6 +172,10 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## Changelog
 
+### 1.0.5
+
+* Prepare unipi-control buildroot package
+
 ### 1.0.4
 
 * Fixed log messages
