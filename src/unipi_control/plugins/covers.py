@@ -50,7 +50,7 @@ class CoversMqttPlugin:
         tasks.add(task)
 
         await self._mqtt_client.subscribe(topic, qos=0)
-        logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic, extra={"markup": True})
+        logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
 
@@ -64,7 +64,7 @@ class CoversMqttPlugin:
         tasks.add(task)
 
         await self._mqtt_client.subscribe(topic, qos=0)
-        logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic, extra={"markup": True})
+        logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
 
@@ -79,7 +79,7 @@ class CoversMqttPlugin:
             tasks.add(task)
 
             await self._mqtt_client.subscribe(topic, qos=0)
-            logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic, extra={"markup": True})
+            logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         return tasks
 
@@ -95,7 +95,7 @@ class CoversMqttPlugin:
             elif value == CoverDeviceState.STOP:
                 await cover.stop()
 
-            logger.info(LOG_MQTT_SUBSCRIBE, topic, value, extra={"markup": True})
+            logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
     @staticmethod
     async def _subscribe_set_position_topic(cover, topic: str, messages: AsyncIterable):
@@ -103,7 +103,7 @@ class CoversMqttPlugin:
             try:
                 position: int = int(message.payload.decode())
                 await cover.set_position(position)
-                logger.info(LOG_MQTT_SUBSCRIBE, topic, position, extra={"markup": True})
+                logger.info(LOG_MQTT_SUBSCRIBE, topic, position)
             except ValueError as error:
                 logger.error(error)
 
@@ -113,7 +113,7 @@ class CoversMqttPlugin:
             try:
                 tilt: int = int(message.payload.decode())
                 await cover.set_tilt(tilt)
-                logger.info(LOG_MQTT_SUBSCRIBE, topic, tilt, extra={"markup": True})
+                logger.info(LOG_MQTT_SUBSCRIBE, topic, tilt)
 
             except ValueError as error:
                 logger.error(error)
@@ -123,17 +123,17 @@ class CoversMqttPlugin:
             if cover.position_changed:
                 position_topic: str = f"{cover.topic}/position"
                 await self._mqtt_client.publish(position_topic, cover.position, qos=1, retain=True)
-                logger.info(LOG_MQTT_PUBLISH, position_topic, cover.position, extra={"markup": True})
+                logger.info(LOG_MQTT_PUBLISH, position_topic, cover.position)
 
             if cover.tilt_changed:
                 tilt_topic: str = f"{cover.topic}/tilt"
                 await self._mqtt_client.publish(tilt_topic, cover.tilt, qos=1, retain=True)
-                logger.info(LOG_MQTT_PUBLISH, tilt_topic, cover.tilt, extra={"markup": True})
+                logger.info(LOG_MQTT_PUBLISH, tilt_topic, cover.tilt)
 
             if cover.state_changed:
                 state_topic: str = f"{cover.topic}/state"
                 await self._mqtt_client.publish(state_topic, cover.state, qos=1, retain=True)
-                logger.info(LOG_MQTT_PUBLISH, state_topic, cover.state, extra={"markup": True})
+                logger.info(LOG_MQTT_PUBLISH, state_topic, cover.state)
 
             await cover.calibrate()
             await asyncio.sleep(22e-3)
