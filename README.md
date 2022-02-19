@@ -43,7 +43,7 @@ You can set the client settings in the `/etc/unipi/control.yaml`.
 
 ```yaml
 # control.yaml
-device_name: unipi
+device_name: Unipi
 ```
 
 #### MQTT

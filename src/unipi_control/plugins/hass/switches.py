@@ -28,7 +28,7 @@ class HassSwitchesDiscovery:
 
     @staticmethod
     def _get_friendly_name(feature) -> str:
-        friendly_name: str = f"{config.device_name} - {feature.circuit_name}"
+        friendly_name: str = f"{config.device_name} {feature.circuit_name}"
         features_config: Optional[dict] = config.features.get(feature.circuit, {})
 
         if features_config is not None:
