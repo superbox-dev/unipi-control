@@ -76,10 +76,6 @@ class Feature:
     @property
     def topic(self) -> str:
         topic: str = f"{config.device_name.lower()}/{self.feature_name}"
-
-        if self.short_name:
-            topic += f"/{self.short_name}"
-
         topic += f"/{self.circuit}"
 
         return topic
