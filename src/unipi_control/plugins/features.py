@@ -34,6 +34,10 @@ class FeaturesMqttPlugin:
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         for feature in self._uc.neuron.features.by_feature_type(["AO", "DI", "DO", "RO"]):
+            topic: str = f"{feature.topic}/get"
+            state: str = await feature.state
+            await self._mqtt_client.publish(topic, state, qos=1, retain=True)
+
             publish_task: Task[Any] = asyncio.create_task(self._publish(feature))
             tasks.add(publish_task)
 
@@ -55,7 +59,7 @@ class FeaturesMqttPlugin:
         while True:
             if await feature.changed:
                 topic: str = f"{feature.topic}/get"
-                state: str = await feature.state
+                state = await feature.state
                 await self._mqtt_client.publish(topic, state, qos=1, retain=True)
                 logger.info(LOG_MQTT_PUBLISH, topic, state)
 
