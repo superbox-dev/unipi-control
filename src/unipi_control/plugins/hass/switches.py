@@ -2,13 +2,12 @@ import asyncio
 import json
 from asyncio import Task
 from dataclasses import asdict
-from typing import Any
-from typing import Optional
+from typing import Any, Optional
 from typing import Set
 from typing import Tuple
 
+from config import LOG_MQTT_PUBLISH, FeatureConfig
 from config import config
-from config import LOG_MQTT_PUBLISH
 from config import logger
 
 
@@ -29,12 +28,22 @@ class HassSwitchesDiscovery:
     @staticmethod
     def _get_friendly_name(feature) -> str:
         friendly_name: str = f"{config.device_name} {feature.circuit_name}"
-        features_config: Optional[dict] = config.features.get(feature.circuit, {})
+        features_config: FeatureConfig = config.features.get(feature.circuit)
 
-        if features_config is not None:
-            friendly_name = features_config.get("friendly_name", friendly_name)
+        if features_config:
+            friendly_name = features_config.friendly_name
 
         return friendly_name
+
+    @staticmethod
+    def _get_suggested_area(feature) -> Optional[str]:
+        suggested_area: str = ""
+        features_config: FeatureConfig = config.features.get(feature.circuit)
+
+        if features_config:
+            suggested_area = features_config.suggested_area
+
+        return suggested_area
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = (
@@ -44,6 +53,12 @@ class HassSwitchesDiscovery:
         message: dict = {}
 
         if feature.circuit not in config.get_cover_circuits():
+            suggested_area: Optional[str] = self._get_suggested_area(feature)
+            device_name: str = config.device_name
+
+            if suggested_area:
+                device_name = f"{device_name}: {suggested_area}"
+
             message = {
                 "name": self._get_friendly_name(feature),
                 "unique_id": f"{config.device_name.lower()}_{feature.circuit}",
@@ -51,10 +66,11 @@ class HassSwitchesDiscovery:
                 "state_topic": f"{feature.topic}/get",
                 "qos": 2,
                 "device": {
-                    "name": config.device_name,
-                    "identifiers": config.device_name.lower(),
+                    "name": device_name,
+                    "identifiers": device_name,
                     "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                     "sw_version": self._uc.neuron.boards[feature.major_group - 1].firmware,
+                    "suggested_area": suggested_area,
                     **asdict(config.homeassistant.device),
                 },
             }

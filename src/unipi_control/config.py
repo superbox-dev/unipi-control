@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import re
 import socket
@@ -12,49 +13,39 @@ from typing import Dict
 from typing import List
 from typing import Match
 from typing import Optional
-from typing import Union
 
 import yaml
+
 from helpers import DataStorage
 
 HARDWARE: str = "/etc/unipi/hardware"
 COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
 
 LOG_COVER_DEVICE_LOCKED: str = "[COVER] [%s] Device is locked! Other position change is currently running."
-LOG_COVER_KEY_MISSING: str = "[CONFIG] [COVER %s] Required key '%s' is missing!"
-LOG_COVER_TIME: str = "[CONFIG] [COVER %s] Key '%s' is not a float or integer!"
 LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s - %(message)s",
-)
-
+logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 logger = logging.getLogger("asyncio")
 
 
 @dataclass
 class ConfigBase:
-    def clean(self):
-        errors: List[str] = []
+    def __post_init__(self):
+        for f in dataclasses.fields(self):
+            value = getattr(self, f.name)
 
-        for key in self.__dict__.keys():
-            clean_method = getattr(self, f"clean_{key}", None)
+            if not isinstance(value, f.type):
+                logger.error(
+                    "[CONFIG] %s - Expected %s to be %s, " f"got %s",
+                    self.__class__.__name__,
+                    f.name,
+                    f.type,
+                    repr(value),
+                )
 
-            if clean_method and callable(clean_method):
-                error: Optional[Union[str, List[str]]] = clean_method()
-
-                if error is not None:
-                    if isinstance(error, list):
-                        errors += error
-                    else:
-                        errors.append(error)
-
-        if errors:
-            [logger.error(e) for e in errors]
-            sys.exit(1)
+                sys.exit(1)
 
     def update(self, new):
         for key, value in new.items():
@@ -94,6 +85,60 @@ class LoggingConfig(ConfigBase):
 
 
 @dataclass
+class FeatureConfig(ConfigBase):
+    friendly_name: str = field(default_factory=str)
+    suggested_area: str = field(default_factory=str)
+
+
+@dataclass
+class CoverConfig(ConfigBase):
+    friendly_name: str = field(default_factory=str)
+    suggested_area: str = field(default_factory=str)
+    cover_type: str = field(default_factory=str)
+    topic_name: str = field(default_factory=str)
+    full_open_time: float = field(default_factory=float)
+    full_close_time: float = field(default_factory=float)
+    tilt_change_time: float = field(default_factory=float)
+    circuit_up: str = field(default_factory=str)
+    circuit_down: str = field(default_factory=str)
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        for f in [
+            "friendly_name",
+            "topic_name",
+            "cover_type",
+            "full_open_time",
+            "full_close_time",
+            "circuit_up",
+            "circuit_down",
+        ]:
+            if not self.friendly_name:
+                logger.error("[CONFIG] [COVER] Required key '%s' is missing! %s", f, repr(self))
+                sys.exit(1)
+
+        if self.topic_name:
+            result: Optional[Match[str]] = re.search(r"^[a-z\d_-]*$", self.topic_name)
+
+            if result is None:
+                logger.error(
+                    "[CONFIG] [COVER] Invalid value '%s' in 'topic_name'. "
+                    "The following characters are prohibited: a-z 0-9 -_",
+                    self.topic_name,
+                )
+                sys.exit(1)
+
+        if self.cover_type not in COVER_TYPES:
+            logger.error(
+                "[CONFIG] [COVER] Invalid value '%s' in 'cover_type'. The following values are allowed: %s.",
+                self.cover_type,
+                " ".join(COVER_TYPES),
+            )
+            sys.exit(1)
+
+
+@dataclass
 class Config(ConfigBase):
     device_name: str = field(default=socket.gethostname())
     mqtt: MqttConfig = field(default=MqttConfig())
@@ -103,12 +148,31 @@ class Config(ConfigBase):
     logging: LoggingConfig = field(default=LoggingConfig())
 
     def __post_init__(self):
+        super().__post_init__()
+
         config_path: Path = Path("/etc/unipi/control.yaml")
         _config: dict = self.get_config(config_path)
 
         self.update(_config)
-        self.clean()
 
+        for circuit, feature_config in self.features.items():
+            self.features[circuit] = FeatureConfig(**feature_config)
+
+        for index, cover_config in enumerate(self.covers):
+            self.covers[index] = CoverConfig(**cover_config)
+
+        if self.device_name:
+            result: Optional[Match[str]] = re.search(r"^[\w\d_-]*$", self.device_name)
+
+            if result is None:
+                logger.error(
+                    "[CONFIG] Invalid value '%s' in 'device_name'. "
+                    "The following characters are prohibited: A-Z a-z 0-9 -_",
+                    self.device_name,
+                )
+                sys.exit(1)
+
+        self.check_duplicate_covers_circuits()
         self._change_logger_level()
 
     @staticmethod
@@ -131,18 +195,12 @@ class Config(ConfigBase):
         logger.setLevel(level[self.logging.level])
 
     def get_cover_circuits(self) -> List[str]:
-        """Get all circuits that are defined in the cover config.
-
-        Returns
-        -------
-        list
-            A list of cover circuits.
-        """
+        """Get all circuits that are defined in the cover config."""
         circuits: List[str] = []
 
         for cover in self.covers:
-            circuit_up: str = cover.get("circuit_up")
-            circuit_down: str = cover.get("circuit_down")
+            circuit_up: str = cover.circuit_up
+            circuit_down: str = cover.circuit_down
 
             if circuit_up:
                 circuits.append(circuit_up)
@@ -152,121 +210,16 @@ class Config(ConfigBase):
 
         return circuits
 
-    def clean_device_name(self) -> Optional[str]:
-        result = re.search(r"^[\w\d_-]*$", self.device_name)
-
-        if result is None:
-            return "[CONFIG] Invalid value in 'device_name'. The following characters are prohibited: A-Z a-z 0-9 -_"
-
-        return None
-
-    def clean_covers(self) -> Optional[List[str]]:
-        errors: List[Optional[str]] = []
-
-        for index, cover in enumerate(self.covers):
-            errors.append(self._clean_covers_friendly_name(cover, index))
-            errors.append(self._clean_covers_cover_type(cover, index))
-            errors.append(self._clean_covers_topic_name(cover, index))
-            errors.append(self._clean_covers_full_open_time(cover, index))
-            errors.append(self._clean_covers_full_close_time(cover, index))
-            errors.append(self._clean_covers_tilt_change_time(cover, index))
-            errors.append(self._clean_covers_circuit_up(cover, index))
-            errors.append(self._clean_covers_circuit_down(cover, index))
-            errors.append(self._clean_duplicate_covers_circuits())
-
-        return [error for error in errors if error is not None]
-
-    @staticmethod
-    def _clean_covers_friendly_name(cover: Dict[str, str], index: int) -> Optional[str]:
-        if "friendly_name" not in cover:
-            return LOG_COVER_KEY_MISSING % (index + 1, "friendly_name")
-
-        return None
-
-    @staticmethod
-    def _clean_covers_cover_type(cover: Dict[str, str], index: int) -> Optional[str]:
-        if "cover_type" not in cover:
-            return LOG_COVER_KEY_MISSING % (index + 1, "cover_type")
-
-        if cover.get("cover_type") not in COVER_TYPES:
-            return (
-                f"[CONFIG] [COVER {index + 1}] Invalid value in 'cover_type'. "
-                f"The following values are allowed: {' '.join(COVER_TYPES)}."
-            )
-
-        return None
-
-    @staticmethod
-    def _clean_covers_topic_name(cover: Dict[str, str], index: int) -> Optional[str]:
-        if "topic_name" not in cover:
-            return LOG_COVER_KEY_MISSING % (index + 1, "topic_name")
-
-        result: Optional[Match[str]] = re.search(r"^[a-z\d_-]*$", cover.get("topic_name", ""))
-
-        if result is None:
-            return (
-                f"[CONFIG] [COVER {index + 1}] Invalid value in 'topic_name'. "
-                f"The following characters are prohibited: a-z 0-9 -_"
-            )
-
-        return None
-
-    @staticmethod
-    def _clean_covers_full_open_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
-        if "full_open_time" not in cover:
-            return LOG_COVER_KEY_MISSING % (index + 1, "full_open_time")
-
-        value = cover.get("full_open_time")
-
-        if value and not isinstance(value, float) and not isinstance(value, int):
-            return LOG_COVER_TIME % (index + 1, "full_open_time")
-
-        return None
-
-    @staticmethod
-    def _clean_covers_full_close_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
-        if "full_close_time" not in cover:
-            return LOG_COVER_KEY_MISSING % (index + 1, "full_close_time")
-
-        value = cover.get("full_close_time")
-
-        if value and not isinstance(value, float) and not isinstance(value, int):
-            return LOG_COVER_TIME % (index + 1, "full_close_time")
-
-        return None
-
-    @staticmethod
-    def _clean_covers_tilt_change_time(cover: Dict[str, Union[float, int]], index: int) -> Optional[str]:
-        value = cover.get("tilt_change_time")
-
-        if value and not isinstance(value, float) and not isinstance(value, int):
-            return LOG_COVER_TIME % (index + 1, "tilt_change_time")
-
-        return None
-
-    @staticmethod
-    def _clean_covers_circuit_up(cover: Dict[str, str], index: int) -> Optional[str]:
-        if "circuit_up" not in cover:
-            return LOG_COVER_KEY_MISSING % (index + 1, "circuit_up")
-
-        return None
-
-    @staticmethod
-    def _clean_covers_circuit_down(cover: Dict[str, str], index: int) -> Optional[str]:
-        if "circuit_down" not in cover:
-            return LOG_COVER_KEY_MISSING % (index + 1, "circuit_down")
-
-        return None
-
-    def _clean_duplicate_covers_circuits(self) -> Optional[str]:
+    def check_duplicate_covers_circuits(self) -> Optional[str]:
         circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
-                return (
+                logger.error(
                     "[CONFIG] [COVER] Duplicate circuits found in 'covers'. "
                     "Driving both signals up and down at the same time can damage the motor!"
                 )
+                sys.exit(1)
 
         return None
 

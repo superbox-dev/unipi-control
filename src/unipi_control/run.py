@@ -15,6 +15,9 @@ from typing import Set
 from asyncio_mqtt import Client
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
+from pymodbus.client.asynchronous import schedulers
+from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
+
 from config import config
 from config import logger
 from covers import CoverMap
@@ -24,8 +27,6 @@ from plugins.features import FeaturesMqttPlugin
 from plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
 from plugins.hass.covers import HassCoversMqttPlugin
 from plugins.hass.switches import HassSwitchesMqttPlugin
-from pymodbus.client.asynchronous import schedulers
-from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
 from version import __version__
 
 

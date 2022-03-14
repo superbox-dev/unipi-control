@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from typing import List
 
 from config import HardwareData
@@ -8,6 +8,7 @@ from features import DigitalOutput
 from features import FeatureMap
 from features import Led
 from features import Relay
+from modbus import ModbusCacheMap
 
 
 class Board:
@@ -43,6 +44,8 @@ class Board:
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
                     coil=modbus_feature["val_coil"] + index,
+                    reg=modbus_feature["val_reg"],
+                    mask=(0x1 << (index % 16)),
                 )
 
                 self.neuron.features.register(ro)
@@ -61,6 +64,8 @@ class Board:
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
                     coil=modbus_feature["val_coil"] + index,
+                    reg=modbus_feature["val_reg"],
+                    mask=(0x1 << (index % 16)),
                 )
 
                 self.neuron.features.register(di)
@@ -79,6 +84,8 @@ class Board:
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
                     coil=modbus_feature["val_coil"] + index,
+                    reg=modbus_feature["val_reg"],
+                    mask=(0x1 << (index % 16)),
                 )
 
                 self.neuron.features.register(do)
@@ -97,6 +104,8 @@ class Board:
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
                     coil=modbus_feature["val_coil"] + index,
+                    reg=modbus_feature["val_reg"],
+                    mask=(0x1 << (index % 16)),
                 )
 
                 self.neuron.features.register(led)
@@ -118,7 +127,7 @@ class Board:
 
 
 class Neuron:
-    """Class that reads all boards from an Unipi Neuron.
+    """Class that reads all boards and scan modbus registers from an Unipi Neuron.
 
     The Unipi Neuron has one or more boards and each board has it's features
     (e. g. Relay, Digital Input). This class reads out all boards and append
@@ -139,12 +148,23 @@ class Neuron:
 
     def __init__(self, modbus_client):
         self.modbus_client = modbus_client
+        self.modbus_cache_map: Optional[ModbusCacheMap] = None
         self.hardware = HardwareData()
         self.boards: List[Board] = []
         self.features = FeatureMap()
 
+    async def _initialise_cache(self):
+        if self.modbus_cache_map is None:
+            self.modbus_cache_map = ModbusCacheMap(
+                self.modbus_client,
+                self.hardware["neuron_definition"]["modbus_register_blocks"],
+            )
+
+            await self.modbus_cache_map.scan()
+
     async def read_boards(self):
         logger.info("[MODBUS] Reading SPI boards")
+        await self._initialise_cache()
 
         for index in (1, 2, 3):
             response = await self.modbus_client.read_input_registers(address=1000, count=10, unit=index)
@@ -156,3 +176,8 @@ class Neuron:
                 board.parse_features()
 
                 self.boards.append(board)
+
+    async def scan(self):
+        """Scan and cache modbus register blocks if no cache exists."""
+        if self.modbus_cache_map is not None:
+            await self.modbus_cache_map.scan()

@@ -6,9 +6,9 @@ from typing import Any
 from typing import Set
 from typing import Tuple
 
-from config import config
 from config import COVER_TYPES
 from config import LOG_MQTT_PUBLISH
+from config import config
 from config import logger
 
 
@@ -28,6 +28,10 @@ class HassCoversDiscovery:
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = f"{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
+        device_name: str = config.device_name
+
+        if cover.suggested_area:
+            device_name = f"{config.device_name}: {cover.suggested_area}"
 
         message: dict = {
             "name": cover.friendly_name,
@@ -38,9 +42,10 @@ class HassCoversDiscovery:
             "qos": 2,
             "optimistic": False,
             "device": {
-                "name": config.device_name,
-                "identifiers": config.device_name.lower(),
+                "name": device_name,
+                "identifiers": device_name,
                 "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
+                "suggested_area": cover.suggested_area or "",
                 **asdict(config.homeassistant.device),
             },
         }

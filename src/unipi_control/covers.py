@@ -3,7 +3,7 @@ import itertools
 import time
 from asyncio import Task
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from dataclasses import field
 from pathlib import Path
 from tempfile import gettempdir
@@ -12,8 +12,8 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from config import config
 from config import LOG_COVER_DEVICE_LOCKED
+from config import config
 from config import logger
 from features import DigitalOutput
 from features import FeatureMap
@@ -97,6 +97,8 @@ class Cover:
         Set the cover in calibration mode.
     friendly_name : str
         Friendly name of the cover. It is used e.g. for Home Assistant.
+    suggested_area : str
+        Suggest an area. It is used e.g. for Home Assistant.
     cover_type : str
         Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
     topic_name : str
@@ -135,6 +137,7 @@ class Cover:
         """
         self.calibrate_mode: bool = False
         self.friendly_name: str = kwargs.get("friendly_name", "")
+        self.suggested_area: str = kwargs.get("suggested_area", "")
         self.cover_type: str = kwargs.get("cover_type", "roller_shutter")
         self.topic_name: str = kwargs.get("topic_name")
         self.full_open_time: Union[float, int] = kwargs.get("full_open_time", 300)
@@ -603,12 +606,12 @@ class CoverMap(DataStorage):
         super().__init__()
 
         for cover in config.covers:
-            cover_type: str = cover["cover_type"]
+            cover_type: str = cover.cover_type
 
             if not self.data.get(cover_type):
                 self.data[cover_type] = []
 
-            c = Cover(features, **cover)
+            c = Cover(features, **asdict(cover))
             self.data[cover_type].append(c)
 
     def by_cover_type(self, cover_type: List[str]) -> Iterator:

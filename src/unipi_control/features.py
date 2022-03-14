@@ -3,8 +3,7 @@ import re
 import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import List
-from typing import Match
+from typing import List, Match
 from typing import Optional
 from typing import Union
 
@@ -46,14 +45,18 @@ class Feature:
     feature_name: Optional[str] = None
     feature_type: Optional[str] = None
 
-    def __init__(self, board, short_name: str, circuit: str, major_group: int, coil: int):
+    def __init__(self, board, short_name: str, circuit: str, major_group: int, coil: int, reg: int, mask: int):
         self.board = board
         self.short_name = short_name
         self.circuit: str = circuit
         self.major_group = major_group
         self.coil: int = coil
+        self.reg: int = reg
+        self.mask: int = mask
 
         self.modbus_client = board.neuron.modbus_client
+
+        self._reg_value = lambda: board.neuron.modbus_cache_map.get_register(address=1, index=self.reg)[0]
 
         self._value: bool = False
 
@@ -61,17 +64,12 @@ class Feature:
         return self.circuit_name
 
     @property
-    async def value(self) -> Union[float, int]:
-        result = await self.modbus_client.read_coils(self.coil, 1, unit=0)
-
-        if result.function_code < 0x80:
-            return 1 if result.bits[0] else 0
-
-        return 0
+    def value(self) -> int:
+        return 1 if self._reg_value() & self.mask else 0
 
     @property
-    async def state(self) -> str:
-        return FeatureState.ON if await self.value == 1 else FeatureState.OFF
+    def state(self) -> str:
+        return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     @property
     def topic(self) -> str:
@@ -91,8 +89,8 @@ class Feature:
         return _circuit_name
 
     @property
-    async def changed(self) -> bool:
-        value: bool = await self.value == True  # noqa
+    def changed(self) -> bool:
+        value: bool = self.value == True  # noqa
         changed: bool = value != self._value
 
         if changed:
