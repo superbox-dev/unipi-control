@@ -19,7 +19,7 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
 $ sudo -i
 $ cd /opt
 $ git clone git@github.com:mh-superbox/unipi-control.git
-$ pip install -e /opt/unipi-control
+$ pipenv install -e /opt/unipi-control
 $ unipi-control --install
 ```
 
@@ -85,13 +85,20 @@ homeassistant:
 
 It's possible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
 
+| Key                | Value                                         |
+|--------------------|-----------------------------------------------|
+| `friendly_name`    | Friendly name of the switch or binary sensor. |
+| `suggested_area`   | Suggest an area. e.g. `Living Room`.          |
+
 ```yaml
 # control.yaml
 features:
   di_3_02:
     friendly_name: "Workspace - Switch up"
+    suggested_area: "Workspace"
   di_3_03:
     friendly_name: "Workspace - Switch down"
+    suggested_area: "Workspace"
 ```
 
 #### Covers
@@ -103,6 +110,7 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 | Key                | Value                                                                                                                                    |
 |--------------------|------------------------------------------------------------------------------------------------------------------------------------------|
 | `friendly_name`    | Friendly name of the cover. It is used e.g. for Home Assistant.                                                                          |
+| `suggested_area`   | Suggest an area. e.g. `Living Room`.                                                                                                     |
 | `cover_type`       | Cover types can be "blind", "roller_shutter", or "garage_door".                                                                          |
 | `topic_name`       | Unique name for the MQTT topic.                                                                                                          |
 | `full_open_time`   | Define the time (in seconds) it takes for the cover to fully open.                                                                       |
@@ -115,6 +123,7 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 # control.yaml
 covers:
   - friendly_name: "Workspace - Blind 1"
+    suggested_area: "Workspace"
     cover_type: "blind"
     topic_name: workspace_1
     full_open_time: 35.5
@@ -172,6 +181,11 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## Changelog
 
+### 1.1.0
+
+* Added `suggested_area` to switches, binary sensors and covers
+* Fixed high cpu usage
+
 ### 1.0.5
 
 * Prepare unipi-control buildroot package
@@ -183,8 +197,8 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ### 1.0.3
 
-* Fixed bug: position and tilt change at the same time is no longer possible.
-* Refactor logger output. Output in terminal is now colored.
+* Fixed bug: position and tilt change at the same time is no longer possible
+* Refactor logger output. Output in terminal is now colored
 
 ### 1.0.2
 
@@ -194,5 +208,5 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## TODO
 
-* Support Modbus RTU for extension modules (I don't have an extension).
-* Support analogue input/output (The implemented code is still untested).
+* Support Modbus RTU for extension modules (I don't have an extension)
+* Support analogue input/output (The implemented code is still untested)
