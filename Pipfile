@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+asyncio-mqtt = "~=0.12.1"
+paho-mqtt = "~=1.6.1"
+pymodbus = "~=2.5.3"
+pyyaml = "~=6.0"
+
+[dev-packages]
+black = "*"
+check-manifest = "*"
+flake8 = "*"
+flake8-bugbear = "*"
+flake8-docstrings = "*"
+mypy = "*"
+pre-commit = "*"
+types-pyyaml = "*"
+
+[requires]
+python_version = "3.7"
