@@ -176,10 +176,10 @@ def main():
 
         uc = UnipiControl(modbus.protocol)
 
-        for _signal in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
-            loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
-
         try:
+            for _signal in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
+                loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
+
             loop.run_until_complete(uc.run())
         except KeyboardInterrupt:
             pass
