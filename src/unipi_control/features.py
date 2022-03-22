@@ -3,7 +3,8 @@ import re
 import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import List, Match
+from typing import List
+from typing import Match
 from typing import Optional
 from typing import Union
 
@@ -58,7 +59,7 @@ class Feature:
 
         self._reg_value = lambda: board.neuron.modbus_cache_map.get_register(address=1, index=self.reg)[0]
 
-        self._value: bool = False
+        self._value: Optional[bool] = None
 
     def __repr__(self) -> str:
         return self.circuit_name
@@ -90,7 +91,7 @@ class Feature:
 
     @property
     def changed(self) -> bool:
-        value: bool = self.value == True  # noqa
+        value: bool = self.value == 1
         changed: bool = value != self._value
 
         if changed:
