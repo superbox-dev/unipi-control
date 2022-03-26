@@ -184,7 +184,9 @@ I have written a Home Assistant blueprint automation to control covers with bina
 ### 1.1.0
 
 * Added `suggested_area` to switches, binary sensors and covers
+* Added command queue per cover. Position and tilt command running in a queue and not at the same time.
 * Fixed high cpu usage
+* Fixed unknown binary sensor state in Home Assistant after restart
 
 ### 1.0.5
 
