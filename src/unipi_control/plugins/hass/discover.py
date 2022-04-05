@@ -17,7 +17,8 @@ class HassBaseDiscovery(ABC):
 
         return False
 
-    def _get_friendly_name(self, feature) -> str:
+    @staticmethod
+    def _get_friendly_name(feature) -> str:
         friendly_name: str = f"{config.device_name} {feature.circuit_name}"
         features_config: FeatureConfig = config.features.get(feature.circuit)
 

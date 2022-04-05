@@ -20,7 +20,7 @@ follow_imports = "normal"
 ignore_missing_imports = true
 
 # be strict
-warn_return_any = true
+warn_return_any = false
 warn_no_return = true
 warn_redundant_casts = true
 warn_unused_ignores = true
