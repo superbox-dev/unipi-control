@@ -86,6 +86,7 @@ class LoggingConfig(ConfigBase):
 
 @dataclass
 class FeatureConfig(ConfigBase):
+    invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
 
@@ -156,7 +157,11 @@ class Config(ConfigBase):
         self.update(_config)
 
         for circuit, feature_config in self.features.items():
-            self.features[circuit] = FeatureConfig(**feature_config)
+            try:
+                self.features[circuit] = FeatureConfig(**feature_config)
+            except TypeError:
+                logger.error("[CONFIG] Invalid feature property: %s", feature_config)
+                sys.exit(1)
 
         for index, cover_config in enumerate(self.covers):
             self.covers[index] = CoverConfig(**cover_config)

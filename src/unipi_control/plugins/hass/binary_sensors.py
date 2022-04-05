@@ -2,16 +2,18 @@ import asyncio
 import json
 from asyncio import Task
 from dataclasses import asdict
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 from typing import Set
 from typing import Tuple
 
-from config import LOG_MQTT_PUBLISH, FeatureConfig
+from config import LOG_MQTT_PUBLISH
 from config import config
 from config import logger
+from plugins.hass.discover import HassBaseDiscovery
 
 
-class HassBinarySensorsDiscovery:
+class HassBinarySensorsDiscovery(HassBaseDiscovery):
     """Provide the binary sensors (e.g. digital input) as Home Assistant MQTT discovery.
 
     Attributes
@@ -25,28 +27,10 @@ class HassBinarySensorsDiscovery:
         self._mqtt_client = mqtt_client
         self.hardware = uc.neuron.hardware
 
-    def _get_friendly_name(self, feature) -> str:
-        friendly_name: str = f"{config.device_name} {feature.circuit_name}"
-        features_config: FeatureConfig = config.features.get(feature.circuit)
-
-        if features_config:
-            friendly_name = features_config.friendly_name
-
-        return friendly_name
-
-    @staticmethod
-    def _get_suggested_area(feature) -> Optional[str]:
-        suggested_area: str = ""
-        features_config: FeatureConfig = config.features.get(feature.circuit)
-
-        if features_config:
-            suggested_area = features_config.suggested_area
-
-        return suggested_area
-
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = f"{config.homeassistant.discovery_prefix}/binary_sensor/{config.device_name.lower()}/{feature.circuit}/config"
         suggested_area: Optional[str] = self._get_suggested_area(feature)
+        invert_state: bool = self._get_invert_state(feature)
         device_name: str = config.device_name
 
         if suggested_area:
@@ -66,6 +50,14 @@ class HassBinarySensorsDiscovery:
                 **asdict(config.homeassistant.device),
             },
         }
+
+        if invert_state:
+            message.update(
+                {
+                    "payload_on": "OFF",
+                    "payload_off": "ON",
+                }
+            )
 
         return topic, message
 

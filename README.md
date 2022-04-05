@@ -85,10 +85,11 @@ homeassistant:
 
 It's possible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
 
-| Key                | Value                                         |
-|--------------------|-----------------------------------------------|
-| `friendly_name`    | Friendly name of the switch or binary sensor. |
-| `suggested_area`   | Suggest an area. e.g. `Living Room`.          |
+| Key              | Value                                            |
+|------------------|--------------------------------------------------|
+| `friendly_name`  | Friendly name of the switch or binary sensor.    |
+| `suggested_area` | Suggest an area. e.g. `Living Room`.             |
+| `invert_state`   | Invert the `ON`/`OFF` state. Default is `false`. |
 
 ```yaml
 # control.yaml
@@ -184,6 +185,7 @@ I have written a Home Assistant blueprint automation to control covers with bina
 ### 1.1.0
 
 * Added `suggested_area` to switches, binary sensors and covers
+* Added `invert_state` to switches and binary sensors
 * Added command queue per cover. Position and tilt command running in a queue and not at the same time.
 * Fixed high cpu usage
 * Fixed unknown binary sensor state in Home Assistant after restart
