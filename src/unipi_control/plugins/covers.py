@@ -155,9 +155,6 @@ class CoversMqttPlugin:
                         log=[LOG_MQTT_SUBSCRIBE, topic, position],
                     )
                 )
-
-                # await cover.set_position(position)
-                # logger.info(LOG_MQTT_SUBSCRIBE, topic, position)
             except ValueError as error:
                 logger.error(error)
 
@@ -173,9 +170,6 @@ class CoversMqttPlugin:
                         log=[LOG_MQTT_SUBSCRIBE, topic, tilt],
                     )
                 )
-
-                # await cover.set_tilt(tilt)
-                # logger.info(LOG_MQTT_SUBSCRIBE, topic, tilt)
             except ValueError as error:
                 logger.error(error)
 
