@@ -237,10 +237,44 @@ class HardwareInfo:
     serial: str = field(default="unknown", init=False)
 
     def __post_init__(self):
-        neuron: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")
+        unipi_1: Path = Path("/sys/bus/i2c/devices/1-0050/eeprom")
+        unipi_patron: Path = Path("/sys/bus/i2c/devices/2-0057/eeprom")
+        unipi_neuron_1: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")
+        unipi_neuron_0: Path = Path("/sys/bus/i2c/devices/0-0057/eeprom")
 
-        if neuron.is_file():
-            with open(neuron, "rb") as f:
+        if unipi_1.is_file():
+            with open(unipi_1, "rb") as f:
+                ee_bytes = f.read(256)
+
+                if ee_bytes[226] == 1 and ee_bytes[227] == 1:
+                    self.name = "Unipi"
+                    self.version = "1.1"
+                elif ee_bytes[226] == 11 and ee_bytes[227] == 1:
+                    self.name = "Unipi Lite"
+                    self.version = "1.1"
+                else:
+                    self.name = "Unipi"
+                    self.version = "1.0"
+
+                self.serial = struct.unpack("i", ee_bytes[228:232])[0]
+        elif unipi_patron.is_file():
+            with open(unipi_patron, "rb") as f:
+                ee_bytes = f.read(128)
+
+                self.name = "Unipi Patron"
+                self.model = f"{ee_bytes[106:110].decode()}"
+                self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
+                self.serial = struct.unpack("i", ee_bytes[100:104])[0]
+        elif unipi_neuron_1.is_file():
+            with open(unipi_neuron_1, "rb") as f:
+                ee_bytes = f.read(128)
+
+                self.name = "Unipi Neuron"
+                self.model = f"{ee_bytes[106:110].decode()}"
+                self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
+                self.serial = struct.unpack("i", ee_bytes[100:104])[0]
+        elif unipi_neuron_0.is_file():
+            with open(unipi_neuron_0, "rb") as f:
                 ee_bytes = f.read(128)
 
                 self.name = "Unipi Neuron"
