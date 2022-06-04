@@ -1,3 +1,7 @@
+from pymodbus.exceptions import ModbusIOException
+from pymodbus.pdu import ExceptionResponse
+
+
 class UnknownModbusRegister(Exception):
     """Modbus register not found."""
 
@@ -53,13 +57,15 @@ class ModbusCacheMap:
             if modbus_register_block.get("type") == "input":
                 response = await self.modbus_client.read_input_registers(**data)
 
-                for index in range(data["count"]):
-                    self._registered_input[data["address"] + index] = response.registers[index]
+                if not isinstance(response, ModbusIOException) and not isinstance(response, ExceptionResponse):
+                    for index in range(data["count"]):
+                        self._registered_input[data["address"] + index] = response.registers[index]
             else:
                 response = await self.modbus_client.read_holding_registers(**data)
 
-                for index in range(data["count"]):
-                    self._registered[data["address"] + index] = response.registers[index]
+                if not isinstance(response, ModbusIOException) and not isinstance(response, ExceptionResponse):
+                    for index in range(data["count"]):
+                        self._registered[data["address"] + index] = response.registers[index]
 
     def get_register(self, address: int, index: int, unit: int = 0, is_input: bool = False) -> list:
         """Get the responses from the cached modbus register blocks.
