@@ -38,7 +38,7 @@ class ConfigBase:
 
             if not isinstance(value, f.type):
                 logger.error(
-                    "[CONFIG] %s - Expected %s to be %s, " f"got %s",
+                    "[CONFIG] %s - Expected %s to be %s, got %s",
                     self.__class__.__name__,
                     f.name,
                     f.type,
