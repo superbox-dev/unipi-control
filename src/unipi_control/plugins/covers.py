@@ -42,7 +42,10 @@ class CoversMqttPlugin:
         queue: Queue = self._queues[cover.topic]
 
         for _ in range(queue.qsize()):
-            queue.task_done()
+            try:
+                queue.task_done()
+            except ValueError:
+                pass
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
