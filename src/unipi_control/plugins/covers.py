@@ -77,8 +77,8 @@ class CoversMqttPlugin:
             if queue.qsize() > 0:
                 logger.info("[COVER] [%s] [Worker] %s task(s) in queue.", cover.topic, queue.qsize())
 
-                subscribe_queue = await queue.get()
-                queue.task_done()
+            subscribe_queue = await queue.get()
+            queue.task_done()
 
             cover_run_time: Optional[float] = await subscribe_queue.command
             logger.info(*subscribe_queue.log)
