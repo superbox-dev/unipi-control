@@ -182,6 +182,10 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## Changelog
 
+### 1.1.1
+
+* Prepare unipi-control buildroot package
+
 ### 1.1.0
 
 * Added `suggested_area` to switches, binary sensors and covers

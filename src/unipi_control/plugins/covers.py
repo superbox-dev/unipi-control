@@ -73,15 +73,18 @@ class CoversMqttPlugin:
     async def _subscribe_command_worker(self, cover):
         while True:
             queue: Queue = self._queues[cover.topic]
-            logger.info("[COVER] [%s] Worker is waiting: %s task(s) in queue.", cover.topic, queue.qsize())
-            subscribe_queue = await queue.get()
-            queue.task_done()
+
+            if queue.qsize() > 0:
+                logger.info("[COVER] [%s] [Worker] %s task(s) in queue.", cover.topic, queue.qsize())
+
+                subscribe_queue = await queue.get()
+                queue.task_done()
 
             cover_run_time: Optional[float] = await subscribe_queue.command
             logger.info(*subscribe_queue.log)
 
             if cover_run_time:
-                logger.info("[COVER] [%s] Worker is waiting: cover run time: %s seconds.", cover.topic, cover_run_time)
+                logger.debug("[COVER] [%s] [Worker] Cover runtime: %s seconds.", cover.topic, cover_run_time)
 
                 await asyncio.sleep(cover_run_time)
 
