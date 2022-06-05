@@ -95,20 +95,20 @@ class ModbusCacheMap:
         """
         ret: list = []
 
-        for address in range(index, address + index):
+        for _address in range(index, address + index):
             if is_input:
-                if address not in self._registered_input:
-                    raise UnknownModbusRegister(address)
-                elif self._registered_input[address] is None:
-                    raise NoCachedModbusRegister(address, unit)
+                if _address not in self._registered_input:
+                    raise UnknownModbusRegister(_address)
+                elif self._registered_input[_address] is None:
+                    raise NoCachedModbusRegister(_address, unit)
 
-                ret += [self._registered_input[address]]
+                ret += [self._registered_input[_address]]
             else:
-                if address not in self._registered:
-                    raise UnknownModbusRegister(address)
-                elif self._registered[address] is None:
-                    raise NoCachedModbusRegister(address, unit)
+                if _address not in self._registered:
+                    raise UnknownModbusRegister(_address)
+                elif self._registered[_address] is None:
+                    raise NoCachedModbusRegister(_address, unit)
 
-                ret += [self._registered[address]]
+                ret += [self._registered[_address]]
 
         return ret
