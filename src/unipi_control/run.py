@@ -147,7 +147,7 @@ def install_unipi_control(assume_yes: bool):
             copy_config_files = False
 
     if copy_config_files:
-        shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
+        shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)  # type: ignore
 
     print("Copy systemd service 'unipi-control.service'")
     shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
