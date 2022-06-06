@@ -31,11 +31,18 @@ $ pip install unipi-control
 $ unipi-control --install
 ```
 
-### Configuration
+## Arguments
+
+| Argument    | Description                      |
+|-------------|----------------------------------|
+| `--install` | install unipi control            |
+| `--yes`     | automatic yes to install prompts |
+
+## Configuration
 
 You can set the client settings in the `/etc/unipi/control.yaml`.
 
-#### Device
+### Device
 
 | Key           | Value                                                                          |
 |---------------|--------------------------------------------------------------------------------|
@@ -46,7 +53,7 @@ You can set the client settings in the `/etc/unipi/control.yaml`.
 device_name: Unipi
 ```
 
-#### MQTT
+### MQTT
 
 | Key                  | Value                                                                                                                                                                                                                   |
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -67,7 +74,7 @@ mqtt:
     reconnect_interval: 10
 ```
 
-#### Home Assistant
+### Home Assistant
 
 | Key                | Value                                                           |
 |--------------------|-----------------------------------------------------------------|
@@ -81,7 +88,7 @@ homeassistant:
   discovery_prefix: homeassistant
 ```
 
-#### Features
+### Features
 
 It's possible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
 
@@ -102,7 +109,7 @@ features:
     suggested_area: "Workspace"
 ```
 
-#### Covers
+### Covers
 
 **Warning:** Driving both signals up and down at the same time can damage the motor. There are a couple of checks to prevent such situation. Use this software at your own risk! I do not take any responsibility for it!
 
@@ -134,12 +141,12 @@ covers:
     circuit_down: ro_3_02
 ```
 
-##### Calibration
+#### Calibration
 
 The covers save its cover and tilt position in a temporary file each time a stop command is executed. If the Unipi control is interrupted, and a command (open/closing) is currently being executed, or the system is restarted, the calibration mode is enabled.
 When the Unipi control starts in calibration mode, the cover fully open and disable calibration mode. This is required for the correct cover and tilt position.
 
-#### Logging
+### Logging
 
 | Key     | Value                                                                  |
 |---------|------------------------------------------------------------------------|
@@ -182,9 +189,9 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## Changelog
 
-### 1.1.1
+### 1.2.0
 
-* Prepare unipi-control buildroot package
+* Added `--yes` argument for automatic install without prompt
 
 ### 1.1.0
 

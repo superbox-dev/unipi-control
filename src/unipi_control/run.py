@@ -125,10 +125,10 @@ class UnipiControl:
                 await asyncio.sleep(reconnect_interval)
 
 
-def install_unipi_control():
+def install_unipi_control(assume_yes: bool):
     src_config_path: Path = Path(__file__).parents[0].joinpath("installer/etc/unipi")
     src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/etc/systemd/system/unipi-control.service")
-    dest_config_path: Path = Path("/etc/unipi")
+    dest_config_path: Path = Path("/etc/unipi1")
 
     print(f"Copy config files to '{dest_config_path}'")
 
@@ -136,7 +136,10 @@ def install_unipi_control():
     copy_config_files: bool = True
 
     if dest_config_path.exists():
-        overwrite_config: str = input("\nOverwrite existing config files? [Y/n]")
+        overwrite_config: str = "y"
+
+        if not assume_yes:
+            overwrite_config = input("\nOverwrite existing config files? [Y/n]")
 
         if overwrite_config.lower() == "y":
             dirs_exist_ok = True
@@ -149,7 +152,10 @@ def install_unipi_control():
     print("Copy systemd service 'unipi-control.service'")
     shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
 
-    enable_and_start_systemd: str = input("\nEnable and start systemd service? [Y/n]")
+    enable_and_start_systemd: str = "y"
+
+    if not assume_yes:
+        enable_and_start_systemd = input("\nEnable and start systemd service? [Y/n]")
 
     if enable_and_start_systemd.lower() == "y":
         print("Enable systemd service 'unipi-control.service'")
@@ -165,28 +171,30 @@ def install_unipi_control():
 def main():
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
     parser.add_argument("-i", "--install", action="store_true", help="install unipi control")
+    parser.add_argument("-y", "--yes", action="store_true", help="automatic yes to install prompts")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = parser.parse_args()
 
-    if args.install:
-        install_unipi_control()
-    else:
-        loop = asyncio.new_event_loop()
-        loop, modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
+    try:
+        if args.install:
+            install_unipi_control(assume_yes=args.yes)
+        else:
+            loop = asyncio.new_event_loop()
+            loop, modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
 
-        uc = UnipiControl(modbus.protocol)
+            uc = UnipiControl(modbus.protocol)
 
-        try:
-            for _signal in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
-                loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
+            try:
+                for _signal in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
+                    loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
 
-            loop.run_until_complete(uc.run())
-        except KeyboardInterrupt:
-            pass
-        except asyncio.CancelledError:
-            pass
-        finally:
-            logger.info("Successfully shutdown the Unipi Control service.")
+                loop.run_until_complete(uc.run())
+            except asyncio.CancelledError:
+                pass
+            finally:
+                logger.info("Successfully shutdown the Unipi Control service.")
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
