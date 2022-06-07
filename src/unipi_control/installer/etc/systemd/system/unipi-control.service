@@ -7,8 +7,6 @@ Requires=unipitcp.service
 Type=simple
 ExecStart=/usr/bin/unipi-control
 Environment=PYTHONUNBUFFERED=1
-Restart=always
-RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
