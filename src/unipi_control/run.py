@@ -2,7 +2,6 @@
 import argparse
 import asyncio
 import shutil
-import signal
 import subprocess
 import sys
 import uuid
@@ -44,11 +43,13 @@ class UnipiControl:
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
         logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
 
-        self._tasks: Set[Task] = set()
         self._retry_reconnect: int = 0
 
     async def _init_tasks(self):
         async with AsyncExitStack() as stack:
+            tasks: Set[Task] = set()
+            stack.push_async_callback(self._cancel_tasks, tasks)
+
             mqtt_client: Client = MqttClient(
                 config.mqtt.host,
                 config.mqtt.port,
@@ -62,42 +63,40 @@ class UnipiControl:
             logger.info("[MQTT] Connected to broker at '%s:%s'", config.mqtt.host, config.mqtt.port)
 
             features = FeaturesMqttPlugin(self, mqtt_client)
-            tasks = await features.init_tasks(stack)
-            self._tasks.update(tasks)
+            features_tasks = await features.init_tasks(stack)
+            tasks.update(features_tasks)
 
             covers = CoverMap(features=self.neuron.features)
 
             covers_plugin = CoversMqttPlugin(mqtt_client, covers)
-            tasks = await covers_plugin.init_tasks(stack)
-            self._tasks.update(tasks)
+            covers_tasks = await covers_plugin.init_tasks(stack)
+            tasks.update(covers_tasks)
 
             if config.homeassistant.enabled:
                 hass_covers_plugin = HassCoversMqttPlugin(self, mqtt_client, covers)
-                tasks = await hass_covers_plugin.init_tasks()
-                self._tasks.update(tasks)
+                hass_covers_tasks = await hass_covers_plugin.init_tasks()
+                tasks.update(hass_covers_tasks)
 
                 hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(self, mqtt_client)
-                tasks = await hass_binary_sensors_plugin.init_tasks()
-                self._tasks.update(tasks)
+                hass_binary_sensors_tasks = await hass_binary_sensors_plugin.init_tasks()
+                tasks.update(hass_binary_sensors_tasks)
 
                 hass_switches_plugin = HassSwitchesMqttPlugin(self, mqtt_client)
-                tasks = await hass_switches_plugin.init_tasks()
-                self._tasks.update(tasks)
+                hass_switches_tasks = await hass_switches_plugin.init_tasks()
+                tasks.update(hass_switches_tasks)
 
-            await asyncio.gather(*self._tasks)
+            await asyncio.gather(*tasks)
 
-    async def shutdown(self, s=None):
-        if s:
-            logger.info("Received exit signal %s...", s.name)
+    async def _cancel_tasks(self, tasks):
+        for task in tasks:
+            if task.done():
+                continue
 
-        tasks = [t for t in self._tasks if t is not t.done()]
-
-        if tasks:
-            logger.info("Cancelling %s outstanding tasks.", len(tasks))
-
-        [task.cancel() for task in tasks]
-
-        await asyncio.gather(*tasks)
+            try:
+                task.cancel()
+                await task
+            except asyncio.CancelledError:
+                pass
 
     async def run(self):
         await self.neuron.read_boards()
@@ -185,9 +184,6 @@ def main():
             uc = UnipiControl(modbus.protocol)
 
             try:
-                for _signal in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
-                    loop.add_signal_handler(_signal, lambda s=_signal: asyncio.create_task(uc.shutdown(s)))
-
                 loop.run_until_complete(uc.run())
             except asyncio.CancelledError:
                 pass
