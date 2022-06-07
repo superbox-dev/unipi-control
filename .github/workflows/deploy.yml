@@ -26,23 +26,7 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install --upgrade pipenv
-        pip install build
-        pipenv install --deploy --dev
-    - name: Check code format with black
-      run: pipenv run black --diff --check $(git ls-files '*.py')
-    - name: Lint with flake8
-      run: pipenv run flake8 $(git ls-files '*.py') --show-source --statistics
-    - name: Lint with mypy
-      run: pipenv run mypy $(git ls-files '*.py')
+    - uses: ./.github/workflows/build
 
   deploy:
     needs: [check-tag]
