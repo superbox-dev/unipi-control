@@ -189,6 +189,10 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## Changelog
 
+### 1.2.1
+
+* Fixed reconnect to MQTT when lost connection to broker
+
 ### 1.2.0
 
 * Added `--yes` argument for automatic install without prompt
