@@ -18,8 +18,8 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
 ```shell
 $ sudo -i
 $ cd /opt
-$ git clone git@github.com:mh-superbox/unipi-control.git
-$ pipenv install -e /opt/unipi-control
+$ git clone https://github.com/mh-superbox/unipi-control.git
+$ pip install -e /opt/unipi-control
 $ unipi-control --install
 ```
 
