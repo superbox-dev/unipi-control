@@ -187,44 +187,6 @@ Available MQTT topics:
 
 I have written a Home Assistant blueprint automation to control covers with binary sensors. Take a look in the extra's folder.
 
-## Changelog
-
-### 1.2.1
-
-* Fixed reconnect to MQTT when lost connection to broker
-
-### 1.2.0
-
-* Added `--yes` argument for automatic install without prompt
-
-### 1.1.0
-
-* Added `suggested_area` to switches, binary sensors and covers
-* Added `invert_state` to switches and binary sensors
-* Added command queue per cover. Position and tilt command running in a queue and not at the same time.
-* Fixed high cpu usage
-* Fixed unknown binary sensor state in Home Assistant after restart
-
-### 1.0.5
-
-* Prepare unipi-control buildroot package
-
-### 1.0.4
-
-* Fixed log messages
-* Added "Show version" argument parameter
-
-### 1.0.3
-
-* Fixed bug: position and tilt change at the same time is no longer possible
-* Refactor logger output. Output in terminal is now colored
-
-### 1.0.2
-
-* Added support for roller shutters
-* Fixed long delay bug when reading from modbus registers
-* Fixed bug in tilt position
-
 ## TODO
 
 * Support Modbus RTU for extension modules (I don't have an extension)

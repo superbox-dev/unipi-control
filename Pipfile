@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pymodbus = "~=2.2.0"
+pymodbus = "~=2.5.3"
 pyyaml = "~=6.0"
 paho-mqtt = "~=1.6.1"
 asyncio-mqtt = "~=0.12.1"

@@ -46,14 +46,16 @@ class Feature:
     feature_name: Optional[str] = None
     feature_type: Optional[str] = None
 
-    def __init__(self, board, short_name: str, circuit: str, major_group: int, coil: int, reg: int, mask: int):
+    def __init__(
+        self, board, short_name: str, circuit: str, major_group: int, mask: int, reg: int, coil: Optional[int] = None
+    ):
         self.board = board
         self.short_name = short_name
         self.circuit: str = circuit
         self.major_group = major_group
-        self.coil: int = coil
         self.reg: int = reg
         self.mask: int = mask
+        self.coil: Optional[int] = coil
 
         self.modbus_client = board.neuron.modbus_client
 
