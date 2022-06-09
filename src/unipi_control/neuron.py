@@ -149,7 +149,7 @@ class Neuron:
     def __init__(self, modbus_client):
         self.modbus_client = modbus_client
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
-        self.hardware = HardwareData()
+        self.hardware: HardwareData = HardwareData()
         self.boards: List[Board] = []
         self.features = FeatureMap()
 

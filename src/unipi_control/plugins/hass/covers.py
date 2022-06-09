@@ -7,9 +7,11 @@ from typing import Set
 from typing import Tuple
 
 from config import COVER_TYPES
+from config import HardwareData
 from config import LOG_MQTT_PUBLISH
 from config import config
 from config import logger
+from covers import CoverMap
 
 
 class HassCoversDiscovery:
@@ -22,9 +24,9 @@ class HassCoversDiscovery:
     """
 
     def __init__(self, uc, mqtt_client, covers):
-        self._covers = covers
         self._mqtt_client = mqtt_client
-        self.hardware = uc.neuron.hardware
+        self._covers: CoverMap = covers
+        self.hardware: HardwareData = uc.neuron.hardware
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = f"{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
