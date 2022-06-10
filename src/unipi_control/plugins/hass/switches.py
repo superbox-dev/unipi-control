@@ -7,6 +7,7 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
+from config import HardwareData
 from config import LOG_MQTT_PUBLISH
 from config import config
 from config import logger
@@ -25,7 +26,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
     def __init__(self, uc, mqtt_client):
         self._uc = uc
         self._mqtt_client = mqtt_client
-        self.hardware = uc.neuron.hardware
+        self.hardware: HardwareData = uc.neuron.hardware
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = (

@@ -1,5 +1,6 @@
-from typing import Dict, Optional
+from typing import Dict
 from typing import List
+from typing import Optional
 
 from config import HardwareData
 from config import logger
@@ -43,9 +44,9 @@ class Board:
                     short_name=modbus_feature["type"],
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
-                    coil=modbus_feature["val_coil"] + index,
-                    reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
+                    reg=modbus_feature["val_reg"],
+                    coil=modbus_feature["val_coil"] + index,
                 )
 
                 self.neuron.features.register(ro)
@@ -63,7 +64,6 @@ class Board:
                     short_name=modbus_feature["type"],
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
-                    coil=modbus_feature["val_coil"] + index,
                     reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
                 )
@@ -83,9 +83,9 @@ class Board:
                     short_name=modbus_feature["type"],
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
-                    coil=modbus_feature["val_coil"] + index,
-                    reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
+                    reg=modbus_feature["val_reg"],
+                    coil=modbus_feature["val_coil"] + index,
                 )
 
                 self.neuron.features.register(do)
@@ -103,9 +103,9 @@ class Board:
                     short_name=modbus_feature["type"],
                     circuit=circuit,
                     major_group=modbus_feature["major_group"],
-                    coil=modbus_feature["val_coil"] + index,
-                    reg=modbus_feature["val_reg"],
                     mask=(0x1 << (index % 16)),
+                    reg=modbus_feature["val_reg"],
+                    coil=modbus_feature["val_coil"] + index,
                 )
 
                 self.neuron.features.register(led)
@@ -149,7 +149,7 @@ class Neuron:
     def __init__(self, modbus_client):
         self.modbus_client = modbus_client
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
-        self.hardware = HardwareData()
+        self.hardware: HardwareData = HardwareData()
         self.boards: List[Board] = []
         self.features = FeatureMap()
 
