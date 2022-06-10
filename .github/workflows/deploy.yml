@@ -34,7 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Build package
-      run: python -m build
+      run: |
+        pip install build
+        python -m build
     - name: Publish test package
       if: needs.check-tag.outputs.release-type == 'prerelease'
       uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
