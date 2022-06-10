@@ -26,7 +26,7 @@ LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
 
-stdout_handler = logging.StreamHandler()
+stdout_handler = logging.StreamHandler(stream=sys.stdout)
 stdout_handler.setFormatter(logging.Formatter(fmt="%(levelname)8s | %(message)s"))
 
 logger = logging.getLogger("asyncio")
