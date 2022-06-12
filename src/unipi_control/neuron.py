@@ -1,8 +1,11 @@
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Type
 
+from config import Config
 from config import HardwareData
+from config import HardwareInfo
 from config import logger
 from features import DigitalInput
 from features import DigitalOutput
@@ -27,7 +30,7 @@ class Board:
         major_group : int
             The board group number.
         """
-        self.neuron = neuron
+        self.neuron: Neuron = neuron
         self.major_group: int = major_group
         self.firmware = f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
 
@@ -146,10 +149,11 @@ class Neuron:
         Unipi Neuron.
     """
 
-    def __init__(self, modbus_client):
+    def __init__(self, config: Config, modbus_client, hardware_info: Type[HardwareInfo]):
+        self.config: Config = config
         self.modbus_client = modbus_client
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
-        self.hardware: HardwareData = HardwareData()
+        self.hardware: HardwareData = HardwareData(config=config, hardware_info=hardware_info)
         self.boards: List[Board] = []
         self.features = FeatureMap()
 

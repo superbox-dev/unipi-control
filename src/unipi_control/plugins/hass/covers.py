@@ -7,9 +7,9 @@ from typing import Set
 from typing import Tuple
 
 from config import COVER_TYPES
+from config import Config
 from config import HardwareData
 from config import LOG_MQTT_PUBLISH
-from config import config
 from config import logger
 from covers import CoverMap
 
@@ -24,16 +24,18 @@ class HassCoversDiscovery:
     """
 
     def __init__(self, uc, mqtt_client, covers):
+        self.config: Config = uc.config
+
         self._mqtt_client = mqtt_client
         self._covers: CoverMap = covers
         self.hardware: HardwareData = uc.neuron.hardware
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
-        topic: str = f"{config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
-        device_name: str = config.device_name
+        topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
+        device_name: str = self.config.device_name
 
         if cover.suggested_area:
-            device_name = f"{config.device_name}: {cover.suggested_area}"
+            device_name = f"{self.config.device_name}: {cover.suggested_area}"
 
         message: dict = {
             "name": cover.friendly_name,
@@ -48,7 +50,7 @@ class HassCoversDiscovery:
                 "identifiers": device_name,
                 "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                 "suggested_area": cover.suggested_area or "",
-                **asdict(config.homeassistant.device),
+                **asdict(self.config.homeassistant.device),
             },
         }
 

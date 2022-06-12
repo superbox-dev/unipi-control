@@ -13,8 +13,8 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+from config import Config
 from config import LOG_COVER_DEVICE_LOCKED
-from config import config
 from config import logger
 from features import DigitalOutput
 from features import FeatureMap
@@ -127,7 +127,7 @@ class Cover:
         The feature for closing the cover.
     """
 
-    def __init__(self, features, **kwargs):
+    def __init__(self, config, features, **kwargs):
         """Initialize cover.
 
         Parameters
@@ -136,6 +136,8 @@ class Cover:
             All registered features (e.g. Relay, Digital Input, ...) from the
             Unipi Neuron.
         """
+        self.config: Config = config
+
         self.calibrate_mode: bool = False
         self.friendly_name: str = kwargs.get("friendly_name", "")
         self.suggested_area: str = kwargs.get("suggested_area", "")
@@ -187,7 +189,7 @@ class Cover:
 
     @property
     def topic(self) -> str:
-        return f"{config.device_name.lower()}/{self.topic_name}/" f"cover/{self.cover_type}"
+        return f"{self.config.device_name.lower()}/{self.topic_name}/" f"cover/{self.cover_type}"
 
     @property
     def is_opening(self) -> bool:
@@ -637,7 +639,7 @@ class CoverMap(DataStorage):
     helpers.DataStorage
     """
 
-    def __init__(self, features: FeatureMap):
+    def __init__(self, config: Config, features: FeatureMap):
         """Initialize cover map.
 
         Parameters
@@ -654,7 +656,7 @@ class CoverMap(DataStorage):
             if not self.data.get(cover_type):
                 self.data[cover_type] = []
 
-            c = Cover(features, **asdict(cover))
+            c = Cover(config, features, **asdict(cover))
             self.data[cover_type].append(c)
 
     def by_cover_type(self, cover_type: List[str]) -> Iterator:
