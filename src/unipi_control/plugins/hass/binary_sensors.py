@@ -7,9 +7,9 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
+from config import Config
 from config import HardwareData
 from config import LOG_MQTT_PUBLISH
-from config import config
 from config import logger
 from plugins.hass.discover import HassBaseDiscovery
 
@@ -24,22 +24,26 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
     """
 
     def __init__(self, uc, mqtt_client):
-        self._uc = uc
-        self._mqtt_client = mqtt_client
+        self.config: Config = uc.config
         self.hardware: HardwareData = uc.neuron.hardware
 
+        self._uc = uc
+        self._mqtt_client = mqtt_client
+
+        super().__init__(config=uc.config)
+
     def _get_discovery(self, feature) -> Tuple[str, dict]:
-        topic: str = f"{config.homeassistant.discovery_prefix}/binary_sensor/{config.device_name.lower()}/{feature.circuit}/config"
+        topic: str = f"{self.config.homeassistant.discovery_prefix}/binary_sensor/{self.config.device_name.lower()}/{feature.circuit}/config"
         suggested_area: Optional[str] = self._get_suggested_area(feature)
         invert_state: bool = self._get_invert_state(feature)
-        device_name: str = config.device_name
+        device_name: str = self.config.device_name
 
         if suggested_area:
             device_name = f"{device_name}: {suggested_area}"
 
         message: dict = {
             "name": self._get_friendly_name(feature),
-            "unique_id": f"{config.device_name.lower()}_{feature.circuit}",
+            "unique_id": f"{self.config.device_name.lower()}_{feature.circuit}",
             "state_topic": f"{feature.topic}/get",
             "qos": 2,
             "device": {
@@ -48,7 +52,7 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
                 "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                 "sw_version": self._uc.neuron.boards[feature.major_group - 1].firmware,
                 "suggested_area": suggested_area,
-                **asdict(config.homeassistant.device),
+                **asdict(self.config.homeassistant.device),
             },
         }
 

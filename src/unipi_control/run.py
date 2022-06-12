@@ -15,9 +15,10 @@ from asyncio_mqtt import Client
 from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
 from pymodbus.client.asynchronous import schedulers
-from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient as ModbusTCPClient
+from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
 
-from config import config
+from config import Config
+from config import HardwareInfo
 from config import logger
 from covers import CoverMap
 from neuron import Neuron
@@ -37,8 +38,9 @@ class UnipiControl:
     the Home Assistant MQTT discovery for binary sensors, switches and covers.
     """
 
-    def __init__(self, modbus_client):
-        self.neuron = Neuron(modbus_client)
+    def __init__(self, config: Config, modbus_client):
+        self.config: Config = config
+        self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client, hardware_info=HardwareInfo)
 
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
         logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
@@ -51,28 +53,28 @@ class UnipiControl:
             stack.push_async_callback(self._cancel_tasks, tasks)
 
             mqtt_client: Client = MqttClient(
-                config.mqtt.host,
-                config.mqtt.port,
+                self.config.mqtt.host,
+                self.config.mqtt.port,
                 client_id=self._mqtt_client_id,
-                keepalive=config.mqtt.keepalive,
+                keepalive=self.config.mqtt.keepalive,
             )
 
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info("[MQTT] Connected to broker at '%s:%s'", config.mqtt.host, config.mqtt.port)
+            logger.info("[MQTT] Connected to broker at '%s:%s'", self.config.mqtt.host, self.config.mqtt.port)
 
             features = FeaturesMqttPlugin(self, mqtt_client)
             features_tasks = await features.init_tasks(stack)
             tasks.update(features_tasks)
 
-            covers = CoverMap(features=self.neuron.features)
+            covers = CoverMap(config=self.config, features=self.neuron.features)
 
             covers_plugin = CoversMqttPlugin(mqtt_client, covers)
             covers_tasks = await covers_plugin.init_tasks(stack)
             tasks.update(covers_tasks)
 
-            if config.homeassistant.enabled:
+            if self.config.homeassistant.enabled:
                 hass_covers_plugin = HassCoversMqttPlugin(self, mqtt_client, covers)
                 hass_covers_tasks = await hass_covers_plugin.init_tasks()
                 tasks.update(hass_covers_tasks)
@@ -101,8 +103,8 @@ class UnipiControl:
     async def run(self):
         await self.neuron.read_boards()
 
-        reconnect_interval: int = config.mqtt.reconnect_interval
-        retry_limit: Optional[int] = config.mqtt.retry_limit
+        reconnect_interval: int = self.config.mqtt.reconnect_interval
+        retry_limit: Optional[int] = self.config.mqtt.retry_limit
 
         while True:
             try:
@@ -179,9 +181,9 @@ def main():
             install_unipi_control(assume_yes=args.yes)
         else:
             loop = asyncio.new_event_loop()
-            loop, modbus = ModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
+            loop, modbus = AsyncModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
 
-            uc = UnipiControl(modbus.protocol)
+            uc = UnipiControl(config=Config(), modbus_client=modbus.protocol)
 
             try:
                 loop.run_until_complete(uc.run())

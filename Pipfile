@@ -18,6 +18,9 @@ flake8-docstrings = "*"
 mypy = "*"
 pre-commit = "*"
 types-pyyaml = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.8"

@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from typing import List
 from typing import Match
 from typing import Optional
-from typing import Union
+from typing import Type
 
-from config import config
+from config import Config
 from config import logger
 from helpers import DataStorage
 
@@ -49,6 +49,8 @@ class Feature:
     def __init__(
         self, board, short_name: str, circuit: str, major_group: int, mask: int, reg: int, coil: Optional[int] = None
     ):
+        self.config: Config = board.neuron.config
+
         self.board = board
         self.short_name = short_name
         self.circuit: str = circuit
@@ -76,7 +78,7 @@ class Feature:
 
     @property
     def topic(self) -> str:
-        topic: str = f"{config.device_name.lower()}/{self.feature_name}"
+        topic: str = f"{self.config.device_name.lower()}/{self.feature_name}"
         topic += f"/{self.circuit}"
 
         return topic
@@ -163,9 +165,7 @@ class FeatureMap(DataStorage):
 
         self.data[feature.short_name].append(feature)
 
-    def by_circuit(
-        self, circuit: str, feature_type: Optional[List[str]] = None
-    ) -> Union[DigitalInput, DigitalOutput, Relay, Led]:
+    def by_circuit(self, circuit: str, feature_type: Optional[List[str]] = None) -> Type[Feature]:
         """Get feature by circuit name.
 
         Parameters
@@ -190,7 +190,7 @@ class FeatureMap(DataStorage):
             data = self.by_feature_type(feature_type)
 
         try:
-            feature: Union[DigitalInput, DigitalOutput, Relay, Led] = next(filter(lambda d: d.circuit == circuit, data))
+            feature: Type[Feature] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
             logger.error("[CONFIG] '{circuit}' not found in %s!", self.__class__.__name__)
             sys.exit(1)

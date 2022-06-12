@@ -13,13 +13,13 @@ from typing import Dict
 from typing import List
 from typing import Match
 from typing import Optional
+from typing import Type
 
 import yaml
 
 from helpers import DataStorage
 
-HARDWARE: str = "/etc/unipi/hardware"
-COVER_TYPES: list = ["blind", "roller_shutter", "garage_door"]
+COVER_TYPES: List[str] = ["blind", "roller_shutter", "garage_door"]
 
 LOG_COVER_DEVICE_LOCKED: str = "[COVER] [%s] Device is locked! Other position change is currently running."
 LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
@@ -151,11 +151,12 @@ class Config(ConfigBase):
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default=LoggingConfig())
+    config_base_path: Path = field(default=Path("/etc/unipi"))
 
     def __post_init__(self):
         super().__post_init__()
 
-        config_path: Path = Path("/etc/unipi/control.yaml")
+        config_path: Path = self.config_base_path.joinpath("control.yaml")
         _config: dict = self.get_config(config_path)
 
         self.update(_config)
@@ -183,6 +184,10 @@ class Config(ConfigBase):
 
         self.check_duplicate_covers_circuits()
         self._change_logger_level()
+
+    @property
+    def hardware_path(self) -> Path:
+        return self.config_base_path.joinpath("hardware")
 
     @staticmethod
     def get_config(config_path: Path) -> dict:
@@ -288,11 +293,13 @@ class HardwareInfo:
 
 
 class HardwareData(DataStorage):
-    def __init__(self):
+    def __init__(self, config: Config, hardware_info: Type[HardwareInfo]):
         super().__init__()
 
+        self.config = config
+
         self.data: dict = {
-            "neuron": asdict(HardwareInfo()),
+            "neuron": asdict(hardware_info()),
             "definitions": [],
             "neuron_definition": None,
         }
@@ -308,7 +315,7 @@ class HardwareData(DataStorage):
 
     def _read_definitions(self):
         try:
-            for f in Path(f"{HARDWARE}/extension").iterdir():
+            for f in Path(f"{self.config.hardware_path}/extension").iterdir():
                 if f.suffix == ".yaml":
                     self.data["definitions"].append(yaml.load(f.read_text(), Loader=yaml.FullLoader))
                     logger.debug("[CONFIG] YAML Definition loaded: %s", f)
@@ -316,7 +323,7 @@ class HardwareData(DataStorage):
             logger.info("[CONFIG] %s", str(error))
 
     def _read_neuron_definition(self):
-        definition_file: Path = Path(f"{HARDWARE}/neuron/{self._model}.yaml")
+        definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():
             self.data["neuron_definition"] = yaml.load(definition_file.read_text(), Loader=yaml.FullLoader)
@@ -324,6 +331,3 @@ class HardwareData(DataStorage):
         else:
             logger.error("[CONFIG] No valid YAML definition for active Neuron device! Device name is %s", self._model)
             sys.exit(1)
-
-
-config = Config()

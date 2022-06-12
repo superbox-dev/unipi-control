@@ -3,34 +3,34 @@ from abc import abstractmethod
 from typing import Optional
 from typing import Tuple
 
+from config import Config
 from config import FeatureConfig
-from config import config
 
 
 class HassBaseDiscovery(ABC):
-    @staticmethod
-    def _get_invert_state(feature) -> bool:
-        features_config: FeatureConfig = config.features.get(feature.circuit)
+    def __init__(self, config: Config):
+        self.config: Config = config
+
+    def _get_invert_state(self, feature) -> bool:
+        features_config: FeatureConfig = self.config.features.get(feature.circuit)
 
         if features_config:
             return features_config.invert_state
 
         return False
 
-    @staticmethod
-    def _get_friendly_name(feature) -> str:
-        friendly_name: str = f"{config.device_name} {feature.circuit_name}"
-        features_config: FeatureConfig = config.features.get(feature.circuit)
+    def _get_friendly_name(self, feature) -> str:
+        friendly_name: str = f"{self.config.device_name} {feature.circuit_name}"
+        features_config: FeatureConfig = self.config.features.get(feature.circuit)
 
         if features_config:
             friendly_name = features_config.friendly_name
 
         return friendly_name
 
-    @staticmethod
-    def _get_suggested_area(feature) -> Optional[str]:
+    def _get_suggested_area(self, feature) -> Optional[str]:
         suggested_area: str = ""
-        features_config: FeatureConfig = config.features.get(feature.circuit)
+        features_config: FeatureConfig = self.config.features.get(feature.circuit)
 
         if features_config:
             suggested_area = features_config.suggested_area
