@@ -40,7 +40,7 @@ class ConfigBase:
         for f in dataclasses.fields(self):
             value = getattr(self, f.name)
 
-            if not isinstance(value, f.type):
+            if not isinstance(value, f.type) and not is_dataclass(value):
                 logger.error(
                     "[CONFIG] %s - Expected %s to be %s, got %s",
                     self.__class__.__name__,
