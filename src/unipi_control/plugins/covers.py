@@ -33,27 +33,23 @@ class CoversMqttPlugin:
         self._covers: CoverMap = covers
         self._mqtt_client = mqtt_client
         self._queues: Dict[str, Queue] = {}
-        self._queues_canceled: Dict[str, bool] = {}
 
         self._init_queues()
 
     def _init_queues(self):
         for cover in self._covers.by_cover_type(COVER_TYPES):
             self._queues[cover.topic] = Queue()
-            self._queues_canceled[cover.topic] = False
 
     async def _clear_queue(self, cover):
         queue: Queue = self._queues[cover.topic]
         size: int = queue.qsize()
 
-        self._queues_canceled[cover.topic] = True
+        if size > 0:
+            for _ in range(size):
+                await queue.get()
+                queue.task_done()
 
-        for _ in range(size):
-            await queue.get()
-            queue.task_done()
-
-        logger.info("[COVER] [%s] [Worker] %s task(s) canceled.", cover.topic, size)
-        self._queues_canceled[cover.topic] = False
+            logger.info("[COVER] [%s] [Worker] %s task(s) canceled.", cover.topic, size)
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
@@ -81,10 +77,6 @@ class CoversMqttPlugin:
     async def _subscribe_command_worker(self, cover):
         while True:
             queue: Queue = self._queues[cover.topic]
-            queue_canceled: bool = self._queues_canceled[cover.topic]
-
-            if queue_canceled:
-                continue
 
             if queue.qsize() > 0:
                 logger.info("[COVER] [%s] [Worker] %s task(s) in queue.", cover.topic, queue.qsize())
@@ -98,7 +90,7 @@ class CoversMqttPlugin:
             if cover_run_time:
                 logger.debug("[COVER] [%s] [Worker] Cover runtime: %s seconds.", cover.topic, cover_run_time)
 
-                while not cover.is_stopped:
+                while cover.is_closing or cover.is_opening:
                     await asyncio.sleep(25e-3)
 
                 queue.task_done()
@@ -155,14 +147,14 @@ class CoversMqttPlugin:
         async for message in messages:
             value: str = message.payload.decode()
 
+            await self._clear_queue(cover)
+
             if value == CoverDeviceState.OPEN:
                 await cover.open()
             elif value == CoverDeviceState.CLOSE:
                 await cover.close()
             elif value == CoverDeviceState.STOP:
                 await cover.stop()
-
-            await self._clear_queue(cover)
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
