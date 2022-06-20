@@ -4,7 +4,7 @@ from asyncio import Task
 from contextlib import AsyncExitStack
 from typing import Any
 from typing import AsyncIterable
-from typing import Coroutine
+from typing import Callable
 from typing import Dict
 from typing import NamedTuple
 from typing import Optional
@@ -20,8 +20,9 @@ from covers import CoverDeviceState
 from covers import CoverMap
 
 
-class SubscribeQueue(NamedTuple):
-    command: Coroutine
+class SubscribeCommand(NamedTuple):
+    command: str
+    value: float
     log: list
 
 
@@ -32,20 +33,27 @@ class CoversMqttPlugin:
         self._covers: CoverMap = covers
         self._mqtt_client = mqtt_client
         self._queues: Dict[str, Queue] = {}
+        self._queues_canceled: Dict[str, bool] = {}
+
         self._init_queues()
 
     def _init_queues(self):
         for cover in self._covers.by_cover_type(COVER_TYPES):
             self._queues[cover.topic] = Queue()
+            self._queues_canceled[cover.topic] = False
 
-    def _clear_queue(self, cover):
+    async def _clear_queue(self, cover):
         queue: Queue = self._queues[cover.topic]
+        size: int = queue.qsize()
 
-        for _ in range(queue.qsize()):
-            try:
-                queue.task_done()
-            except ValueError:
-                pass
+        self._queues_canceled[cover.topic] = True
+
+        for _ in range(size):
+            await queue.get()
+            queue.task_done()
+
+        logger.info("[COVER] [%s] [Worker] %s task(s) canceled.", cover.topic, size)
+        self._queues_canceled[cover.topic] = False
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
@@ -73,20 +81,29 @@ class CoversMqttPlugin:
     async def _subscribe_command_worker(self, cover):
         while True:
             queue: Queue = self._queues[cover.topic]
+            queue_canceled: bool = self._queues_canceled[cover.topic]
+
+            if queue_canceled:
+                continue
 
             if queue.qsize() > 0:
                 logger.info("[COVER] [%s] [Worker] %s task(s) in queue.", cover.topic, queue.qsize())
 
-            subscribe_queue = await queue.get()
-            queue.task_done()
+            subscribe_queue: SubscribeCommand = await queue.get()
+            command: Callable = getattr(cover, subscribe_queue.command)
+            cover_run_time: Optional[float] = await command(subscribe_queue.value)
 
-            cover_run_time: Optional[float] = await subscribe_queue.command
             logger.info(*subscribe_queue.log)
 
             if cover_run_time:
                 logger.debug("[COVER] [%s] [Worker] Cover runtime: %s seconds.", cover.topic, cover_run_time)
 
-                await asyncio.sleep(cover_run_time)
+                while not cover.is_stopped:
+                    await asyncio.sleep(25e-3)
+
+                queue.task_done()
+            else:
+                queue.task_done()
 
     async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
         for cover in self._covers.by_cover_type(COVER_TYPES):
@@ -145,7 +162,7 @@ class CoversMqttPlugin:
             elif value == CoverDeviceState.STOP:
                 await cover.stop()
 
-            self._clear_queue(cover)
+            await self._clear_queue(cover)
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
@@ -155,9 +172,10 @@ class CoversMqttPlugin:
                 position: int = int(message.payload.decode())
                 queue: Queue = self._queues[cover.topic]
 
-                queue.put_nowait(
-                    SubscribeQueue(
-                        command=cover.set_position(position),
+                await queue.put(
+                    SubscribeCommand(
+                        command="set_position",
+                        value=position,
                         log=[LOG_MQTT_SUBSCRIBE, topic, position],
                     )
                 )
@@ -170,9 +188,10 @@ class CoversMqttPlugin:
                 tilt: int = int(message.payload.decode())
                 queue: Queue = self._queues[cover.topic]
 
-                queue.put_nowait(
-                    SubscribeQueue(
-                        command=cover.set_tilt(tilt),
+                await queue.put(
+                    SubscribeCommand(
+                        command="set_tilt",
+                        value=tilt,
                         log=[LOG_MQTT_SUBSCRIBE, topic, tilt],
                     )
                 )
