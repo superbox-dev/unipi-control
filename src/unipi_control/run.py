@@ -12,7 +12,6 @@ from typing import Optional
 from typing import Set
 
 from asyncio_mqtt import Client
-from asyncio_mqtt import Client as MqttClient
 from asyncio_mqtt import MqttError
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
@@ -52,7 +51,7 @@ class UnipiControl:
             tasks: Set[Task] = set()
             stack.push_async_callback(self._cancel_tasks, tasks)
 
-            mqtt_client: Client = MqttClient(
+            mqtt_client: Client = Client(
                 self.config.mqtt.host,
                 self.config.mqtt.port,
                 client_id=self._mqtt_client_id,
@@ -148,7 +147,7 @@ def install_unipi_control(assume_yes: bool):
             copy_config_files = False
 
     if copy_config_files:
-        shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)  # type: ignore
+        shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
 
     print("Copy systemd service 'unipi-control.service'")
     shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
