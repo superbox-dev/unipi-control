@@ -12,7 +12,6 @@ from config import HardwareData
 from config import LOG_MQTT_PUBLISH
 from config import logger
 from covers import CoverMap
-from run import UnipiControl
 
 
 class HassCoversDiscovery:
@@ -24,7 +23,7 @@ class HassCoversDiscovery:
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, uc: UnipiControl, mqtt_client, covers: CoverMap):
+    def __init__(self, uc, mqtt_client, covers: CoverMap):
         self.config: Config = uc.config
 
         self._mqtt_client = mqtt_client
@@ -83,7 +82,7 @@ class HassCoversDiscovery:
 class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
-    def __init__(self, uc: UnipiControl, mqtt_client, covers: CoverMap):
+    def __init__(self, uc, mqtt_client, covers: CoverMap):
         self._hass = HassCoversDiscovery(uc, mqtt_client, covers)
 
     async def init_tasks(self) -> Set[Task]:

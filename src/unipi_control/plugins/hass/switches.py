@@ -13,7 +13,6 @@ from config import LOG_MQTT_PUBLISH
 from config import logger
 from features import FeatureState
 from plugins.hass.discover import HassBaseDiscovery
-from run import UnipiControl
 
 
 class HassSwitchesDiscovery(HassBaseDiscovery):
@@ -25,11 +24,11 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, uc: UnipiControl, mqtt_client):
+    def __init__(self, uc, mqtt_client):
         self.config: Config = uc.config
         self.hardware: HardwareData = uc.neuron.hardware
 
-        self._uc: UnipiControl = uc
+        self._uc = uc
         self._mqtt_client = mqtt_client
 
         super().__init__(config=uc.config)
@@ -87,7 +86,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
 class HassSwitchesMqttPlugin:
     """Provide Home Assistant MQTT commands for switches."""
 
-    def __init__(self, uc: UnipiControl, mqtt_client):
+    def __init__(self, uc, mqtt_client):
         self._ha = HassSwitchesDiscovery(uc, mqtt_client)
 
     async def init_tasks(self) -> Set[Task]:

@@ -42,6 +42,8 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
         if suggested_area:
             device_name = f"{device_name}: {suggested_area}"
 
+        # TODO: added object_id https://www.home-assistant.io/integrations/binary_sensor.mqtt/#object_id
+        # TODO: check other discoveries if object_id exists!
         message: dict = {
             "name": self._get_friendly_name(feature),
             "unique_id": f"{self.config.device_name.lower()}_{feature.circuit}",
