@@ -52,9 +52,9 @@ class Feature:
         self.config: Config = board.neuron.config
 
         self.board = board
-        self.short_name = short_name
+        self.short_name: str = short_name
         self.circuit: str = circuit
-        self.major_group = major_group
+        self.major_group: int = major_group
         self.reg: int = reg
         self.mask: int = mask
         self.coil: Optional[int] = coil

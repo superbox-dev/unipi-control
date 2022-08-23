@@ -54,9 +54,7 @@ class FeaturesMqttPlugin:
         while True:
             await self._uc.neuron.scan()
 
-            features = self._uc.neuron.features.by_feature_type(["DI", "DO", "RO"])
-
-            for feature in features:
+            for feature in self._uc.neuron.features.by_feature_type(["DI", "DO", "RO"]):
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
                     await self._mqtt_client.publish(topic, feature.state, qos=1, retain=True)

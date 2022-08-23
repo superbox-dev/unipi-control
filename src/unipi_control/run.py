@@ -69,20 +69,20 @@ class UnipiControl:
 
             covers = CoverMap(config=self.config, features=self.neuron.features)
 
-            covers_plugin = CoversMqttPlugin(mqtt_client, covers)
+            covers_plugin = CoversMqttPlugin(mqtt_client=mqtt_client, covers=covers)
             covers_tasks = await covers_plugin.init_tasks(stack)
             tasks.update(covers_tasks)
 
             if self.config.homeassistant.enabled:
-                hass_covers_plugin = HassCoversMqttPlugin(self, mqtt_client, covers)
+                hass_covers_plugin = HassCoversMqttPlugin(uc=self, mqtt_client=mqtt_client, covers=covers)
                 hass_covers_tasks = await hass_covers_plugin.init_tasks()
                 tasks.update(hass_covers_tasks)
 
-                hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(self, mqtt_client)
+                hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(uc=self, mqtt_client=mqtt_client)
                 hass_binary_sensors_tasks = await hass_binary_sensors_plugin.init_tasks()
                 tasks.update(hass_binary_sensors_tasks)
 
-                hass_switches_plugin = HassSwitchesMqttPlugin(self, mqtt_client)
+                hass_switches_plugin = HassSwitchesMqttPlugin(uc=self, mqtt_client=mqtt_client)
                 hass_switches_tasks = await hass_switches_plugin.init_tasks()
                 tasks.update(hass_switches_tasks)
 

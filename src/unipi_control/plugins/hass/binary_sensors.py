@@ -11,6 +11,7 @@ from config import Config
 from config import HardwareData
 from config import LOG_MQTT_PUBLISH
 from config import logger
+from features import FeatureState
 from plugins.hass.discover import HassBaseDiscovery
 
 
@@ -59,8 +60,8 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
         if invert_state:
             message.update(
                 {
-                    "payload_on": "OFF",
-                    "payload_off": "ON",
+                    "payload_on": FeatureState.OFF,
+                    "payload_off": FeatureState.ON,
                 }
             )
 

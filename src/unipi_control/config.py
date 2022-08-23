@@ -10,6 +10,7 @@ from dataclasses import field
 from dataclasses import is_dataclass
 from pathlib import Path
 from typing import Dict
+from typing import Final
 from typing import List
 from typing import Match
 from typing import Optional
@@ -19,17 +20,18 @@ import yaml
 
 from helpers import DataStorage
 
-COVER_TYPES: List[str] = ["blind", "roller_shutter", "garage_door"]
+COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
-LOG_COVER_DEVICE_LOCKED: str = "[COVER] [%s] Device is locked! Other position change is currently running."
-LOG_MQTT_PUBLISH: str = "[MQTT] [%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: str = "[MQTT] [%s] Subscribe message: %s"
-LOG_MQTT_SUBSCRIBE_TOPIC: str = "[MQTT] Subscribe topic %s"
+LOG_COVER_DEVICE_LOCKED: Final[str] = "[COVER] [%s] Device is locked! Other position change is currently running."
+LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
+LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
+LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
+LOGGER_NAME: Final[str] = "unipi-control"
 
 stdout_handler = logging.StreamHandler(stream=sys.stdout)
 stdout_handler.setFormatter(logging.Formatter(fmt="%(levelname)8s | %(message)s"))
 
-logger = logging.getLogger("asyncio")
+logger = logging.getLogger(LOGGER_NAME)
 logger.setLevel(logging.INFO)
 logger.addHandler(stdout_handler)
 
@@ -154,12 +156,11 @@ class Config(ConfigBase):
     config_base_path: Path = field(default=Path("/etc/unipi"))
 
     def __post_init__(self):
-        super().__post_init__()
-
-        config_path: Path = self.config_base_path.joinpath("control.yaml")
+        config_path: Path = self.config_base_path / "control.yaml"
         _config: dict = self.get_config(config_path)
-
         self.update(_config)
+
+        super().__post_init__()
 
         for circuit, feature_config in self.features.items():
             try:

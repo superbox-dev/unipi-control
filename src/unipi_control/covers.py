@@ -189,7 +189,7 @@ class Cover:
 
     @property
     def topic(self) -> str:
-        return f"{self.config.device_name.lower()}/{self.topic_name}/" f"cover/{self.cover_type}"
+        return f"{self.config.device_name.lower()}/{self.topic_name}/cover/{self.cover_type}"
 
     @property
     def is_opening(self) -> bool:
