@@ -3,16 +3,16 @@ from typing import List
 from typing import Optional
 from typing import Type
 
-from config import Config
-from config import HardwareData
-from config import HardwareInfo
-from config import logger
-from features import DigitalInput
-from features import DigitalOutput
-from features import FeatureMap
-from features import Led
-from features import Relay
-from modbus import ModbusCacheMap
+from unipi_control.config import Config
+from unipi_control.config import HardwareData
+from unipi_control.config import HardwareInfo
+from unipi_control.config import logger
+from unipi_control.features import DigitalInput
+from unipi_control.features import DigitalOutput
+from unipi_control.features import FeatureMap
+from unipi_control.features import Led
+from unipi_control.features import Relay
+from unipi_control.modbus import ModbusCacheMap
 
 
 class Board:

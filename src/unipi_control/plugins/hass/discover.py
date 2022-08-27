@@ -3,8 +3,8 @@ from abc import abstractmethod
 from typing import Optional
 from typing import Tuple
 
-from config import Config
-from config import FeatureConfig
+from unipi_control.config import Config
+from unipi_control.config import FeatureConfig
 
 
 class HassBaseDiscovery(ABC):
@@ -12,7 +12,7 @@ class HassBaseDiscovery(ABC):
         self.config: Config = config
 
     def _get_invert_state(self, feature) -> bool:
-        features_config: FeatureConfig = self.config.features.get(feature.circuit)
+        features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
         if features_config:
             return features_config.invert_state
@@ -21,7 +21,7 @@ class HassBaseDiscovery(ABC):
 
     def _get_friendly_name(self, feature) -> str:
         friendly_name: str = f"{self.config.device_name} {feature.circuit_name}"
-        features_config: FeatureConfig = self.config.features.get(feature.circuit)
+        features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
         if features_config:
             friendly_name = features_config.friendly_name
@@ -29,8 +29,8 @@ class HassBaseDiscovery(ABC):
         return friendly_name
 
     def _get_suggested_area(self, feature) -> Optional[str]:
-        suggested_area: str = ""
-        features_config: FeatureConfig = self.config.features.get(feature.circuit)
+        suggested_area: Optional[str] = None
+        features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
         if features_config:
             suggested_area = features_config.suggested_area

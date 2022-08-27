@@ -19,7 +19,7 @@ from typing import Union
 
 import yaml
 
-from helpers import DataStorage
+from unipi_control.helpers import DataStorage
 
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 

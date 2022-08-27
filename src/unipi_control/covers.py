@@ -14,14 +14,14 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from config import Config
-from config import LOG_COVER_DEVICE_LOCKED
-from config import logger
-from features import DigitalOutput
-from features import FeatureMap
-from features import Relay
-from helpers import DataStorage
-from helpers import run_in_executor
+from unipi_control.config import Config
+from unipi_control.config import LOG_COVER_DEVICE_LOCKED
+from unipi_control.config import logger
+from unipi_control.features import DigitalOutput
+from unipi_control.features import FeatureMap
+from unipi_control.features import Relay
+from unipi_control.helpers import DataStorage
+from unipi_control.helpers import run_in_executor
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
 # FALLBACK_COVER_RUN_TIME: Final[float] = 90

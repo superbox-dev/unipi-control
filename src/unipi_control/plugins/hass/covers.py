@@ -6,12 +6,12 @@ from typing import Any
 from typing import Set
 from typing import Tuple
 
-from config import COVER_TYPES
-from config import Config
-from config import HardwareData
-from config import LOG_MQTT_PUBLISH
-from config import logger
-from covers import CoverMap
+from unipi_control.config import COVER_TYPES
+from unipi_control.config import Config
+from unipi_control.config import HardwareData
+from unipi_control.config import LOG_MQTT_PUBLISH
+from unipi_control.config import logger
+from unipi_control.covers import CoverMap
 
 
 class HassCoversDiscovery:

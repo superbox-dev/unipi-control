@@ -5,10 +5,10 @@ from typing import Any
 from typing import AsyncIterable
 from typing import Set
 
-from config import LOG_MQTT_PUBLISH
-from config import LOG_MQTT_SUBSCRIBE
-from config import LOG_MQTT_SUBSCRIBE_TOPIC
-from config import logger
+from unipi_control.config import LOG_MQTT_PUBLISH
+from unipi_control.config import LOG_MQTT_SUBSCRIBE
+from unipi_control.config import LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.config import logger
 
 
 class FeaturesMqttPlugin:

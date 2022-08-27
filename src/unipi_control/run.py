@@ -16,17 +16,17 @@ from asyncio_mqtt import MqttError
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
 
-from config import Config
-from config import HardwareInfo
-from config import logger
-from covers import CoverMap
-from neuron import Neuron
-from plugins.covers import CoversMqttPlugin
-from plugins.features import FeaturesMqttPlugin
-from plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
-from plugins.hass.covers import HassCoversMqttPlugin
-from plugins.hass.switches import HassSwitchesMqttPlugin
-from version import __version__
+from unipi_control.config import Config
+from unipi_control.config import HardwareInfo
+from unipi_control.config import logger
+from unipi_control.covers import CoverMap
+from unipi_control.neuron import Neuron
+from unipi_control.plugins.covers import CoversMqttPlugin
+from unipi_control.plugins.features import FeaturesMqttPlugin
+from unipi_control.plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
+from unipi_control.plugins.hass.covers import HassCoversMqttPlugin
+from unipi_control.plugins.hass.switches import HassSwitchesMqttPlugin
+from unipi_control.version import __version__
 
 
 class UnipiControl:

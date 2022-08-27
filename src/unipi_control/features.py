@@ -8,9 +8,9 @@ from typing import Match
 from typing import Optional
 from typing import Type
 
-from config import Config
-from config import logger
-from helpers import DataStorage
+from unipi_control.config import Config
+from unipi_control.config import logger
+from unipi_control.helpers import DataStorage
 
 
 @dataclass(frozen=True)
