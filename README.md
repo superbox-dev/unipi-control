@@ -121,8 +121,7 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 | `suggested_area`   | Suggest an area. e.g. `Living Room`.                                                                                                     |
 | `cover_type`       | Cover types can be "blind", "roller_shutter", or "garage_door".                                                                          |
 | `topic_name`       | Unique name for the MQTT topic.                                                                                                          |
-| `full_open_time`   | Define the time (in seconds) it takes for the cover to fully open.                                                                       |
-| `full_close_time`  | Define the time (in seconds) it takes for the cover to fully close.                                                                      |
+| `cover_run_time`   | Define the time (in seconds) it takes for the cover to fully open or close.                                                              |
 | `tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state. Tilt is only available for cover type "blind". |
 | `circuit_up`       | Output circuit name from a relay or digital output.                                                                                      |
 | `circuit_down`     | Output circuit name from a relay or digital output.                                                                                      |
@@ -134,8 +133,7 @@ covers:
     suggested_area: "Workspace"
     cover_type: "blind"
     topic_name: workspace_1
-    full_open_time: 35.5
-    full_close_time: 35.5
+    cover_run_time: 35.5
     tilt_change_time: 1.5
     circuit_up: ro_3_03
     circuit_down: ro_3_02

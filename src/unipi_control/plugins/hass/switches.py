@@ -87,12 +87,12 @@ class HassSwitchesMqttPlugin:
     """Provide Home Assistant MQTT commands for switches."""
 
     def __init__(self, uc, mqtt_client):
-        self._ha = HassSwitchesDiscovery(uc, mqtt_client)
+        self._hass = HassSwitchesDiscovery(uc, mqtt_client)
 
     async def init_tasks(self) -> Set[Task]:
         tasks: Set[Task] = set()
 
-        task: Task[Any] = asyncio.create_task(self._ha.publish())
+        task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)
 
         return tasks

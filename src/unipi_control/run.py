@@ -126,8 +126,8 @@ class UnipiControl:
 
 
 def install_unipi_control(assume_yes: bool):
-    src_config_path: Path = Path(__file__).parents[0].joinpath("installer/etc/unipi")
-    src_systemd_path: Path = Path(__file__).parents[0].joinpath("installer/etc/systemd/system/unipi-control.service")
+    src_config_path: Path = Path(__file__).parents[0] / "installer/etc/unipi"
+    src_systemd_path: Path = Path(__file__).parents[0] / "installer/etc/systemd/system/unipi-control.service"
     dest_config_path: Path = Path("/etc/unipi")
 
     print(f"Copy config files to '{dest_config_path}'")

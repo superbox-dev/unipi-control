@@ -42,7 +42,6 @@ class HassCoversDiscovery:
             "unique_id": f"{cover.cover_type}_{cover.topic_name}",
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
-            "position_topic": f"{cover.topic}/position",
             "qos": 2,
             "optimistic": False,
             "device": {
@@ -55,19 +54,12 @@ class HassCoversDiscovery:
         }
 
         if cover.settings.set_position:
-            message.update(
-                {
-                    "set_position_topic": f"{cover.topic}/position/set",
-                }
-            )
+            message["position_topic"] = f"{cover.topic}/position"
+            message["set_position_topic"] = f"{cover.topic}/position/set"
 
         if cover.settings.set_tilt:
-            message.update(
-                {
-                    "tilt_status_topic": f"{cover.topic}/tilt",
-                    "tilt_command_topic": f"{cover.topic}/tilt/set",
-                }
-            )
+            message["tilt_status_topic"] = f"{cover.topic}/tilt"
+            message["tilt_command_topic"] = f"{cover.topic}/tilt/set"
 
         return topic, message
 

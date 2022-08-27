@@ -15,6 +15,7 @@ from typing import List
 from typing import Match
 from typing import Optional
 from typing import Type
+from typing import Union
 
 import yaml
 
@@ -94,18 +95,17 @@ class LoggingConfig(ConfigBase):
 class FeatureConfig(ConfigBase):
     invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
-    suggested_area: str = field(default_factory=str)
+    suggested_area: Optional[str] = field(default=None)
 
 
 @dataclass
 class CoverConfig(ConfigBase):
     friendly_name: str = field(default_factory=str)
-    suggested_area: str = field(default_factory=str)
+    suggested_area: Optional[str] = field(default=None)
     cover_type: str = field(default_factory=str)
     topic_name: str = field(default_factory=str)
-    full_open_time: float = field(default_factory=float)
-    full_close_time: float = field(default_factory=float)
-    tilt_change_time: float = field(default_factory=float)
+    cover_run_time: Optional[Union[float, int]] = field(default=None)
+    tilt_change_time: Optional[Union[float, int]] = field(default=None)
     circuit_up: str = field(default_factory=str)
     circuit_down: str = field(default_factory=str)
 
@@ -116,8 +116,6 @@ class CoverConfig(ConfigBase):
             "friendly_name",
             "topic_name",
             "cover_type",
-            "full_open_time",
-            "full_close_time",
             "circuit_up",
             "circuit_down",
         ]:
@@ -149,10 +147,10 @@ class CoverConfig(ConfigBase):
 class Config(ConfigBase):
     device_name: str = field(default=socket.gethostname())
     mqtt: MqttConfig = field(default=MqttConfig())
-    homeassistant: HomeAssistantConfig = field(default=HomeAssistantConfig())
+    homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
-    logging: LoggingConfig = field(default=LoggingConfig())
+    logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=Path("/etc/unipi"))
 
     def __post_init__(self):
@@ -170,7 +168,11 @@ class Config(ConfigBase):
                 sys.exit(1)
 
         for index, cover_config in enumerate(self.covers):
-            self.covers[index] = CoverConfig(**cover_config)
+            try:
+                self.covers[index] = CoverConfig(**cover_config)
+            except TypeError:
+                logger.error("[CONFIG] Invalid cover property: %s", cover_config)
+                sys.exit(1)
 
         if self.device_name:
             result: Optional[Match[str]] = re.search(r"^[\w\d_-]*$", self.device_name)
