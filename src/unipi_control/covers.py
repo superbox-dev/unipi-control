@@ -24,7 +24,6 @@ from unipi_control.helpers import DataStorage
 from unipi_control.helpers import run_in_executor
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
-# FALLBACK_COVER_RUN_TIME: Final[float] = 90
 
 
 @dataclass(eq=False)
@@ -379,8 +378,6 @@ class Cover:
             self.state = CoverState.OPENING
             self._start_timer = time.monotonic()
 
-            # cover_run_time: float = FALLBACK_COVER_RUN_TIME
-
             if self.settings.set_position is True:
                 if self.tilt_change_time:
                     self.tilt = 100
@@ -452,8 +449,6 @@ class Cover:
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING
             self._start_timer = time.monotonic()
-
-            # cover_run_time: float = FALLBACK_COVER_RUN_TIME
 
             if self.settings.set_position is True:
                 if self.tilt_change_time:
