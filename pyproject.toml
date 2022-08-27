@@ -26,8 +26,8 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
-asyncio_mode = "strict"
-addopts = "--cov --cov-append"
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_format = "%(levelname)-8s | %(asctime)s: %(message)s"
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]

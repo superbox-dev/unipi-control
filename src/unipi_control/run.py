@@ -89,6 +89,7 @@ class UnipiControl:
             await asyncio.gather(*tasks)
 
     async def _cancel_tasks(self, tasks):
+        # TODO: Check cancel tasks (look to unifi-tools)
         for task in tasks:
             if task.done():
                 continue

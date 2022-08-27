@@ -15,7 +15,6 @@ from typing import List
 from typing import Match
 from typing import Optional
 from typing import Type
-from typing import Union
 
 import yaml
 
@@ -95,17 +94,17 @@ class LoggingConfig(ConfigBase):
 class FeatureConfig(ConfigBase):
     invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
-    suggested_area: Optional[str] = field(default=None)
+    suggested_area: str = field(default_factory=str)
 
 
 @dataclass
 class CoverConfig(ConfigBase):
     friendly_name: str = field(default_factory=str)
-    suggested_area: Optional[str] = field(default=None)
+    suggested_area: str = field(default_factory=str)
     cover_type: str = field(default_factory=str)
     topic_name: str = field(default_factory=str)
-    cover_run_time: Optional[Union[float, int]] = field(default=None)
-    tilt_change_time: Optional[Union[float, int]] = field(default=None)
+    cover_run_time: float = field(default_factory=float)
+    tilt_change_time: float = field(default_factory=float)
     circuit_up: str = field(default_factory=str)
     circuit_down: str = field(default_factory=str)
 
@@ -152,6 +151,7 @@ class Config(ConfigBase):
     covers: list = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=Path("/etc/unipi"))
+    systemd_path: Path = field(default=Path("/etc/systemd/system"))
 
     def __post_init__(self):
         config_path: Path = self.config_base_path / "control.yaml"

@@ -1,3 +1,4 @@
+device_name: Unipi
 mqtt:
   host: localhost
   port: 1883
@@ -9,17 +10,174 @@ homeassistant:
   enabled: true
   discovery_prefix: homeassistant
 features:
+  di_3_01:
+    friendly_name: Workspace - Blind up
+    suggested_area: Workspace
   di_3_02:
-    friendly_name: "Workspace - Switch up"
-  di_3_03:
-    friendly_name: "Workspace - Switch down"
+    friendly_name: Workspace - Blind down
+    suggested_area: Workspace
+  di_3_07:
+    friendly_name: Living Room 1 - Blind up
+    suggested_area: Living Room
+  di_3_08:
+    friendly_name: Living Room 1 - Blind down
+    suggested_area: Living Room
+  di_3_05:
+    friendly_name: Living Room 2 - Blind up
+    suggested_area: Living Room
+  di_3_06:
+    friendly_name: Living Room 2 - Blind down
+    suggested_area: Living Room
+  di_2_01:
+    friendly_name: Dining Room 1 - Blind up
+    suggested_area: Dining Room
+  di_2_02:
+    friendly_name: Dining Room 1 - Blind down
+    suggested_area: Dining Room
+  di_2_03:
+    friendly_name: Dining Room 2 - Blind up
+    suggested_area: Dining Room
+  di_2_04:
+    friendly_name: Dining Room 2 - Blind down
+    suggested_area: Dining Room
+  di_2_05:
+    friendly_name: Dining Room 3 - Blind up
+    suggested_area: Dining Room
+  di_2_06:
+    friendly_name: Dining Room 3 - Blind down
+    suggested_area: Dining Room
+  di_3_09:
+    friendly_name: Kitchen - Blind down
+    suggested_area: Kitchen
+  di_3_10:
+    friendly_name: Kitchen - Blind up
+    suggested_area: Kitchen
+  di_3_11:
+    friendly_name: Utility Room - Blind down
+    suggested_area: Utility Room
+  di_3_12:
+    friendly_name: Utility Room - Blind up
+    suggested_area: Utility Room
+  di_3_13:
+    friendly_name: Children Room 1 - Rolling shutter down
+    suggested_area: Children Room
+  di_3_14:
+    friendly_name: Children Room 1 - Rolling shutter up
+    suggested_area: Children Room
+  di_2_16:
+    friendly_name: Children Room 2 - Rolling shutter down
+    suggested_area: Children Room
+  di_2_15:
+    friendly_name: Children Room 2 - Rolling shutter up
+    suggested_area: Children Room
+  di_2_07:
+    friendly_name: Bedroom - Rolling shutter down
+    suggested_area: Bedroom
+  di_2_08:
+    friendly_name: Bedroom - Rolling shutter up
+    suggested_area: Bedroom
+  di_1_01:
+    friendly_name: "Group: Wind Sensor"
+    suggested_area: Outside
+  di_1_02:
+    friendly_name: "Group: Living Area - Blind down"
+    suggested_area: Living Room
+  di_1_03:
+    friendly_name: "Group: Living Area - Blind up"
+    suggested_area: Living Room
+  do_1_02:
+    friendly_name: Radiator Power Supply
+    suggested_area: Bathroom
+  do_1_03:
+    friendly_name: Volumio Power Supply
+    suggested_area: Kitchen
+    invert_state: true
+  do_1_04:
+    friendly_name: iPad mini 2 Power Supply
+    suggested_area: Living Room
+    invert_state: true
 covers:
-  - friendly_name: "Workspace - Blind 1"
-    cover_type: "blind"
-    topic_name: workspace_1
+  - friendly_name: Workspace
+    suggested_area: Workspace
+    cover_type: blind
+    topic_name: workspace
     cover_run_time: 35.5
-    tilt_change_time: 1.5
+    tilt_change_time: 1.6
+    circuit_up: ro_3_07
+    circuit_down: ro_3_06
+  - friendly_name: Living Room 1
+    suggested_area: Living Room
+    cover_type: blind
+    topic_name: living_room_1
+    cover_run_time: 35.5
+    tilt_change_time: 1.6
+    circuit_up: ro_3_05
+    circuit_down: ro_3_04
+  - friendly_name: Living Room 2
+    suggested_area: Living Room
+    cover_type: blind
+    topic_name: living_room_2
+    cover_run_time: 35.5
+    tilt_change_time: 1.6
     circuit_up: ro_3_03
     circuit_down: ro_3_02
+  - friendly_name: Dining Room 1
+    suggested_area: Dining Room
+    cover_type: blind
+    topic_name: dining_room_1
+    cover_run_time: 46.5
+    tilt_change_time: 1.6
+    circuit_up: ro_2_07
+    circuit_down: ro_2_06
+  - friendly_name: Dining Room 2
+    suggested_area: Dining Room
+    cover_type: blind
+    topic_name: dining_room_2
+    cover_run_time: 35.5
+    tilt_change_time: 1.6
+    circuit_up: ro_2_05
+    circuit_down: ro_2_04
+  - friendly_name: Dining Room 3
+    suggested_area: Dining Room
+    cover_type: blind
+    topic_name: dining_room_3
+    cover_run_time: 56.5
+    tilt_change_time: 1.6
+    circuit_up: ro_2_03
+    circuit_down: ro_2_02
+  - friendly_name: Kitchen
+    suggested_area: Kitchen
+    cover_type: blind
+    topic_name: kitchen
+    cover_run_time: 35.5
+    tilt_change_time: 1.6
+    circuit_up: ro_3_09
+    circuit_down: ro_3_08
+  - friendly_name: Utility Room
+    suggested_area: Utility Room
+    cover_type: blind
+    topic_name: utility_room
+    cover_run_time: 35.5
+    tilt_change_time: 1.6
+    circuit_up: ro_3_12
+    circuit_down: ro_3_11
+  - friendly_name: Children Room 1
+    suggested_area: Children Room
+    cover_type: roller_shutter
+    topic_name: children_room_1
+    circuit_up: ro_3_14
+    circuit_down: ro_3_13
+  - friendly_name: Children Room 2
+    suggested_area: Children Room
+    cover_type: roller_shutter
+    topic_name: children_room_2
+    circuit_up: ro_2_14
+    circuit_down: ro_2_13
+  - friendly_name: Bedroom
+    suggested_area: Bedroom
+    cover_type: roller_shutter
+    topic_name: bedroom
+    circuit_up: ro_2_11
+    circuit_down: ro_2_12
 logging:
   level: info
