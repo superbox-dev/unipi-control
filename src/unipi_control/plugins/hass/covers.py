@@ -48,10 +48,12 @@ class HassCoversDiscovery:
                 "name": device_name,
                 "identifiers": device_name,
                 "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
-                "suggested_area": cover.suggested_area or "",
                 **asdict(self.config.homeassistant.device),
             },
         }
+
+        if cover.suggested_area:
+            message["device"]["suggested_area"] = cover.suggested_area
 
         if cover.settings.set_position:
             message["position_topic"] = f"{cover.topic}/position"

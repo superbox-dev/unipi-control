@@ -42,11 +42,10 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
         if suggested_area:
             device_name = f"{device_name}: {suggested_area}"
 
-        # TODO: added object_id https://www.home-assistant.io/integrations/binary_sensor.mqtt/#object_id
-        # TODO: check other discoveries if object_id exists!
         message: dict = {
             "name": self._get_friendly_name(feature),
             "unique_id": f"{self.config.device_name.lower()}_{feature.circuit}",
+            "object_id": f"{self.config.device_name.lower()}_{feature.circuit}",
             "state_topic": f"{feature.topic}/get",
             "qos": 2,
             "device": {
@@ -54,18 +53,16 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
                 "identifiers": device_name,
                 "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                 "sw_version": self._uc.neuron.boards[feature.major_group - 1].firmware,
-                "suggested_area": suggested_area,
                 **asdict(self.config.homeassistant.device),
             },
         }
 
+        if suggested_area:
+            message["device"]["suggested_area"] = suggested_area
+
         if invert_state:
-            message.update(
-                {
-                    "payload_on": FeatureState.OFF,
-                    "payload_off": FeatureState.ON,
-                }
-            )
+            message["payload_on"] = FeatureState.OFF
+            message["payload_off"] = FeatureState.ON
 
         return topic, message
 

@@ -60,18 +60,16 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
                     "identifiers": device_name,
                     "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                     "sw_version": self._uc.neuron.boards[feature.major_group - 1].firmware,
-                    "suggested_area": suggested_area,
                     **asdict(self.config.homeassistant.device),
                 },
             }
 
+            if suggested_area:
+                message["device"]["suggested_area"] = suggested_area
+
             if invert_state:
-                message.update(
-                    {
-                        "payload_on": FeatureState.OFF,
-                        "payload_off": FeatureState.ON,
-                    }
-                )
+                message["payload_on"] = FeatureState.OFF
+                message["payload_off"] = FeatureState.ON
 
         return topic, message
 
