@@ -6,8 +6,6 @@ from collections.abc import Iterator
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
-from pathlib import Path
-from tempfile import gettempdir
 from typing import Callable
 from typing import Final
 from typing import List
@@ -80,14 +78,18 @@ class CoverTimer:
         """
         self._timeout: float = timeout
         self._callback: Callable = callback
-        self._task: Task = asyncio.create_task(self._job())
+        self._task: Optional[Task] = None
 
     async def _job(self):
         await asyncio.sleep(self._timeout - ASYNCIO_SLEEP_DELAY_FIX)
         await self._callback()
 
+    def start(self):
+        self._task = asyncio.create_task(self._job())
+
     def cancel(self):
-        self._task.cancel()
+        if self._task:
+            self._task.cancel()
 
 
 class Cover:
@@ -168,9 +170,7 @@ class Cover:
         self._current_tilt: Optional[int] = None
         self._calibration_started: bool = False
 
-        temp_dir = Path(gettempdir(), "unipi")
-        temp_dir.mkdir(exist_ok=True)
-        self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
+        self._temp_filename = config.temp_path / self.topic.replace("/", "__")
         self._read_position()
 
     def __repr__(self) -> str:
@@ -290,6 +290,7 @@ class Cover:
             return
 
         end_timer = time.monotonic() - self._start_timer
+        print("1", end_timer)
 
         if self.is_closing:
             self.position = int(round(100 * (self.cover_run_time - end_timer) / self.cover_run_time)) - (
@@ -393,6 +394,8 @@ class Cover:
                         self.position = 0
 
                     self._timer = CoverTimer(cover_run_time, self.stop)
+                    self._timer.start()
+
                     self._delete_position()
 
                     return cover_run_time
@@ -465,6 +468,8 @@ class Cover:
                         self.position = 100
 
                     self._timer = CoverTimer(cover_run_time, self.stop)
+                    self._timer.start()
+
                     self._delete_position()
 
                     return cover_run_time
@@ -477,8 +482,8 @@ class Cover:
         If the cover is already opening or closing then the position is
         updated. If a running timer exists, it will be stopped.
 
-        If position is lower then equal 0 then the cover state is set to
-        closed. If position is greater then equal 100 then the cover state is
+        If position is lower than equal 0 then the cover state is set to
+        closed. If position is greater than equal 100 then the cover state is
         set to open. On all other positions the cover state is set to stopped.
 
         The device state is changed to **IDLE** and the timer will be
@@ -544,6 +549,8 @@ class Cover:
             cover_run_time: float = (tilt - self.tilt) * self.tilt_change_time / 100
 
             self._timer = CoverTimer(cover_run_time, self.stop)
+            self._timer.start()
+
             self._delete_position()
 
             return cover_run_time
@@ -578,6 +585,8 @@ class Cover:
             cover_run_time: float = (self.tilt - tilt) * self.tilt_change_time / 100
 
             self._timer = CoverTimer(cover_run_time, self.stop)
+            self._timer.start()
+
             self._delete_position()
 
             return cover_run_time

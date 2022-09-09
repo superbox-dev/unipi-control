@@ -192,7 +192,7 @@ class FeatureMap(DataStorage):
         try:
             feature: Type[Feature] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
-            logger.error("[CONFIG] '{circuit}' not found in %s!", self.__class__.__name__)
+            logger.error("[CONFIG] '%s' not found in %s!", circuit, self.__class__.__name__)
             sys.exit(1)
 
         return feature

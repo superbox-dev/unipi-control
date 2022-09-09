@@ -17,7 +17,6 @@ from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
 
 from unipi_control.config import Config
-from unipi_control.config import HardwareInfo
 from unipi_control.config import logger
 from unipi_control.covers import CoverMap
 from unipi_control.neuron import Neuron
@@ -39,7 +38,7 @@ class UnipiControl:
 
     def __init__(self, config: Config, modbus_client):
         self.config: Config = config
-        self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client, hardware_info=HardwareInfo)
+        self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
         logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)

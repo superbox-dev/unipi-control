@@ -9,12 +9,12 @@ from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import is_dataclass
 from pathlib import Path
+from tempfile import gettempdir
 from typing import Dict
 from typing import Final
 from typing import List
 from typing import Match
 from typing import Optional
-from typing import Type
 
 import yaml
 
@@ -152,8 +152,11 @@ class Config(ConfigBase):
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=Path("/etc/unipi"))
     systemd_path: Path = field(default=Path("/etc/systemd/system"))
+    temp_path: Path = field(default=Path(gettempdir()) / "unipi")
 
     def __post_init__(self):
+        self.temp_path.mkdir(exist_ok=True)
+
         config_path: Path = self.config_base_path / "control.yaml"
         _config: dict = self.get_config(config_path)
         self.update(_config)
@@ -190,7 +193,7 @@ class Config(ConfigBase):
 
     @property
     def hardware_path(self) -> Path:
-        return self.config_base_path.joinpath("hardware")
+        return self.config_base_path / "hardware"
 
     @staticmethod
     def get_config(config_path: Path) -> dict:
@@ -243,7 +246,7 @@ class Config(ConfigBase):
 
 @dataclass
 class HardwareInfo:
-    name: str = field(default="unknown", init=False)
+    name: str = field(default="unknown")
     model: str = field(default="unknown", init=False)
     version: str = field(default="unknown", init=False)
     serial: str = field(default="unknown", init=False)
@@ -296,13 +299,13 @@ class HardwareInfo:
 
 
 class HardwareData(DataStorage):
-    def __init__(self, config: Config, hardware_info: Type[HardwareInfo]):
+    def __init__(self, config: Config):
         super().__init__()
 
         self.config = config
 
         self.data: dict = {
-            "neuron": asdict(hardware_info()),
+            "neuron": asdict(HardwareInfo()),
             "definitions": [],
             "neuron_definition": None,
         }
