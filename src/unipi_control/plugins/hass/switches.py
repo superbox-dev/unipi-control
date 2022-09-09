@@ -52,6 +52,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
             message = {
                 "name": self._get_friendly_name(feature),
                 "unique_id": f"{self.config.device_name.lower()}_{feature.circuit}",
+                "object_id": f"{self.config.device_name.lower()}_{feature.circuit}",
                 "command_topic": f"{feature.topic}/set",
                 "state_topic": f"{feature.topic}/get",
                 "qos": 2,

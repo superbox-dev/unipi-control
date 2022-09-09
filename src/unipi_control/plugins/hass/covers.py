@@ -40,6 +40,7 @@ class HassCoversDiscovery:
         message: dict = {
             "name": cover.friendly_name,
             "unique_id": f"{cover.cover_type}_{cover.topic_name}",
+            "object_id": f"{cover.cover_type}_{cover.topic_name}",
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
             "qos": 2,
