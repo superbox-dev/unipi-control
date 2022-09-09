@@ -290,7 +290,6 @@ class Cover:
             return
 
         end_timer = time.monotonic() - self._start_timer
-        print("1", end_timer)
 
         if self.is_closing:
             self.position = int(round(100 * (self.cover_run_time - end_timer) / self.cover_run_time)) - (
