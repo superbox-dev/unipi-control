@@ -1,10 +1,16 @@
 import logging
 import shutil
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import PropertyMock
 
 import pytest
+from pytest_mock import MockerFixture
 
+from conftest_data import MODBUS_HOLDING_REGISTER
 from unipi_control.config import Config
 from unipi_control.config import LOGGER_NAME
 
@@ -18,31 +24,67 @@ def logger():
 
 class ConfigLoader:
     def __init__(self):
-        self.temp_config_path: Path = Path(tempfile.mkdtemp())
-        self.temp_config_file_path: Path = self.temp_config_path / "control.yaml"
+        self.temp: Path = Path(tempfile.mkdtemp())
+        self.config_file_path: Path = self.temp / "control.yaml"
 
-        self.systemd_path = self.temp_config_path / "systemd/system"
+        self.hardware_data_path: Path = self.temp / "hardware/neuron"
+        self.hardware_data_path.mkdir(parents=True)
+        self.hardware_data_file_path = self.hardware_data_path / "MOCKED_MODEL.yaml"
+
+        self.systemd_path = self.temp / "systemd/system"
         self.systemd_path.mkdir(parents=True)
 
+        self.temp_path = self.temp / "unipi"
+        self.temp_path.mkdir(parents=True)
+
     def write_config(self, content: str):
-        with open(self.temp_config_file_path, "w") as f:
+        with open(self.config_file_path, "w") as f:
+            f.write(content)
+
+    def write_hardware_data(self, content: str):
+        with open(self.hardware_data_file_path, "w") as f:
             f.write(content)
 
     def get_config(self) -> Config:
         return Config(
-            config_base_path=self.temp_config_path,
+            config_base_path=self.temp,
             systemd_path=self.systemd_path,
+            temp_path=self.temp_path,
         )
 
     def cleanup(self):
-        shutil.rmtree(self.temp_config_path)
+        logging.info("Remove temporary directory %s", self.temp)
+        shutil.rmtree(self.temp)
 
 
 @pytest.fixture()
 def config_loader(request) -> ConfigLoader:
     c = ConfigLoader()
-    c.write_config(request.param)
+    c.write_config(request.param[0])
+    c.write_hardware_data(request.param[1])
 
     logging.info("Create configuration: %s", c.get_config())
 
     return c
+
+
+@dataclass
+class MockHardwareInfo:
+    name: str = "MOCKED_NAME"
+    model: str = "MOCKED_MODEL"
+    version: str = "MOCKED_VERSION"
+    serial: str = "MOCKED_SERIAL"
+
+
+@pytest.fixture()
+def modbus_client(mocker: MockerFixture) -> AsyncMock:
+    mock_modbus_client = AsyncMock()
+    mock_modbus_client.read_holding_registers.side_effect = MODBUS_HOLDING_REGISTER
+    mock_response_is_error = MagicMock()
+    mock_response_is_error.isError.return_value = False
+    mock_modbus_client.read_input_registers.return_value = mock_response_is_error
+
+    mock_hardware_info = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
+    mock_hardware_info.return_value = MockHardwareInfo()
+
+    return mock_modbus_client
