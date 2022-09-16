@@ -22,7 +22,6 @@ from unipi_control.helpers import DataStorage
 
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
-LOG_COVER_DEVICE_LOCKED: Final[str] = "[COVER] [%s] Device is locked! Other position change is currently running."
 LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
@@ -118,7 +117,7 @@ class CoverConfig(ConfigBase):
             "circuit_up",
             "circuit_down",
         ]:
-            if not self.friendly_name:
+            if not getattr(self, f):
                 logger.error("[CONFIG] [COVER] Required key '%s' is missing! %s", f, repr(self))
                 sys.exit(1)
 
