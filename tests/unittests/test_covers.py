@@ -15,16 +15,7 @@ from unipi_control.covers import CoverState
 from unipi_control.neuron import Neuron
 
 
-class TestHappyPathCovers:
-    @pytest.fixture(autouse=True)
-    def pre(self, modbus_client, mocker: MockerFixture):
-        mock_response_is_error = MagicMock()
-        mock_response_is_error.isError.return_value = False
-
-        modbus_client.write_coil.return_value = mock_response_is_error
-
-        mocker.patch("unipi_control.covers.CoverTimer", new_callable=MagicMock)
-
+class TestCovers:
     @pytest.fixture(autouse=True)
     def post(self, config_loader: ConfigLoader):
         yield
@@ -44,16 +35,61 @@ class TestHappyPathCovers:
         config: Config = config_loader.get_config()
         yield CoverMap(config=config, features=neuron.features)
 
+
+class TestHappyPathCovers(TestCovers):
+    @pytest.fixture(autouse=True)
+    def pre(self, modbus_client, mocker: MockerFixture):
+        mock_response_is_error = MagicMock()
+        mock_response_is_error.isError.return_value = False
+
+        modbus_client.write_coil.return_value = mock_response_is_error
+
+        mocker.patch("unipi_control.covers.CoverTimer", new_callable=MagicMock)
+
     @pytest.mark.asyncio
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     @pytest.mark.parametrize(
-        "cover_type, cover_position, stop_time, expected_position, expected_cover_run_time, expected_cover_tilt, "
+        "cover_type, calibrate_mode, expected_calibration_started, expected_calibration_mode",
+        [
+            ("blind", True, True, False),
+            ("roller_shutter", False, False, False),
+        ],
+    )
+    async def test_calibrate(
+        self,
+        config_loader: ConfigLoader,
+        mocker: MockerFixture,
+        covers: CoverMap,
+        cover_type: str,
+        calibrate_mode: bool,
+        expected_calibration_started: bool,
+        expected_calibration_mode: bool,
+    ):
+        cover: Cover = next(covers.by_cover_type([cover_type]))
+        cover.calibrate_mode = calibrate_mode
+
+        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic.return_value = 0
+        cover_run_time: Optional[float] = await cover.calibrate()
+
+        assert expected_calibration_started is cover._calibration_started
+
+        if cover_run_time is not None:
+            mock_monotonic.return_value = cover_run_time
+
+        await cover.stop()
+
+        assert expected_calibration_mode == cover.calibrate_mode
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+    @pytest.mark.parametrize(
+        "cover_type, cover_position, expected_position, expected_cover_tilt, "
         "expected_current_cover_state, expected_open_cover_state, expected_stop_cover_state, expected_position_changed",
         [
-            ("blind", 0, 37.275, 100, 37.275, 100, "closed", "opening", "open", True),
-            ("blind", 50, 19.525, 100, 19.525, 100, "stopped", "opening", "open", True),
-            ("blind", 0, 17.75, 50, 37.275, 100, "closed", "opening", "stopped", True),
-            ("roller_shutter", None, None, None, None, None, "stopped", "opening", "stopped", False),
+            ("blind", 0, 100, 100, "closed", "opening", "open", True),
+            ("blind", 50, 100, 100, "stopped", "opening", "open", True),
+            ("roller_shutter", None, None, None, "stopped", "opening", "stopped", False),
         ],
     )
     async def test_open(
@@ -63,9 +99,7 @@ class TestHappyPathCovers:
         covers: CoverMap,
         cover_type: str,
         cover_position: Optional[int],
-        stop_time: Optional[float],
         expected_position: Optional[int],
-        expected_cover_run_time: Optional[float],
         expected_cover_tilt: Optional[int],
         expected_current_cover_state: str,
         expected_open_cover_state: str,
@@ -84,8 +118,8 @@ class TestHappyPathCovers:
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.open()
 
-        if stop_time is not None:
-            mock_monotonic.return_value = stop_time
+        if cover_run_time is not None:
+            mock_monotonic.return_value = cover_run_time
 
         assert expected_open_cover_state == cover.state
 
@@ -94,7 +128,6 @@ class TestHappyPathCovers:
 
         assert expected_position == cover.position
         assert expected_cover_tilt == cover.tilt
-        assert expected_cover_run_time == cover_run_time
         assert expected_stop_cover_state == cover.state
         assert True is cover.state_changed
         assert expected_position_changed == cover.position_changed
@@ -102,14 +135,13 @@ class TestHappyPathCovers:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     @pytest.mark.parametrize(
-        "cover_type, cover_position, stop_time, expected_position, expected_cover_run_time, expected_cover_tilt, "
+        "cover_type, cover_position, expected_position, expected_cover_tilt, "
         "expected_current_cover_state, expected_close_cover_state, expected_stop_cover_state, "
         "expected_position_changed",
         [
-            ("blind", 100, 37.275, 0, 37.275, 0, "open", "closing", "closed", True),
-            ("blind", 50, 19.525, 0, 19.525, 0, "stopped", "closing", "closed", True),
-            ("blind", 100, 17.75, 50, 37.275, 0, "open", "closing", "stopped", True),
-            ("roller_shutter", None, None, None, None, None, "stopped", "closing", "stopped", False),
+            ("blind", 100, 0, 0, "open", "closing", "closed", True),
+            ("blind", 50, 0, 0, "stopped", "closing", "closed", True),
+            ("roller_shutter", None, None, None, "stopped", "closing", "stopped", False),
         ],
     )
     async def test_close(
@@ -119,9 +151,7 @@ class TestHappyPathCovers:
         covers: CoverMap,
         cover_type: str,
         cover_position: Optional[int],
-        stop_time: Optional[float],
         expected_position: Optional[int],
-        expected_cover_run_time: Optional[float],
         expected_cover_tilt: Optional[int],
         expected_current_cover_state: str,
         expected_close_cover_state: str,
@@ -143,15 +173,14 @@ class TestHappyPathCovers:
 
         assert expected_close_cover_state == cover.state
 
-        if stop_time is not None:
-            mock_monotonic.return_value = stop_time
+        if cover_run_time is not None:
+            mock_monotonic.return_value = cover_run_time
 
         await cover.stop()
         cover.read_position()
 
         assert expected_position == cover.position
         assert expected_cover_tilt == cover.tilt
-        assert expected_cover_run_time == cover_run_time
         assert expected_stop_cover_state == cover.state
         assert True is cover.state_changed
         assert expected_position_changed == cover.position_changed
@@ -190,13 +219,13 @@ class TestHappyPathCovers:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     @pytest.mark.parametrize(
-        "cover_type, cover_position, current_cover_tilt, cover_tilt, stop_time, expected_cover_tilt, "
-        "expected_cover_run_time, expected_current_cover_state, expected_tilt_cover_state, expected_stop_cover_state, "
+        "cover_type, cover_position, current_cover_tilt, cover_tilt, expected_cover_tilt, "
+        "expected_current_cover_state, expected_tilt_cover_state, expected_stop_cover_state, "
         "expected_tilt_changed",
         [
-            ("blind", 50, 50, 25, 0.375, 25, 0.375, "stopped", "closing", "stopped", True),
-            ("blind", 50, 50, 75, 0.375, 75, 0.375, "stopped", "opening", "stopped", True),
-            ("roller_shutter", None, None, 25, None, None, None, "stopped", "stopped", "stopped", False),
+            ("blind", 50, 50, 25, 25, "stopped", "closing", "stopped", True),
+            ("blind", 50, 50, 75, 75, "stopped", "opening", "stopped", True),
+            ("roller_shutter", None, None, 25, None, "stopped", "stopped", "stopped", False),
         ],
     )
     async def test_set_tilt(
@@ -208,9 +237,7 @@ class TestHappyPathCovers:
         current_cover_tilt: Optional[int],
         cover_position: Optional[int],
         cover_tilt: int,
-        stop_time: Optional[float],
         expected_cover_tilt: Optional[int],
-        expected_cover_run_time: Optional[float],
         expected_current_cover_state: str,
         expected_tilt_cover_state: str,
         expected_stop_cover_state: str,
@@ -232,14 +259,13 @@ class TestHappyPathCovers:
 
         assert expected_tilt_cover_state == cover.state
 
-        if stop_time is not None:
-            mock_monotonic.return_value = stop_time
+        if cover_run_time is not None:
+            mock_monotonic.return_value = cover_run_time
 
         await cover.stop()
         cover.read_position()
 
         assert expected_cover_tilt == cover.tilt
-        assert expected_cover_run_time == cover_run_time
         assert expected_stop_cover_state == cover.state
         assert True is cover.state_changed
         assert expected_tilt_changed == cover.tilt_changed
@@ -247,13 +273,13 @@ class TestHappyPathCovers:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     @pytest.mark.parametrize(
-        "cover_type, current_cover_position, cover_tilt, cover_position, stop_time, expected_cover_position, "
-        "expected_cover_run_time, expected_current_cover_state, expected_position_cover_state, expected_stop_cover_state, "
+        "cover_type, current_cover_position, cover_tilt, cover_position, expected_cover_position, "
+        "expected_current_cover_state, expected_position_cover_state, expected_stop_cover_state, "
         "expected_position_changed",
         [
-            ("blind", 50, 50, 25, 8.875, 25, 8.875, "stopped", "closing", "stopped", True),
-            ("blind", 50, 50, 75, 8.875, 75, 8.875, "stopped", "opening", "stopped", True),
-            ("roller_shutter", None, None, 25, None, None, None, "stopped", "stopped", "stopped", False),
+            ("blind", 50, 50, 25, 25, "stopped", "closing", "stopped", True),
+            ("blind", 50, 50, 75, 75, "stopped", "opening", "stopped", True),
+            ("roller_shutter", None, None, 25, None, "stopped", "stopped", "stopped", False),
         ],
     )
     async def test_set_position(
@@ -265,9 +291,7 @@ class TestHappyPathCovers:
         current_cover_position: Optional[int],
         cover_tilt: Optional[int],
         cover_position: int,
-        stop_time: Optional[float],
         expected_cover_position: Optional[int],
-        expected_cover_run_time: Optional[float],
         expected_current_cover_state: str,
         expected_position_cover_state: str,
         expected_stop_cover_state: str,
@@ -289,14 +313,13 @@ class TestHappyPathCovers:
 
         assert expected_position_cover_state == cover.state
 
-        if stop_time is not None:
-            mock_monotonic.return_value = stop_time
+        if cover_run_time is not None:
+            mock_monotonic.return_value = cover_run_time
 
         await cover.stop()
         cover.read_position()
 
         assert expected_cover_position == cover.position
-        assert expected_cover_run_time == cover_run_time
         assert expected_stop_cover_state == cover.state
         assert True is cover.state_changed
         assert expected_position_changed == cover.position_changed
@@ -362,3 +385,112 @@ class TestHappyPathCovers:
         cover.position = position
 
         assert expected_position_changed == cover.position_changed
+
+
+class TestUnhappyPathCovers(TestCovers):
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+    @pytest.mark.parametrize(
+        "cover_type, cover_position",
+        [
+            ("blind", 105),
+        ],
+    )
+    async def test_open_with_invalid_position(
+        self,
+        config_loader: ConfigLoader,
+        covers: CoverMap,
+        cover_type: str,
+        cover_position: int,
+    ):
+        cover: Cover = next(covers.by_cover_type([cover_type]))
+        cover.calibrate_mode = False
+        cover._current_position = cover_position
+        cover.position = cover_position
+
+        cover_run_time: Optional[float] = await cover.open()
+
+        assert None is cover_run_time
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+    @pytest.mark.parametrize(
+        "cover_type, cover_position",
+        [
+            ("blind", 50),
+        ],
+    )
+    async def test_open_with_calibrate_mode(
+        self,
+        config_loader: ConfigLoader,
+        covers: CoverMap,
+        cover_type: str,
+        cover_position: Optional[int],
+    ):
+        cover: Cover = next(covers.by_cover_type([cover_type]))
+        cover.calibrate_mode = True
+        cover._current_position = cover_position
+        cover.position = cover_position
+
+        cover_run_time: Optional[float] = await cover.open()
+
+        assert None is cover_run_time
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+    @pytest.mark.parametrize(
+        "cover_type, cover_position",
+        [
+            ("blind", 50),
+        ],
+    )
+    async def test_close_with_calibrate_mode(
+        self,
+        config_loader: ConfigLoader,
+        covers: CoverMap,
+        cover_type: str,
+        cover_position: Optional[int],
+    ):
+        cover: Cover = next(covers.by_cover_type([cover_type]))
+        cover.calibrate_mode = True
+        cover._current_position = cover_position
+        cover.position = cover_position
+
+        cover_run_time: Optional[float] = await cover.close()
+
+        assert None is cover_run_time
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+    @pytest.mark.parametrize(
+        "cover_type, calibrate_mode, expected_calibration_started, expected_calibration_mode",
+        [
+            ("blind", True, True, True),
+            ("roller_shutter", False, False, False),
+        ],
+    )
+    async def test_calibrate_stopped(
+        self,
+        config_loader: ConfigLoader,
+        mocker: MockerFixture,
+        covers: CoverMap,
+        cover_type: str,
+        calibrate_mode: bool,
+        expected_calibration_started: bool,
+        expected_calibration_mode: bool,
+    ):
+        cover: Cover = next(covers.by_cover_type([cover_type]))
+        cover.calibrate_mode = calibrate_mode
+
+        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic.return_value = 0
+        cover_run_time: Optional[float] = await cover.calibrate()
+
+        assert expected_calibration_started is cover._calibration_started
+
+        if cover_run_time is not None:
+            mock_monotonic.return_value = cover_run_time / 2
+
+        await cover.stop()
+
+        assert expected_calibration_mode == cover.calibrate_mode
