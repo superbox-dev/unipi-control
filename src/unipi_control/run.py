@@ -168,12 +168,17 @@ def install_unipi_control(assume_yes: bool):
         print("systemctl enable --now unipi-control")
 
 
-def main():
+def parse_args(args):
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
     parser.add_argument("-i", "--install", action="store_true", help="install unipi control")
     parser.add_argument("-y", "--yes", action="store_true", help="automatic yes to install prompts")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    args = parser.parse_args()
+
+    return parser.parse_args(args)
+
+
+def main():
+    args = parse_args(sys.argv[1:])
 
     try:
         if args.install:
