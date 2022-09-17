@@ -156,8 +156,7 @@ class Config(ConfigBase):
     def __post_init__(self):
         self.temp_path.mkdir(exist_ok=True)
 
-        config_path: Path = self.config_base_path / "control.yaml"
-        _config: dict = self.get_config(config_path)
+        _config: dict = self.get_config(self.config_base_path / "control.yaml")
         self.update(_config)
 
         super().__post_init__()
@@ -178,6 +177,7 @@ class Config(ConfigBase):
 
         if self.device_name:
             result: Optional[Match[str]] = re.search(r"^[\w\d_-]*$", self.device_name)
+            print("TEST1", self.device_name, result)
 
             if result is None:
                 logger.error(
