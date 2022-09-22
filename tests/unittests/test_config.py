@@ -14,8 +14,6 @@ class TestUnhappyPathConfig:
         temp_config_path: Path = Path(tempfile.mkdtemp())
         temp_config_file_path: Path = temp_config_path / "control.yaml"
 
-        print(temp_config_file_path)
-
         with open(temp_config_file_path, "w") as f:
             f.write(CONFIG_INVALID_DEVICE_NAME)
 
