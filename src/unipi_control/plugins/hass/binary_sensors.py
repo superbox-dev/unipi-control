@@ -34,9 +34,14 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
         super().__init__(config=uc.config)
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
-        topic: str = f"{self.config.homeassistant.discovery_prefix}/binary_sensor/{self.config.device_name.lower()}/{feature.circuit}/config"
-        suggested_area: Optional[str] = self._get_suggested_area(feature)
+        topic: str = (
+            f"{self.config.homeassistant.discovery_prefix}/binary_sensor/"
+            f"{self.config.device_name.lower()}/{feature.circuit}/config"
+        )
+
+        object_id: Optional[str] = self._get_object_id(feature)
         invert_state: bool = self._get_invert_state(feature)
+        suggested_area: Optional[str] = self._get_suggested_area(feature)
         device_name: str = self.config.device_name
 
         if suggested_area:
@@ -45,7 +50,6 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
         message: dict = {
             "name": self._get_friendly_name(feature),
             "unique_id": f"{self.config.device_name.lower()}_{feature.circuit}",
-            "object_id": f"{self.config.device_name.lower()}_{feature.circuit}",
             "state_topic": f"{feature.topic}/get",
             "qos": 2,
             "device": {
@@ -56,6 +60,9 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
                 **asdict(self.config.homeassistant.device),
             },
         }
+
+        if object_id:
+            message["object_id"] = object_id
 
         if suggested_area:
             message["device"]["suggested_area"] = suggested_area

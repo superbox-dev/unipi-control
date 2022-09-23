@@ -40,7 +40,6 @@ class HassCoversDiscovery:
         message: dict = {
             "name": cover.friendly_name,
             "unique_id": f"{cover.cover_type}_{cover.topic_name}",
-            "object_id": f"{cover.cover_type}_{cover.topic_name}",
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
             "qos": 2,
@@ -52,6 +51,9 @@ class HassCoversDiscovery:
                 **asdict(self.config.homeassistant.device),
             },
         }
+
+        if cover.object_id:
+            message["object_id"] = cover.object_id
 
         if cover.suggested_area:
             message["device"]["suggested_area"] = cover.suggested_area

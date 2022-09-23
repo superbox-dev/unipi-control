@@ -91,6 +91,7 @@ class LoggingConfig(ConfigBase):
 
 @dataclass
 class FeatureConfig(ConfigBase):
+    id: str = field(default_factory=str)
     invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
@@ -98,6 +99,7 @@ class FeatureConfig(ConfigBase):
 
 @dataclass
 class CoverConfig(ConfigBase):
+    id: str = field(default_factory=str)
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
     cover_type: str = field(default_factory=str)
@@ -177,7 +179,6 @@ class Config(ConfigBase):
 
         if self.device_name:
             result: Optional[Match[str]] = re.search(r"^[\w\d_-]*$", self.device_name)
-            print("TEST1", self.device_name, result)
 
             if result is None:
                 logger.error(

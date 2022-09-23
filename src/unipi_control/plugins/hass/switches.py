@@ -42,8 +42,9 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
         message: dict = {}
 
         if feature.circuit not in self.config.get_cover_circuits():
-            suggested_area: Optional[str] = self._get_suggested_area(feature)
+            object_id: Optional[str] = self._get_object_id(feature)
             invert_state: bool = self._get_invert_state(feature)
+            suggested_area: Optional[str] = self._get_suggested_area(feature)
             device_name: str = self.config.device_name
 
             if suggested_area:
@@ -52,7 +53,6 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
             message = {
                 "name": self._get_friendly_name(feature),
                 "unique_id": f"{self.config.device_name.lower()}_{feature.circuit}",
-                "object_id": f"{self.config.device_name.lower()}_{feature.circuit}",
                 "command_topic": f"{feature.topic}/set",
                 "state_topic": f"{feature.topic}/get",
                 "qos": 2,
@@ -64,6 +64,9 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
                     **asdict(self.config.homeassistant.device),
                 },
             }
+
+            if object_id:
+                message["object_id"] = object_id
 
             if suggested_area:
                 message["device"]["suggested_area"] = suggested_area

@@ -98,10 +98,12 @@ class Cover:
     ----------
     calibrate_mode : bool
         Set the cover in calibration mode.
+    id : str, optional
+        ID. Used for ``Entity ID`` in Home Assistant.
     friendly_name : str
-        Friendly name of the cover. It is used e.g. for Home Assistant.
-    suggested_area : str
-        Suggest an area. It is used e.g. for Home Assistant.
+        Friendly name of the cover. Used for ``Name`` in Home Assistant.
+    suggested_area : str, optional
+        Suggest an area. Used for ``Area`` in Home Assistant.
     cover_type : str
         Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
     topic_name : str
@@ -138,6 +140,7 @@ class Cover:
         self.config: Config = config
 
         self.calibrate_mode: bool = False
+        self.object_id: str = kwargs["id"]
         self.friendly_name: str = kwargs["friendly_name"]
         self.suggested_area: str = kwargs["suggested_area"]
         self.cover_type: str = kwargs["cover_type"]

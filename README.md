@@ -94,8 +94,9 @@ It's possible to give the circuits friendly names. This names will be used for s
 
 | Key              | Value                                            |
 |------------------|--------------------------------------------------|
-| `friendly_name`  | Friendly name of the switch or binary sensor.    |
-| `suggested_area` | Suggest an area. e.g. `Living Room`.             |
+| `id`             | Used for `Entity ID` in Home Assistant.          |
+| `friendly_name`  | Used for `Name` in Home Assistant.               |
+| `suggested_area` | Used for `Area` in Home Assistant.               |
 | `invert_state`   | Invert the `ON`/`OFF` state. Default is `false`. |
 
 ```yaml
