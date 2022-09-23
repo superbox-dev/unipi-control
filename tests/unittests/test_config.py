@@ -26,6 +26,6 @@ class TestUnhappyPathConfig:
         logs: list = [record.getMessage() for record in caplog.records]
 
         assert (
-            "[CONFIG] Invalid value 'Invalid Device Name' in 'device_name'. The following 7characters are prohibited: A-Z a-z 0-9 -_"
+            "[CONFIG] Invalid value 'Invalid Device Name' in 'device_name'. The following characters are prohibited: A-Z a-z 0-9 -_"
             in logs
         )
