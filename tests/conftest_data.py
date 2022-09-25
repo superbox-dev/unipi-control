@@ -25,7 +25,7 @@ features:
 covers:
   - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: blind
-    topic_name: mocked_blind_topic_name
+    topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5
     tilt_change_time: 1.5
     circuit_up: ro_3_01
@@ -33,7 +33,7 @@ covers:
   - friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     suggested_area: MOCKED AREA
     cover_type: roller_shutter
-    topic_name: mocked_roller_shutter_topic_name
+    topic_name: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     circuit_up: ro_3_03
     circuit_down: ro_3_04
 logging:

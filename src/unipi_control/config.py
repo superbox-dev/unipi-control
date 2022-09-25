@@ -10,10 +10,12 @@ from dataclasses import field
 from dataclasses import is_dataclass
 from pathlib import Path
 from tempfile import gettempdir
+from typing import Any
 from typing import Dict
 from typing import Final
 from typing import List
 from typing import Match
+from typing import NamedTuple
 from typing import Optional
 
 import yaml
@@ -35,23 +37,24 @@ logger.setLevel(logging.INFO)
 logger.addHandler(stdout_handler)
 
 
+class LogPrefix:
+    CONFIG: Final[str] = "[CONFIG]"
+    COVER: Final[str] = "[COVER]"
+
+
+class RegexValidation(NamedTuple):
+    regex: str
+    error: str
+
+
+class Validation:
+    ALLOWED_CHARACTERS: RegexValidation = RegexValidation(
+        regex=r"^[a-z\d_-]*$", error="The following characters are prohibited: a-z 0-9 -_"
+    )
+
+
 @dataclass
-class ConfigBase:
-    def __post_init__(self):
-        for f in dataclasses.fields(self):
-            value = getattr(self, f.name)
-
-            if not isinstance(value, f.type) and not is_dataclass(value):
-                logger.error(
-                    "[CONFIG] %s - Expected %s to be %s, got %s",
-                    self.__class__.__name__,
-                    f.name,
-                    f.type,
-                    repr(value),
-                )
-
-                sys.exit(1)
-
+class ConfigMixin:
     def update(self, new):
         for key, value in new.items():
             if hasattr(self, key):
@@ -62,9 +65,29 @@ class ConfigBase:
                 else:
                     setattr(self, key, value)
 
+    def validate(self):
+        for f in dataclasses.fields(self):
+            value: Any = getattr(self, f.name)
+
+            if is_dataclass(value):
+                value.validate()
+            else:
+                if method := getattr(self, f"validate_{f.name}", None):
+                    setattr(self, f.name, method(getattr(self, f.name), f=f))
+
+                if not isinstance(value, f.type) and not is_dataclass(value):
+                    logger.error(
+                        "[CONFIG] Expected %s to be %s, got %s",
+                        f.name,
+                        f.type,
+                        repr(value),
+                    )
+
+                    sys.exit(1)
+
 
 @dataclass
-class MqttConfig(ConfigBase):
+class MqttConfig(ConfigMixin):
     host: str = field(default="localhost")
     port: int = field(default=1883)
     keepalive: int = field(default=15)
@@ -73,24 +96,41 @@ class MqttConfig(ConfigBase):
 
 
 @dataclass
-class DeviceInfo(ConfigBase):
+class DeviceInfo(ConfigMixin):
     manufacturer: str = field(default="Unipi technology")
 
 
 @dataclass
-class HomeAssistantConfig(ConfigBase):
+class HomeAssistantConfig(ConfigMixin):
     enabled: bool = field(default=True)
     discovery_prefix: str = field(default="homeassistant")
     device: DeviceInfo = field(default=DeviceInfo())
 
+    def validate_discovery_prefix(self, value: str, f: dataclasses.Field):
+        value = value.lower()
+        result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
+
+        if result is None:
+            logger.error(
+                "%s [%s] Invalid value '%s' in '%s'. %s",
+                LogPrefix.CONFIG,
+                self.__class__.__name__.replace("Config", "").upper(),
+                value,
+                f.name,
+                Validation.ALLOWED_CHARACTERS.error,
+            )
+            sys.exit(1)
+
+        return value
+
 
 @dataclass
-class LoggingConfig(ConfigBase):
+class LoggingConfig(ConfigMixin):
     level: str = field(default="info")
 
 
 @dataclass
-class FeatureConfig(ConfigBase):
+class FeatureConfig(ConfigMixin):
     id: str = field(default_factory=str)
     invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
@@ -98,7 +138,7 @@ class FeatureConfig(ConfigBase):
 
 
 @dataclass
-class CoverConfig(ConfigBase):
+class CoverConfig(ConfigMixin):
     id: str = field(default_factory=str)
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
@@ -109,9 +149,7 @@ class CoverConfig(ConfigBase):
     circuit_up: str = field(default_factory=str)
     circuit_down: str = field(default_factory=str)
 
-    def __post_init__(self):
-        super().__post_init__()
-
+    def validate(self):
         for f in [
             "friendly_name",
             "topic_name",
@@ -120,33 +158,47 @@ class CoverConfig(ConfigBase):
             "circuit_down",
         ]:
             if not getattr(self, f):
-                logger.error("[CONFIG] [COVER] Required key '%s' is missing! %s", f, repr(self))
+                logger.error("[CONFIG] %s Required key '%s' is missing! %s", LogPrefix.COVER, f, repr(self))
                 sys.exit(1)
 
-        if self.topic_name:
-            result: Optional[Match[str]] = re.search(r"^[a-z\d_-]*$", self.topic_name)
+        super().validate()
 
-            if result is None:
-                logger.error(
-                    "[CONFIG] [COVER] Invalid value '%s' in 'topic_name'. "
-                    "The following characters are prohibited: a-z 0-9 -_",
-                    self.topic_name,
-                )
-                sys.exit(1)
+    def validate_topic_name(self, value: str, f: dataclasses.Field):
+        value = value.lower()
+        result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
-        if self.cover_type not in COVER_TYPES:
+        if result is None:
             logger.error(
-                "[CONFIG] [COVER] Invalid value '%s' in 'cover_type'. The following values are allowed: %s.",
+                "%s [%s] Invalid value '%s' in '%s'. %s",
+                LogPrefix.CONFIG,
+                self.__class__.__name__.replace("Config", "").upper(),
+                value,
+                f.name,
+                Validation.ALLOWED_CHARACTERS.error,
+            )
+            sys.exit(1)
+
+        return value
+
+    def validate_cover_type(self, value: str, f: dataclasses.Field):
+        value = value.lower()
+
+        if value not in COVER_TYPES:
+            logger.error(
+                "[CONFIG] %s Invalid value '%s' in 'cover_type'. The following values are allowed: %s.",
+                LogPrefix.COVER,
                 self.cover_type,
                 " ".join(COVER_TYPES),
             )
             sys.exit(1)
 
+        return value
+
 
 @dataclass
-class Config(ConfigBase):
+class Config(ConfigMixin):
     device_name: str = field(default=socket.gethostname())
-    mqtt: MqttConfig = field(default=MqttConfig())
+    mqtt: MqttConfig = field(default_factory=MqttConfig)
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
@@ -160,49 +212,36 @@ class Config(ConfigBase):
 
         _config: dict = self.get_config(self.config_base_path / "control.yaml")
         self.update(_config)
+        self.validate()
 
-        super().__post_init__()
-
-        for circuit, feature_config in self.features.items():
-            try:
-                self.features[circuit] = FeatureConfig(**feature_config)
-            except TypeError:
-                logger.error("[CONFIG] Invalid feature property: %s", feature_config)
-                sys.exit(1)
-
-        for index, cover_config in enumerate(self.covers):
-            try:
-                self.covers[index] = CoverConfig(**cover_config)
-            except TypeError:
-                logger.error("[CONFIG] Invalid cover property: %s", cover_config)
-                sys.exit(1)
-
-        if self.device_name:
-            result: Optional[Match[str]] = re.search(r"^[\w\d_-]*$", self.device_name)
-
-            if result is None:
-                logger.error(
-                    "[CONFIG] Invalid value '%s' in 'device_name'. "
-                    "The following characters are prohibited: A-Z a-z 0-9 -_",
-                    self.device_name,
-                )
-                sys.exit(1)
-
-        self.check_duplicate_covers_circuits()
         self._change_logger_level()
+
+    def validate(self):
+        super().validate()
+
+        for circuit, feature_data in self.features.items():
+            try:
+                feature_config: FeatureConfig = FeatureConfig(**feature_data)
+                feature_config.validate()
+                self.features[circuit] = feature_config
+            except TypeError:
+                logger.error("[CONFIG] Invalid feature property: %s", feature_data)
+                sys.exit(1)
+
+        for index, cover_data in enumerate(self.covers):
+            try:
+                cover_config: CoverConfig = CoverConfig(**cover_data)
+                cover_config.validate()
+                self.covers[index] = cover_config
+            except TypeError:
+                logger.error("[CONFIG] Invalid cover property: %s", cover_data)
+                sys.exit(1)
+
+        self.validate_covers_circuits()
 
     @property
     def hardware_path(self) -> Path:
         return self.config_base_path / "hardware"
-
-    @staticmethod
-    def get_config(config_path: Path) -> dict:
-        _config: dict = {}
-
-        if config_path.exists():
-            _config = yaml.load(config_path.read_text(), Loader=yaml.FullLoader)
-
-        return _config
 
     def _change_logger_level(self):
         level: Dict[str, int] = {
@@ -213,6 +252,15 @@ class Config(ConfigBase):
         }
 
         logger.setLevel(level[self.logging.level])
+
+    @staticmethod
+    def get_config(config_path: Path) -> dict:
+        _config: dict = {}
+
+        if config_path.exists():
+            _config = yaml.load(config_path.read_text(), Loader=yaml.FullLoader)
+
+        return _config
 
     def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config."""
@@ -230,18 +278,34 @@ class Config(ConfigBase):
 
         return circuits
 
-    def check_duplicate_covers_circuits(self) -> Optional[str]:
+    def validate_covers_circuits(self):
         circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
                 logger.error(
-                    "[CONFIG] [COVER] Duplicate circuits found in 'covers'. "
-                    "Driving both signals up and down at the same time can damage the motor!"
+                    "[CONFIG] %s Duplicate circuits found in 'covers'. "
+                    "Driving both signals up and down at the same time can damage the motor!",
+                    LogPrefix.COVER,
                 )
                 sys.exit(1)
 
-        return None
+    @staticmethod
+    def validate_device_name(value: str, f: dataclasses.Field):
+        value = value.lower()
+        result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
+
+        if result is None:
+            logger.error(
+                "%s Invalid value '%s' in '%s'. %s",
+                LogPrefix.CONFIG,
+                value,
+                f.name,
+                Validation.ALLOWED_CHARACTERS.error,
+            )
+            sys.exit(1)
+
+        return value
 
 
 @dataclass

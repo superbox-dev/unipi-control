@@ -1,6 +1,4 @@
 import logging
-import shutil
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import AsyncMock
@@ -8,6 +6,7 @@ from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
 
 import pytest
+from pytest_asyncio.plugin import SubRequest
 from pytest_mock import MockerFixture
 
 from conftest_data import MODBUS_HOLDING_REGISTER
@@ -23,8 +22,8 @@ def logger():
 
 
 class ConfigLoader:
-    def __init__(self):
-        self.temp: Path = Path(tempfile.mkdtemp())
+    def __init__(self, temp: Path):
+        self.temp: Path = temp
         self.config_file_path: Path = self.temp / "control.yaml"
 
         self.hardware_data_path: Path = self.temp / "hardware/neuron"
@@ -52,18 +51,14 @@ class ConfigLoader:
             temp_path=self.temp_path,
         )
 
-    def cleanup(self):
-        logging.info("Remove temporary directory %s", self.temp)
-        shutil.rmtree(self.temp)
-
 
 @pytest.fixture()
-def config_loader(request) -> ConfigLoader:
-    c = ConfigLoader()
+def config_loader(request: SubRequest, tmp_path: Path) -> ConfigLoader:
+    c = ConfigLoader(temp=tmp_path)
     c.write_config(request.param[0])
     c.write_hardware_data(request.param[1])
 
-    logging.info("Create configuration: %s", c.get_config())
+    logging.info("Create configuration: %s", tmp_path)
 
     return c
 

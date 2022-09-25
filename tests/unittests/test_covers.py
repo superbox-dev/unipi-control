@@ -16,11 +16,6 @@ from unipi_control.neuron import Neuron
 
 
 class TestCovers:
-    @pytest.fixture(autouse=True)
-    def post(self, config_loader: ConfigLoader):
-        yield
-        config_loader.cleanup()
-
     @pytest_asyncio.fixture
     async def neuron(self, config_loader: ConfigLoader, modbus_client):
         config: Config = config_loader.get_config()
