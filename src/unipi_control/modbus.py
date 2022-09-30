@@ -2,19 +2,11 @@ from pymodbus.exceptions import ModbusIOException
 from pymodbus.pdu import ExceptionResponse
 
 
-class UnknownModbusRegister(Exception):
-    """Modbus register not found."""
+class ModbusRegisterException(Exception):
+    """Modbus register exception."""
 
-    def __init__(self, address: int):
-        message: str = f"Unknown register {address}"
-        super().__init__(message)
-
-
-class NoCachedModbusRegister(Exception):
-    """No cached modbus register value found."""
-
-    def __init__(self, address, unit):
-        message: str = f"No cached value of register {address} on unit {unit} - read error"
+    def __init__(self, address: int, unit: int):
+        message: str = f"Modbus error on address {address} (unit: {unit})"
         super().__init__(message)
 
 
@@ -82,10 +74,8 @@ class ModbusCacheMap:
         ret: list = []
 
         for _address in range(index, address + index):
-            if _address not in self._registered:
-                raise UnknownModbusRegister(_address)
-            elif self._registered[_address] is None:
-                raise NoCachedModbusRegister(_address, unit)
+            if _address not in self._registered or self._registered[_address] is None:
+                raise ModbusRegisterException(_address, unit)
 
             ret += [self._registered[_address]]
 
