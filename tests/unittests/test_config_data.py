@@ -96,3 +96,22 @@ covers:
     circuit_down: ro_3_02
 logging:
   level: debug"""
+
+CONFIG_DUPLICATE_COVERS_CIRCUITS: Final[
+    str
+] = """device_name: MOCKED_UNIPI
+covers:
+  - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
+    cover_type: blind
+    topic_name: MOCKED_BLIND_TOPIC_NAME
+    cover_run_time: 35.5
+    tilt_change_time: 1.5
+    circuit_up: ro_3_01
+    circuit_down: ro_3_02
+  - friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
+    cover_type: roller_shutter
+    topic_name: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
+    circuit_up: ro_3_01
+    circuit_down: ro_3_02
+logging:
+  level: debug"""

@@ -16,6 +16,15 @@ homeassistant:
   enabled: true
   discovery_prefix: homeassistant
 features:
+  di_1_01:
+    id: MOCKED_ID_1_01
+    friendly_name: MOCKED_FRIENDLY_NAME - 1_01
+    suggested_area: MOCKED AREA 1
+    invert_state: true
+  di_1_02:
+    id: MOCKED_ID_1_02
+    friendly_name: MOCKED_FRIENDLY_NAME - 1_02
+    suggested_area: MOCKED AREA 2
   di_3_01:
     friendly_name: MOCKED_FRIENDLY_NAME - 3_01
     suggested_area: MOCKED AREA 1
@@ -262,7 +271,7 @@ modbus_features:
 MODBUS_FEATURE_ENABLED: Final[int] = 1
 
 MODBUS_HOLDING_REGISTER: Final[List] = [
-    PropertyMock(registers=[0, 0 + 1]),  # Digital Output 1.01 is ON
+    PropertyMock(registers=[0, 0]),
     PropertyMock(registers=[0, 4, 7]),
     PropertyMock(registers=[11332, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0]),
     PropertyMock(
@@ -304,7 +313,7 @@ MODBUS_HOLDING_REGISTER: Final[List] = [
     PropertyMock(
         registers=[
             16384,
-            6144 + 2,  # Relay 2_02 is ON
+            6144,
             8,
             4,
             0,

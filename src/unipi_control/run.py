@@ -65,7 +65,7 @@ class UnipiControl:
 
             logger.info("[MQTT] Connected to broker at '%s:%s'", self.config.mqtt.host, self.config.mqtt.port)
 
-            features = FeaturesMqttPlugin(self, mqtt_client)
+            features = FeaturesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
             features_tasks = await features.init_tasks(stack)
             tasks.update(features_tasks)
 
@@ -80,7 +80,7 @@ class UnipiControl:
                 hass_covers_tasks = await hass_covers_plugin.init_tasks()
                 tasks.update(hass_covers_tasks)
 
-                hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(uc=self, mqtt_client=mqtt_client)
+                hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
                 hass_binary_sensors_tasks = await hass_binary_sensors_plugin.init_tasks()
                 tasks.update(hass_binary_sensors_tasks)
 

@@ -78,7 +78,7 @@ def modbus_client(mocker: MockerFixture) -> AsyncMock:
     mock_modbus_client: AsyncMock = AsyncMock()
     mock_modbus_client.read_holding_registers.side_effect = MODBUS_HOLDING_REGISTER
 
-    mock_response_is_error: MagicMock = MagicMock()
+    mock_response_is_error: MagicMock = MagicMock(registers=[0])
     mock_response_is_error.isError.return_value = False
 
     mock_modbus_client.read_input_registers.return_value = mock_response_is_error

@@ -3,6 +3,7 @@ from asyncio import Task
 from contextlib import AsyncExitStack
 from typing import Any
 from typing import AsyncIterable
+from typing import List
 from typing import Set
 
 from unipi_control.config import LOG_MQTT_PUBLISH
@@ -14,14 +15,18 @@ from unipi_control.config import logger
 class FeaturesMqttPlugin:
     """Provide features control as MQTT commands."""
 
-    def __init__(self, uc, mqtt_client):
-        self._uc = uc
+    PUBLISH_RUNNING: bool = True
+    subscribe_feature_types: List[str] = ["DO", "RO"]
+    publish_feature_types: List[str] = ["DI", "DO", "RO"]
+
+    def __init__(self, neuron, mqtt_client):
+        self._neuron = neuron
         self._mqtt_client = mqtt_client
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         tasks: Set[Task] = set()
 
-        for feature in self._uc.neuron.features.by_feature_type(["DO", "RO"]):
+        for feature in self._neuron.features.by_feature_type(self.subscribe_feature_types):
             topic: str = f"{feature.topic}/set"
 
             manager = self._mqtt_client.filtered_messages(topic)
@@ -51,10 +56,10 @@ class FeaturesMqttPlugin:
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
     async def _publish(self):
-        while True:
-            await self._uc.neuron.scan()
+        while self.PUBLISH_RUNNING:
+            await self._neuron.scan()
 
-            for feature in self._uc.neuron.features.by_feature_type(["DI", "DO", "RO"]):
+            for feature in self._neuron.features.by_feature_type(self.publish_feature_types):
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
                     await self._mqtt_client.publish(topic, feature.state, qos=1, retain=True)

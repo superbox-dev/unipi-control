@@ -19,10 +19,10 @@ class TestHappyPathFeatures:
     @pytest.mark.parametrize(
         "config_loader, circuit, feature_type, expected_topic_feature_name, expected_value, expected_repr",
         [
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "di_1_01", "DI", "input", 0, "Digital Input 1.01"),
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "do_1_01", "DO", "relay", 1, "Digital Output 1.01"),
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "ro_2_01", "RO", "relay", 0, "Relay 2.01"),
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "ro_2_02", "RO", "relay", 1, "Relay 2.02"),
+            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "di_2_15", "DI", "input", 1, "Digital Input 2.15"),
+            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "do_1_01", "DO", "relay", 0, "Digital Output 1.01"),
+            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "ro_2_13", "RO", "relay", 1, "Relay 2.13"),
+            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "ro_2_14", "RO", "relay", 0, "Relay 2.14"),
             ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "led_1_01", "LED", "led", 0, "LED 1.01"),
         ],
         indirect=["config_loader"],
@@ -49,7 +49,7 @@ class TestHappyPathFeatures:
 
         assert expected_value == feature.value
         assert ("ON" if expected_value == 1 else "OFF") == feature.state
-        print(feature.topic)
+
         assert f"mocked_unipi/{expected_topic_feature_name}/{circuit}" == feature.topic
         assert expected_repr == str(feature)
         assert expected_repr == str(feature)
