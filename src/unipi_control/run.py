@@ -76,7 +76,7 @@ class UnipiControl:
             tasks.update(covers_tasks)
 
             if self.config.homeassistant.enabled:
-                hass_covers_plugin = HassCoversMqttPlugin(uc=self, mqtt_client=mqtt_client, covers=covers)
+                hass_covers_plugin = HassCoversMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client, covers=covers)
                 hass_covers_tasks = await hass_covers_plugin.init_tasks()
                 tasks.update(hass_covers_tasks)
 

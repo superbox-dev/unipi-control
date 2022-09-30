@@ -14,6 +14,20 @@ from unittests.test_config_data import CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PR
 from unittests.test_config_data import CONFIG_MISSING_COVER_KEY
 
 
+# class TestHappyPathConfig:
+#     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+#     def test_hardware_data(self, mocker: MockerFixture, config_loader: ConfigLoader, caplog: LogCaptureFixture):
+#         config: Config = config_loader.get_config()
+#
+#         mock_config_open.read().return_value = "".join(ee_bytes)
+#
+#         mock_struct_unpack: MagicMock = mocker.patch("unipi_control.config.struct.unpack")
+#         mock_struct_unpack.return_value = ["MOCKED_SERIAL"]
+#
+#         hardware: HardwareData = HardwareData(config=config)
+#         print(hardware)
+
+
 class TestUnhappyPathConfig:
     @pytest.mark.parametrize(
         "config_loader, expected_log",
@@ -65,3 +79,41 @@ class TestUnhappyPathConfig:
         logs: list = [record.getMessage() for record in caplog.records]
 
         assert expected_log in logs
+
+    # @pytest.mark.parametrize(
+    #     "config_loader, hardware_info, expected_log",
+    #     [
+    #         (
+    #             (CONFIG_CONTENT, HARDWARE_DATA_CONTENT),
+    #             {"model": "UNKNOWN_MODEL"},
+    #             "[CONFIG] No valid YAML definition for active Neuron device! Device name is UNKNOWN_MODEL",
+    #         ),
+    #         (
+    #             (CONFIG_CONTENT, HARDWARE_DATA_CONTENT),
+    #             {"model": None},
+    #             "[CONFIG] Hardware is not supported!",
+    #         ),
+    #     ],
+    #     indirect=["config_loader"],
+    # )
+    # def test_hardware_data_exceptions(
+    #     self,
+    #     mocker: MockerFixture,
+    #     config_loader: ConfigLoader,
+    #     caplog: LogCaptureFixture,
+    #     hardware_info: dict,
+    #     expected_log: str,
+    # ):
+    #     mock_hardware_info: PropertyMock = mocker.patch(
+    #         "unipi_control.config.HardwareInfo", new_callable=PropertyMock()
+    #     )
+    #     mock_hardware_info.return_value = MockHardwareInfo(**hardware_info)
+    #     config: Config = config_loader.get_config()
+    #
+    #     with pytest.raises(SystemExit) as error:
+    #         HardwareData(config=config)
+    #         assert 1 == error.value
+    #
+    #     logs: list = [record.getMessage() for record in caplog.records]
+    #
+    #     assert expected_log in logs

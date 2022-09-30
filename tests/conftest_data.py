@@ -41,7 +41,8 @@ features:
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
     suggested_area: MOCKED AREA 2
 covers:
-  - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
+  - id: MOCKED_ID_COVER_BLIND
+    friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: blind
     topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5

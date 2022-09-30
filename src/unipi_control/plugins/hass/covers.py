@@ -23,12 +23,12 @@ class HassCoversDiscovery:
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, uc, mqtt_client, covers: CoverMap):
-        self.config: Config = uc.config
+    def __init__(self, neuron, mqtt_client, covers: CoverMap):
+        self.config: Config = neuron.config
 
         self._mqtt_client = mqtt_client
         self._covers: CoverMap = covers
-        self.hardware: HardwareData = uc.neuron.hardware
+        self.hardware: HardwareData = neuron.hardware
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
@@ -79,8 +79,8 @@ class HassCoversDiscovery:
 class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
-    def __init__(self, uc, mqtt_client, covers: CoverMap):
-        self._hass = HassCoversDiscovery(uc, mqtt_client, covers)
+    def __init__(self, neuron, mqtt_client, covers: CoverMap):
+        self._hass = HassCoversDiscovery(neuron, mqtt_client, covers)
 
     async def init_tasks(self) -> Set[Task]:
         tasks: Set[Task] = set()

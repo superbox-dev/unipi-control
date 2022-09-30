@@ -13,6 +13,7 @@ from pytest_mock import MockerFixture
 from conftest_data import MODBUS_HOLDING_REGISTER
 from unipi_control.config import Config
 from unipi_control.config import LOGGER_NAME
+from unipi_control.covers import CoverMap
 from unipi_control.neuron import Neuron
 
 
@@ -115,3 +116,9 @@ async def neuron(config_loader: ConfigLoader, modbus_client):
     await _neuron.read_boards()
 
     yield _neuron
+
+
+@pytest_asyncio.fixture
+async def covers(config_loader: ConfigLoader, neuron: Neuron):
+    config: Config = config_loader.get_config()
+    yield CoverMap(config=config, features=neuron.features)

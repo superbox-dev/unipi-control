@@ -2,17 +2,14 @@ from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
-import pytest_asyncio
 from pytest_mock import MockerFixture
 
 from conftest import ConfigLoader
 from conftest_data import CONFIG_CONTENT
 from conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.config import Config
 from unipi_control.covers import Cover
 from unipi_control.covers import CoverMap
 from unipi_control.covers import CoverState
-from unipi_control.neuron import Neuron
 
 
 class TestCovers:
@@ -24,11 +21,6 @@ class TestCovers:
         modbus_client.write_coil.return_value = mock_response_is_error
 
         mocker.patch("unipi_control.covers.CoverTimer", new_callable=MagicMock)
-
-    @pytest_asyncio.fixture
-    async def covers(self, config_loader: ConfigLoader, neuron: Neuron):
-        config: Config = config_loader.get_config()
-        yield CoverMap(config=config, features=neuron.features)
 
 
 class TestHappyPathCovers(TestCovers):
