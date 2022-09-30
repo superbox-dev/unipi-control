@@ -8,6 +8,7 @@ import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
+from typing import Final
 from typing import Optional
 from typing import Set
 
@@ -35,6 +36,8 @@ class UnipiControl:
     topics for reading and writing the circuits. Optionally you can enable
     the Home Assistant MQTT discovery for binary sensors, switches and covers.
     """
+
+    SYSTEMD_SERVICE: Final[str] = "unipi-control"
 
     def __init__(self, config: Config, modbus_client):
         self.config: Config = config
@@ -124,48 +127,49 @@ class UnipiControl:
 
                 await asyncio.sleep(reconnect_interval)
 
+    @classmethod
+    def install(cls, config: Config, assume_yes: bool):
+        src_config_path: Path = Path(__file__).parents[0] / "installer/etc/unipi"
+        src_systemd_path: Path = (
+            Path(__file__).parents[0] / f"installer/etc/systemd/system/{cls.SYSTEMD_SERVICE}.service"
+        )
+        dest_config_path: Path = config.config_base_path
 
-def install_unipi_control(assume_yes: bool):
-    src_config_path: Path = Path(__file__).parents[0] / "installer/etc/unipi"
-    src_systemd_path: Path = Path(__file__).parents[0] / "installer/etc/systemd/system/unipi-control.service"
-    dest_config_path: Path = Path("/etc/unipi")
+        dirs_exist_ok: bool = False
+        copy_config_files: bool = True
 
-    print(f"Copy config files to '{dest_config_path}'")
+        if dest_config_path.exists():
+            overwrite_config: str = "y"
 
-    dirs_exist_ok: bool = False
-    copy_config_files: bool = True
+            if not assume_yes:
+                overwrite_config = input("\nOverwrite existing config files? [Y/n]")
 
-    if dest_config_path.exists():
-        overwrite_config: str = "y"
+            if overwrite_config.lower() == "y":
+                dirs_exist_ok = True
+            else:
+                copy_config_files = False
+
+        if copy_config_files:
+            print(f"Copy config files to '{dest_config_path}'")
+            shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
+
+        print(f"Copy systemd service '{cls.SYSTEMD_SERVICE}.service'")
+        shutil.copyfile(src_systemd_path, f"{config.systemd_path}/{cls.SYSTEMD_SERVICE}.service")
+
+        enable_and_start_systemd: str = "y"
 
         if not assume_yes:
-            overwrite_config = input("\nOverwrite existing config files? [Y/n]")
+            enable_and_start_systemd = input("\nEnable and start systemd service? [Y/n]")
 
-        if overwrite_config.lower() == "y":
-            dirs_exist_ok = True
+        if enable_and_start_systemd.lower() == "y":
+            print(f"Enable systemd service '{cls.SYSTEMD_SERVICE}.service'")
+            status = subprocess.check_output(f"systemctl enable --now {cls.SYSTEMD_SERVICE}", shell=True)
+
+            if status:
+                logger.info(status)
         else:
-            copy_config_files = False
-
-    if copy_config_files:
-        shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
-
-    print("Copy systemd service 'unipi-control.service'")
-    shutil.copyfile(src_systemd_path, "/etc/systemd/system/unipi-control.service")
-
-    enable_and_start_systemd: str = "y"
-
-    if not assume_yes:
-        enable_and_start_systemd = input("\nEnable and start systemd service? [Y/n]")
-
-    if enable_and_start_systemd.lower() == "y":
-        print("Enable systemd service 'unipi-control.service'")
-        status = subprocess.check_output("systemctl enable --now unipi-control", shell=True)
-
-        if status:
-            logger.info(status)
-    else:
-        print("\nYou can enable the systemd service with the command:")
-        print("systemctl enable --now unipi-control")
+            print("\nYou can enable the systemd service with the command:")
+            print(f"systemctl enable --now {cls.SYSTEMD_SERVICE}")
 
 
 def parse_args(args):
@@ -181,13 +185,15 @@ def main():
     args = parse_args(sys.argv[1:])
 
     try:
+        config = Config()
+
         if args.install:
-            install_unipi_control(assume_yes=args.yes)
+            UnipiControl.install(config=config, assume_yes=args.yes)
         else:
             loop = asyncio.new_event_loop()
             loop, modbus = AsyncModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
 
-            uc = UnipiControl(config=Config(), modbus_client=modbus.protocol)
+            uc = UnipiControl(config=config, modbus_client=modbus.protocol)
 
             try:
                 loop.run_until_complete(uc.run())
