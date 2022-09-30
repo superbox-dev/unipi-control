@@ -91,7 +91,7 @@ def modbus_client(mocker: MockerFixture) -> AsyncMock:
 async def neuron(config_loader: ConfigLoader, modbus_client):
     config: Config = config_loader.get_config()
 
-    neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
-    await neuron.read_boards()
+    _neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+    await _neuron.read_boards()
 
-    yield neuron
+    yield _neuron
