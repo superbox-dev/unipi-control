@@ -31,7 +31,7 @@ class TestUnhappyPathConfig:
             ),
             (
                 (CONFIG_INVALID_FEATURE_PROPERTY, HARDWARE_DATA_CONTENT),
-                "[CONFIG] Invalid feature property: {'friendly_name': 'MOCKED_FRIENDLY_NAME - 3_01', 'suggested_area': 'MOCKED AREA 1', 'invalid_property': 'INVALID'}",
+                "[CONFIG] Invalid feature property: {'friendly_name': 'MOCKED_FRIENDLY_NAME - DI_3_01', 'suggested_area': 'MOCKED AREA 1', 'invalid_property': 'INVALID'}",
             ),
             (
                 (CONFIG_INVALID_COVER_PROPERTY, HARDWARE_DATA_CONTENT),
@@ -48,6 +48,10 @@ class TestUnhappyPathConfig:
             (
                 (CONFIG_MISSING_COVER_KEY, HARDWARE_DATA_CONTENT),
                 "[CONFIG] [COVER] Required key 'topic_name' is missing! CoverConfig(id='', friendly_name='MOCKED_FRIENDLY_NAME - BLIND', suggested_area='', cover_type='blind', topic_name='', cover_run_time=35.5, tilt_change_time=1.5, circuit_up='ro_3_01', circuit_down='ro_3_02')",
+            ),
+            (
+                (CONFIG_DUPLICATE_COVERS_CIRCUITS, HARDWARE_DATA_CONTENT),
+                "[CONFIG] [COVER] Duplicate circuits found in 'covers'. Driving both signals up and down at the same time can damage the motor!",
             ),
         ],
         indirect=["config_loader"],

@@ -32,11 +32,23 @@ class ConfigLoader:
         self.hardware_data_path.mkdir(parents=True)
         self.hardware_data_file_path = self.hardware_data_path / "MOCKED_MODEL.yaml"
 
-        self.systemd_path = self.temp / "systemd/system"
+        self.systemd_path: Path = self.temp / "systemd/system"
         self.systemd_path.mkdir(parents=True)
 
-        self.temp_path = self.temp / "unipi"
+        self.temp_path: Path = self.temp / "unipi"
         self.temp_path.mkdir(parents=True)
+
+        self.sys_bus: Path = self.temp / "sys/bus/i2c/devices"
+        self.sys_bus.mkdir(parents=True)
+
+        self.unipi_1: Path = self.sys_bus / "1-0050"
+        self.unipi_1.mkdir(parents=True)
+        self.unipi_patron: Path = self.sys_bus / "2-0057"
+        self.unipi_patron.mkdir(parents=True)
+        self.unipi_neuron_1: Path = self.sys_bus / "1-0057"
+        self.unipi_neuron_1.mkdir(parents=True)
+        self.unipi_neuron_0: Path = self.sys_bus / "0-0057"
+        self.unipi_neuron_0.mkdir(parents=True)
 
     def write_config(self, content: str):
         with open(self.config_file_path, "w") as f:
@@ -46,19 +58,25 @@ class ConfigLoader:
         with open(self.hardware_data_file_path, "w") as f:
             f.write(content)
 
+    def write_hardware_info(self):
+        with open(self.unipi_1 / "eeprom", "w") as f:
+            f.write("MOCKED")
+
     def get_config(self) -> Config:
         return Config(
             config_base_path=self.temp,
             systemd_path=self.systemd_path,
             temp_path=self.temp_path,
+            sys_bus=self.sys_bus,
         )
 
 
 @pytest.fixture()
 def config_loader(request: SubRequest, tmp_path: Path) -> ConfigLoader:
-    c = ConfigLoader(temp=tmp_path)
+    c: ConfigLoader = ConfigLoader(temp=tmp_path)
     c.write_config(request.param[0])
     c.write_hardware_data(request.param[1])
+    c.write_hardware_info()
 
     logging.info("Create configuration: %s", tmp_path)
 

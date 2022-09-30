@@ -206,6 +206,7 @@ class Config(ConfigMixin):
     config_base_path: Path = field(default=Path("/etc/unipi"))
     systemd_path: Path = field(default=Path("/etc/systemd/system"))
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
+    sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
     def __post_init__(self):
         self.temp_path.mkdir(exist_ok=True)
@@ -310,16 +311,17 @@ class Config(ConfigMixin):
 
 @dataclass
 class HardwareInfo:
+    sys_bus: Path
     name: str = field(default="unknown")
     model: str = field(default="unknown", init=False)
     version: str = field(default="unknown", init=False)
     serial: str = field(default="unknown", init=False)
 
     def __post_init__(self):
-        unipi_1: Path = Path("/sys/bus/i2c/devices/1-0050/eeprom")
-        unipi_patron: Path = Path("/sys/bus/i2c/devices/2-0057/eeprom")
-        unipi_neuron_1: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")
-        unipi_neuron_0: Path = Path("/sys/bus/i2c/devices/0-0057/eeprom")
+        unipi_1: Path = self.sys_bus / "1-0050/eeprom"
+        unipi_patron: Path = self.sys_bus / "2-0057/eeprom"
+        unipi_neuron_1: Path = self.sys_bus / "1-0057/eeprom"
+        unipi_neuron_0: Path = self.sys_bus / "0-0057/eeprom"
 
         if unipi_1.is_file():
             with open(unipi_1, "rb") as f:
@@ -369,7 +371,7 @@ class HardwareData(DataStorage):
         self.config = config
 
         self.data: dict = {
-            "neuron": asdict(HardwareInfo()),
+            "neuron": asdict(HardwareInfo(sys_bus=config.sys_bus)),
             "definitions": [],
             "neuron_definition": None,
         }
