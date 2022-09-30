@@ -4,7 +4,7 @@ from collections.abc import MutableMapping
 
 
 class DataStorage(MutableMapping):
-    """A read-only container object that works like a dict.
+    """A container object that works like a dict.
 
     Attributes
     ----------
@@ -15,13 +15,13 @@ class DataStorage(MutableMapping):
     def __init__(self):
         self.data: dict = {}
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         return self.data[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value):
         self.data[key] = value
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str):
         del self.data[key]
 
     def __iter__(self):

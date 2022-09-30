@@ -133,7 +133,7 @@ class Led(Feature):
 
 
 class FeatureMap(DataStorage):
-    """A read-only container object that has saved Unipi Neuron feature classes.
+    """A container object that has saved Unipi Neuron feature classes.
 
     See Also
     --------
