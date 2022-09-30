@@ -6,12 +6,14 @@ from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
 
 import pytest
-from pytest_asyncio.plugin import SubRequest
+import pytest_asyncio
+from _pytest.fixtures import SubRequest
 from pytest_mock import MockerFixture
 
 from conftest_data import MODBUS_HOLDING_REGISTER
 from unipi_control.config import Config
 from unipi_control.config import LOGGER_NAME
+from unipi_control.neuron import Neuron
 
 
 @pytest.fixture(autouse=True, scope="session")
