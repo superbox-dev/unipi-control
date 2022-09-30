@@ -3,6 +3,7 @@ from _pytest.logging import LogCaptureFixture
 
 from conftest import ConfigLoader
 from conftest_data import HARDWARE_DATA_CONTENT
+from unittests.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
 from unittests.test_config_data import CONFIG_INVALID_COVER_PROPERTY
 from unittests.test_config_data import CONFIG_INVALID_COVER_TOPIC_NAME
 from unittests.test_config_data import CONFIG_INVALID_COVER_TYPE
