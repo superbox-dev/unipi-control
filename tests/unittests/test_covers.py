@@ -16,6 +16,15 @@ from unipi_control.neuron import Neuron
 
 
 class TestCovers:
+    @pytest.fixture(autouse=True)
+    def pre(self, modbus_client, mocker: MockerFixture):
+        mock_response_is_error = MagicMock()
+        mock_response_is_error.isError.return_value = False
+
+        modbus_client.write_coil.return_value = mock_response_is_error
+
+        mocker.patch("unipi_control.covers.CoverTimer", new_callable=MagicMock)
+
     @pytest_asyncio.fixture
     async def neuron(self, config_loader: ConfigLoader, modbus_client):
         config: Config = config_loader.get_config()
@@ -32,15 +41,6 @@ class TestCovers:
 
 
 class TestHappyPathCovers(TestCovers):
-    @pytest.fixture(autouse=True)
-    def pre(self, modbus_client, mocker: MockerFixture):
-        mock_response_is_error = MagicMock()
-        mock_response_is_error.isError.return_value = False
-
-        modbus_client.write_coil.return_value = mock_response_is_error
-
-        mocker.patch("unipi_control.covers.CoverTimer", new_callable=MagicMock)
-
     @pytest.mark.asyncio
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     @pytest.mark.parametrize(
