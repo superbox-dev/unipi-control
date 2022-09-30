@@ -34,7 +34,7 @@ CONFIG_INVALID_FEATURE_PROPERTY: Final[
 ] = """device_name: MOCKED_UNIPI
 features:
   di_3_01:
-    friendly_name: MOCKED_FRIENDLY_NAME - 3_01
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
     suggested_area: MOCKED AREA 1
     invalid_property: INVALID
 logging:

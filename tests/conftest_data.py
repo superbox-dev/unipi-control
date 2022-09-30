@@ -17,20 +17,29 @@ homeassistant:
   discovery_prefix: homeassistant
 features:
   di_1_01:
-    id: MOCKED_ID_1_01
-    friendly_name: MOCKED_FRIENDLY_NAME - 1_01
+    id: MOCKED_ID_DI_1_01
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_1_01
     suggested_area: MOCKED AREA 1
     invert_state: true
   di_1_02:
-    id: MOCKED_ID_1_02
-    friendly_name: MOCKED_FRIENDLY_NAME - 1_02
+    id: MOCKED_ID_DI_1_02
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_1_02
     suggested_area: MOCKED AREA 2
   di_3_01:
-    friendly_name: MOCKED_FRIENDLY_NAME - 3_01
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
     suggested_area: MOCKED AREA 1
   di_3_02:
-    friendly_name: MOCKED_FRIENDLY_NAME - 3_02
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_3_02
     suggested_area: MOCKED AREA 1
+  ro_2_01:
+    id: MOCKED_ID_RO_2_01
+    friendly_name: MOCKED_FRIENDLY_NAME - RO_2_01
+    suggested_area: MOCKED AREA 2
+    invert_state: true
+  ro_2_02:
+    id: MOCKED_ID_RO_2_02
+    friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
+    suggested_area: MOCKED AREA 2
 covers:
   - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: blind

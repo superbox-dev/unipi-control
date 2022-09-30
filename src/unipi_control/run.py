@@ -84,7 +84,7 @@ class UnipiControl:
                 hass_binary_sensors_tasks = await hass_binary_sensors_plugin.init_tasks()
                 tasks.update(hass_binary_sensors_tasks)
 
-                hass_switches_plugin = HassSwitchesMqttPlugin(uc=self, mqtt_client=mqtt_client)
+                hass_switches_plugin = HassSwitchesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
                 hass_switches_tasks = await hass_switches_plugin.init_tasks()
                 tasks.update(hass_switches_tasks)
 
