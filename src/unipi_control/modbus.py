@@ -14,7 +14,7 @@ class NoCachedModbusRegister(Exception):
     """No cached modbus register value found."""
 
     def __init__(self, address, unit):
-        message: str = f"No cached value of register {address} " f"on unit {unit} - read error"
+        message: str = f"No cached value of register {address} on unit {unit} - read error"
         super().__init__(message)
 
 

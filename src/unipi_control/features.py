@@ -24,22 +24,10 @@ class Feature:
 
     Attributes
     ----------
-    type : str:
-        The feature type e.g. DI for digital input.
     modbus_client : class
         A modbus tcp client.
     circuit : str
-        The machine readable circuit name e.g. ro_2_01.
-    value : int or float
-        The feature state as integer.
-    state : str
-        The feature state as friendly name.
-    topic : str
-        Unique name for the MQTT topic.
-    circuit_name : str
-        The friendly name for the circuit.
-    changed : bool
-        Detect whether the status has changed.
+        The machine-readable circuit name e.g. ro_2_01.
     """
 
     name: str = "Feature"
@@ -50,6 +38,7 @@ class Feature:
         self, board, short_name: str, circuit: str, major_group: int, mask: int, reg: int, coil: Optional[int] = None
     ):
         self.config: Config = board.neuron.config
+        self.modbus_client = board.neuron.modbus_client
 
         self.board = board
         self.short_name: str = short_name
@@ -58,8 +47,6 @@ class Feature:
         self.reg: int = reg
         self.mask: int = mask
         self.coil: Optional[int] = coil
-
-        self.modbus_client = board.neuron.modbus_client
 
         self._reg_value = lambda: board.neuron.modbus_cache_map.get_register(address=1, index=self.reg)[0]
 
@@ -70,14 +57,17 @@ class Feature:
 
     @property
     def value(self) -> int:
+        """The feature state as integer."""
         return 1 if self._reg_value() & self.mask else 0
 
     @property
     def state(self) -> str:
+        """The feature state as friendly name."""
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     @property
     def topic(self) -> str:
+        """Unique name for the MQTT topic."""
         topic: str = f"{self.config.device_name.lower()}/{self.feature_name}"
         topic += f"/{self.circuit}"
 
@@ -85,6 +75,7 @@ class Feature:
 
     @property
     def circuit_name(self) -> str:
+        """The friendly name for the circuit."""
         _circuit_name: str = self.name
         _re_match: Optional[Match[str]] = re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit)
 
@@ -95,6 +86,7 @@ class Feature:
 
     @property
     def changed(self) -> bool:
+        """Detect whether the status has changed."""
         value: bool = self.value == 1
         changed: bool = value != self._value
 
