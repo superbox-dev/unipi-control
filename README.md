@@ -1,3 +1,7 @@
+[![license-url](https://img.shields.io/npm/l/make-coverage-badge.svg)](https://opensource.org/licenses/MIT)
+![coverage-badge](https://raw.githubusercontent.com/mh-superbox/unipi-control/main/coverage.svg)
+![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)
+
 # Unipi Control
 
 Control Unipi I/O directly with MQTT commands and without [Evok](https://github.com/UniPiTechnology/evok). Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionally you can enable the Home Assistant MQTT discovery for binary sensors, switches and covers.
