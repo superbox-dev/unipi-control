@@ -26,16 +26,7 @@ class TestCovers:
         mocker.patch("unipi_control.covers.CoverTimer", new_callable=MagicMock)
 
     @pytest_asyncio.fixture
-    async def neuron(self, config_loader: ConfigLoader, modbus_client):
-        config: Config = config_loader.get_config()
-
-        neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
-        await neuron.read_boards()
-
-        yield neuron
-
-    @pytest_asyncio.fixture
-    async def covers(self, config_loader: ConfigLoader, neuron):
+    async def covers(self, config_loader: ConfigLoader, neuron: Neuron):
         config: Config = config_loader.get_config()
         yield CoverMap(config=config, features=neuron.features)
 

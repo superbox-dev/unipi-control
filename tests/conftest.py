@@ -73,13 +73,25 @@ class MockHardwareInfo:
 
 @pytest.fixture()
 def modbus_client(mocker: MockerFixture) -> AsyncMock:
-    mock_modbus_client = AsyncMock()
+    mock_modbus_client: AsyncMock = AsyncMock()
     mock_modbus_client.read_holding_registers.side_effect = MODBUS_HOLDING_REGISTER
-    mock_response_is_error = MagicMock()
+
+    mock_response_is_error: MagicMock = MagicMock()
     mock_response_is_error.isError.return_value = False
+
     mock_modbus_client.read_input_registers.return_value = mock_response_is_error
 
-    mock_hardware_info = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
+    mock_hardware_info: PropertyMock = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
     mock_hardware_info.return_value = MockHardwareInfo()
 
     return mock_modbus_client
+
+
+@pytest_asyncio.fixture
+async def neuron(config_loader: ConfigLoader, modbus_client):
+    config: Config = config_loader.get_config()
+
+    neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+    await neuron.read_boards()
+
+    yield neuron

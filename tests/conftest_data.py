@@ -259,9 +259,10 @@ modbus_features:
       start_reg   : 1200
 """
 
+MODBUS_FEATURE_ENABLED: Final[int] = 1
 
 MODBUS_HOLDING_REGISTER: Final[List] = [
-    PropertyMock(registers=[0, 0]),
+    PropertyMock(registers=[0, 0 + 1]),  # Digital Output 1.01 is ON
     PropertyMock(registers=[0, 4, 7]),
     PropertyMock(registers=[11332, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0]),
     PropertyMock(
@@ -303,7 +304,7 @@ MODBUS_HOLDING_REGISTER: Final[List] = [
     PropertyMock(
         registers=[
             16384,
-            6144,
+            6144 + 2,  # Relay 2_02 is ON
             8,
             4,
             0,

@@ -32,7 +32,6 @@ class Feature:
 
     name: str = "Feature"
     feature_name: Optional[str] = None
-    feature_type: Optional[str] = None
 
     def __init__(
         self, board, short_name: str, circuit: str, major_group: int, mask: int, reg: int, coil: Optional[int] = None
@@ -101,7 +100,6 @@ class Relay(Feature):
 
     name: str = "Relay"
     feature_name: Optional[str] = "relay"
-    feature_type: Optional[str] = "physical"
 
     async def set_state(self, value: int):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
@@ -112,7 +110,6 @@ class DigitalOutput(Feature):
 
     name: str = "Digital Output"
     feature_name: Optional[str] = "relay"
-    feature_type: Optional[str] = "digital"
 
     async def set_state(self, value: int):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
@@ -123,7 +120,6 @@ class DigitalInput(Feature):
 
     name: str = "Digital Input"
     feature_name: Optional[str] = "input"
-    feature_type: Optional[str] = "digital"
 
 
 class Led(Feature):
@@ -131,7 +127,6 @@ class Led(Feature):
 
     name: str = "LED"
     feature_name: Optional[str] = "led"
-    feature_type: Optional[str] = None
 
     async def set_state(self, value: int):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
