@@ -1,5 +1,6 @@
 import logging
 import sys
+from collections import OrderedDict
 from typing import Dict
 from typing import Final
 
@@ -9,12 +10,14 @@ LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
 
-LOG_LEVEL: Final[Dict[str, int]] = {
-    "debug": logging.DEBUG,
-    "info": logging.INFO,
-    "warning": logging.WARNING,
-    "error": logging.ERROR,
-}
+LOG_LEVEL: Final[Dict[str, int]] = OrderedDict(
+    {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+    }
+)
 
 stream_handler = logging.StreamHandler(stream=sys.stderr)
 stream_handler.setFormatter(logging.Formatter(fmt="%(levelname)s | %(message)s"))

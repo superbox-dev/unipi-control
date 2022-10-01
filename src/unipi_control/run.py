@@ -10,6 +10,7 @@ from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Final
+from typing import List
 from typing import Optional
 from typing import Set
 
@@ -23,6 +24,7 @@ from unipi_control.config import ConfigException
 from unipi_control.config import logger
 from unipi_control.covers import CoverMap
 from unipi_control.helpers import cancel_tasks
+from unipi_control.logging import LOG_LEVEL
 from unipi_control.neuron import Neuron
 from unipi_control.plugins.covers import CoversMqttPlugin
 from unipi_control.plugins.features import FeaturesMqttPlugin
@@ -54,7 +56,6 @@ class UnipiControl:
     async def _init_tasks(self):
         async with AsyncExitStack() as stack:
             tasks: Set[Task] = set()
-            # stack.push_async_callback(self._cancel_tasks, tasks)
 
             mqtt_client: Client = Client(
                 self.config.mqtt.host,
@@ -167,6 +168,13 @@ def parse_args(args):
     parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
     parser.add_argument("-i", "--install", action="store_true", help="install unipi control")
     parser.add_argument("-y", "--yes", action="store_true", help="automatic yes to install prompts")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help=f"verbose mode: multiple -v options increase the verbosity (maximum: {len(LOG_LEVEL)})",
+    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)
@@ -177,6 +185,9 @@ def main():
 
     try:
         config = Config()
+
+        levels: List[str] = list(LOG_LEVEL.keys())
+        config.logging.level = levels[min(args.verbose, len(levels) - 1)]
 
         if args.install:
             UnipiControl.install(config=config, assume_yes=args.yes)

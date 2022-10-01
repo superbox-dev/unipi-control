@@ -21,10 +21,11 @@ from unittests.test_unipi_control_data import UNIPI_CONTROL_INSTALLER_WITH_ENABL
 
 class TestHappyPathUnipiControl:
     def test_parse_args(self):
-        parser = parse_args(["-i", "-y"])
+        parser = parse_args(["-i", "-y", "-vv"])
 
         assert True is parser.install
         assert True is parser.yes
+        assert 2 == parser.verbose
         assert isinstance(parser, Namespace)
 
     @pytest.mark.parametrize(
