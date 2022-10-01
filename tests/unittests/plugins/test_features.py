@@ -57,14 +57,14 @@ class TestHappyPathFeaturesMqttPlugin:
             neuron_scan: MagicMock = mocker.patch("unipi_control.neuron.Neuron.scan")
 
             FeaturesMqttPlugin.PUBLISH_RUNNING = PropertyMock(side_effect=[True, False])
-            features = FeaturesMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
+            plugin = FeaturesMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
 
             async with AsyncExitStack() as stack:
                 tasks: Set[Task] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
 
-                features_tasks = await features.init_tasks(stack)
+                features_tasks = await plugin.init_tasks(stack)
                 tasks.update(features_tasks)
 
                 await asyncio.gather(*tasks)

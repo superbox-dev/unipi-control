@@ -30,6 +30,8 @@ class SubscribeCommand(NamedTuple):
 class CoversMqttPlugin:
     """Provide cover control as MQTT commands."""
 
+    PUBLISH_RUNNING: bool = True
+
     def __init__(self, mqtt_client, covers: CoverMap):
         self._covers: CoverMap = covers
         self._mqtt_client = mqtt_client
@@ -194,7 +196,7 @@ class CoversMqttPlugin:
                 logger.error(error)
 
     async def _publish(self):
-        while True:
+        while self.PUBLISH_RUNNING:
             for cover in self._covers.by_cover_type(COVER_TYPES):
                 if cover.position_changed:
                     position_topic: str = f"{cover.topic}/position"
