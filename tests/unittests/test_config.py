@@ -4,6 +4,7 @@ from conftest import ConfigLoader
 from conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import ConfigException
 from unittests.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
+from unittests.test_config_data import CONFIG_INVALID
 from unittests.test_config_data import CONFIG_INVALID_COVER_PROPERTY
 from unittests.test_config_data import CONFIG_INVALID_COVER_TOPIC_NAME
 from unittests.test_config_data import CONFIG_INVALID_COVER_TYPE
@@ -11,6 +12,7 @@ from unittests.test_config_data import CONFIG_INVALID_DEVICE_NAME
 from unittests.test_config_data import CONFIG_INVALID_FEATURE_PROPERTY
 from unittests.test_config_data import CONFIG_INVALID_FEATURE_TYPE
 from unittests.test_config_data import CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX
+from unittests.test_config_data import CONFIG_INVALID_LOG_LEVEL
 from unittests.test_config_data import CONFIG_MISSING_COVER_KEY
 
 
@@ -53,6 +55,14 @@ class TestUnhappyPathConfig:
             (
                 (CONFIG_DUPLICATE_COVERS_CIRCUITS, HARDWARE_DATA_CONTENT),
                 "[CONFIG] [COVER] Duplicate circuits found in 'covers'. Driving both signals up and down at the same time can damage the motor!",
+            ),
+            (
+                (CONFIG_INVALID, HARDWARE_DATA_CONTENT),
+                """[CONFIG] Can't read YAML file!\n  in "<unicode string>", line 1, column 26:\n    device_name: MOCKED_UNIPI:\n                             ^""",
+            ),
+            (
+                (CONFIG_INVALID_LOG_LEVEL, HARDWARE_DATA_CONTENT),
+                "[CONFIG] [COVER] Invalid log level 'invalid'. The following log levels are allowed: debug info warning error.",
             ),
         ],
         indirect=["config_loader"],

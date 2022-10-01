@@ -9,6 +9,7 @@ from typing import Type
 
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
+from unipi_control.config import LogPrefix
 from unipi_control.helpers import DataStorage
 
 
@@ -178,7 +179,7 @@ class FeatureMap(DataStorage):
         try:
             feature: Type[Feature] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
-            raise ConfigException(f"[CONFIG] '{circuit}' not found in {self.__class__.__name__}!")
+            raise ConfigException(f"{LogPrefix.CONFIG} '{circuit}' not found in {self.__class__.__name__}!")
 
         return feature
 

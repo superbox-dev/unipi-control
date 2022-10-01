@@ -30,6 +30,13 @@ LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
 
+LOG_LEVEL: Final[Dict[str, int]] = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+}
+
 stdout_handler = logging.StreamHandler(stream=sys.stdout)
 stdout_handler.setFormatter(logging.Formatter(fmt="%(levelname)s | %(message)s"))
 
@@ -70,6 +77,19 @@ class ConfigMixin:
                 else:
                     setattr(self, key, value)
 
+        self.validate()
+
+    def update_from_yaml_file(self, config_path: Path):
+        _config: dict = {}
+
+        if config_path.exists():
+            try:
+                _config = yaml.load(config_path.read_text(), Loader=yaml.FullLoader)
+            except yaml.MarkedYAMLError as e:
+                raise ConfigException(f"{LogPrefix.CONFIG} Can't read YAML file!\n{str(e.problem_mark)}")
+
+        self.update(_config)
+
     def validate(self):
         for f in dataclasses.fields(self):
             value: Any = getattr(self, f.name)
@@ -77,11 +97,11 @@ class ConfigMixin:
             if is_dataclass(value):
                 value.validate()
             else:
-                if method := getattr(self, f"validate_{f.name}", None):
+                if method := getattr(self, f"_validate_{f.name}", None):
                     setattr(self, f.name, method(getattr(self, f.name), f=f))
 
                 if not isinstance(value, f.type) and not is_dataclass(value):
-                    raise ConfigException(f"[CONFIG] Expected {f.name} to be {f.type}, got {repr(value)}")
+                    raise ConfigException(f"{LogPrefix.CONFIG} Expected {f.name} to be {f.type}, got {repr(value)}")
 
 
 @dataclass
@@ -104,7 +124,7 @@ class HomeAssistantConfig(ConfigMixin):
     discovery_prefix: str = field(default="homeassistant")
     device: DeviceInfo = field(default=DeviceInfo())
 
-    def validate_discovery_prefix(self, value: str, f: dataclasses.Field):
+    def _validate_discovery_prefix(self, value: str, f: dataclasses.Field):
         value = value.lower()
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
@@ -119,6 +139,19 @@ class HomeAssistantConfig(ConfigMixin):
 @dataclass
 class LoggingConfig(ConfigMixin):
     level: str = field(default="info")
+
+    def update_level(self):
+        logger.setLevel(LOG_LEVEL[self.level])
+
+    def _validate_level(self, value: str, f: dataclasses.Field):
+        value = value.lower()
+
+        if value not in LOG_LEVEL.keys():
+            raise ConfigException(
+                f"{LogPrefix.CONFIG} {LogPrefix.COVER} Invalid log level '{self.level}'. The following log levels are allowed: {' '.join(LOG_LEVEL.keys())}."
+            )
+
+        return value
 
 
 @dataclass
@@ -150,11 +183,13 @@ class CoverConfig(ConfigMixin):
             "circuit_down",
         ]:
             if not getattr(self, f):
-                raise ConfigException(f"[CONFIG] {LogPrefix.COVER} Required key '{f}' is missing! {repr(self)}")
+                raise ConfigException(
+                    f"{LogPrefix.CONFIG} {LogPrefix.COVER} Required key '{f}' is missing! {repr(self)}"
+                )
 
         super().validate()
 
-    def validate_topic_name(self, value: str, f: dataclasses.Field):
+    def _validate_topic_name(self, value: str, f: dataclasses.Field):
         value = value.lower()
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
@@ -165,12 +200,12 @@ class CoverConfig(ConfigMixin):
 
         return value
 
-    def validate_cover_type(self, value: str, f: dataclasses.Field):
+    def _validate_cover_type(self, value: str, f: dataclasses.Field):
         value = value.lower()
 
         if value not in COVER_TYPES:
             raise ConfigException(
-                f"[CONFIG] {LogPrefix.COVER} Invalid value '{self.cover_type}' in 'cover_type'. The following values are allowed: {' '.join(COVER_TYPES)}."
+                f"{LogPrefix.CONFIG} {LogPrefix.COVER} Invalid value '{self.cover_type}' in 'cover_type'. The following values are allowed: {' '.join(COVER_TYPES)}."
             )
 
         return value
@@ -183,20 +218,20 @@ class Config(ConfigMixin):
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
-    logging: LoggingConfig = field(default_factory=LoggingConfig)  # TODO: validate logging
+    logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=Path("/etc/unipi"))
     systemd_path: Path = field(default=Path("/etc/systemd/system"))
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
+    @property
+    def hardware_path(self) -> Path:
+        return self.config_base_path / "hardware"
+
     def __post_init__(self):
         self.temp_path.mkdir(exist_ok=True)
-
-        _config: dict = self.get_config(self.config_base_path / "control.yaml")
-        self.update(_config)
-        self.validate()
-
-        self._change_logger_level()
+        self.update_from_yaml_file(config_path=self.config_base_path / "control.yaml")
+        self.logging.update_level()
 
     def validate(self):
         super().validate()
@@ -207,7 +242,7 @@ class Config(ConfigMixin):
                 feature_config.validate()
                 self.features[circuit] = feature_config
             except TypeError:
-                raise ConfigException(f"[CONFIG] Invalid feature property: {feature_data}")
+                raise ConfigException(f"{LogPrefix.CONFIG} Invalid feature property: {feature_data}")
 
         for index, cover_data in enumerate(self.covers):
             try:
@@ -215,32 +250,9 @@ class Config(ConfigMixin):
                 cover_config.validate()
                 self.covers[index] = cover_config
             except TypeError:
-                raise ConfigException(f"[CONFIG] Invalid cover property: {cover_data}")
+                raise ConfigException(f"{LogPrefix.CONFIG} Invalid cover property: {cover_data}")
 
-        self.validate_covers_circuits()
-
-    @property
-    def hardware_path(self) -> Path:
-        return self.config_base_path / "hardware"
-
-    def _change_logger_level(self):
-        level: Dict[str, int] = {
-            "debug": logging.DEBUG,
-            "info": logging.INFO,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-        }
-
-        logger.setLevel(level[self.logging.level])
-
-    @staticmethod
-    def get_config(config_path: Path) -> dict:
-        _config: dict = {}
-
-        if config_path.exists():
-            _config = yaml.load(config_path.read_text(), Loader=yaml.FullLoader)
-
-        return _config
+        self._validate_covers_circuits()
 
     def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config."""
@@ -258,17 +270,17 @@ class Config(ConfigMixin):
 
         return circuits
 
-    def validate_covers_circuits(self):
+    def _validate_covers_circuits(self):
         circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
                 raise ConfigException(
-                    f"[CONFIG] {LogPrefix.COVER} Duplicate circuits found in 'covers'. Driving both signals up and down at the same time can damage the motor!"
+                    f"{LogPrefix.CONFIG} {LogPrefix.COVER} Duplicate circuits found in 'covers'. Driving both signals up and down at the same time can damage the motor!"
                 )
 
     @staticmethod
-    def validate_device_name(value: str, f: dataclasses.Field):
+    def _validate_device_name(value: str, f: dataclasses.Field):
         value = value.lower()
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
@@ -350,7 +362,7 @@ class HardwareData(DataStorage):
         self._model: str = self.data["neuron"]["model"]
 
         if self._model is None:
-            raise ConfigException("[CONFIG] Hardware is not supported!")
+            raise ConfigException(f"{LogPrefix.CONFIG} Hardware is not supported!")
 
         self._read_definitions()
         self._read_neuron_definition()
@@ -360,17 +372,17 @@ class HardwareData(DataStorage):
             for f in Path(f"{self.config.hardware_path}/extension").iterdir():
                 if f.suffix == ".yaml":
                     self.data["definitions"].append(yaml.load(f.read_text(), Loader=yaml.FullLoader))
-                    logger.debug("[CONFIG] YAML Definition loaded: %s", f)
+                    logger.debug("[%s] YAML Definition loaded: %s", LogPrefix.CONFIG, f)
         except FileNotFoundError as error:
-            logger.info("[CONFIG] %s", str(error))
+            logger.info("%s %s", LogPrefix.CONFIG, str(error))
 
     def _read_neuron_definition(self):
         definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():
             self.data["neuron_definition"] = yaml.load(definition_file.read_text(), Loader=yaml.FullLoader)
-            logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
+            logger.debug("%s YAML Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
             raise ConfigException(
-                f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self._model}"
+                f"{LogPrefix.CONFIG} No valid YAML definition for active Neuron device! Device name is {self._model}"
             )

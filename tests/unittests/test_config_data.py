@@ -115,3 +115,15 @@ covers:
     circuit_down: ro_3_02
 logging:
   level: debug"""
+
+CONFIG_INVALID: Final[
+    str
+] = """device_name: MOCKED_UNIPI:
+logging:
+  level: debug"""
+
+CONFIG_INVALID_LOG_LEVEL: Final[
+    str
+] = """device_name: MOCKED_UNIPI
+logging:
+  level: invalid"""
