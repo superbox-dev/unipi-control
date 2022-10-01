@@ -1,18 +1,16 @@
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Type
 
-from config import Config
-from config import HardwareData
-from config import HardwareInfo
-from config import logger
-from features import DigitalInput
-from features import DigitalOutput
-from features import FeatureMap
-from features import Led
-from features import Relay
-from modbus import ModbusCacheMap
+from unipi_control.config import Config
+from unipi_control.config import HardwareData
+from unipi_control.config import logger
+from unipi_control.features import DigitalInput
+from unipi_control.features import DigitalOutput
+from unipi_control.features import FeatureMap
+from unipi_control.features import Led
+from unipi_control.features import Relay
+from unipi_control.modbus import ModbusCacheMap
 
 
 class Board:
@@ -132,8 +130,8 @@ class Board:
 class Neuron:
     """Class that reads all boards and scan modbus registers from an Unipi Neuron.
 
-    The Unipi Neuron has one or more boards and each board has it's features
-    (e. g. Relay, Digital Input). This class reads out all boards and append
+    The Unipi Neuron has one or more boards and each board has its features
+    (e.g. Relay, Digital Input). This class reads out all boards and append
     it to the boards ``list``.
 
     Attributes
@@ -149,11 +147,11 @@ class Neuron:
         Unipi Neuron.
     """
 
-    def __init__(self, config: Config, modbus_client, hardware_info: Type[HardwareInfo]):
+    def __init__(self, config: Config, modbus_client):
         self.config: Config = config
         self.modbus_client = modbus_client
         self.modbus_cache_map: Optional[ModbusCacheMap] = None
-        self.hardware: HardwareData = HardwareData(config=config, hardware_info=hardware_info)
+        self.hardware: HardwareData = HardwareData(config=config)
         self.boards: List[Board] = []
         self.features = FeatureMap()
 

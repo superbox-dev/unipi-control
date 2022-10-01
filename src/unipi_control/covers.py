@@ -7,22 +7,20 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
 from pathlib import Path
-from tempfile import gettempdir
 from typing import Callable
+from typing import Final
 from typing import List
 from typing import Optional
 from typing import Union
 
-from config import Config
-from config import LOG_COVER_DEVICE_LOCKED
-from config import logger
-from features import DigitalOutput
-from features import FeatureMap
-from features import Relay
-from helpers import DataStorage
-from helpers import run_in_executor
+from unipi_control.config import Config
+from unipi_control.features import DigitalOutput
+from unipi_control.features import FeatureMap
+from unipi_control.features import Relay
+from unipi_control.helpers import DataStorage
+from unipi_control.helpers import run_in_executor
 
-ASYNCIO_SLEEP_DELAY_FIX: float = 0.04
+ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
 
 
 @dataclass(eq=False)
@@ -31,11 +29,11 @@ class CoverFeatures:
     set_position: bool = field(default=True)
 
 
-@dataclass(eq=False)
+@dataclass(eq=False, frozen=True)
 class CoverSettings:
     blind: CoverFeatures = CoverFeatures(set_tilt=True, set_position=True)
     roller_shutter: CoverFeatures = CoverFeatures(set_tilt=False, set_position=False)
-    garage_door: CoverFeatures = CoverFeatures(set_tilt=False, set_position=False)
+    garage_door: CoverFeatures = CoverFeatures(set_tilt=False, set_position=True)
 
 
 @dataclass(init=False, eq=False, frozen=True)
@@ -79,14 +77,18 @@ class CoverTimer:
         """
         self._timeout: float = timeout
         self._callback: Callable = callback
-        self._task: Task = asyncio.create_task(self._job())
+        self._task: Optional[Task] = None
 
     async def _job(self):
         await asyncio.sleep(self._timeout - ASYNCIO_SLEEP_DELAY_FIX)
         await self._callback()
 
+    def start(self):
+        self._task = asyncio.create_task(self._job())
+
     def cancel(self):
-        self._task.cancel()
+        if self._task:
+            self._task.cancel()
 
 
 class Cover:
@@ -96,21 +98,20 @@ class Cover:
     ----------
     calibrate_mode : bool
         Set the cover in calibration mode.
+    id : str, optional
+        ID. Used for ``Entity ID`` in Home Assistant.
     friendly_name : str
-        Friendly name of the cover. It is used e.g. for Home Assistant.
-    suggested_area : str
-        Suggest an area. It is used e.g. for Home Assistant.
+        Friendly name of the cover. Used for ``Name`` in Home Assistant.
+    suggested_area : str, optional
+        Suggest an area. Used for ``Area`` in Home Assistant.
     cover_type : str
         Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
     topic_name : str
         Unique name for the MQTT topic.
-    full_open_time : float or int
-        Define the time (in seconds) it takes for the cover to fully open.
-    full_close_time : float or int
-        Define the time (in seconds) it takes for the cover to fully close.
-    tilt_change_time : float or int
-        Define the time (in seconds) that the tilt changes from fully open to
-        fully closed state.
+    cover_run_time : float or int, optional
+        Define the time (in seconds) it takes for the cover to fully open or close.
+    tilt_change_time : float or int, optional
+        Define the time (in seconds) that the tilt changes from fully open to fully closed state.
     circuit_up : str
         Output circuit name from a relay or digital output.
     circuit_down : str
@@ -139,57 +140,47 @@ class Cover:
         self.config: Config = config
 
         self.calibrate_mode: bool = False
-        self.friendly_name: str = kwargs.get("friendly_name", "")
-        self.suggested_area: str = kwargs.get("suggested_area", "")
-        self.cover_type: str = kwargs.get("cover_type", "roller_shutter")
-        self.topic_name: str = kwargs.get("topic_name")
-        self.full_open_time: Union[float, int] = kwargs.get("full_open_time", 300)
-        self.full_close_time: Union[float, int] = kwargs.get("full_close_time", 300)
-        self.tilt_change_time: Union[float, int] = kwargs.get("tilt_change_time", 0)
-        self.circuit_up: Optional[str] = kwargs.get("circuit_up")
-        self.circuit_down: Optional[str] = kwargs.get("circuit_down")
+        self.object_id: str = kwargs["id"]
+        self.friendly_name: str = kwargs["friendly_name"]
+        self.suggested_area: str = kwargs["suggested_area"]
+        self.cover_type: str = kwargs["cover_type"]
+        self.topic_name: str = kwargs["topic_name"]
+        self.cover_run_time: Union[float, int] = kwargs["cover_run_time"]
+        self.tilt_change_time: Union[float, int] = kwargs["tilt_change_time"]
+        self.circuit_up: str = kwargs["circuit_up"]
+        self.circuit_down: str = kwargs["circuit_down"]
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
 
         self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_circuit(
-            self.circuit_up,
-            feature_type=[
-                "DO",
-                "RO",
-            ],
+            self.circuit_up, feature_type=["DO", "RO"]
         )
 
         self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_circuit(
-            self.circuit_down,
-            feature_type=[
-                "DO",
-                "RO",
-            ],
+            self.circuit_down, feature_type=["DO", "RO"]
         )
 
         self.settings: CoverFeatures = getattr(CoverSettings, self.cover_type)
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
-        self._device_locked: bool = False
         self._device_state: str = CoverDeviceState.IDLE
         self._current_state: Optional[str] = None
         self._current_position: Optional[int] = None
         self._current_tilt: Optional[int] = None
         self._calibration_started: bool = False
 
-        temp_dir = Path(gettempdir(), "unipi")
-        temp_dir.mkdir(exist_ok=True)
-        self._temp_filename = Path(temp_dir, self.topic.replace("/", "__"))
-        self._read_position()
-
     def __repr__(self) -> str:
         return self.friendly_name
 
     @property
+    def position_file(self) -> Path:
+        return self.config.temp_path / self.topic.replace("/", "__")
+
+    @property
     def topic(self) -> str:
-        return f"{self.config.device_name.lower()}/{self.topic_name}/" f"cover/{self.cover_type}"
+        return f"{self.config.device_name.lower()}/{self.topic_name}/cover/{self.cover_type}"
 
     @property
     def is_opening(self) -> bool:
@@ -198,10 +189,6 @@ class Cover:
     @property
     def is_closing(self) -> bool:
         return self.state == CoverState.CLOSING
-
-    @property
-    def is_stopped(self) -> bool:
-        return self.state == CoverState.STOPPED
 
     @property
     def state_changed(self) -> bool:
@@ -248,11 +235,12 @@ class Cover:
             covers.Cover.close(): close the cover.
             covers.Cover.set_position(): set the cover position.
         """
-        changed: bool = self.position != self._current_position
+        if self.settings.set_position is True:
+            changed: bool = self.position != self._current_position
 
-        if changed and self._device_state == CoverDeviceState.IDLE:
-            self._current_position = self.position
-            return True
+            if changed and self._device_state == CoverDeviceState.IDLE:
+                self._current_position = self.position
+                return True
 
         return False
 
@@ -273,7 +261,7 @@ class Cover:
         --------
             covers.Cover.set_tilt(): set the cover tilt position.
         """
-        if self.settings.set_tilt:
+        if self.settings.set_tilt is True:
             changed: bool = self.tilt != self._current_tilt
 
             if changed and self._device_state == CoverDeviceState.IDLE:
@@ -289,50 +277,68 @@ class Cover:
 
         self._start_timer = None
 
+    def _update_state(self):
+        if self.settings.set_position is True:
+            if self.position <= 0:
+                self.state = CoverState.CLOSED
+            elif self.position >= 100:
+                self.state = CoverState.OPEN
+            else:
+                self.state = CoverState.STOPPED
+        else:
+            self.state = CoverState.STOPPED
+
     def _update_position(self):
-        if self.position is None:
+        if self.settings.set_position is False:
             return
 
         if self._start_timer is None:
             return
 
-        end_timer = time.monotonic() - self._start_timer
+        if self.position is not None:
+            end_timer = time.monotonic() - self._start_timer
 
-        if self.is_closing:
-            self.position = int(round(100 * (self.full_close_time - end_timer) / self.full_close_time)) - (
-                100 - self.position
-            )
-        elif self.is_opening:
-            self.position = self.position + int(round(100 * end_timer / self.full_open_time))
+            if self.is_closing:
+                self.position = int(round(100 * (self.cover_run_time - end_timer) / self.cover_run_time)) - (
+                    100 - self.position
+                )
+            elif self.is_opening:
+                self.position = self.position + int(round(100 * end_timer / self.cover_run_time))
 
-        if self.position <= 0:
-            self.position = 0
-        elif self.position >= 100:
-            self.position = 100
+            if self.position <= 0:
+                self.position = 0
+            elif self.position >= 100:
+                self.position = 100
 
     def _delete_position(self):
-        self._temp_filename.unlink(missing_ok=True)
-
-    def _read_position(self):
-        try:
-            data: list = self._temp_filename.read_text().split("/")
-            self.position = int(data[0])
-            self.tilt = int(data[1])
-        except (FileNotFoundError, IndexError, ValueError):
-            self.state = CoverState.CLOSED
-            self.position = 0
-            self.tilt = 0
-
-            self.calibrate_mode = True
+        if self.settings.set_position is True:
+            self.position_file.unlink(missing_ok=True)
 
     @run_in_executor
     def _write_position(self):
-        self._temp_filename.write_text(f"{self.position}/{self.tilt}")
+        if self.settings.set_position is True:
+            self.position_file.write_text(f"{self.position}/{self.tilt}")
+
+    def read_position(self):
+        if self.settings.set_position is True:
+            try:
+                data: list = self.position_file.read_text().split("/")
+                self.position = int(data[0])
+                self.tilt = int(data[1])
+            except (FileNotFoundError, IndexError, ValueError):
+                self.position = 0
+                self.tilt = 0
+
+                self.calibrate_mode = True
 
     async def calibrate(self):
-        if self.calibrate_mode and not self._calibration_started:
+        cover_run_time: Optional[float] = None
+
+        if self.calibrate_mode is True and self._calibration_started is False:
             self._calibration_started = True
-            await self.open(calibrate=True)
+            cover_run_time = await self.open(calibrate=True)
+
+        return cover_run_time
 
     async def open(self, position: int = 100, calibrate: bool = False) -> Optional[float]:
         """Close the cover.
@@ -357,17 +363,11 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if self._device_locked is True:
-            logger.warning(LOG_COVER_DEVICE_LOCKED, self.topic)
-            return None
+        if self.settings.set_position is True:
+            if self.position is not None and self.position >= 100:
+                return None
 
-        if self.position is None:
-            return None
-
-        if self.position >= 100:
-            return None
-
-        if self.calibrate_mode and not calibrate:
+        if self.calibrate_mode is True and calibrate is False:
             return None
 
         self._update_position()
@@ -380,27 +380,28 @@ class Cover:
             self._device_state = CoverDeviceState.OPEN
             self.state = CoverState.OPENING
             self._start_timer = time.monotonic()
-            self.tilt = 100
 
-            if position == 100:
-                position = 105
+            if self.settings.set_position is True:
+                if self.tilt_change_time:
+                    self.tilt = 100
 
-            cover_run_time: float = (position - self.position) * self.full_open_time / 100
+                if self.position is not None and self.cover_run_time:
+                    position = 105 if position == 100 else position
+                    cover_run_time: float = (position - self.position) * self.cover_run_time / 100
 
-            if cover_run_time < self.tilt_change_time:
-                cover_run_time = self.tilt_change_time
+                    if self.tilt_change_time and cover_run_time < self.tilt_change_time:
+                        cover_run_time = self.tilt_change_time
 
-            if calibrate:
-                self.position = 0
+                    self._timer = CoverTimer(cover_run_time, self.stop)
+                    self._timer.start()
 
-            self._timer = CoverTimer(cover_run_time, self.stop)
-            self._delete_position()
+                    self._delete_position()
 
-            return cover_run_time
+                    return cover_run_time
 
         return None
 
-    async def close(self, position: int = 0, calibrate: bool = False) -> Optional[float]:
+    async def close(self, position: int = 0) -> Optional[float]:
         """Close the cover.
 
         If the cover is in calibration mode then the cover will be fully closed.
@@ -418,25 +419,20 @@ class Cover:
         ----------
         position : int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
-        calibrate : bool
-            Set position to ``100`` if ``True``.
 
         Returns
         -------
         float, optional
             Cover run time in seconds.
         """
-        if self._device_locked is True:
-            logger.warning(LOG_COVER_DEVICE_LOCKED, self.topic)
-            return None
+        if self.settings.set_position is True:
+            if self.position is None:
+                return None
 
-        if self.position is None:
-            return None
+            if self.position <= 0:
+                return None
 
-        if self.position <= 0:
-            return None
-
-        if self.calibrate_mode and not calibrate:
+        if self.calibrate_mode is True:
             return None
 
         self._update_position()
@@ -449,23 +445,24 @@ class Cover:
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING
             self._start_timer = time.monotonic()
-            self.tilt = 0
 
-            if position == 0:
-                position = -5
+            if self.settings.set_position is True:
+                if self.tilt_change_time:
+                    self.tilt = 0
 
-            cover_run_time: float = (self.position - position) * self.full_open_time / 100
+                if self.position is not None and self.cover_run_time:
+                    position = -5 if position == 0 else position
+                    cover_run_time = (self.position - position) * self.cover_run_time / 100
 
-            if cover_run_time < self.tilt_change_time:
-                cover_run_time = self.tilt_change_time
+                    if self.tilt_change_time and cover_run_time < self.tilt_change_time:
+                        cover_run_time = self.tilt_change_time
 
-            if calibrate:
-                self.position = 100
+                    self._timer = CoverTimer(cover_run_time, self.stop)
+                    self._timer.start()
 
-            self._timer = CoverTimer(cover_run_time, self.stop)
-            self._delete_position()
+                    self._delete_position()
 
-            return cover_run_time
+                    return cover_run_time
 
         return None
 
@@ -475,47 +472,33 @@ class Cover:
         If the cover is already opening or closing then the position is
         updated. If a running timer exists, it will be stopped.
 
-        If position is lower then equal 0 then the cover state is set to
-        closed. If position is greater then equal 100 then the cover state is
+        If position is lower than equal 0 then the cover state is set to
+        closed. If position is greater than equal 100 then the cover state is
         set to open. On all other positions the cover state is set to stopped.
 
         The device state is changed to **IDLE** and the timer will be
         reset.
         """
-        if self.position is None:
-            return
-
         self._update_position()
 
-        if self.calibrate_mode:
+        if self.calibrate_mode is True:
             if self.position == 100:
                 self.calibrate_mode = False
             else:
                 self.position = 0
                 return
 
-        if self.is_closing:
-            await self.cover_down_feature.set_state(0)
-        elif self.is_opening:
-            await self.cover_up_feature.set_state(0)
+        await self.cover_down_feature.set_state(0)
+        await self.cover_up_feature.set_state(0)
 
         await self._write_position()
         self._stop_timer()
-
-        if self.position <= 0:
-            self.state = CoverState.CLOSED
-        elif self.position >= 100:
-            self.state = CoverState.OPEN
-        else:
-            self.state = CoverState.STOPPED
+        self._update_state()
 
         self._device_state = CoverDeviceState.IDLE
-        self._device_locked = False
 
     async def _open_tilt(self, tilt: int = 100) -> Optional[float]:
-        if self._device_locked is True:
-            logger.warning(LOG_COVER_DEVICE_LOCKED, self.topic)
-            return None
+        cover_run_time: Optional[float] = None
 
         if self.tilt is None:
             return None
@@ -523,30 +506,29 @@ class Cover:
         if self.tilt == 100:
             return None
 
-        self._update_position()
-        response = await self.cover_down_feature.set_state(0)
-        self._stop_timer()
+        if self.tilt_change_time:
+            self._update_position()
+            response = await self.cover_down_feature.set_state(0)
+            self._stop_timer()
 
-        if not response.isError():
-            await self.cover_up_feature.set_state(1)
+            if not response.isError():
+                await self.cover_up_feature.set_state(1)
 
-            self._device_state = CoverDeviceState.OPEN
-            self.state = CoverState.OPENING
-            self._start_timer = time.monotonic()
+                self._device_state = CoverDeviceState.OPEN
+                self.state = CoverState.OPENING
+                self._start_timer = time.monotonic()
 
-            cover_run_time: float = (tilt - self.tilt) * self.tilt_change_time / 100
+                cover_run_time = (tilt - self.tilt) * self.tilt_change_time / 100
 
-            self._timer = CoverTimer(cover_run_time, self.stop)
-            self._delete_position()
+                self._timer = CoverTimer(cover_run_time, self.stop)
+                self._timer.start()
 
-            return cover_run_time
+                self._delete_position()
 
-        return None
+        return cover_run_time
 
     async def _close_tilt(self, tilt: int = 0) -> Optional[float]:
-        if self._device_locked is True:
-            logger.warning(LOG_COVER_DEVICE_LOCKED, self.topic)
-            return None
+        cover_run_time: Optional[float] = None
 
         if self.tilt is None:
             return None
@@ -554,25 +536,26 @@ class Cover:
         if self.tilt == 0:
             return None
 
-        self._update_position()
-        response = await self.cover_up_feature.set_state(0)
-        self._stop_timer()
+        if self.tilt_change_time:
+            self._update_position()
+            response = await self.cover_up_feature.set_state(0)
+            self._stop_timer()
 
-        if not response.isError():
-            await self.cover_down_feature.set_state(1)
+            if not response.isError():
+                await self.cover_down_feature.set_state(1)
 
-            self._device_state = CoverDeviceState.CLOSE
-            self.state = CoverState.CLOSING
-            self._start_timer = time.monotonic()
+                self._device_state = CoverDeviceState.CLOSE
+                self.state = CoverState.CLOSING
+                self._start_timer = time.monotonic()
 
-            cover_run_time: float = (self.tilt - tilt) * self.tilt_change_time / 100
+                cover_run_time = (self.tilt - tilt) * self.tilt_change_time / 100
 
-            self._timer = CoverTimer(cover_run_time, self.stop)
-            self._delete_position()
+                self._timer = CoverTimer(cover_run_time, self.stop)
+                self._timer.start()
 
-            return cover_run_time
+                self._delete_position()
 
-        return None
+        return cover_run_time
 
     async def set_position(self, position: int) -> Optional[float]:
         """Set the cover position.
@@ -587,7 +570,7 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if not self.settings.set_position:
+        if self.settings.set_position is False:
             return None
 
         cover_run_time: Optional[float] = None
@@ -614,7 +597,10 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if not self.settings.set_tilt:
+        if self.settings.set_tilt is False:
+            return None
+
+        if not self.tilt_change_time:
             return None
 
         cover_run_time: Optional[float] = None
@@ -657,6 +643,8 @@ class CoverMap(DataStorage):
                 self.data[cover_type] = []
 
             c = Cover(config, features, **asdict(cover))
+            c.read_position()
+
             self.data[cover_type].append(c)
 
     def by_cover_type(self, cover_type: List[str]) -> Iterator:

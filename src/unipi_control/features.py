@@ -8,9 +8,9 @@ from typing import Match
 from typing import Optional
 from typing import Type
 
-from config import Config
-from config import logger
-from helpers import DataStorage
+from unipi_control.config import Config
+from unipi_control.config import logger
+from unipi_control.helpers import DataStorage
 
 
 @dataclass(frozen=True)
@@ -24,42 +24,28 @@ class Feature:
 
     Attributes
     ----------
-    type : str:
-        The feature type e.g. DI for digital input.
     modbus_client : class
         A modbus tcp client.
     circuit : str
-        The machine readable circuit name e.g. ro_2_01.
-    value : int or float
-        The feature state as integer.
-    state : str
-        The feature state as friendly name.
-    topic : str
-        Unique name for the MQTT topic.
-    circuit_name : str
-        The friendly name for the circuit.
-    changed : bool
-        Detect whether the status has changed.
+        The machine-readable circuit name e.g. ro_2_01.
     """
 
     name: str = "Feature"
     feature_name: Optional[str] = None
-    feature_type: Optional[str] = None
 
     def __init__(
         self, board, short_name: str, circuit: str, major_group: int, mask: int, reg: int, coil: Optional[int] = None
     ):
         self.config: Config = board.neuron.config
+        self.modbus_client = board.neuron.modbus_client
 
         self.board = board
-        self.short_name = short_name
+        self.short_name: str = short_name
         self.circuit: str = circuit
-        self.major_group = major_group
+        self.major_group: int = major_group
         self.reg: int = reg
         self.mask: int = mask
         self.coil: Optional[int] = coil
-
-        self.modbus_client = board.neuron.modbus_client
 
         self._reg_value = lambda: board.neuron.modbus_cache_map.get_register(address=1, index=self.reg)[0]
 
@@ -70,14 +56,17 @@ class Feature:
 
     @property
     def value(self) -> int:
+        """The feature state as integer."""
         return 1 if self._reg_value() & self.mask else 0
 
     @property
     def state(self) -> str:
+        """The feature state as friendly name."""
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     @property
     def topic(self) -> str:
+        """Unique name for the MQTT topic."""
         topic: str = f"{self.config.device_name.lower()}/{self.feature_name}"
         topic += f"/{self.circuit}"
 
@@ -85,6 +74,7 @@ class Feature:
 
     @property
     def circuit_name(self) -> str:
+        """The friendly name for the circuit."""
         _circuit_name: str = self.name
         _re_match: Optional[Match[str]] = re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit)
 
@@ -95,6 +85,7 @@ class Feature:
 
     @property
     def changed(self) -> bool:
+        """Detect whether the status has changed."""
         value: bool = self.value == 1
         changed: bool = value != self._value
 
@@ -109,7 +100,6 @@ class Relay(Feature):
 
     name: str = "Relay"
     feature_name: Optional[str] = "relay"
-    feature_type: Optional[str] = "physical"
 
     async def set_state(self, value: int):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
@@ -120,7 +110,6 @@ class DigitalOutput(Feature):
 
     name: str = "Digital Output"
     feature_name: Optional[str] = "relay"
-    feature_type: Optional[str] = "digital"
 
     async def set_state(self, value: int):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
@@ -131,7 +120,6 @@ class DigitalInput(Feature):
 
     name: str = "Digital Input"
     feature_name: Optional[str] = "input"
-    feature_type: Optional[str] = "digital"
 
 
 class Led(Feature):
@@ -139,14 +127,13 @@ class Led(Feature):
 
     name: str = "LED"
     feature_name: Optional[str] = "led"
-    feature_type: Optional[str] = None
 
     async def set_state(self, value: int):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
 
 
 class FeatureMap(DataStorage):
-    """A read-only container object that has saved Unipi Neuron feature classes.
+    """A container object that has saved Unipi Neuron feature classes.
 
     See Also
     --------
@@ -192,7 +179,7 @@ class FeatureMap(DataStorage):
         try:
             feature: Type[Feature] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
-            logger.error("[CONFIG] '{circuit}' not found in %s!", self.__class__.__name__)
+            logger.error("[CONFIG] '%s' not found in %s!", circuit, self.__class__.__name__)
             sys.exit(1)
 
         return feature
