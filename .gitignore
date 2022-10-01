@@ -1,10 +1,13 @@
 *.egg
 *.egg-info
 *.pyc
+.coverage
 .DS_Store
 .mypy_cache
+.pytest_cache
 .idea
 ._*
 *.swp
 build/*
 dist/*
+tmp

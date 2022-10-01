@@ -3,15 +3,17 @@ import json
 from asyncio import Task
 from dataclasses import asdict
 from typing import Any
+from typing import List
 from typing import Optional
 from typing import Set
 from typing import Tuple
 
-from config import Config
-from config import HardwareData
-from config import LOG_MQTT_PUBLISH
-from config import logger
-from plugins.hass.discover import HassBaseDiscovery
+from unipi_control.config import Config
+from unipi_control.config import HardwareData
+from unipi_control.config import LOG_MQTT_PUBLISH
+from unipi_control.config import logger
+from unipi_control.features import FeatureState
+from unipi_control.plugins.hass.discover import HassBaseDiscovery
 
 
 class HassSwitchesDiscovery(HassBaseDiscovery):
@@ -23,14 +25,16 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, uc, mqtt_client):
-        self.config: Config = uc.config
-        self.hardware: HardwareData = uc.neuron.hardware
+    publish_feature_types: List[str] = ["RO", "DO"]
 
-        self._uc = uc
+    def __init__(self, neuron, mqtt_client):
+        self.config: Config = neuron.config
+        self.hardware: HardwareData = neuron.hardware
+
+        self._neuron = neuron
         self._mqtt_client = mqtt_client
 
-        super().__init__(config=uc.config)
+        super().__init__(config=neuron.config)
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = (
@@ -41,8 +45,9 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
         message: dict = {}
 
         if feature.circuit not in self.config.get_cover_circuits():
-            suggested_area: Optional[str] = self._get_suggested_area(feature)
+            object_id: Optional[str] = self._get_object_id(feature)
             invert_state: bool = self._get_invert_state(feature)
+            suggested_area: Optional[str] = self._get_suggested_area(feature)
             device_name: str = self.config.device_name
 
             if suggested_area:
@@ -58,40 +63,43 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
                     "name": device_name,
                     "identifiers": device_name,
                     "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
-                    "sw_version": self._uc.neuron.boards[feature.major_group - 1].firmware,
-                    "suggested_area": suggested_area,
+                    "sw_version": self._neuron.boards[feature.major_group - 1].firmware,
                     **asdict(self.config.homeassistant.device),
                 },
             }
 
+            if object_id:
+                message["object_id"] = object_id
+
+            if suggested_area:
+                message["device"]["suggested_area"] = suggested_area
+
             if invert_state:
-                message.update(
-                    {
-                        "payload_on": "OFF",
-                        "payload_off": "ON",
-                    }
-                )
+                message["payload_on"] = FeatureState.OFF
+                message["payload_off"] = FeatureState.ON
 
         return topic, message
 
     async def publish(self):
-        for feature in self._uc.neuron.features.by_feature_type(["RO", "DO"]):
+        for feature in self._neuron.features.by_feature_type(self.publish_feature_types):
             topic, message = self._get_discovery(feature)
-            json_data: str = json.dumps(message)
-            await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
-            logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+
+            if message:
+                json_data: str = json.dumps(message)
+                await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
+                logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassSwitchesMqttPlugin:
     """Provide Home Assistant MQTT commands for switches."""
 
-    def __init__(self, uc, mqtt_client):
-        self._ha = HassSwitchesDiscovery(uc, mqtt_client)
+    def __init__(self, neuron, mqtt_client):
+        self._hass = HassSwitchesDiscovery(neuron, mqtt_client)
 
     async def init_tasks(self) -> Set[Task]:
         tasks: Set[Task] = set()
 
-        task: Task[Any] = asyncio.create_task(self._ha.publish())
+        task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)
 
         return tasks

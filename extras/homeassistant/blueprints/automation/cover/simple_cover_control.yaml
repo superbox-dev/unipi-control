@@ -1,0 +1,62 @@
+blueprint:
+  name: Simple Cover Control
+  description: Actions to Control the Cover with a Switch or Button
+  domain: automation
+  homeassistant:
+    min_version: 2022.8.1
+  input:
+    binary_sensor_down_id:
+      name: Binary Sensor Entity (down)
+      description: The Binary Sensor used to Close the Cover
+      selector:
+        entity:
+          domain: binary_sensor
+    binary_sensor_up_id:
+      name: Binary Sensor Entity (up)
+      description: The Binary Sensor used to Open the Cover
+      selector:
+        entity:
+          domain: binary_sensor
+    cover_id:
+      name: Cover
+      description: Select Cover to Control
+      selector:
+        entity:
+          domain: cover
+trigger:
+  - platform: state
+    id: cover_closing
+    entity_id: !input binary_sensor_down_id
+  - platform: state
+    entity_id: !input binary_sensor_up_id
+    id: cover_opening
+condition:
+  - condition: state
+    entity_id: input_boolean.cover_buttons_control
+    state: 'on'
+action:
+  - variables:
+      binary_sensor_down_id: !input binary_sensor_down_id
+      binary_sensor_up_id: !input binary_sensor_up_id
+      cover_id: !input cover_id
+  - if:
+      - condition: state
+        entity_id: !input binary_sensor_down_id
+        state: 'on'
+    then:
+      - service: cover.close_cover
+        target:
+          entity_id: !input cover_id
+    else:
+      - if:
+          - condition: state
+            entity_id: !input binary_sensor_up_id
+            state: 'on'
+        then:
+          - service: cover.open_cover
+            target:
+              entity_id: !input cover_id
+        else:
+          - service: cover.stop_cover
+            target:
+              entity_id: !input cover_id

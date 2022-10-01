@@ -6,12 +6,12 @@ from typing import Any
 from typing import Set
 from typing import Tuple
 
-from config import COVER_TYPES
-from config import Config
-from config import HardwareData
-from config import LOG_MQTT_PUBLISH
-from config import logger
-from covers import CoverMap
+from unipi_control.config import COVER_TYPES
+from unipi_control.config import Config
+from unipi_control.config import HardwareData
+from unipi_control.config import LOG_MQTT_PUBLISH
+from unipi_control.config import logger
+from unipi_control.covers import CoverMap
 
 
 class HassCoversDiscovery:
@@ -23,12 +23,12 @@ class HassCoversDiscovery:
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, uc, mqtt_client, covers):
-        self.config: Config = uc.config
+    def __init__(self, neuron, mqtt_client, covers: CoverMap):
+        self.config: Config = neuron.config
 
         self._mqtt_client = mqtt_client
         self._covers: CoverMap = covers
-        self.hardware: HardwareData = uc.neuron.hardware
+        self.hardware: HardwareData = neuron.hardware
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
@@ -42,32 +42,29 @@ class HassCoversDiscovery:
             "unique_id": f"{cover.cover_type}_{cover.topic_name}",
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
-            "position_topic": f"{cover.topic}/position",
             "qos": 2,
             "optimistic": False,
             "device": {
                 "name": device_name,
                 "identifiers": device_name,
                 "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
-                "suggested_area": cover.suggested_area or "",
                 **asdict(self.config.homeassistant.device),
             },
         }
 
+        if cover.object_id:
+            message["object_id"] = cover.object_id
+
+        if cover.suggested_area:
+            message["device"]["suggested_area"] = cover.suggested_area
+
         if cover.settings.set_position:
-            message.update(
-                {
-                    "set_position_topic": f"{cover.topic}/position/set",
-                }
-            )
+            message["position_topic"] = f"{cover.topic}/position"
+            message["set_position_topic"] = f"{cover.topic}/position/set"
 
         if cover.settings.set_tilt:
-            message.update(
-                {
-                    "tilt_status_topic": f"{cover.topic}/tilt",
-                    "tilt_command_topic": f"{cover.topic}/tilt/set",
-                }
-            )
+            message["tilt_status_topic"] = f"{cover.topic}/tilt"
+            message["tilt_command_topic"] = f"{cover.topic}/tilt/set"
 
         return topic, message
 
@@ -82,8 +79,8 @@ class HassCoversDiscovery:
 class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
-    def __init__(self, uc, mqtt_client, covers):
-        self._hass = HassCoversDiscovery(uc, mqtt_client, covers)
+    def __init__(self, neuron, mqtt_client, covers: CoverMap):
+        self._hass = HassCoversDiscovery(neuron, mqtt_client, covers)
 
     async def init_tasks(self) -> Set[Task]:
         tasks: Set[Task] = set()

@@ -10,14 +10,15 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Set
 
-from config import COVER_TYPES
-from config import LOG_MQTT_PUBLISH
-from config import LOG_MQTT_SUBSCRIBE
-from config import LOG_MQTT_SUBSCRIBE_TOPIC
-from config import logger
-from covers import Cover
-from covers import CoverDeviceState
-from covers import CoverMap
+from unipi_control.config import COVER_TYPES
+from unipi_control.config import LOG_MQTT_PUBLISH
+from unipi_control.config import LOG_MQTT_SUBSCRIBE
+from unipi_control.config import LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.config import LogPrefix
+from unipi_control.config import logger
+from unipi_control.covers import Cover
+from unipi_control.covers import CoverDeviceState
+from unipi_control.covers import CoverMap
 
 
 class SubscribeCommand(NamedTuple):
@@ -49,7 +50,7 @@ class CoversMqttPlugin:
                 await queue.get()
                 queue.task_done()
 
-            logger.info("[COVER] [%s] [Worker] %s task(s) canceled.", cover.topic, size)
+            logger.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
 
     async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
         """Add tasks to the ``AsyncExitStack``.
@@ -79,7 +80,7 @@ class CoversMqttPlugin:
             queue: Queue = self._queues[cover.topic]
 
             if queue.qsize() > 0:
-                logger.info("[COVER] [%s] [Worker] %s task(s) in queue.", cover.topic, queue.qsize())
+                logger.info("%s [%s] [Worker] %s task(s) in queue.", LogPrefix.COVER, cover.topic, queue.qsize())
 
             subscribe_queue: SubscribeCommand = await queue.get()
             command: Callable = getattr(cover, subscribe_queue.command)
@@ -88,7 +89,9 @@ class CoversMqttPlugin:
             logger.info(*subscribe_queue.log)
 
             if cover_run_time:
-                logger.debug("[COVER] [%s] [Worker] Cover runtime: %s seconds.", cover.topic, cover_run_time)
+                logger.debug(
+                    "%s [%s] [Worker] Cover runtime: %s seconds.", LogPrefix.COVER, cover.topic, cover_run_time
+                )
 
                 while cover.is_closing or cover.is_opening:
                     await asyncio.sleep(25e-3)

@@ -7,10 +7,10 @@ ignore = [".editorconfig", ".pre-commit-config.yaml", "Pipfile", "Pipfile.lock"]
 
 [tool.black]
 line-length = 120
-target-version = ["py37"]
+target-version = ["py38"]
 
 [tool.mypy]
-python_version = "3.7"
+python_version = "3.8"
 mypy_path = "src"
 
 # show error messages from unrelated files
@@ -26,8 +26,8 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
-asyncio_mode = "strict"
-addopts = "--cov --cov-append"
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_format = "%(levelname)-8s | %(asctime)s: %(message)s"
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
