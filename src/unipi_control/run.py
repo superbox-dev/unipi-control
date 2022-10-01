@@ -2,6 +2,7 @@
 import argparse
 import asyncio
 import shutil
+import signal
 import subprocess
 import sys
 import uuid
@@ -20,6 +21,7 @@ from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
 from unipi_control.config import Config
 from unipi_control.config import logger
 from unipi_control.covers import CoverMap
+from unipi_control.helpers import cancel_tasks
 from unipi_control.neuron import Neuron
 from unipi_control.plugins.covers import CoversMqttPlugin
 from unipi_control.plugins.features import FeaturesMqttPlugin
@@ -51,7 +53,7 @@ class UnipiControl:
     async def _init_tasks(self):
         async with AsyncExitStack() as stack:
             tasks: Set[Task] = set()
-            stack.push_async_callback(self._cancel_tasks, tasks)
+            # stack.push_async_callback(self._cancel_tasks, tasks)
 
             mqtt_client: Client = Client(
                 self.config.mqtt.host,
@@ -89,18 +91,6 @@ class UnipiControl:
                 tasks.update(hass_switches_tasks)
 
             await asyncio.gather(*tasks)
-
-    async def _cancel_tasks(self, tasks):
-        # TODO: Check cancel tasks (look to unifi-tools)
-        for task in tasks:
-            if task.done():
-                continue
-
-            try:
-                task.cancel()
-                await task
-            except asyncio.CancelledError:
-                pass
 
     async def run(self):
         await self.neuron.read_boards()
@@ -194,6 +184,9 @@ def main():
             loop, modbus = AsyncModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
 
             uc = UnipiControl(config=config, modbus_client=modbus.protocol)
+
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                loop.add_signal_handler(sig, cancel_tasks)
 
             try:
                 loop.run_until_complete(uc.run())

@@ -44,3 +44,11 @@ def run_in_executor(_func):
         return loop.run_in_executor(executor=None, func=func)
 
     return wrapped
+
+
+def cancel_tasks():
+    for task in asyncio.all_tasks():
+        if task.done():
+            continue
+
+        task.cancel()
