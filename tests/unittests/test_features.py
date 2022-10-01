@@ -7,6 +7,7 @@ from _pytest.logging import LogCaptureFixture
 from conftest import ConfigLoader
 from conftest_data import CONFIG_CONTENT
 from conftest_data import HARDWARE_DATA_CONTENT
+from unipi_control.config import ConfigException
 from unipi_control.features import DigitalOutput
 from unipi_control.features import Feature
 from unipi_control.features import Led
@@ -67,12 +68,9 @@ class TestUnhappyPathFeatures:
         indirect=["config_loader"],
     )
     def test_invalid_feature_by_circuit(
-        self, config_loader: ConfigLoader, neuron: Neuron, caplog: LogCaptureFixture, circuit: str, expected_log: str
+        self, config_loader: ConfigLoader, neuron: Neuron, circuit: str, expected_log: str
     ):
-        with pytest.raises(SystemExit) as error:
+        with pytest.raises(ConfigException) as error:
             neuron.features.by_circuit(circuit, feature_type=["DO", "RO"])
-            assert 1 == error.value
 
-        logs: list = [record.getMessage() for record in caplog.records]
-
-        assert expected_log in logs
+        assert expected_log == str(error.value)

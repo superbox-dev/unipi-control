@@ -1,8 +1,8 @@
 import pytest
-from _pytest.logging import LogCaptureFixture
 
 from conftest import ConfigLoader
 from conftest_data import HARDWARE_DATA_CONTENT
+from unipi_control.config import ConfigException
 from unittests.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
 from unittests.test_config_data import CONFIG_INVALID_COVER_PROPERTY
 from unittests.test_config_data import CONFIG_INVALID_COVER_TOPIC_NAME
@@ -57,11 +57,8 @@ class TestUnhappyPathConfig:
         ],
         indirect=["config_loader"],
     )
-    def test_validation(self, config_loader: ConfigLoader, caplog: LogCaptureFixture, expected_log: str):
-        with pytest.raises(SystemExit) as error:
+    def test_validation(self, config_loader: ConfigLoader, expected_log: str):
+        with pytest.raises(ConfigException) as error:
             config_loader.get_config()
-            assert 1 == error.value
 
-        logs: list = [record.getMessage() for record in caplog.records]
-
-        assert expected_log in logs
+        assert expected_log == str(error.value)

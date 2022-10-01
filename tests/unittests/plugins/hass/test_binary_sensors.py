@@ -45,7 +45,6 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
                     assert True is task.done()
 
             logs: list = [record.getMessage() for record in caplog.records]
-
             assert (
                 '[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_01/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - DI_3_01", "unique_id": "mocked_unipi_di_3_01", "state_topic": "mocked_unipi/input/di_3_01/get", "qos": 2, "device": {"name": "mocked_unipi: MOCKED AREA 1", "identifiers": "mocked_unipi: MOCKED AREA 1", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA 1"}}'
                 in logs

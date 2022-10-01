@@ -45,7 +45,6 @@ class TestHappyPathHassSwitchesMqttPlugin:
                     assert True is task.done()
 
             logs: list = [record.getMessage() for record in caplog.records]
-
             assert (
                 '[MQTT] [homeassistant/switch/mocked_unipi/do_1_01/config] Publishing message: {"name": "mocked_unipi Digital Output 1.01", "unique_id": "mocked_unipi_do_1_01", "command_topic": "mocked_unipi/relay/do_1_01/set", "state_topic": "mocked_unipi/relay/do_1_01/get", "qos": 2, "device": {"name": "mocked_unipi", "identifiers": "mocked_unipi", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology"}}'
                 in logs

@@ -18,7 +18,7 @@ from unipi_control.neuron import Neuron
 from unipi_control.plugins.hass.covers import HassCoversMqttPlugin
 
 
-class TestHappyPathHassSwitchesCoversMqttPlugin:
+class TestHappyPathHassCoversMqttPlugin:
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     def test_init_tasks(
         self,
@@ -47,7 +47,6 @@ class TestHappyPathHassSwitchesCoversMqttPlugin:
                     assert True is task.done()
 
             logs: list = [record.getMessage() for record in caplog.records]
-
             assert (
                 '[MQTT] [homeassistant/cover/mocked_blind_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - BLIND", "unique_id": "blind_mocked_blind_topic_name", "command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set", "state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state", "qos": 2, "optimistic": false, "device": {"name": "mocked_unipi", "identifiers": "mocked_unipi", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology"}, "object_id": "MOCKED_ID_COVER_BLIND", "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", "set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set", "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt", "tilt_command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set"}'
                 in logs

@@ -24,15 +24,16 @@ from unipi_control.helpers import DataStorage
 
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
+LOG_NAME: Final[str] = "unipi-control"
+LOG_FMT: Final[str] = "{level} | {message}"
 LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
-LOGGER_NAME: Final[str] = "unipi-control"
 
 stdout_handler = logging.StreamHandler(stream=sys.stdout)
-stdout_handler.setFormatter(logging.Formatter(fmt="%(levelname)8s | %(message)s"))
+stdout_handler.setFormatter(logging.Formatter(fmt="%(levelname)s | %(message)s"))
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(LOG_NAME)
 logger.setLevel(logging.INFO)
 logger.addHandler(stdout_handler)
 
@@ -51,6 +52,10 @@ class Validation:
     ALLOWED_CHARACTERS: RegexValidation = RegexValidation(
         regex=r"^[a-z\d_-]*$", error="The following characters are prohibited: a-z 0-9 -_"
     )
+
+
+class ConfigException(Exception):
+    pass
 
 
 @dataclass
@@ -76,14 +81,7 @@ class ConfigMixin:
                     setattr(self, f.name, method(getattr(self, f.name), f=f))
 
                 if not isinstance(value, f.type) and not is_dataclass(value):
-                    logger.error(
-                        "[CONFIG] Expected %s to be %s, got %s",
-                        f.name,
-                        f.type,
-                        repr(value),
-                    )
-
-                    sys.exit(1)
+                    raise ConfigException(f"[CONFIG] Expected {f.name} to be {f.type}, got {repr(value)}")
 
 
 @dataclass
@@ -111,15 +109,9 @@ class HomeAssistantConfig(ConfigMixin):
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
         if result is None:
-            logger.error(
-                "%s [%s] Invalid value '%s' in '%s'. %s",
-                LogPrefix.CONFIG,
-                self.__class__.__name__.replace("Config", "").upper(),
-                value,
-                f.name,
-                Validation.ALLOWED_CHARACTERS.error,
+            raise ConfigException(
+                f"{LogPrefix.CONFIG} [{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{f.name}'. {Validation.ALLOWED_CHARACTERS.error}"
             )
-            sys.exit(1)
 
         return value
 
@@ -158,8 +150,7 @@ class CoverConfig(ConfigMixin):
             "circuit_down",
         ]:
             if not getattr(self, f):
-                logger.error("[CONFIG] %s Required key '%s' is missing! %s", LogPrefix.COVER, f, repr(self))
-                sys.exit(1)
+                raise ConfigException(f"[CONFIG] {LogPrefix.COVER} Required key '{f}' is missing! {repr(self)}")
 
         super().validate()
 
@@ -168,15 +159,9 @@ class CoverConfig(ConfigMixin):
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
         if result is None:
-            logger.error(
-                "%s [%s] Invalid value '%s' in '%s'. %s",
-                LogPrefix.CONFIG,
-                self.__class__.__name__.replace("Config", "").upper(),
-                value,
-                f.name,
-                Validation.ALLOWED_CHARACTERS.error,
+            raise ConfigException(
+                f"{LogPrefix.CONFIG} [{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{f.name}'. {Validation.ALLOWED_CHARACTERS.error}"
             )
-            sys.exit(1)
 
         return value
 
@@ -184,13 +169,9 @@ class CoverConfig(ConfigMixin):
         value = value.lower()
 
         if value not in COVER_TYPES:
-            logger.error(
-                "[CONFIG] %s Invalid value '%s' in 'cover_type'. The following values are allowed: %s.",
-                LogPrefix.COVER,
-                self.cover_type,
-                " ".join(COVER_TYPES),
+            raise ConfigException(
+                f"[CONFIG] {LogPrefix.COVER} Invalid value '{self.cover_type}' in 'cover_type'. The following values are allowed: {' '.join(COVER_TYPES)}."
             )
-            sys.exit(1)
 
         return value
 
@@ -202,7 +183,7 @@ class Config(ConfigMixin):
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
-    logging: LoggingConfig = field(default_factory=LoggingConfig)
+    logging: LoggingConfig = field(default_factory=LoggingConfig)  # TODO: validate logging
     config_base_path: Path = field(default=Path("/etc/unipi"))
     systemd_path: Path = field(default=Path("/etc/systemd/system"))
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
@@ -226,8 +207,7 @@ class Config(ConfigMixin):
                 feature_config.validate()
                 self.features[circuit] = feature_config
             except TypeError:
-                logger.error("[CONFIG] Invalid feature property: %s", feature_data)
-                sys.exit(1)
+                raise ConfigException(f"[CONFIG] Invalid feature property: {feature_data}")
 
         for index, cover_data in enumerate(self.covers):
             try:
@@ -235,8 +215,7 @@ class Config(ConfigMixin):
                 cover_config.validate()
                 self.covers[index] = cover_config
             except TypeError:
-                logger.error("[CONFIG] Invalid cover property: %s", cover_data)
-                sys.exit(1)
+                raise ConfigException(f"[CONFIG] Invalid cover property: {cover_data}")
 
         self.validate_covers_circuits()
 
@@ -284,12 +263,9 @@ class Config(ConfigMixin):
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
-                logger.error(
-                    "[CONFIG] %s Duplicate circuits found in 'covers'. "
-                    "Driving both signals up and down at the same time can damage the motor!",
-                    LogPrefix.COVER,
+                raise ConfigException(
+                    f"[CONFIG] {LogPrefix.COVER} Duplicate circuits found in 'covers'. Driving both signals up and down at the same time can damage the motor!"
                 )
-                sys.exit(1)
 
     @staticmethod
     def validate_device_name(value: str, f: dataclasses.Field):
@@ -297,14 +273,9 @@ class Config(ConfigMixin):
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
         if result is None:
-            logger.error(
-                "%s Invalid value '%s' in '%s'. %s",
-                LogPrefix.CONFIG,
-                value,
-                f.name,
-                Validation.ALLOWED_CHARACTERS.error,
+            raise ConfigException(
+                f"{LogPrefix.CONFIG} Invalid value '{value}' in '{f.name}'. {Validation.ALLOWED_CHARACTERS.error}"
             )
-            sys.exit(1)
 
         return value
 
@@ -379,8 +350,7 @@ class HardwareData(DataStorage):
         self._model: str = self.data["neuron"]["model"]
 
         if self._model is None:
-            logger.error("[CONFIG] Hardware is not supported!")
-            sys.exit(1)
+            raise ConfigException("[CONFIG] Hardware is not supported!")
 
         self._read_definitions()
         self._read_neuron_definition()
@@ -401,5 +371,6 @@ class HardwareData(DataStorage):
             self.data["neuron_definition"] = yaml.load(definition_file.read_text(), Loader=yaml.FullLoader)
             logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
         else:
-            logger.error("[CONFIG] No valid YAML definition for active Neuron device! Device name is %s", self._model)
-            sys.exit(1)
+            raise ConfigException(
+                f"[CONFIG] No valid YAML definition for active Neuron device! Device name is {self._model}"
+            )

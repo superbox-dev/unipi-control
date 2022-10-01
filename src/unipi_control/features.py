@@ -1,6 +1,5 @@
 import itertools
 import re
-import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import List
@@ -9,7 +8,7 @@ from typing import Optional
 from typing import Type
 
 from unipi_control.config import Config
-from unipi_control.config import logger
+from unipi_control.config import ConfigException
 from unipi_control.helpers import DataStorage
 
 
@@ -179,8 +178,7 @@ class FeatureMap(DataStorage):
         try:
             feature: Type[Feature] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
-            logger.error("[CONFIG] '%s' not found in %s!", circuit, self.__class__.__name__)
-            sys.exit(1)
+            raise ConfigException(f"[CONFIG] '{circuit}' not found in {self.__class__.__name__}!")
 
         return feature
 

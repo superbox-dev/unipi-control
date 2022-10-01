@@ -19,6 +19,7 @@ from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
 
 from unipi_control.config import Config
+from unipi_control.config import ConfigException
 from unipi_control.config import logger
 from unipi_control.covers import CoverMap
 from unipi_control.helpers import cancel_tasks
@@ -194,6 +195,9 @@ def main():
                 pass
             finally:
                 logger.info("Successfully shutdown the Unipi Control service.")
+    except ConfigException as e:
+        logger.error(e)
+        sys.exit(1)
     except KeyboardInterrupt:
         pass
 
