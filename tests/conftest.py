@@ -12,8 +12,8 @@ from pytest_mock import MockerFixture
 
 from conftest_data import MODBUS_HOLDING_REGISTER
 from unipi_control.config import Config
-from unipi_control.config import LOG_NAME
 from unipi_control.covers import CoverMap
+from unipi_control.logging import LOG_NAME
 from unipi_control.neuron import Neuron
 
 

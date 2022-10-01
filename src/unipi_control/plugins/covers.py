@@ -11,14 +11,14 @@ from typing import Optional
 from typing import Set
 
 from unipi_control.config import COVER_TYPES
-from unipi_control.config import LOG_MQTT_PUBLISH
-from unipi_control.config import LOG_MQTT_SUBSCRIBE
-from unipi_control.config import LOG_MQTT_SUBSCRIBE_TOPIC
 from unipi_control.config import LogPrefix
-from unipi_control.config import logger
 from unipi_control.covers import Cover
 from unipi_control.covers import CoverDeviceState
 from unipi_control.covers import CoverMap
+from unipi_control.logging import LOG_MQTT_PUBLISH
+from unipi_control.logging import LOG_MQTT_SUBSCRIBE
+from unipi_control.logging import LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.config import logger
 
 
 class SubscribeCommand(NamedTuple):

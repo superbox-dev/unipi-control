@@ -3,7 +3,6 @@ import logging
 import re
 import socket
 import struct
-import sys
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
@@ -11,7 +10,6 @@ from dataclasses import is_dataclass
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Any
-from typing import Dict
 from typing import Final
 from typing import List
 from typing import Match
@@ -21,28 +19,14 @@ from typing import Optional
 import yaml
 
 from unipi_control.helpers import DataStorage
+from unipi_control.logging import LOG_LEVEL
+from unipi_control.logging import LOG_NAME
+from unipi_control.logging import init_logger
+from unipi_control.logging import stream_handler
 
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
-LOG_NAME: Final[str] = "unipi-control"
-LOG_FMT: Final[str] = "{level} | {message}"
-LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
-LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
-
-LOG_LEVEL: Final[Dict[str, int]] = {
-    "debug": logging.DEBUG,
-    "info": logging.INFO,
-    "warning": logging.WARNING,
-    "error": logging.ERROR,
-}
-
-stdout_handler = logging.StreamHandler(stream=sys.stdout)
-stdout_handler.setFormatter(logging.Formatter(fmt="%(levelname)s | %(message)s"))
-
-logger = logging.getLogger(LOG_NAME)
-logger.setLevel(logging.INFO)
-logger.addHandler(stdout_handler)
+logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
 
 
 class LogPrefix:

@@ -9,9 +9,9 @@ from typing import Tuple
 from unipi_control.config import COVER_TYPES
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
-from unipi_control.config import LOG_MQTT_PUBLISH
-from unipi_control.config import logger
 from unipi_control.covers import CoverMap
+from unipi_control.logging import LOG_MQTT_PUBLISH
+from unipi_control.config import logger
 
 
 class HassCoversDiscovery:

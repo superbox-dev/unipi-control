@@ -6,9 +6,9 @@ from typing import AsyncIterable
 from typing import List
 from typing import Set
 
-from unipi_control.config import LOG_MQTT_PUBLISH
-from unipi_control.config import LOG_MQTT_SUBSCRIBE
-from unipi_control.config import LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.logging import LOG_MQTT_PUBLISH
+from unipi_control.logging import LOG_MQTT_SUBSCRIBE
+from unipi_control.logging import LOG_MQTT_SUBSCRIBE_TOPIC
 from unipi_control.config import logger
 
 
