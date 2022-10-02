@@ -16,13 +16,6 @@ logging:
 CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX: Final[
     str
 ] = """device_name: MOCKED_UNIPI
-mqtt:
-  host: localhost
-  port: 1883
-  connection:
-    keepalive: 15
-    retry_limit: 30
-    reconnect_interval: 10
 homeassistant:
   enabled: true
   discovery_prefix: INVALID DISCOVERY NAME
