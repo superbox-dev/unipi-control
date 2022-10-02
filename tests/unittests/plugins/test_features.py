@@ -1,7 +1,6 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
-from typing import NamedTuple
 from typing import Set
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -13,28 +12,11 @@ from asyncio_mqtt import Client
 from pytest_mock import MockerFixture
 
 from conftest import ConfigLoader
+from conftest import MockMQTTMessages
 from conftest_data import CONFIG_CONTENT
 from conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.neuron import Neuron
 from unipi_control.plugins.features import FeaturesMqttPlugin
-
-
-class MockMQTTMessage(NamedTuple):
-    payload: bytes
-
-
-class MockMQTTMessages:
-    def __init__(self, message):
-        self.message = message
-
-    def __aiter__(self):
-        return self
-
-    async def __anext__(self):
-        if self.message:
-            return MockMQTTMessage(self.message.pop())
-
-        raise StopAsyncIteration
 
 
 class TestHappyPathFeaturesMqttPlugin:
@@ -42,7 +24,7 @@ class TestHappyPathFeaturesMqttPlugin:
     def test_init_tasks(
         self,
         mocker: MockerFixture,
-        modbus_client,
+        modbus_client: AsyncMock,
         config_loader: ConfigLoader,
         neuron: Neuron,
         caplog: LogCaptureFixture,
@@ -54,10 +36,10 @@ class TestHappyPathFeaturesMqttPlugin:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             mock_mqtt_client.filtered_messages.return_value = mock_mqtt_messages
 
-            neuron_scan: MagicMock = mocker.patch("unipi_control.neuron.Neuron.scan")
+            mock_neuron_scan: MagicMock = mocker.patch("unipi_control.neuron.Neuron.scan")
 
             FeaturesMqttPlugin.PUBLISH_RUNNING = PropertyMock(side_effect=[True, False])
-            plugin = FeaturesMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
+            plugin: FeaturesMqttPlugin = FeaturesMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
 
             async with AsyncExitStack() as stack:
                 tasks: Set[Task] = set()
@@ -74,7 +56,7 @@ class TestHappyPathFeaturesMqttPlugin:
 
             logs: list = [record.getMessage() for record in caplog.records]
 
-            neuron_scan.assert_called_once()
+            mock_neuron_scan.assert_called_once()
 
             for do in range(1, 4):
                 assert f"[MQTT] Subscribe topic mocked_unipi/relay/do_1_{do:02d}/set" in logs

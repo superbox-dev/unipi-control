@@ -1,6 +1,7 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
+from typing import Iterator
 from typing import List
 from typing import Set
 from unittest.mock import AsyncMock
@@ -21,15 +22,16 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     def test_init_tasks(
         self,
-        modbus_client,
+        modbus_client: AsyncMock,
         config_loader: ConfigLoader,
         neuron: Neuron,
         caplog: LogCaptureFixture,
     ):
         async def run():
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-
-            plugin = HassBinarySensorsMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
+            plugin: HassBinarySensorsMqttPlugin = HassBinarySensorsMqttPlugin(
+                neuron=neuron, mqtt_client=mock_mqtt_client
+            )
 
             async with AsyncExitStack() as stack:
                 tasks: Set[Task] = set()
@@ -108,17 +110,15 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
     )
     def test_discovery_message(
         self,
-        modbus_client,
+        modbus_client: AsyncMock,
         config_loader: ConfigLoader,
         neuron: Neuron,
         caplog: LogCaptureFixture,
         expected: List[dict],
     ):
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-
-        plugin = HassBinarySensorsMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
-
-        features = neuron.features.by_feature_type(HassBinarySensorsDiscovery.publish_feature_types)
+        plugin: HassBinarySensorsMqttPlugin = HassBinarySensorsMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
+        features: Iterator = neuron.features.by_feature_type(HassBinarySensorsDiscovery.publish_feature_types)
 
         for index, feature in enumerate(features):
             topic, message = plugin._hass._get_discovery(feature)

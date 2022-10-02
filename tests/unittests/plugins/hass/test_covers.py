@@ -22,7 +22,7 @@ class TestHappyPathHassCoversMqttPlugin:
     @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
     def test_init_tasks(
         self,
-        modbus_client,
+        modbus_client: AsyncMock,
         config_loader: ConfigLoader,
         neuron: Neuron,
         covers: CoverMap,
@@ -30,8 +30,9 @@ class TestHappyPathHassCoversMqttPlugin:
     ):
         async def run():
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-
-            plugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
+            plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
+                neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers
+            )
 
             async with AsyncExitStack() as stack:
                 tasks: Set[Task] = set()
@@ -113,7 +114,7 @@ class TestHappyPathHassCoversMqttPlugin:
     )
     def test_discovery_message(
         self,
-        modbus_client,
+        modbus_client: AsyncMock,
         config_loader: ConfigLoader,
         neuron: Neuron,
         covers: CoverMap,
@@ -121,8 +122,7 @@ class TestHappyPathHassCoversMqttPlugin:
         expected: List[dict],
     ):
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-
-        plugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
+        plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
 
         for index, cover in enumerate(covers.by_cover_type(COVER_TYPES)):
             topic, message = plugin._hass._get_discovery(cover)

@@ -1,4 +1,5 @@
 from typing import Type
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
 import pytest
@@ -30,7 +31,7 @@ class TestHappyPathFeatures:
     )
     async def test_output_features(
         self,
-        modbus_client,
+        modbus_client: AsyncMock,
         config_loader: ConfigLoader,
         neuron: Neuron,
         caplog: LogCaptureFixture,
