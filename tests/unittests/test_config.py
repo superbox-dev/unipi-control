@@ -62,7 +62,7 @@ class TestUnhappyPathConfig:
             ),
             (
                 (CONFIG_INVALID_LOG_LEVEL, HARDWARE_DATA_CONTENT),
-                "[CONFIG] [COVER] Invalid log level 'invalid'. The following log levels are allowed: debug info warning error.",
+                "[CONFIG] Invalid log level 'invalid'. The following log levels are allowed: debug info warning error.",
             ),
         ],
         indirect=["config_loader"],

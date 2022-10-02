@@ -134,7 +134,7 @@ class LoggingConfig(ConfigMixin):
 
         if value not in LOG_LEVEL.keys():
             raise ConfigException(
-                f"{LogPrefix.CONFIG} {LogPrefix.COVER} Invalid log level '{self.level}'. The following log levels are allowed: {' '.join(LOG_LEVEL.keys())}."
+                f"{LogPrefix.CONFIG} Invalid log level '{self.level}'. The following log levels are allowed: {' '.join(LOG_LEVEL.keys())}."
             )
 
         return value
