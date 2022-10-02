@@ -32,6 +32,8 @@ logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stre
 class LogPrefix:
     CONFIG: Final[str] = "[CONFIG]"
     COVER: Final[str] = "[COVER]"
+    MODBUS: Final[str] = "[MODBUS]"
+    MQTT: Final[str] = "[MQTT]"
 
 
 class RegexValidation(NamedTuple):

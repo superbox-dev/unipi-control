@@ -4,6 +4,7 @@ from typing import Optional
 
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
+from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
@@ -165,14 +166,14 @@ class Neuron:
             await self.modbus_cache_map.scan()
 
     async def read_boards(self):
-        logger.info("[MODBUS] Reading SPI boards")
+        logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
         await self._initialise_cache()
 
         for index in (1, 2, 3):
             response = await self.modbus_client.read_input_registers(address=1000, count=10, unit=index)
 
             if response.isError():
-                logger.info("[MODBUS] No board on SPI %s", index)
+                logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
             else:
                 board = Board(self, versions=response.registers, major_group=index)
                 board.parse_features()

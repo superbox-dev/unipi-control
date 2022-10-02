@@ -21,6 +21,7 @@ from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
 
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
+from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.covers import CoverMap
 from unipi_control.helpers import cancel_tasks
@@ -49,7 +50,7 @@ class UnipiControl:
         self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
         self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
-        logger.info("[MQTT] Client ID: %s", self._mqtt_client_id)
+        logger.info("%s Client ID: %s", LogPrefix.MQTT, self._mqtt_client_id)
 
         self._retry_reconnect: int = 0
 
@@ -67,7 +68,9 @@ class UnipiControl:
             await stack.enter_async_context(mqtt_client)
             self._retry_reconnect = 0
 
-            logger.info("[MQTT] Connected to broker at '%s:%s'", self.config.mqtt.host, self.config.mqtt.port)
+            logger.info(
+                "%s Connected to broker at '%s:%s'", LogPrefix.MQTT, self.config.mqtt.host, self.config.mqtt.port
+            )
 
             features = FeaturesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
             features_tasks = await features.init_tasks(stack)
@@ -102,11 +105,12 @@ class UnipiControl:
 
         while True:
             try:
-                logger.info("[MQTT] Connecting to broker ...")
+                logger.info("%s Connecting to broker ...", LogPrefix.MQTT)
                 await self._init_tasks()
             except MqttError as error:
                 logger.error(
-                    "[MQTT] Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
+                    "%s Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
+                    LogPrefix.MQTT,
                     error,
                     self._retry_reconnect + 1,
                     reconnect_interval,
