@@ -23,7 +23,6 @@ from superbox_utils.logging import stream_handler
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
-
 from unipi_control.logging import LOG_NAME
 
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
@@ -248,7 +247,7 @@ class HardwareData(DataDict):
         self._model: str = self.data["neuron"]["model"]
 
         if self._model is None:
-            raise ConfigException(f"Hardware is not supported!")
+            raise ConfigException("Hardware is not supported!")
 
         self._read_definitions()
         self._read_neuron_definition()
