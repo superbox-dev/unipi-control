@@ -5,9 +5,9 @@ name = "pypi"
 
 [packages]
 pymodbus = "~=2.5.3"
-pyyaml = "~=6.0"
 paho-mqtt = "~=1.6.1"
 asyncio-mqtt = "~=0.12.1"
+superbox-utils = "~=0.1.0"
 
 [dev-packages]
 black = "*"
@@ -16,7 +16,6 @@ flake8 = "*"
 flake8-docstrings = "*"
 mypy = "*"
 pre-commit = "*"
-types-pyyaml = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
