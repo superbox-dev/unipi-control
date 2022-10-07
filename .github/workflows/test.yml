@@ -1,0 +1,67 @@
+name: Test Python Package
+
+on:
+  push:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade pipenv
+          python -m pip install build --user
+          python -m pipenv install --deploy --dev
+      - name: Check code format with black
+        run: pipenv run black --diff --check $(git ls-files '*.py')
+      - name: Lint with flake8
+        run: pipenv run flake8 --config setup.cfg --show-source --statistics $(git ls-files '*.py')
+      - name: Lint with mypy
+        run: pipenv run mypy $(git ls-files '*.py')
+      - name: Run unit tests
+        run: pipenv run pytest --cov=src --cov-report=term-missing
+      - name: Store coverage file
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: .coverage
+
+  coverage:
+    needs: build
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: coverage
+      - name: Create coverage badge
+        uses: tj-actions/coverage-badge-py@v1.8
+      - name: Verify coverage badge changed
+        uses: tj-actions/verify-changed-files@v9
+        id: changed_files
+        with:
+          files: coverage.svg
+      - name: Commit coverage badge
+        if: steps.changed_files.outputs.files_changed == 'true'
+        run: |
+          git config --local user.email "mh@superbox.one"
+          git config --local user.name "Michael Hacker"
+          git add coverage.svg
+          git commit -m "Updated coverage.svg"
+      - name: Push changes
+        if: steps.changed_files.outputs.files_changed == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
