@@ -1,4 +1,5 @@
-device_name: Unipi
+device_info:
+  name: Unipi
 mqtt:
   host: localhost
   port: 1883

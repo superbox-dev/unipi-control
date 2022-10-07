@@ -1,8 +1,8 @@
-import builtins
 import subprocess
 from argparse import Namespace
 from typing import List
 
+import builtins
 import pytest
 from _pytest.capture import CaptureFixture
 from _pytest.logging import LogCaptureFixture

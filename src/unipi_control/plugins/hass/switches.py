@@ -1,7 +1,6 @@
 import asyncio
 import json
 from asyncio import Task
-from dataclasses import asdict
 from typing import Any
 from typing import List
 from typing import Optional
@@ -10,9 +9,9 @@ from typing import Tuple
 
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
+from unipi_control.config import logger
 from unipi_control.features import FeatureState
 from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.config import logger
 from unipi_control.plugins.hass.discover import HassBaseDiscovery
 
 
@@ -39,7 +38,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = (
             f"{self.config.homeassistant.discovery_prefix}/switch/"
-            f"{self.config.device_name.lower()}/{feature.circuit}/config"
+            f"{self.config.device_info.name.lower()}/{feature.circuit}/config"
         )
 
         message: dict = {}
@@ -48,14 +47,14 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
             object_id: Optional[str] = self._get_object_id(feature)
             invert_state: bool = self._get_invert_state(feature)
             suggested_area: Optional[str] = self._get_suggested_area(feature)
-            device_name: str = self.config.device_name
+            device_name: str = self.config.device_info.name
 
             if suggested_area:
                 device_name = f"{device_name}: {suggested_area}"
 
             message = {
                 "name": self._get_friendly_name(feature),
-                "unique_id": f"{self.config.device_name.lower()}_{feature.circuit}",
+                "unique_id": f"{self.config.device_info.name.lower()}_{feature.circuit}",
                 "command_topic": f"{feature.topic}/set",
                 "state_topic": f"{feature.topic}/get",
                 "qos": 2,
@@ -64,7 +63,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
                     "identifiers": device_name,
                     "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
                     "sw_version": self._neuron.boards[feature.major_group - 1].firmware,
-                    **asdict(self.config.homeassistant.device),
+                    "manufacturer": self.config.device_info.manufacturer,
                 },
             }
 

@@ -4,7 +4,8 @@ from unittest.mock import PropertyMock
 
 CONFIG_CONTENT: Final[
     str
-] = """device_name: MOCKED_UNIPI
+] = """device_info:
+  name: MOCKED_UNIPI
 mqtt:
   host: localhost
   port: 1883

@@ -1,4 +1,3 @@
-import itertools
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -7,10 +6,12 @@ from typing import Match
 from typing import Optional
 from typing import Type
 
+import itertools
+from superbox_utils.dict.data_dict import DataDict
+
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
 from unipi_control.config import LogPrefix
-from unipi_control.helpers import DataStorage
 
 
 @dataclass(frozen=True)
@@ -67,7 +68,7 @@ class Feature:
     @property
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
-        topic: str = f"{self.config.device_name.lower()}/{self.feature_name}"
+        topic: str = f"{self.config.device_info.name.lower()}/{self.feature_name}"
         topic += f"/{self.circuit}"
 
         return topic
@@ -132,7 +133,7 @@ class Led(Feature):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
 
 
-class FeatureMap(DataStorage):
+class FeatureMap(DataDict):
     """A container object that has saved Unipi Neuron feature classes.
 
     See Also

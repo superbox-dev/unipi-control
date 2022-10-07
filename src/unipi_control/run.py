@@ -4,28 +4,28 @@ import asyncio
 import shutil
 import signal
 import subprocess
-import sys
 import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Final
-from typing import List
 from typing import Optional
 from typing import Set
 
+import sys
 from asyncio_mqtt import Client
 from asyncio_mqtt import MqttError
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
+from superbox_utils.argparse import init_argparse
+from superbox_utils.asyncio import cancel_tasks
 
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.covers import CoverMap
-from unipi_control.helpers import cancel_tasks
-from unipi_control.logging import LOG_LEVEL
+from unipi_control.logging import LOG_NAME
 from unipi_control.neuron import Neuron
 from unipi_control.plugins.covers import CoversMqttPlugin
 from unipi_control.plugins.features import FeaturesMqttPlugin
@@ -35,6 +35,7 @@ from unipi_control.plugins.hass.switches import HassSwitchesMqttPlugin
 from unipi_control.version import __version__
 
 
+# TODO: Write tests!
 class UnipiControl:
     """Control Unipi I/O directly with MQTT commands.
 
@@ -43,13 +44,13 @@ class UnipiControl:
     the Home Assistant MQTT discovery for binary sensors, switches and covers.
     """
 
-    SYSTEMD_SERVICE: Final[str] = "unipi-control"
+    NAME: Final[str] = "unipi-control"
 
     def __init__(self, config: Config, modbus_client):
         self.config: Config = config
         self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
-        self._mqtt_client_id: str = f"{config.device_name.lower()}-{uuid.uuid4()}"
+        self._mqtt_client_id: str = f"{config.device_info.name.lower()}-{uuid.uuid4()}"
         logger.info("%s Client ID: %s", LogPrefix.MQTT, self._mqtt_client_id)
 
         self._retry_reconnect: int = 0
@@ -126,9 +127,7 @@ class UnipiControl:
     @classmethod
     def install(cls, config: Config, assume_yes: bool):
         src_config_path: Path = Path(__file__).parents[0] / "installer/etc/unipi"
-        src_systemd_path: Path = (
-            Path(__file__).parents[0] / f"installer/etc/systemd/system/{cls.SYSTEMD_SERVICE}.service"
-        )
+        src_systemd_path: Path = Path(__file__).parents[0] / f"installer/etc/systemd/system/{cls.NAME}.service"
         dest_config_path: Path = config.config_base_path
 
         dirs_exist_ok: bool = False
@@ -149,8 +148,8 @@ class UnipiControl:
             print(f"Copy config files to '{dest_config_path}'")
             shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
 
-        print(f"Copy systemd service '{cls.SYSTEMD_SERVICE}.service'")
-        shutil.copyfile(src_systemd_path, f"{config.systemd_path}/{cls.SYSTEMD_SERVICE}.service")
+        print(f"Copy systemd service '{cls.NAME}.service'")
+        shutil.copyfile(src_systemd_path, f"{config.systemd_path}/{cls.NAME}.service")
 
         enable_and_start_systemd: str = "y"
 
@@ -158,40 +157,31 @@ class UnipiControl:
             enable_and_start_systemd = input("\nEnable and start systemd service? [Y/n]")
 
         if enable_and_start_systemd.lower() == "y":
-            print(f"Enable systemd service '{cls.SYSTEMD_SERVICE}.service'")
-            status = subprocess.check_output(f"systemctl enable --now {cls.SYSTEMD_SERVICE}", shell=True)
+            print(f"Enable systemd service '{cls.NAME}.service'")
+            status = subprocess.check_output(f"systemctl enable --now {cls.NAME}", shell=True)
 
             if status:
                 logger.info(status)
         else:
             print("\nYou can enable the systemd service with the command:")
-            print(f"systemctl enable --now {cls.SYSTEMD_SERVICE}")
+            print(f"systemctl enable --now {cls.NAME}")
 
 
-def parse_args(args):
-    parser = argparse.ArgumentParser(description="Control Unipi I/O with MQTT commands")
-    parser.add_argument("-i", "--install", action="store_true", help="install unipi control")
+def parse_args(args) -> argparse.Namespace:
+    parser: argparse.ArgumentParser = init_argparse(description="Control Unipi I/O with MQTT commands")
+    parser.add_argument("-i", "--install", action="store_true", help=f"install {UnipiControl.NAME}")
     parser.add_argument("-y", "--yes", action="store_true", help="automatic yes to install prompts")
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="count",
-        default=0,
-        help=f"verbose mode: multiple -v options increase the verbosity (maximum: {len(LOG_LEVEL)})",
-    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)
 
 
 def main():
-    args = parse_args(sys.argv[1:])
+    args: argparse.Namespace = parse_args(sys.argv[1:])
 
     try:
         config = Config()
-
-        levels: List[str] = list(LOG_LEVEL.keys())
-        config.logging.level = levels[min(args.verbose, len(levels) - 1)]
+        config.logging.update_level(LOG_NAME, verbose=args.verbose)
 
         if args.install:
             UnipiControl.install(config=config, assume_yes=args.yes)
@@ -211,7 +201,7 @@ def main():
             finally:
                 logger.info("Successfully shutdown the Unipi Control service.")
     except ConfigException as e:
-        logger.error(e)
+        logger.error("%s %s", LogPrefix.CONFIG, e)
         sys.exit(1)
     except KeyboardInterrupt:
         pass

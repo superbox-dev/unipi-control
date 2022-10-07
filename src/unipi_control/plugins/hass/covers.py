@@ -1,7 +1,6 @@
 import asyncio
 import json
 from asyncio import Task
-from dataclasses import asdict
 from typing import Any
 from typing import Set
 from typing import Tuple
@@ -9,9 +8,9 @@ from typing import Tuple
 from unipi_control.config import COVER_TYPES
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
+from unipi_control.config import logger
 from unipi_control.covers import CoverMap
 from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.config import logger
 
 
 class HassCoversDiscovery:
@@ -32,10 +31,10 @@ class HassCoversDiscovery:
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
-        device_name: str = self.config.device_name
+        device_name: str = self.config.device_info.name
 
         if cover.suggested_area:
-            device_name = f"{self.config.device_name}: {cover.suggested_area}"
+            device_name = f"{device_name}: {cover.suggested_area}"
 
         message: dict = {
             "name": cover.friendly_name,
@@ -48,7 +47,7 @@ class HassCoversDiscovery:
                 "name": device_name,
                 "identifiers": device_name,
                 "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
-                **asdict(self.config.homeassistant.device),
+                "manufacturer": self.config.device_info.manufacturer,
             },
         }
 

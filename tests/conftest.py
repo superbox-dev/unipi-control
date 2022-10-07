@@ -15,14 +15,14 @@ from pytest_mock import MockerFixture
 from conftest_data import MODBUS_HOLDING_REGISTER
 from unipi_control.config import Config
 from unipi_control.covers import CoverMap
-from unipi_control.logging import LOG_NAME
 from unipi_control.neuron import Neuron
+from unipi_control.run import UnipiControl
 
 
 @pytest.fixture(autouse=True, scope="session")
 def logger():
     logging.getLogger("asyncio").setLevel(logging.WARNING)
-    logging.getLogger(LOG_NAME).handlers.clear()
+    logging.getLogger(UnipiControl.NAME).handlers.clear()
     logging.info("Initialize logging")
 
 
