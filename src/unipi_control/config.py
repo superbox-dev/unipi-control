@@ -34,7 +34,6 @@ class LogPrefix:
     CONFIG: Final[str] = "[CONFIG]"
     COVER: Final[str] = "[COVER]"
     MODBUS: Final[str] = "[MODBUS]"
-    MQTT: Final[str] = "[MQTT]"
 
 
 @dataclass

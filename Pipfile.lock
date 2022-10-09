@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "672dd2e4447a5f84d6ec967e5fc0616d15c03f88f643d87b35ce3fc65544eb8b"
+            "sha256": "ebe6f1d598f8163b8ab1d18ee2723c3cd679bf118e4b7358ee56b624adcbbb1a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,19 @@
         ]
     },
     "default": {
+        "asyncio-mqtt": {
+            "hashes": [
+                "sha256:6dbf85a45f94d26e7465411680ada3947b50546e98208d5d52e7a0a7ed7a7c38",
+                "sha256:cfa32fbd3a2d727ac74fa17ccafd30830a2a66f9e5e6ac7eee5458a9c7a6a832"
+            ],
+            "version": "==0.12.1"
+        },
+        "paho-mqtt": {
+            "hashes": [
+                "sha256:2a8291c81623aec00372b5a85558a372c747cbca8e9934dfe218638b8eefc26f"
+            ],
+            "version": "==1.6.1"
+        },
         "pymodbus": {
             "hashes": [
                 "sha256:5ef68c1a109bdb467c830ef003ef2db6494349a5248e4af946fe21c9eefe7e74",
@@ -87,11 +100,11 @@
         },
         "superbox-utils": {
             "hashes": [
-                "sha256:325750cdb1273317014521c21b15377d02ba082ef6d26f8c5173d2008ecbdb38",
-                "sha256:fa6010f5a0229d694040fd0495b950af4d53127c883d95a359e9df5051e2c681"
+                "sha256:4bd0cedfb15a92f239053d2294ffddfead3309d7bcd1e17c8fc6582e99ad1cb2",
+                "sha256:9a2d6ffb73db26af7e22979375fe27534f6dbf43fa290826c3ec9e3df04d1df8"
             ],
             "index": "pypi",
-            "version": "==0.2.0"
+            "version": "==0.3.0"
         }
     },
     "develop": {
@@ -519,7 +532,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_full_version < '3.11.0a7'",
+            "markers": "python_version >= '3.7'",
             "version": "==2.0.1"
         },
         "typing-extensions": {
