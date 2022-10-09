@@ -22,7 +22,7 @@ class HassBaseDiscovery(ABC):
 
     def _get_friendly_name(self, feature) -> str:
         """Get the friendly name from the config. Used for ``Name`` in Home Assistant."""
-        friendly_name: str = f"{self.config.device_name} {feature.circuit_name}"
+        friendly_name: str = f"{self.config.device_info.name} {feature.circuit_name}"
         features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
         if features_config:

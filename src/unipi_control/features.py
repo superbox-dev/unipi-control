@@ -1,6 +1,4 @@
-import itertools
 import re
-import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import List
@@ -8,9 +6,12 @@ from typing import Match
 from typing import Optional
 from typing import Type
 
+import itertools
+from superbox_utils.dict.data_dict import DataDict
+
 from unipi_control.config import Config
-from unipi_control.config import logger
-from unipi_control.helpers import DataStorage
+from unipi_control.config import ConfigException
+from unipi_control.config import LogPrefix
 
 
 @dataclass(frozen=True)
@@ -67,7 +68,7 @@ class Feature:
     @property
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
-        topic: str = f"{self.config.device_name.lower()}/{self.feature_name}"
+        topic: str = f"{self.config.device_info.name.lower()}/{self.feature_name}"
         topic += f"/{self.circuit}"
 
         return topic
@@ -132,7 +133,7 @@ class Led(Feature):
         return await self.modbus_client.write_coil(self.coil, value, unit=0)
 
 
-class FeatureMap(DataStorage):
+class FeatureMap(DataDict):
     """A container object that has saved Unipi Neuron feature classes.
 
     See Also
@@ -179,8 +180,7 @@ class FeatureMap(DataStorage):
         try:
             feature: Type[Feature] = next(filter(lambda d: d.circuit == circuit, data))
         except StopIteration:
-            logger.error("[CONFIG] '%s' not found in %s!", circuit, self.__class__.__name__)
-            sys.exit(1)
+            raise ConfigException(f"{LogPrefix.CONFIG} '{circuit}' not found in {self.__class__.__name__}!")
 
         return feature
 

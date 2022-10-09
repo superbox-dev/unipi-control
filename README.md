@@ -37,10 +37,12 @@ $ unipi-control --install
 
 ## Arguments
 
-| Argument    | Description                      |
-|-------------|----------------------------------|
-| `--install` | install unipi control            |
-| `--yes`     | automatic yes to install prompts |
+| Argument    | Description                                                           |
+|-------------|-----------------------------------------------------------------------|
+| `--install` | install unipi control                                                 |
+| `--yes`     | automatic yes to install prompts                                      |
+| `-v`        | verbose mode: multiple -v options increase the verbosity (maximum: 4) |
+
 
 ## Configuration
 
@@ -48,13 +50,14 @@ You can set the client settings in the `/etc/unipi/control.yaml`.
 
 ### Device
 
-| Key           | Value                                                                          |
-|---------------|--------------------------------------------------------------------------------|
-| `device_name` | The device name for the subscribe and publish topics. Default is the hostname. |
+| Key    | Value                                                                          |
+|--------|--------------------------------------------------------------------------------|
+| `name` | The device name for the subscribe and publish topics. Default is the hostname. |
 
 ```yaml
 # control.yaml
-device_name: Unipi
+device_info:
+  name: Unipi
 ```
 
 ### MQTT

@@ -1,4 +1,5 @@
 from typing import Optional
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
 import pytest
@@ -14,7 +15,7 @@ from unipi_control.covers import CoverState
 
 class TestCovers:
     @pytest.fixture(autouse=True)
-    def pre(self, modbus_client, mocker: MockerFixture):
+    def pre(self, modbus_client: AsyncMock, mocker: MockerFixture):
         mock_response_is_error = MagicMock()
         mock_response_is_error.isError.return_value = False
 

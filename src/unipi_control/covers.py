@@ -1,6 +1,4 @@
 import asyncio
-import itertools
-import time
 from asyncio import Task
 from collections.abc import Iterator
 from dataclasses import asdict
@@ -13,12 +11,15 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+import itertools
+import time
+from superbox_utils.asyncio import run_in_executor
+from superbox_utils.dict.data_dict import DataDict
+
 from unipi_control.config import Config
 from unipi_control.features import DigitalOutput
 from unipi_control.features import FeatureMap
 from unipi_control.features import Relay
-from unipi_control.helpers import DataStorage
-from unipi_control.helpers import run_in_executor
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
 
@@ -61,7 +62,7 @@ class CoverTimer:
     """Timer for state changes.
 
     If the state from the device changed (e.g. open, close, stop, ...)
-    a timer is required for the cover runtime. The timer run in an asyncio
+    a timer is required for the cover runtime. The timer run in an asyncio.py
     task and run a callback function when it expired.
     """
 
@@ -180,7 +181,7 @@ class Cover:
 
     @property
     def topic(self) -> str:
-        return f"{self.config.device_name.lower()}/{self.topic_name}/cover/{self.cover_type}"
+        return f"{self.config.device_info.name.lower()}/{self.topic_name}/cover/{self.cover_type}"
 
     @property
     def is_opening(self) -> bool:
@@ -617,8 +618,8 @@ class Cover:
         return cover_run_time
 
 
-class CoverMap(DataStorage):
-    """A read-only container object that has saved cover classes.
+class CoverMap(DataDict):
+    """A container object that has saved cover classes.
 
     See Also
     --------

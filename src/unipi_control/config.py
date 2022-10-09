@@ -3,134 +3,56 @@ import logging
 import re
 import socket
 import struct
-import sys
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
-from dataclasses import is_dataclass
 from pathlib import Path
 from tempfile import gettempdir
-from typing import Any
-from typing import Dict
 from typing import Final
 from typing import List
 from typing import Match
-from typing import NamedTuple
 from typing import Optional
 
-import yaml
-
-from unipi_control.helpers import DataStorage
+from superbox_utils.config.exception import ConfigException
+from superbox_utils.config.loader import ConfigLoaderMixin
+from superbox_utils.config.loader import Validation
+from superbox_utils.dict.data_dict import DataDict
+from superbox_utils.hass.config import HomeAssistantConfig
+from superbox_utils.logging import init_logger
+from superbox_utils.logging import stream_handler
+from superbox_utils.logging.config import LoggingConfig
+from superbox_utils.mqtt.config import MqttConfig
+from superbox_utils.yaml.loader import yaml_loader_safe
+from unipi_control.logging import LOG_NAME
 
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
-LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
-LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
-LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
-LOGGER_NAME: Final[str] = "unipi-control"
-
-stdout_handler = logging.StreamHandler(stream=sys.stdout)
-stdout_handler.setFormatter(logging.Formatter(fmt="%(levelname)8s | %(message)s"))
-
-logger = logging.getLogger(LOGGER_NAME)
-logger.setLevel(logging.INFO)
-logger.addHandler(stdout_handler)
+logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
 
 
 class LogPrefix:
     CONFIG: Final[str] = "[CONFIG]"
     COVER: Final[str] = "[COVER]"
-
-
-class RegexValidation(NamedTuple):
-    regex: str
-    error: str
-
-
-class Validation:
-    ALLOWED_CHARACTERS: RegexValidation = RegexValidation(
-        regex=r"^[a-z\d_-]*$", error="The following characters are prohibited: a-z 0-9 -_"
-    )
+    MODBUS: Final[str] = "[MODBUS]"
 
 
 @dataclass
-class ConfigMixin:
-    def update(self, new):
-        for key, value in new.items():
-            if hasattr(self, key):
-                item = getattr(self, key)
-
-                if is_dataclass(item):
-                    item.update(value)
-                else:
-                    setattr(self, key, value)
-
-    def validate(self):
-        for f in dataclasses.fields(self):
-            value: Any = getattr(self, f.name)
-
-            if is_dataclass(value):
-                value.validate()
-            else:
-                if method := getattr(self, f"validate_{f.name}", None):
-                    setattr(self, f.name, method(getattr(self, f.name), f=f))
-
-                if not isinstance(value, f.type) and not is_dataclass(value):
-                    logger.error(
-                        "[CONFIG] Expected %s to be %s, got %s",
-                        f.name,
-                        f.type,
-                        repr(value),
-                    )
-
-                    sys.exit(1)
-
-
-@dataclass
-class MqttConfig(ConfigMixin):
-    host: str = field(default="localhost")
-    port: int = field(default=1883)
-    keepalive: int = field(default=15)
-    retry_limit: int = field(default=30)
-    reconnect_interval: int = field(default=10)
-
-
-@dataclass
-class DeviceInfo(ConfigMixin):
+class DeviceInfo(ConfigLoaderMixin):
+    name: str = field(default=socket.gethostname())
     manufacturer: str = field(default="Unipi technology")
 
-
-@dataclass
-class HomeAssistantConfig(ConfigMixin):
-    enabled: bool = field(default=True)
-    discovery_prefix: str = field(default="homeassistant")
-    device: DeviceInfo = field(default=DeviceInfo())
-
-    def validate_discovery_prefix(self, value: str, f: dataclasses.Field):
-        value = value.lower()
+    @staticmethod
+    def _validate_name(value: str, f: dataclasses.Field) -> str:
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
         if result is None:
-            logger.error(
-                "%s [%s] Invalid value '%s' in '%s'. %s",
-                LogPrefix.CONFIG,
-                self.__class__.__name__.replace("Config", "").upper(),
-                value,
-                f.name,
-                Validation.ALLOWED_CHARACTERS.error,
-            )
-            sys.exit(1)
+            raise ConfigException(f"Invalid value '{value}' in '{f.name}'. {Validation.ALLOWED_CHARACTERS.error}")
 
         return value
 
 
 @dataclass
-class LoggingConfig(ConfigMixin):
-    level: str = field(default="info")
-
-
-@dataclass
-class FeatureConfig(ConfigMixin):
+class FeatureConfig(ConfigLoaderMixin):
     id: str = field(default_factory=str)
     invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
@@ -138,7 +60,7 @@ class FeatureConfig(ConfigMixin):
 
 
 @dataclass
-class CoverConfig(ConfigMixin):
+class CoverConfig(ConfigLoaderMixin):
     id: str = field(default_factory=str)
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
@@ -158,46 +80,35 @@ class CoverConfig(ConfigMixin):
             "circuit_down",
         ]:
             if not getattr(self, f):
-                logger.error("[CONFIG] %s Required key '%s' is missing! %s", LogPrefix.COVER, f, repr(self))
-                sys.exit(1)
+                raise ConfigException(f"{LogPrefix.COVER} Required key '{f}' is missing! {repr(self)}")
 
         super().validate()
 
-    def validate_topic_name(self, value: str, f: dataclasses.Field):
+    def _validate_topic_name(self, value: str, f: dataclasses.Field) -> str:
         value = value.lower()
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
         if result is None:
-            logger.error(
-                "%s [%s] Invalid value '%s' in '%s'. %s",
-                LogPrefix.CONFIG,
-                self.__class__.__name__.replace("Config", "").upper(),
-                value,
-                f.name,
-                Validation.ALLOWED_CHARACTERS.error,
+            raise ConfigException(
+                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{f.name}'. {Validation.ALLOWED_CHARACTERS.error}"
             )
-            sys.exit(1)
 
         return value
 
-    def validate_cover_type(self, value: str, f: dataclasses.Field):
+    def _validate_cover_type(self, value: str, f: dataclasses.Field) -> str:
         value = value.lower()
 
         if value not in COVER_TYPES:
-            logger.error(
-                "[CONFIG] %s Invalid value '%s' in 'cover_type'. The following values are allowed: %s.",
-                LogPrefix.COVER,
-                self.cover_type,
-                " ".join(COVER_TYPES),
+            raise ConfigException(
+                f"{LogPrefix.COVER} Invalid value '{self.cover_type}' in 'cover_type'. The following values are allowed: {' '.join(COVER_TYPES)}."
             )
-            sys.exit(1)
 
         return value
 
 
 @dataclass
-class Config(ConfigMixin):
-    device_name: str = field(default=socket.gethostname())
+class Config(ConfigLoaderMixin):
+    device_info: DeviceInfo = field(default=DeviceInfo())
     mqtt: MqttConfig = field(default_factory=MqttConfig)
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: dict = field(init=False, default_factory=dict)
@@ -208,14 +119,14 @@ class Config(ConfigMixin):
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
+    @property
+    def hardware_path(self) -> Path:
+        return self.config_base_path / "hardware"
+
     def __post_init__(self):
         self.temp_path.mkdir(exist_ok=True)
-
-        _config: dict = self.get_config(self.config_base_path / "control.yaml")
-        self.update(_config)
-        self.validate()
-
-        self._change_logger_level()
+        self.update_from_yaml_file(config_path=self.config_base_path / "control.yaml")
+        self.logging.update_level(name=LOG_NAME)
 
     def validate(self):
         super().validate()
@@ -226,8 +137,7 @@ class Config(ConfigMixin):
                 feature_config.validate()
                 self.features[circuit] = feature_config
             except TypeError:
-                logger.error("[CONFIG] Invalid feature property: %s", feature_data)
-                sys.exit(1)
+                raise ConfigException(f"Invalid feature property: {feature_data}")
 
         for index, cover_data in enumerate(self.covers):
             try:
@@ -235,33 +145,9 @@ class Config(ConfigMixin):
                 cover_config.validate()
                 self.covers[index] = cover_config
             except TypeError:
-                logger.error("[CONFIG] Invalid cover property: %s", cover_data)
-                sys.exit(1)
+                raise ConfigException(f"Invalid cover property: {cover_data}")
 
-        self.validate_covers_circuits()
-
-    @property
-    def hardware_path(self) -> Path:
-        return self.config_base_path / "hardware"
-
-    def _change_logger_level(self):
-        level: Dict[str, int] = {
-            "debug": logging.DEBUG,
-            "info": logging.INFO,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-        }
-
-        logger.setLevel(level[self.logging.level])
-
-    @staticmethod
-    def get_config(config_path: Path) -> dict:
-        _config: dict = {}
-
-        if config_path.exists():
-            _config = yaml.load(config_path.read_text(), Loader=yaml.FullLoader)
-
-        return _config
+        self._validate_covers_circuits()
 
     def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config."""
@@ -279,34 +165,14 @@ class Config(ConfigMixin):
 
         return circuits
 
-    def validate_covers_circuits(self):
+    def _validate_covers_circuits(self):
         circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
-                logger.error(
-                    "[CONFIG] %s Duplicate circuits found in 'covers'. "
-                    "Driving both signals up and down at the same time can damage the motor!",
-                    LogPrefix.COVER,
+                raise ConfigException(
+                    f"{LogPrefix.COVER} Duplicate circuits found in 'covers'. Driving both signals up and down at the same time can damage the motor!"
                 )
-                sys.exit(1)
-
-    @staticmethod
-    def validate_device_name(value: str, f: dataclasses.Field):
-        value = value.lower()
-        result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
-
-        if result is None:
-            logger.error(
-                "%s Invalid value '%s' in '%s'. %s",
-                LogPrefix.CONFIG,
-                value,
-                f.name,
-                Validation.ALLOWED_CHARACTERS.error,
-            )
-            sys.exit(1)
-
-        return value
 
 
 @dataclass
@@ -364,7 +230,7 @@ class HardwareInfo:
                 self.serial = struct.unpack("i", ee_bytes[100:104])[0]
 
 
-class HardwareData(DataStorage):
+class HardwareData(DataDict):
     def __init__(self, config: Config):
         super().__init__()
 
@@ -379,27 +245,25 @@ class HardwareData(DataStorage):
         self._model: str = self.data["neuron"]["model"]
 
         if self._model is None:
-            logger.error("[CONFIG] Hardware is not supported!")
-            sys.exit(1)
+            raise ConfigException("Hardware is not supported!")
 
         self._read_definitions()
         self._read_neuron_definition()
 
     def _read_definitions(self):
         try:
-            for f in Path(f"{self.config.hardware_path}/extension").iterdir():
-                if f.suffix == ".yaml":
-                    self.data["definitions"].append(yaml.load(f.read_text(), Loader=yaml.FullLoader))
-                    logger.debug("[CONFIG] YAML Definition loaded: %s", f)
+            for extension_file in Path(f"{self.config.hardware_path}/extension").iterdir():
+                if extension_file.suffix == ".yaml":
+                    self.data["definitions"].append(yaml_loader_safe(extension_file))
+                    logger.debug("[%s] YAML Definition loaded: %s", LogPrefix.CONFIG, extension_file)
         except FileNotFoundError as error:
-            logger.info("[CONFIG] %s", str(error))
+            logger.info("%s %s", LogPrefix.CONFIG, str(error))
 
     def _read_neuron_definition(self):
         definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self._model}.yaml")
 
         if definition_file.is_file():
-            self.data["neuron_definition"] = yaml.load(definition_file.read_text(), Loader=yaml.FullLoader)
-            logger.debug("[CONFIG] YAML Definition loaded: %s", definition_file)
+            self.data["neuron_definition"] = yaml_loader_safe(definition_file)
+            logger.debug("%s YAML Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
-            logger.error("[CONFIG] No valid YAML definition for active Neuron device! Device name is %s", self._model)
-            sys.exit(1)
+            raise ConfigException(f"No valid YAML definition for active Neuron device! Device name is {self._model}")

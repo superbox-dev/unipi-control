@@ -1,6 +1,8 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
+from typing import AsyncGenerator
+from typing import NamedTuple
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
@@ -12,15 +14,15 @@ from pytest_mock import MockerFixture
 
 from conftest_data import MODBUS_HOLDING_REGISTER
 from unipi_control.config import Config
-from unipi_control.config import LOGGER_NAME
 from unipi_control.covers import CoverMap
 from unipi_control.neuron import Neuron
+from unipi_control.run import UnipiControl
 
 
 @pytest.fixture(autouse=True, scope="session")
 def logger():
     logging.getLogger("asyncio").setLevel(logging.WARNING)
-    logging.getLogger(LOGGER_NAME).handlers.clear()
+    logging.getLogger(UnipiControl.NAME).handlers.clear()
     logging.info("Initialize logging")
 
 
@@ -109,7 +111,7 @@ def modbus_client(mocker: MockerFixture) -> AsyncMock:
 
 
 @pytest_asyncio.fixture
-async def neuron(config_loader: ConfigLoader, modbus_client):
+async def neuron(config_loader: ConfigLoader, modbus_client: AsyncMock) -> AsyncGenerator:
     config: Config = config_loader.get_config()
 
     _neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
@@ -119,6 +121,24 @@ async def neuron(config_loader: ConfigLoader, modbus_client):
 
 
 @pytest_asyncio.fixture
-async def covers(config_loader: ConfigLoader, neuron: Neuron):
+async def covers(config_loader: ConfigLoader, neuron: Neuron) -> AsyncGenerator:
     config: Config = config_loader.get_config()
     yield CoverMap(config=config, features=neuron.features)
+
+
+class MockMQTTMessage(NamedTuple):
+    payload: bytes
+
+
+class MockMQTTMessages:
+    def __init__(self, message):
+        self.message = message
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if self.message:
+            return MockMQTTMessage(self.message.pop())
+
+        raise StopAsyncIteration
