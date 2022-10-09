@@ -9,17 +9,16 @@ from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Final
-from typing import Optional
 from typing import Set
 
 import sys
 from asyncio_mqtt import Client
-from asyncio_mqtt import MqttError
 from pymodbus.client.asynchronous import schedulers
 from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
+
 from superbox_utils.argparse import init_argparse
 from superbox_utils.asyncio import cancel_tasks
-
+from superbox_utils.mqtt.connect import mqtt_connect
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
 from unipi_control.config import LogPrefix
@@ -35,7 +34,6 @@ from unipi_control.plugins.hass.switches import HassSwitchesMqttPlugin
 from unipi_control.version import __version__
 
 
-# TODO: Write tests!
 class UnipiControl:
     """Control Unipi I/O directly with MQTT commands.
 
@@ -50,79 +48,43 @@ class UnipiControl:
         self.config: Config = config
         self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
-        self._mqtt_client_id: str = f"{config.device_info.name.lower()}-{uuid.uuid4()}"
-        logger.info("%s Client ID: %s", LogPrefix.MQTT, self._mqtt_client_id)
+    async def _init_tasks(self, stack: AsyncExitStack, mqtt_client: Client):
+        tasks: Set[Task] = set()
 
-        self._retry_reconnect: int = 0
+        features = FeaturesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
+        features_tasks = await features.init_tasks(stack)
+        tasks.update(features_tasks)
 
-    async def _init_tasks(self):
-        async with AsyncExitStack() as stack:
-            tasks: Set[Task] = set()
+        covers = CoverMap(config=self.config, features=self.neuron.features)
 
-            mqtt_client: Client = Client(
-                self.config.mqtt.host,
-                self.config.mqtt.port,
-                client_id=self._mqtt_client_id,
-                keepalive=self.config.mqtt.keepalive,
-            )
+        covers_plugin = CoversMqttPlugin(mqtt_client=mqtt_client, covers=covers)
+        covers_tasks = await covers_plugin.init_tasks(stack)
+        tasks.update(covers_tasks)
 
-            await stack.enter_async_context(mqtt_client)
-            self._retry_reconnect = 0
+        if self.config.homeassistant.enabled:
+            hass_covers_plugin = HassCoversMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client, covers=covers)
+            hass_covers_tasks = await hass_covers_plugin.init_tasks()
+            tasks.update(hass_covers_tasks)
 
-            logger.info(
-                "%s Connected to broker at '%s:%s'", LogPrefix.MQTT, self.config.mqtt.host, self.config.mqtt.port
-            )
+            hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
+            hass_binary_sensors_tasks = await hass_binary_sensors_plugin.init_tasks()
+            tasks.update(hass_binary_sensors_tasks)
 
-            features = FeaturesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
-            features_tasks = await features.init_tasks(stack)
-            tasks.update(features_tasks)
+            hass_switches_plugin = HassSwitchesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
+            hass_switches_tasks = await hass_switches_plugin.init_tasks()
+            tasks.update(hass_switches_tasks)
 
-            covers = CoverMap(config=self.config, features=self.neuron.features)
-
-            covers_plugin = CoversMqttPlugin(mqtt_client=mqtt_client, covers=covers)
-            covers_tasks = await covers_plugin.init_tasks(stack)
-            tasks.update(covers_tasks)
-
-            if self.config.homeassistant.enabled:
-                hass_covers_plugin = HassCoversMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client, covers=covers)
-                hass_covers_tasks = await hass_covers_plugin.init_tasks()
-                tasks.update(hass_covers_tasks)
-
-                hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
-                hass_binary_sensors_tasks = await hass_binary_sensors_plugin.init_tasks()
-                tasks.update(hass_binary_sensors_tasks)
-
-                hass_switches_plugin = HassSwitchesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
-                hass_switches_tasks = await hass_switches_plugin.init_tasks()
-                tasks.update(hass_switches_tasks)
-
-            await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
 
     async def run(self):
         await self.neuron.read_boards()
 
-        reconnect_interval: int = self.config.mqtt.reconnect_interval
-        retry_limit: Optional[int] = self.config.mqtt.retry_limit
-
-        while True:
-            try:
-                logger.info("%s Connecting to broker ...", LogPrefix.MQTT)
-                await self._init_tasks()
-            except MqttError as error:
-                logger.error(
-                    "%s Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
-                    LogPrefix.MQTT,
-                    error,
-                    self._retry_reconnect + 1,
-                    reconnect_interval,
-                )
-            finally:
-                if retry_limit and self._retry_reconnect > retry_limit:
-                    sys.exit(1)
-
-                self._retry_reconnect += 1
-
-                await asyncio.sleep(reconnect_interval)
+        await mqtt_connect(
+            mqtt_config=self.config.mqtt,
+            logger=logger,
+            mqtt_client_id=f"{self.config.device_info.name.lower()}-{uuid.uuid4()}",
+            callback=self._init_tasks,
+        )
 
     @classmethod
     def install(cls, config: Config, assume_yes: bool):

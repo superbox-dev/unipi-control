@@ -49,11 +49,11 @@ class TestHappyPathHassCoversMqttPlugin:
 
             logs: list = [record.getMessage() for record in caplog.records]
             assert (
-                '[MQTT] [homeassistant/cover/mocked_blind_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - BLIND", "unique_id": "blind_mocked_blind_topic_name", "command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set", "state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state", "qos": 2, "optimistic": false, "device": {"name": "mocked_unipi", "identifiers": "mocked_unipi", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology"}, "object_id": "MOCKED_ID_COVER_BLIND", "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", "set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set", "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt", "tilt_command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set"}'
+                '[MQTT] [homeassistant/cover/mocked_blind_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - BLIND", "unique_id": "blind_mocked_blind_topic_name", "command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set", "state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology"}, "object_id": "MOCKED_ID_COVER_BLIND", "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", "set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set", "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt", "tilt_command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set"}'
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/cover/mocked_roller_shutter_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", "unique_id": "roller_shutter_mocked_roller_shutter_topic_name", "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", "qos": 2, "optimistic": false, "device": {"name": "mocked_unipi: MOCKED AREA", "identifiers": "mocked_unipi: MOCKED AREA", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA"}}'
+                '[MQTT] [homeassistant/cover/mocked_roller_shutter_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", "unique_id": "roller_shutter_mocked_roller_shutter_topic_name", "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED_UNIPI: MOCKED AREA", "identifiers": "MOCKED_UNIPI: MOCKED AREA", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA"}}'
                 in logs
             )
             assert 2 == len(logs)
@@ -76,8 +76,8 @@ class TestHappyPathHassCoversMqttPlugin:
                             "qos": 2,
                             "optimistic": False,
                             "device": {
-                                "name": "mocked_unipi",
-                                "identifiers": "mocked_unipi",
+                                "name": "MOCKED_UNIPI",
+                                "identifiers": "MOCKED_UNIPI",
                                 "model": "MOCKED_NAME MOCKED_MODEL",
                                 "manufacturer": "Unipi technology",
                             },
@@ -98,8 +98,8 @@ class TestHappyPathHassCoversMqttPlugin:
                             "qos": 2,
                             "optimistic": False,
                             "device": {
-                                "name": "mocked_unipi: MOCKED AREA",
-                                "identifiers": "mocked_unipi: MOCKED AREA",
+                                "name": "MOCKED_UNIPI: MOCKED AREA",
+                                "identifiers": "MOCKED_UNIPI: MOCKED AREA",
                                 "model": "MOCKED_NAME MOCKED_MODEL",
                                 "manufacturer": "Unipi technology",
                                 "suggested_area": "MOCKED AREA",

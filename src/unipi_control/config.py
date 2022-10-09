@@ -44,7 +44,6 @@ class DeviceInfo(ConfigLoaderMixin):
 
     @staticmethod
     def _validate_name(value: str, f: dataclasses.Field) -> str:
-        value = value.lower()
         result: Optional[Match[str]] = re.search(Validation.ALLOWED_CHARACTERS.regex, value)
 
         if result is None:

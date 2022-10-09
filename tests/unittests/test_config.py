@@ -22,7 +22,7 @@ class TestUnhappyPathConfig:
         [
             (
                 (CONFIG_INVALID_DEVICE_NAME, HARDWARE_DATA_CONTENT),
-                "Invalid value 'invalid device name' in 'name'. The following characters are prohibited: a-z 0-9 -_",
+                "Invalid value 'INVALID DEVICE NAME' in 'name'. The following characters are prohibited: a-z 0-9 -_",
             ),
             (
                 (CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX, HARDWARE_DATA_CONTENT),
