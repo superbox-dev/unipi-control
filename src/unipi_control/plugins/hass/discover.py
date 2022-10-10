@@ -46,7 +46,7 @@ class HassBaseDiscovery(ABC):
         features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
         if features_config:
-            object_id = features_config.id
+            object_id = features_config.id.lower()
 
         return object_id
 
