@@ -4,7 +4,6 @@ from typing import Optional
 from typing import Tuple
 
 from unipi_control.config import Config
-from unipi_control.config import FeatureConfig
 
 
 class HassBaseDiscovery(ABC):
@@ -13,9 +12,8 @@ class HassBaseDiscovery(ABC):
 
     def _get_invert_state(self, feature) -> bool:
         """Check if invert state is enabled in the config."""
-        features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
-        if features_config:
+        if features_config := self.config.features.get(feature.circuit):
             return features_config.invert_state
 
         return False
@@ -23,9 +21,8 @@ class HassBaseDiscovery(ABC):
     def _get_friendly_name(self, feature) -> str:
         """Get the friendly name from the config. Used for ``Name`` in Home Assistant."""
         friendly_name: str = f"{self.config.device_info.name} {feature.circuit_name}"
-        features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
-        if features_config:
+        if features_config := self.config.features.get(feature.circuit):
             friendly_name = features_config.friendly_name
 
         return friendly_name
@@ -33,9 +30,8 @@ class HassBaseDiscovery(ABC):
     def _get_suggested_area(self, feature) -> Optional[str]:
         """Get the suggested area from the config. Used for ``Area`` in Home Assistant."""
         suggested_area: Optional[str] = None
-        features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
-        if features_config:
+        if features_config := self.config.features.get(feature.circuit):
             suggested_area = features_config.suggested_area
 
         return suggested_area
@@ -43,9 +39,8 @@ class HassBaseDiscovery(ABC):
     def _get_object_id(self, feature) -> Optional[str]:
         """Get the object ID from the config. Used for ``Entity ID`` in Home Assistant."""
         object_id: Optional[str] = None
-        features_config: Optional[FeatureConfig] = self.config.features.get(feature.circuit)
 
-        if features_config:
+        if features_config := self.config.features.get(feature.circuit):
             object_id = features_config.id.lower()
 
         return object_id

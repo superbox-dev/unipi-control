@@ -57,7 +57,7 @@ class FeaturesMqttPlugin:
 
     async def _publish(self):
         while self.PUBLISH_RUNNING:
-            await self._neuron.scan()
+            await self._neuron.modbus_cache_data.scan()
 
             for feature in self._neuron.features.by_feature_type(self.publish_feature_types):
                 if feature.changed:

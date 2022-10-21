@@ -13,18 +13,20 @@ from typing import Set
 
 import sys
 from asyncio_mqtt import Client
-from pymodbus.client.asynchronous import schedulers
-from pymodbus.client.asynchronous.tcp import AsyncModbusTCPClient
+from pymodbus.client import AsyncModbusSerialClient
+from pymodbus.client import AsyncModbusTcpClient
 
 from superbox_utils.argparse import init_argparse
 from superbox_utils.asyncio import cancel_tasks
+from superbox_utils.config.exception import ConfigException
+from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
 from unipi_control.config import Config
-from unipi_control.config import ConfigException
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.covers import CoverMap
 from unipi_control.logging import LOG_NAME
+from unipi_control.modbus.cache import ModbusClient
 from unipi_control.neuron import Neuron
 from unipi_control.plugins.covers import CoversMqttPlugin
 from unipi_control.plugins.features import FeaturesMqttPlugin
@@ -44,12 +46,14 @@ class UnipiControl:
 
     NAME: Final[str] = "unipi-control"
 
-    def __init__(self, config: Config, modbus_client):
+    def __init__(self, config: Config, modbus_client: ModbusClient):
         self.config: Config = config
+        self.modbus_client: ModbusClient = modbus_client
         self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
     async def _init_tasks(self, stack: AsyncExitStack, mqtt_client: Client):
         tasks: Set[Task] = set()
+        stack.push_async_callback(self._cancel_tasks, tasks)
 
         features = FeaturesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
         features_tasks = await features.init_tasks(stack)
@@ -60,6 +64,12 @@ class UnipiControl:
         covers_plugin = CoversMqttPlugin(mqtt_client=mqtt_client, covers=covers)
         covers_tasks = await covers_plugin.init_tasks(stack)
         tasks.update(covers_tasks)
+
+        # modbus_devices_plugin = ModbusDevicesMqttPlugin(
+        #     mqtt_client=mqtt_client, devices=ModbusDeviceMap(config=self.config, hardware=self.neuron.hardware)
+        # )
+        # modbus_devices_tasks = await modbus_devices_plugin.init_tasks()
+        # tasks.update(modbus_devices_tasks)
 
         if self.config.homeassistant.enabled:
             hass_covers_plugin = HassCoversMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client, covers=covers)
@@ -76,7 +86,45 @@ class UnipiControl:
 
         await asyncio.gather(*tasks)
 
+    async def _cancel_tasks(self, tasks):
+        for task in tasks:
+            if task.done():
+                continue
+
+            try:
+                task.cancel()
+                await task
+            except asyncio.CancelledError:
+                pass
+
+    async def _modbus_connect(self):
+        await self.modbus_client.tcp.connect()
+
+        if self.modbus_client.tcp.connected:
+            logger.info(
+                "%s TCP client connected to %s:%s",
+                LogPrefix.MODBUS,
+                self.modbus_client.tcp.params.host,
+                self.modbus_client.tcp.params.port,
+            )
+        else:
+            raise UnexpectedException(
+                f"TCP client can't connect to {self.modbus_client.tcp.params.host}:{self.modbus_client.tcp.params.port}"
+            )
+
+        await self.modbus_client.serial.connect()
+
+        if self.modbus_client.serial.connected:
+            logger.info(
+                "%s Serial client connected to %s",
+                LogPrefix.MODBUS,
+                self.modbus_client.serial.params.port,
+            )
+        else:
+            raise UnexpectedException(f"Serial client can't connect to {self.modbus_client.serial.params.port}")
+
     async def run(self):
+        await self._modbus_connect()
         await self.neuron.read_boards()
 
         await mqtt_connect(
@@ -120,9 +168,8 @@ class UnipiControl:
 
         if enable_and_start_systemd.lower() == "y":
             print(f"Enable systemd service '{cls.NAME}.service'")
-            status = subprocess.check_output(f"systemctl enable --now {cls.NAME}", shell=True)
 
-            if status:
+            if status := subprocess.check_output(f"systemctl enable --now {cls.NAME}", shell=True):
                 logger.info(status)
         else:
             print("\nYou can enable the systemd service with the command:")
@@ -141,33 +188,41 @@ def parse_args(args) -> argparse.Namespace:
 def main():
     args: argparse.Namespace = parse_args(sys.argv[1:])
 
-    try:
-        config = Config()
-        config.logging.update_level(LOG_NAME, verbose=args.verbose)
+    config: Config = Config()
+    config.logging.update_level(LOG_NAME, verbose=args.verbose)
 
-        if args.install:
-            UnipiControl.install(config=config, assume_yes=args.yes)
-        else:
-            loop = asyncio.new_event_loop()
-            loop, modbus = AsyncModbusTCPClient(schedulers.ASYNC_IO, loop=loop)
+    if args.install:
+        UnipiControl.install(config=config, assume_yes=args.yes)
+    else:
+        loop = asyncio.new_event_loop()
 
-            uc = UnipiControl(config=config, modbus_client=modbus.protocol)
+        unipi_control: UnipiControl = UnipiControl(
+            config=config,
+            modbus_client=ModbusClient(
+                tcp=AsyncModbusTcpClient(host="localhost"),
+                serial=AsyncModbusSerialClient(port="/dev/extcomm/0/0", baudrate=2400),
+            ),
+        )
 
-            for sig in (signal.SIGINT, signal.SIGTERM):
-                loop.add_signal_handler(sig, cancel_tasks)
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, cancel_tasks)
 
-            try:
-                loop.run_until_complete(uc.run())
-            except asyncio.CancelledError:
-                pass
-            finally:
-                logger.info("Successfully shutdown the Unipi Control service.")
-    except ConfigException as e:
-        logger.error("%s %s", LogPrefix.CONFIG, e)
-        sys.exit(1)
-    except KeyboardInterrupt:
-        pass
+        try:
+            loop.run_until_complete(unipi_control.run())
+        except asyncio.CancelledError:
+            pass
+        finally:
+            logger.info("Successfully shutdown the Unipi Control service.")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except ConfigException as e:
+        logger.error("%s %s", LogPrefix.CONFIG, e)
+        sys.exit(1)
+    except UnexpectedException as e:
+        logger.error(e)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        pass

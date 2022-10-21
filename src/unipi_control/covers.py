@@ -13,9 +13,9 @@ from typing import Union
 
 import itertools
 import time
+
 from superbox_utils.asyncio import run_in_executor
 from superbox_utils.dict.data_dict import DataDict
-
 from unipi_control.config import Config
 from unipi_control.features import DigitalOutput
 from unipi_control.features import FeatureMap
@@ -30,32 +30,29 @@ class CoverFeatures:
     set_position: bool = field(default=True)
 
 
-@dataclass(eq=False, frozen=True)
 class CoverSettings:
     blind: CoverFeatures = CoverFeatures(set_tilt=True, set_position=True)
     roller_shutter: CoverFeatures = CoverFeatures(set_tilt=False, set_position=False)
     garage_door: CoverFeatures = CoverFeatures(set_tilt=False, set_position=True)
 
 
-@dataclass(init=False, eq=False, frozen=True)
 class CoverState:
     """State constants."""
 
-    OPEN: str = "open"
-    OPENING: str = "opening"
-    CLOSING: str = "closing"
-    CLOSED: str = "closed"
-    STOPPED: str = "stopped"
+    OPEN: Final[str] = "open"
+    OPENING: Final[str] = "opening"
+    CLOSING: Final[str] = "closing"
+    CLOSED: Final[str] = "closed"
+    STOPPED: Final[str] = "stopped"
 
 
-@dataclass(init=False, eq=False, frozen=True)
 class CoverDeviceState:
     """Device state constants."""
 
-    OPEN: str = "OPEN"
-    CLOSE: str = "CLOSE"
-    STOP: str = "STOP"
-    IDLE: str = "IDLE"
+    OPEN: Final[str] = "OPEN"
+    CLOSE: Final[str] = "CLOSE"
+    STOP: Final[str] = "STOP"
+    IDLE: Final[str] = "IDLE"
 
 
 class CoverTimer:
@@ -181,6 +178,7 @@ class Cover:
 
     @property
     def topic(self) -> str:
+        """Unique name for the MQTT topic."""
         return f"{self.config.device_info.name.lower()}/{self.topic_name}/cover/{self.cover_type}"
 
     @property
@@ -210,9 +208,7 @@ class Cover:
             covers.Cover.stop(): stop the cover.
             covers.Cover.set_position(): set the cover position.
         """
-        changed: bool = self.state != self._current_state
-
-        if changed:
+        if changed := self.state != self._current_state:
             self._current_state = self.state
 
         return changed
@@ -290,7 +286,7 @@ class Cover:
             self.state = CoverState.STOPPED
 
     def _update_position(self):
-        if self.settings.set_position is False:
+        if not self.settings.set_position:
             return
 
         if self._start_timer is None:
@@ -335,7 +331,7 @@ class Cover:
     async def calibrate(self):
         cover_run_time: Optional[float] = None
 
-        if self.calibrate_mode is True and self._calibration_started is False:
+        if self.calibrate_mode is True and not self._calibration_started:
             self._calibration_started = True
             cover_run_time = await self.open(calibrate=True)
 
@@ -368,7 +364,7 @@ class Cover:
             if self.position is not None and self.position >= 100:
                 return None
 
-        if self.calibrate_mode is True and calibrate is False:
+        if self.calibrate_mode is True and not calibrate:
             return None
 
         self._update_position()
@@ -452,7 +448,7 @@ class Cover:
                     self.tilt = 0
 
                 if self.position is not None and self.cover_run_time:
-                    position = -5 if position == 0 else position
+                    position = position if position else -5
                     cover_run_time = (self.position - position) * self.cover_run_time / 100
 
                     if self.tilt_change_time and cover_run_time < self.tilt_change_time:
@@ -531,10 +527,7 @@ class Cover:
     async def _close_tilt(self, tilt: int = 0) -> Optional[float]:
         cover_run_time: Optional[float] = None
 
-        if self.tilt is None:
-            return None
-
-        if self.tilt == 0:
+        if not self.tilt:
             return None
 
         if self.tilt_change_time:
@@ -571,7 +564,7 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if self.settings.set_position is False:
+        if not self.settings.set_position:
             return None
 
         cover_run_time: Optional[float] = None
@@ -598,7 +591,7 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if self.settings.set_tilt is False:
+        if not self.settings.set_tilt:
             return None
 
         if not self.tilt_change_time:
@@ -619,22 +612,7 @@ class Cover:
 
 
 class CoverMap(DataDict):
-    """A container object that has saved cover classes.
-
-    See Also
-    --------
-    helpers.DataStorage
-    """
-
     def __init__(self, config: Config, features: FeatureMap):
-        """Initialize cover map.
-
-        Parameters
-        ----------
-        features : FeatureMap
-            All registered features (e.g. Relay, Digital Input, ...) from the
-            Unipi Neuron.
-        """
         super().__init__()
 
         for cover in config.covers:

@@ -46,9 +46,8 @@ class CoversMqttPlugin:
 
     async def _clear_queue(self, cover):
         queue: Queue = self._queues[cover.topic]
-        size: int = queue.qsize()
 
-        if size > 0:
+        if (size := queue.qsize()) > 0:
             for _ in range(size):
                 await queue.get()
                 queue.task_done()

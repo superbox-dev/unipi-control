@@ -1,20 +1,18 @@
 import re
 from collections.abc import Iterator
-from dataclasses import dataclass
 from typing import List
-from typing import Match
 from typing import Optional
 from typing import Type
 
 import itertools
-from superbox_utils.dict.data_dict import DataDict
 
+from superbox_utils.dict.data_dict import DataDict
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
 from unipi_control.config import LogPrefix
+from unipi_control.modbus.cache import ModbusClient
 
 
-@dataclass(frozen=True)
 class FeatureState:
     ON: str = "ON"
     OFF: str = "OFF"
@@ -25,8 +23,8 @@ class Feature:
 
     Attributes
     ----------
-    modbus_client : class
-        A modbus tcp client.
+    modbus_client : ModbusClient
+        A modbus client.
     circuit : str
         The machine-readable circuit name e.g. ro_2_01.
     """
@@ -38,7 +36,7 @@ class Feature:
         self, board, short_name: str, circuit: str, major_group: int, mask: int, reg: int, coil: Optional[int] = None
     ):
         self.config: Config = board.neuron.config
-        self.modbus_client = board.neuron.modbus_client
+        self.modbus_client: ModbusClient = board.neuron.modbus_client
 
         self.board = board
         self.short_name: str = short_name
@@ -48,7 +46,7 @@ class Feature:
         self.mask: int = mask
         self.coil: Optional[int] = coil
 
-        self._reg_value = lambda: board.neuron.modbus_cache_map.get_register(address=1, index=self.reg)[0]
+        self._reg_value = lambda: board.neuron.modbus_cache_data.get_register(address=1, index=self.reg)[0]
 
         self._value: Optional[bool] = None
 
@@ -77,9 +75,8 @@ class Feature:
     def circuit_name(self) -> str:
         """The friendly name for the circuit."""
         _circuit_name: str = self.name
-        _re_match: Optional[Match[str]] = re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit)
 
-        if _re_match:
+        if _re_match := re.match(r"^[a-z]+_(\d)_(\d{2})$", self.circuit):
             _circuit_name = f"{_circuit_name} {_re_match.group(1)}.{_re_match.group(2)}"
 
         return _circuit_name
@@ -88,9 +85,8 @@ class Feature:
     def changed(self) -> bool:
         """Detect whether the status has changed."""
         value: bool = self.value == 1
-        changed: bool = value != self._value
 
-        if changed:
+        if changed := value != self._value:
             self._value = value
 
         return changed
@@ -103,7 +99,7 @@ class Relay(Feature):
     feature_name: Optional[str] = "relay"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.write_coil(self.coil, value, unit=0)
+        return await self.modbus_client.tcp.write_coil(self.coil, value, slave=0)
 
 
 class DigitalOutput(Feature):
@@ -113,7 +109,7 @@ class DigitalOutput(Feature):
     feature_name: Optional[str] = "relay"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.write_coil(self.coil, value, unit=0)
+        return await self.modbus_client.tcp.write_coil(self.coil, value, slave=0)
 
 
 class DigitalInput(Feature):
@@ -130,17 +126,10 @@ class Led(Feature):
     feature_name: Optional[str] = "led"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.write_coil(self.coil, value, unit=0)
+        return await self.modbus_client.tcp.write_coil(self.coil, value, slave=0)
 
 
 class FeatureMap(DataDict):
-    """A container object that has saved Unipi Neuron feature classes.
-
-    See Also
-    --------
-    helpers.DataStorage
-    """
-
     def register(self, feature: Feature):
         """Add a feature to the data storage.
 
@@ -169,7 +158,7 @@ class FeatureMap(DataDict):
 
         Raises
         ------
-        StopIteration
+        ConfigException
             Get an exception if circuit not found.
         """
         data: Iterator = itertools.chain.from_iterable(self.data.values())
@@ -179,8 +168,8 @@ class FeatureMap(DataDict):
 
         try:
             feature: Type[Feature] = next(filter(lambda d: d.circuit == circuit, data))
-        except StopIteration:
-            raise ConfigException(f"{LogPrefix.CONFIG} '{circuit}' not found in {self.__class__.__name__}!")
+        except StopIteration as error:
+            raise ConfigException(f"{LogPrefix.CONFIG} '{circuit}' not found in {self.__class__.__name__}!") from error
 
         return feature
 
