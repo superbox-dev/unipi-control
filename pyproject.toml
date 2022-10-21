@@ -18,10 +18,11 @@ ignore_missing_imports = true
 # C0115: missing-class-docstring
 # C0116: missing-function-docstring
 # C0301: line-too-long
+# C0411: rong-import-order
 # E0401: import-error
 # R0801: duplicate-code
 # R1732: consider-using-with
-disable = ["C0114", "C0115", "C0116", "C0301", "E0401", "R0801", "R1732"]
+disable = ["C0114", "C0115", "C0116", "C0301", "C0411", "E0401", "R0801", "R1732"]
 notes = ["FIXME"]
 
 load-plugins = [
