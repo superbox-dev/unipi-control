@@ -11,19 +11,59 @@ target-version = ["py38"]
 
 [tool.mypy]
 python_version = "3.8"
-mypy_path = "src"
-
-# show error messages from unrelated files
-follow_imports = "normal"
-
-# suppress errors about unsatisfied imports
 ignore_missing_imports = true
 
-# be strict
-warn_return_any = false
-warn_no_return = true
-warn_redundant_casts = true
-warn_unused_ignores = true
+[tool.pylint.master]
+# C0114: missing-module-docstring
+# C0115: missing-class-docstring
+# C0116: missing-function-docstring
+# C0301: line-too-long
+# E0401: import-error
+# R0801: duplicate-code
+# R1732: consider-using-with
+disable = ["C0114", "C0115", "C0116", "C0301", "E0401", "R0801", "R1732"]
+notes = ["FIXME"]
+
+load-plugins = [
+    # "pylint.extensions.bad_builtin",
+    "pylint.extensions.check_elif",
+    "pylint.extensions.code_style",
+    "pylint.extensions.comparetozero",
+    "pylint.extensions.comparison_placement",
+    "pylint.extensions.confusing_elif",
+    "pylint.extensions.consider_ternary_expression",
+    "pylint.extensions.docparams",
+    "pylint.extensions.docstyle",
+    "pylint.extensions.empty_comment",
+    "pylint.extensions.emptystring",
+    "pylint.extensions.eq_without_hash",
+    "pylint.extensions.for_any_all",
+    "pylint.extensions.mccabe",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.private_import",
+    "pylint.extensions.redefined_variable_type",
+    "pylint.extensions.set_membership",
+    "pylint.extensions.typing"
+]
+
+[tool.pylint.reports]
+output-format = "colorized"
+reports = false
+score = true
+argument-rgx = "_?[a-z]{1,}[a-z_0-9]{0,30}(?<!_)$"
+class-attribute-rgx = "_?[A-Za-z]{1,}[A-Za-z_0-9]{0,30}(?<!_)$"
+variable-rgx = "_?[a-z]{1,}[a-z_0-9]{0,30}(?<!_)$"
+max-args = 10
+max-attributes = 30  # TODO: Refactor code
+
+[tool.pylint.variables]
+init-import = true
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.design]
+min-public-methods = 0
 
 [tool.pytest.ini_options]
 log_cli = true
