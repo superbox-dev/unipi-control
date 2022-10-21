@@ -1,23 +1,22 @@
 import pytest
 
-from conftest import ConfigLoader
-from conftest_data import CONFIG_CONTENT
-from conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.modbus import ModbusCacheMap
-from unipi_control.modbus import ModbusRegisterException
+from superbox_utils.core.exception import UnexpectedException
+from unipi_control.modbus.cache import ModbusCacheData
 from unipi_control.neuron import Neuron
+from unittests.conftest import ConfigLoader
+from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import HARDWARE_DATA_CONTENT
+from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 
 class TestUnhappyPathModbus:
     @pytest.mark.parametrize(
-        "config_loader",
-        [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)],
-        indirect=True,
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    def test_modbus_exceptions(self, config_loader: ConfigLoader, neuron: Neuron):
-        assert isinstance(neuron.modbus_cache_map, ModbusCacheMap)
+    def test_modbus_exceptions(self, _config_loader: ConfigLoader, _neuron: Neuron):
+        assert isinstance(_neuron.modbus_cache_data, ModbusCacheData)
 
-        with pytest.raises(ModbusRegisterException) as error:
-            neuron.modbus_cache_map.get_register(address=22, index=0)
+        with pytest.raises(UnexpectedException) as error:
+            _neuron.modbus_cache_data.get_register(address=22, index=0)
 
-        assert "Modbus error on address 21 (unit: 0)" == str(error.value)
+        assert str(error.value) == "Modbus error on address 21 (slave: 0)"

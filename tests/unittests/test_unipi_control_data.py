@@ -2,7 +2,7 @@ from typing import Final
 
 UNIPI_CONTROL_INSTALLER_WITH_ENABLE_SYSTEMD_OUTPUT: Final[
     str
-] = """Copy config files to '%s'
+] = """Copy config files to '{config_loader_temp}'
 Copy systemd service 'unipi-control.service'
 Enable systemd service 'unipi-control.service'
 """
@@ -10,7 +10,7 @@ Enable systemd service 'unipi-control.service'
 
 UNIPI_CONTROL_INSTALLER_WITHOUT_ENABLE_SYSTEMD_OUTPUT: Final[
     str
-] = """Copy config files to '%s'
+] = """Copy config files to '{config_loader_temp}'
 Copy systemd service 'unipi-control.service'
 
 You can enable the systemd service with the command:

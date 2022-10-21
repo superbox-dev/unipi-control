@@ -6,32 +6,36 @@ from typing import Set
 from unittest.mock import AsyncMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
+from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from asyncio_mqtt import Client
 
-from conftest import ConfigLoader
-from conftest_data import CONFIG_CONTENT
-from conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import COVER_TYPES
 from unipi_control.covers import CoverMap
+from unipi_control.modbus.cache import ModbusClient
 from unipi_control.neuron import Neuron
 from unipi_control.plugins.hass.covers import HassCoversMqttPlugin
+from unittests.conftest import ConfigLoader
+from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import HARDWARE_DATA_CONTENT
+from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 
 class TestHappyPathHassCoversMqttPlugin:
-    @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+    @pytest.mark.parametrize(
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+    )
     def test_init_tasks(
         self,
-        modbus_client: AsyncMock,
-        config_loader: ConfigLoader,
-        neuron: Neuron,
-        covers: CoverMap,
+        _modbus_client: ModbusClient,
+        _config_loader: ConfigLoader,
+        _neuron: Neuron,
+        _covers: CoverMap,
         caplog: LogCaptureFixture,
     ):
         async def run():
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
-                neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers
+                neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers
             )
 
             async with AsyncExitStack() as stack:
@@ -45,7 +49,7 @@ class TestHappyPathHassCoversMqttPlugin:
                 await asyncio.gather(*tasks)
 
                 for task in tasks:
-                    assert True is task.done()
+                    assert task.done() is True
 
             logs: list = [record.getMessage() for record in caplog.records]
             assert (
@@ -56,16 +60,16 @@ class TestHappyPathHassCoversMqttPlugin:
                 '[MQTT] [homeassistant/cover/mocked_roller_shutter_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", "unique_id": "roller_shutter_mocked_roller_shutter_topic_name", "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED_UNIPI: MOCKED AREA", "identifiers": "MOCKED_UNIPI: MOCKED AREA", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA"}}'
                 in logs
             )
-            assert 2 == len(logs)
+            assert len(logs) == 2
 
         loop = asyncio.new_event_loop()
         loop.run_until_complete(run())
 
     @pytest.mark.parametrize(
-        "config_loader, expected",
+        "_config_loader, expected",
         [
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
                 [
                     {
                         "message": {
@@ -110,22 +114,23 @@ class TestHappyPathHassCoversMqttPlugin:
                 ],
             ),
         ],
-        indirect=["config_loader"],
+        indirect=["_config_loader"],
     )
     def test_discovery_message(
         self,
-        modbus_client: AsyncMock,
-        config_loader: ConfigLoader,
-        neuron: Neuron,
-        covers: CoverMap,
-        caplog: LogCaptureFixture,
+        _modbus_client: ModbusClient,
+        _config_loader: ConfigLoader,
+        _neuron: Neuron,
+        _covers: CoverMap,
         expected: List[dict],
     ):
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-        plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
+        plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
+            neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers
+        )
 
-        for index, cover in enumerate(covers.by_cover_type(COVER_TYPES)):
-            topic, message = plugin._hass._get_discovery(cover)
+        for index, cover in enumerate(_covers.by_cover_type(COVER_TYPES)):
+            topic, message = plugin._hass._get_discovery(cover)  # pylint: disable=protected-access
 
-            assert expected[index]["message"] == message
-            assert expected[index]["topic"] == topic
+            assert message == expected[index]["message"]
+            assert topic == expected[index]["topic"]

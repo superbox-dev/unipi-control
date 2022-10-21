@@ -7,29 +7,33 @@ from typing import Set
 from unittest.mock import AsyncMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
+from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from asyncio_mqtt import Client
 
-from conftest import ConfigLoader
-from conftest_data import CONFIG_CONTENT
-from conftest_data import HARDWARE_DATA_CONTENT
+from unipi_control.modbus.cache import ModbusClient
 from unipi_control.neuron import Neuron
 from unipi_control.plugins.hass.switches import HassSwitchesDiscovery
 from unipi_control.plugins.hass.switches import HassSwitchesMqttPlugin
+from unittests.conftest import ConfigLoader
+from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import HARDWARE_DATA_CONTENT
+from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 
 class TestHappyPathHassSwitchesMqttPlugin:
-    @pytest.mark.parametrize("config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT)], indirect=True)
+    @pytest.mark.parametrize(
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+    )
     def test_init_tasks(
         self,
-        modbus_client: AsyncMock,
-        config_loader: ConfigLoader,
-        neuron: Neuron,
+        _modbus_client: ModbusClient,
+        _config_loader: ConfigLoader,
+        _neuron: Neuron,
         caplog: LogCaptureFixture,
     ):
         async def run():
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-            plugin: HassSwitchesMqttPlugin = HassSwitchesMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
+            plugin: HassSwitchesMqttPlugin = HassSwitchesMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
 
             async with AsyncExitStack() as stack:
                 tasks: Set[Task] = set()
@@ -42,7 +46,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
                 await asyncio.gather(*tasks)
 
                 for task in tasks:
-                    assert True is task.done()
+                    assert task.done() is True
 
             logs: list = [record.getMessage() for record in caplog.records]
             assert (
@@ -53,16 +57,16 @@ class TestHappyPathHassSwitchesMqttPlugin:
                 '[MQTT] [homeassistant/switch/mocked_unipi/do_1_02/config] Publishing message: {"name": "MOCKED_UNIPI Digital Output 1.02", "unique_id": "mocked_unipi_do_1_02", "command_topic": "mocked_unipi/relay/do_1_02/set", "state_topic": "mocked_unipi/relay/do_1_02/get", "qos": 2, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology"}}'
                 in logs
             )
-            assert 28 == len(logs)
+            assert len(logs) == 28
 
         loop = asyncio.new_event_loop()
         loop.run_until_complete(run())
 
     @pytest.mark.parametrize(
-        "config_loader, expected",
+        "_config_loader, expected",
         [
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
                 [
                     {
                         "message": {
@@ -107,25 +111,20 @@ class TestHappyPathHassSwitchesMqttPlugin:
                 ],
             ),
         ],
-        indirect=["config_loader"],
+        indirect=["_config_loader"],
     )
     def test_discovery_message(
-        self,
-        modbus_client: AsyncMock,
-        config_loader: ConfigLoader,
-        neuron: Neuron,
-        caplog: LogCaptureFixture,
-        expected: List[dict],
+        self, _modbus_client: ModbusClient, _config_loader: ConfigLoader, _neuron: Neuron, expected: List[dict]
     ):
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-        plugin: HassSwitchesMqttPlugin = HassSwitchesMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
-        features: Iterator = neuron.features.by_feature_type(HassSwitchesDiscovery.publish_feature_types)
+        plugin: HassSwitchesMqttPlugin = HassSwitchesMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
+        features: Iterator = _neuron.features.by_feature_type(HassSwitchesDiscovery.publish_feature_types)
 
         for index, feature in enumerate(features):
-            topic, message = plugin._hass._get_discovery(feature)
+            topic, message = plugin._hass._get_discovery(feature)  # pylint: disable=protected-access
 
             if index + 1 > len(expected):
                 break
 
-            assert expected[index]["message"] == message
-            assert expected[index]["topic"] == topic
+            assert message == expected[index]["message"]
+            assert topic == expected[index]["topic"]
