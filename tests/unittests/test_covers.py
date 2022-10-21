@@ -20,7 +20,7 @@ from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 @dataclass
 class CoverOptions:
     cover_type: str
-    calibrate_mode: Optional[bool] = field(default=None)
+    calibrate_mode: bool = field(default_factory=bool)
     position: Optional[int] = field(default=None)
     current_position: Optional[int] = field(default=None)
     tilt: Optional[int] = field(default=None)
@@ -340,6 +340,9 @@ class TestHappyPathCovers(TestCovers):
 
         mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
+
+        assert isinstance(options.tilt, int)
+
         cover_run_time: Optional[float] = await cover.set_tilt(options.tilt)
 
         assert cover.state == expected.tilt_cover_state
@@ -414,6 +417,9 @@ class TestHappyPathCovers(TestCovers):
 
         mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
+
+        assert isinstance(options.position, int)
+
         cover_run_time: Optional[float] = await cover.set_position(options.position)
 
         assert cover.state == expected.position_cover_state

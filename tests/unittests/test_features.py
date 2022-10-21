@@ -22,8 +22,8 @@ from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 @dataclass
 class FeatureOptions:
-    circuit: Optional[str] = field(default=None)
-    feature_type: Optional[str] = field(default=None)
+    circuit: str = field(default_factory=str)
+    feature_type: str = field(default_factory=str)
 
 
 @dataclass

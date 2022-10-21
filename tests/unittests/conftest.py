@@ -12,12 +12,12 @@ import pytest_asyncio
 from _pytest.fixtures import SubRequest  # pylint: disable=import-private-name
 from pytest_mock import MockerFixture
 
-from conftest_data import MODBUS_HOLDING_REGISTER
 from unipi_control.config import Config
 from unipi_control.covers import CoverMap
 from unipi_control.modbus.cache import ModbusClient
 from unipi_control.neuron import Neuron
 from unipi_control.run import UnipiControl
+from unittests.conftest_data import MODBUS_HOLDING_REGISTER
 
 
 @pytest.fixture(autouse=True, scope="session")
