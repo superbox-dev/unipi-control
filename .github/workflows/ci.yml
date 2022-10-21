@@ -1,0 +1,254 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    tags:
+      - "*"
+
+env:
+  PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
+  PIPENV_CACHE_DIR: ${{ github.workspace }}/.cache/pipenv
+  PYTHONUSERBASE: ${{ github.workspace }}/.local
+  WORKON_HOME: ${{ github.workspace }}/.local/.venv
+  PIPENV_NOSPIN: 'true'
+
+jobs:
+  check-tag:
+    name: Check Git Tag
+    runs-on: ubuntu-latest
+    outputs:
+      release-type: ${{ steps.check-tag.outputs.run_jobs }}
+    steps:
+      - name: check tag ${{ github.ref }}
+        id: check-tag
+        run: |
+          if [[ ${{ github.event.ref }} =~ ^refs\/tags\/20[0-9][0-9]\.[1-9]{1}[0-9]{0,}$ ]]; then
+            echo ::set-output name=run_jobs::release
+          elif [[ ${{ github.event.ref }} =~ ^refs\/tags\/20[0-9][0-9]\.[1-9]{1}[0-9]{0,}b[1-9]{1}[0-9]{0,}$$ ]]; then
+            echo ::set-output name=run_jobs::prerelease
+          fi
+
+  build:
+    name: Build - Linux Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+    steps:
+      - name: Update system path
+        run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Cache virtualenv
+        id: cache-virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.cache
+            ${{ github.workspace }}/.local
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
+      - name: Set up Python ${{ matrix.python-version }}
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pipenv
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        run: |
+          python --version
+          python -m pip install --user --upgrade pip
+          python -m pip install --user pipenv
+      - name: Install dependencies
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        run: |
+          pipenv install --deploy --dev
+  tests:
+    name: Tests - Linux Python ${{ matrix.python-version }}
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+    steps:
+      - name: Update system path
+        run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Cache virtualenv
+        id: cache-virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.cache
+            ${{ github.workspace }}/.local
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
+      - name: Run unit tests
+        run: pipenv run pytest --cov=src --cov-report=term-missing --junitxml=junit/test-results.xml --cov-report=xml
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-${{ matrix.python-version }}-coverage
+          path: .coverage
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: pytest-results-${{ matrix.python-version }}
+          path: junit/test-results.xml
+        if: ${{ always() }}
+  security:
+    name: Security - Linux Python ${{ matrix.python-version }}
+    needs:
+      - build
+    continue-on-error: True
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+    steps:
+      - name: Update system path
+        run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Cache virtualenv
+        id: cache-virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.cache
+            ${{ github.workspace }}/.local
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
+      - name: Audit packages
+        run: pipenv run pip-audit
+  check:
+    name: Code Analyse - Linux Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    strategy:
+      matrix:
+        python-version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+    steps:
+      - name: Update system path
+        run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Cache virtualenv
+        id: cache-virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.cache
+            ${{ github.workspace }}/.local
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
+      - name: Check code format with black
+        run: |
+          pipenv run black --version
+          pipenv run black --diff --check $(git ls-files '*.py')
+      - name: Lint with flake8
+        run: |
+          pipenv run flake8 --version
+          pipenv run flake8 --show-source --statistics $(git ls-files '*.py')
+      - name: Lint with mypy
+        run: pipenv run mypy $(git ls-files '*.py')
+      - name: Lint with pylint
+        run: |
+          pipenv run pylint --version
+          pipenv run pylint $(git ls-files '*.py')
+  coverage:
+    name: Coverage - Linux Python 3.8
+    runs-on: ubuntu-latest
+    needs:
+      - tests
+    steps:
+      - name: Update system path
+        run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Cache virtualenv
+        id: cache-virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.cache
+            ${{ github.workspace }}/.local
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
+      - name: Download coverage
+        uses: actions/download-artifact@v3
+        with:
+          name: python-3.8-coverage
+      - name: Create coverage badge
+        uses: tj-actions/coverage-badge-py@v1.8
+      - name: Verify coverage badge changed
+        uses: tj-actions/verify-changed-files@v9
+        id: changed_files
+        with:
+          files: coverage.svg
+      - name: Commit coverage badge
+        if: steps.changed_files.outputs.files_changed == 'true'
+        run: |
+          git config --local user.email "noreply@superbox.one"
+          git config --local user.name "Github Workflow"
+          git add coverage.svg
+          git commit -m "Updated coverage.svg"
+      - name: Push changes
+        if: steps.changed_files.outputs.files_changed == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+  deploy:
+    name: Upload Package to PyPi
+    needs:
+      - check-tag
+      - tests
+      - check
+      - coverage
+    if: needs.check-tag.outputs.release-type == 'release' || needs.check-tag.outputs.release-type == 'prerelease'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update system path
+        run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Cache virtualenv
+        id: cache-virtualenv
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.cache
+            ${{ github.workspace }}/.local
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
+      - name: Build package
+        run: |
+          python -m pip install build --user
+          python -m build
+      - name: Publish test package
+        if: needs.check-tag.outputs.release-type == 'prerelease'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TEST_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+          verbose: true
+      - name: Publish package
+        if: needs.check-tag.outputs.release-type == 'release'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
