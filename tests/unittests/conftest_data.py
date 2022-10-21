@@ -56,6 +56,16 @@ covers:
     topic_name: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     circuit_up: ro_3_03
     circuit_down: ro_3_04
+modbus:
+  - id: MOCKED_EASTRON_SDM120
+    device:
+      manufacturer: Eastron
+      model: SDM120M.yaml
+    address: 1
+    baud_rate: 2400
+    parity: N
+    friendly_name: MOCKED EASTRON SDM120M.yaml
+    suggested_area: MOCKED AREA
 logging:
   level: debug
 """
@@ -279,6 +289,12 @@ modbus_features:
       start_reg   : 1200
 """
 
+THIRD_PARTY_HARDWARE_DATA_CONTENT: Final[
+    str
+] = """- model: SDM120M
+  type: meter
+"""
+
 MODBUS_FEATURE_ENABLED: Final[int] = 1
 
 MODBUS_HOLDING_REGISTER: Final[List] = [
@@ -319,7 +335,7 @@ MODBUS_HOLDING_REGISTER: Final[List] = [
             0,
             0,
             14,
-        ]  # noqa
+        ]
     ),
     PropertyMock(
         registers=[
