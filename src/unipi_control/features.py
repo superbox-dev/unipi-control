@@ -46,7 +46,7 @@ class Feature:
         self.mask: int = mask
         self.coil: Optional[int] = coil
 
-        self._reg_value = lambda: board.neuron.modbus_cache_data.get_register(address=1, index=self.reg)[0]
+        self._reg_value = lambda: board.neuron.modbus_cache_data.get_register(address=self.reg, index=1, unit=0)[0]
 
         self._value: Optional[bool] = None
 
@@ -99,7 +99,7 @@ class Relay(Feature):
     feature_name: Optional[str] = "relay"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(self.coil, value, slave=0)
+        return await self.modbus_client.tcp.write_coil(address=self.coil, value=value, slave=0)
 
 
 class DigitalOutput(Feature):
@@ -109,7 +109,7 @@ class DigitalOutput(Feature):
     feature_name: Optional[str] = "relay"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(self.coil, value, slave=0)
+        return await self.modbus_client.tcp.write_coil(address=self.coil, value=value, slave=0)
 
 
 class DigitalInput(Feature):
@@ -126,7 +126,7 @@ class Led(Feature):
     feature_name: Optional[str] = "led"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(self.coil, value, slave=0)
+        return await self.modbus_client.tcp.write_coil(self.coil, value, 0)
 
 
 class FeatureMap(DataDict):

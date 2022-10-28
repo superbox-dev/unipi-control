@@ -3,6 +3,7 @@ from typing import List
 
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
+from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.features import DigitalInput
@@ -155,12 +156,12 @@ class Neuron:
 
         self.modbus_cache_data: ModbusCacheData = ModbusCacheData(
             self.modbus_client,
-            modbus_register_blocks_map=self.hardware["definitions"],
+            hardware_definitions=self.hardware["definitions"],
         )
 
     async def read_boards(self):
         logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
-        await self.modbus_cache_data.scan()
+        await self.modbus_cache_data.scan([HardwareType.NEURON, HardwareType.THIRD_PARTY])
 
         for index in (1, 2, 3):
             response = await self.modbus_client.tcp.read_input_registers(address=1000, count=1, slave=index)

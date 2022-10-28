@@ -72,7 +72,7 @@ class TestHappyPathFeaturesMqttPlugin:
             assert "[MQTT] [mocked_unipi/relay/do_1_01/set] Subscribe message: OFF" in logs
             assert "[MQTT] [mocked_unipi/relay/do_1_01/set] Subscribe message: ON" in logs
             assert "[MQTT] [mocked_unipi/relay/ro_2_01/get] Publishing message: OFF" in logs
-            assert "[MQTT] [mocked_unipi/relay/ro_2_13/get] Publishing message: ON" in logs
+            assert "[MQTT] [mocked_unipi/relay/ro_2_13/get] Publishing message: OFF" in logs
 
             assert len(logs) == 102
 

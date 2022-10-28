@@ -51,12 +51,12 @@ class TestHappyPathFeatures:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
                 FeatureOptions(circuit="ro_2_13", feature_type="RO"),
-                FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.13"),
+                FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13"),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
                 FeatureOptions(circuit="ro_2_14", feature_type="RO"),
-                FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.14"),
+                FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14"),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),

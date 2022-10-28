@@ -260,6 +260,12 @@ class HardwareInfo:
                 self.serial = struct.unpack("i", ee_bytes[100:104])[0]
 
 
+class HardwareType:
+    NEURON: Final[str] = "neuron"
+    EXTENSION: Final[str] = "extension"
+    THIRD_PARTY: Final[str] = "third_party"
+
+
 class HardwareData(DataDict):
     def __init__(self, config: Config):
         super().__init__()
@@ -268,11 +274,7 @@ class HardwareData(DataDict):
 
         self.data: dict = {
             "neuron": asdict(HardwareInfo(sys_bus=config.sys_bus)),
-            "definitions": {
-                "neuron": {},
-                "extension": {},
-                "third_party": {},
-            },
+            "definitions": {},
         }
 
         self._model: str = self.data["neuron"]["model"]
@@ -280,15 +282,15 @@ class HardwareData(DataDict):
         if self._model is None:
             raise ConfigException("Hardware is not supported!")
 
-        # self._read_definitions()
         self._read_neuron_definition()
+        self._read_definitions()
 
     def _read_definitions(self):
-        for definition in ("extension", "third_party"):
+        for definition in (HardwareType.EXTENSION, HardwareType.THIRD_PARTY):
             try:
                 for extension_file in Path(f"{self.config.hardware_path}/{definition}").iterdir():
                     if extension_file.suffix == ".yaml":
-                        self.data["definitions"][f"{definition}_{extension_file.stem}"] = yaml_loader_safe(
+                        self.data["definitions"][f"{definition}_{extension_file.stem.lower()}"] = yaml_loader_safe(
                             extension_file
                         )
                         logger.debug("%s YAML definition loaded: %s", LogPrefix.CONFIG, extension_file)
@@ -296,10 +298,10 @@ class HardwareData(DataDict):
                 logger.info("%s %s", LogPrefix.CONFIG, str(error))
 
     def _read_neuron_definition(self):
-        definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self._model}.yaml")
+        definition_file: Path = Path(f"{self.config.hardware_path}/{HardwareType.NEURON}/{self._model}.yaml")
 
         if definition_file.is_file():
-            self.data["definitions"]["neuron"] = yaml_loader_safe(definition_file)
+            self.data["definitions"][HardwareType.NEURON] = yaml_loader_safe(definition_file)
             logger.debug("%s YAML neuron definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
             raise ConfigException(f"No valid YAML definition for active Neuron device! Device name is {self._model}")

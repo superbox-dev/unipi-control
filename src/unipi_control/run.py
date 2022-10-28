@@ -2,7 +2,6 @@
 import argparse
 import asyncio
 import shutil
-import signal
 import subprocess
 import uuid
 from asyncio import Task
@@ -17,7 +16,8 @@ from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
 
 from superbox_utils.argparse import init_argparse
-from superbox_utils.asyncio import cancel_tasks
+
+# # from superbox_utils.asyncio import cancel_tasks
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
@@ -194,8 +194,6 @@ def main():
     if args.install:
         UnipiControl.install(config=config, assume_yes=args.yes)
     else:
-        loop = asyncio.new_event_loop()
-
         unipi_control: UnipiControl = UnipiControl(
             config=config,
             modbus_client=ModbusClient(
@@ -204,11 +202,11 @@ def main():
             ),
         )
 
-        for sig in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(sig, cancel_tasks)
-
         try:
-            loop.run_until_complete(unipi_control.run())
+            asyncio.run(unipi_control.run())
+        except KeyboardInterrupt:
+            # KeyboardInterrupt for inside async code
+            pass
         except asyncio.CancelledError:
             pass
         finally:
@@ -225,4 +223,5 @@ if __name__ == "__main__":
         logger.error(e)
         sys.exit(1)
     except KeyboardInterrupt:
+        # KeyboardInterrupt for outside async code
         pass

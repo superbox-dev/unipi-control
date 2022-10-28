@@ -8,7 +8,7 @@ mqtt:
     retry_limit: 30
     reconnect_interval: 10
 homeassistant:
-  enabled: true
+  enabled: True
   discovery_prefix: homeassistant
 features:
   di_3_01:
@@ -78,13 +78,13 @@ features:
     friendly_name: Bedroom - Rolling shutter up
     suggested_area: Bedroom
   di_1_01:
-    friendly_name: "Group: Wind Sensor"
+    friendly_name: 'Group: Wind Sensor'
     suggested_area: Outside
   di_1_02:
-    friendly_name: "Group: Living Area - Blind down"
+    friendly_name: 'Group: Living Area - Blind down'
     suggested_area: Living Room
   di_1_03:
-    friendly_name: "Group: Living Area - Blind up"
+    friendly_name: 'Group: Living Area - Blind up'
     suggested_area: Living Room
   do_1_02:
     friendly_name: Radiator Power Supply
@@ -182,3 +182,4 @@ covers:
     circuit_down: ro_2_12
 logging:
   level: info
+# TODO: Write config for UART (parity_modes, speed_modes, stopb_modes)

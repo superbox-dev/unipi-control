@@ -1,4 +1,7 @@
+import asyncio
+from typing import Any
 from typing import Dict
+from typing import List
 from typing import NamedTuple
 
 from pymodbus.client import AsyncModbusSerialClient
@@ -8,6 +11,9 @@ from pymodbus.pdu import ExceptionResponse
 
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.dict.data_dict import DataDict
+from unipi_control.config import HardwareType
+from unipi_control.config import LogPrefix
+from unipi_control.config import logger
 
 
 class ModbusClient(NamedTuple):
@@ -22,45 +28,48 @@ class ModbusCacheData(DataDict):
     ----------
     modbus_client : ModbusClient
         A modbus client.
-    modbus_register_blocks_map : dict
-        The neuron, extensions and third party devices modbus register blocks.
+    hardware_definitions : dict
+        hardware definition from the neuron, extensions and third party devices.
     """
 
-    def __init__(self, modbus_client: ModbusClient, modbus_register_blocks_map: Dict[str, dict]):
+    def __init__(self, modbus_client: ModbusClient, hardware_definitions: Dict[str, dict]):
         super().__init__()
 
         self.modbus_client: ModbusClient = modbus_client
-        self.modbus_register_blocks_map: Dict[str, dict] = modbus_register_blocks_map
+        self.hardware_definitions: Dict[str, dict] = hardware_definitions
+        self.data: Dict[str, Dict[int, Any]] = {}
 
-        self.data: dict = {
-            "neuron": {},
-            "extension": {},
-            "third_party": {},
-        }
-
-        for key, neuron_modbus_register_blocks in modbus_register_blocks_map.items():
-            for modbus_register_block in neuron_modbus_register_blocks.get("modbus_register_blocks", []):
-                for index in range(modbus_register_block["count"]):
-                    reg_index: int = modbus_register_block["start_reg"] + index
-                    self.data[key][reg_index] = None
-
-    async def scan(self):  # TODO: Scan by type
+    async def scan(self, hardware_types: List[str]):
         """Read modbus register blocks and cache the response."""
-        for neuron_modbus_register_blocks in self.modbus_register_blocks_map.values():
-            for modbus_register_block in neuron_modbus_register_blocks.get("modbus_register_blocks", []):
+
+        for hardware_type, hardware_definition in self.hardware_definitions.items():
+            if not [item for item in hardware_types if item in hardware_type]:
+                continue
+
+            if not self.data.get(hardware_type):
+                self.data[hardware_type] = {}
+
+            for modbus_register_block in hardware_definition.get("modbus_register_blocks", []):
                 data: dict = {
                     "address": modbus_register_block["start_reg"],
                     "count": modbus_register_block["count"],
-                    "slave": 0,
+                    "slave": modbus_register_block.get("unit", 0),
                 }
 
-                response = await self.modbus_client.tcp.read_holding_registers(**data)
+                try:
+                    response = await (
+                        self.modbus_client.tcp.read_input_registers(**data)
+                        if hardware_type == HardwareType.NEURON
+                        else self.modbus_client.serial.read_input_registers(**data)
+                    )
 
-                if not isinstance(response, (ModbusIOException, ExceptionResponse)):
-                    for index in range(data["count"]):
-                        self.data["neuron"][data["address"] + index] = response.registers[index]
+                    if not isinstance(response, (ModbusIOException, ExceptionResponse)):
+                        for index in range(data["count"]):
+                            self.data[hardware_type][data["address"] + index] = response.registers[index]
+                except asyncio.exceptions.TimeoutError:
+                    logger.error("%s [%s] Timeout on: %s", LogPrefix.MODBUS, hardware_definition.get("type"), data)
 
-    def get_register(self, address: int, index: int, slave: int = 0) -> list:
+    def get_register(self, address: int, index: int, unit: int) -> list:
         """Get the responses from the cached modbus register blocks.
 
         Parameters
@@ -69,8 +78,8 @@ class ModbusCacheData(DataDict):
             The starting address to read from.
         index : int
             The number of registers to read.
-        slave : int, default: 0
-            The slave unit this request is targeting.
+        unit : int
+            The unit this request is targeting.
 
         Returns
         -------
@@ -84,10 +93,9 @@ class ModbusCacheData(DataDict):
         """
         ret: list = []
 
-        for _address in range(index, address + index):
+        for _address in range(address, address + index):
             if _address not in self.data["neuron"] or self.data["neuron"][_address] is None:
-                raise UnexpectedException(f"Modbus error on address {_address} (slave: {slave})")
-
+                raise UnexpectedException(f"Modbus error on address {_address} (unit: {unit})")
             ret += [self.data["neuron"][_address]]
 
         return ret

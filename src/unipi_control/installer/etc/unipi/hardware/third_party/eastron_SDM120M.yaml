@@ -1,14 +1,77 @@
 type: SDM120M
 modbus_register_blocks:
+    # Voltage
+  - start_reg: 0
+    count: 2
+    unit: 1
+    # Current
+  - start_reg: 6
+    count: 2
+    unit: 1
+    # Power (Active)
+  - start_reg: 12
+    count: 2
+    unit: 1
+    # Power (Apparent)
+  - start_reg: 18
+    count: 2
+    unit: 1
+    # Power (Reactive)
+  - start_reg: 24
+    count: 2
+    unit: 1
+    # Power factor
+  - start_reg: 30
+    count: 2
+    unit: 1
+    # Phase Angle
+  - start_reg: 36
+    count: 2
+    unit: 1
+    # Frequency
+    # Imported Energy (Active)
+    # Exported Energy (Active)
+    # Imported Energy (Reactive)
+    # Exported Energy (Reactive)
+  - start_reg: 70
+    count: 10
+    unit: 1
+    # Total Demand Power (Active)
+    # Maximum Total Demand Power (Active)
+    # Import Demand Power (Active)
+    # Maximum Import Demand Power (Active)
+  - start_reg: 84
+    count: 8
+    unit: 1
+    # Export Demand Power (Active)
+    # Maximum Export Demand Power (Active)
+  - start_reg: 92
+    count: 4
+    unit: 1
+    # Total Demand Current
+  - start_reg: 258
+    count: 2
+    unit: 1
+    # Maximum Total Demand Current
+  - start_reg: 264
+    count: 2
+    unit: 1
+    # Total Energy (Reactive)
+    # Total Energy (Reactive)
+  - start_reg: 342
+    count: 4
+    unit: 1
+modbus_features:
   - type: Voltage
     start_reg: 0
     count: 2
+    slave: 1
   - type: Current
     start_reg: 6
     count: 2
   - type: Power (Active)
     start_reg: 12
-    count: 2
+    slave: 1
   - type: Power (Apparent)
     start_reg: 18
     count: 2

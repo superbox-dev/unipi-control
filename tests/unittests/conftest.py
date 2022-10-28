@@ -17,7 +17,7 @@ from unipi_control.covers import CoverMap
 from unipi_control.modbus.cache import ModbusClient
 from unipi_control.neuron import Neuron
 from unipi_control.run import UnipiControl
-from unittests.conftest_data import MODBUS_HOLDING_REGISTER
+from unittests.conftest_data import MODBUS_REGISTER
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -84,13 +84,18 @@ class MockHardwareInfo:
 
 @pytest.fixture()
 def _modbus_client(mocker: MockerFixture) -> ModbusClient:
-    mock_modbus_tcp_client: AsyncMock = AsyncMock()
-    mock_modbus_tcp_client.read_holding_registers.side_effect = MODBUS_HOLDING_REGISTER
-
     mock_response_is_error: MagicMock = MagicMock(registers=[0])
     mock_response_is_error.isError.return_value = False
 
-    mock_modbus_tcp_client.read_input_registers.return_value = mock_response_is_error
+    mock_modbus_tcp_client: AsyncMock = AsyncMock()
+    mock_modbus_tcp_client.read_input_registers.side_effect = MODBUS_REGISTER + [
+        # Board 1
+        mock_response_is_error,
+        # Board 2
+        mock_response_is_error,
+        # Board 3
+        mock_response_is_error,
+    ]
 
     mock_hardware_info: PropertyMock = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
     mock_hardware_info.return_value = MockHardwareInfo()

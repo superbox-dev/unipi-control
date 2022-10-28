@@ -14,14 +14,14 @@ mqtt:
     retry_limit: 30
     reconnect_interval: 10
 homeassistant:
-  enabled: true
+  enabled: True
   discovery_prefix: homeassistant
 features:
   di_1_01:
     id: MOCKED_ID_DI_1_01
     friendly_name: MOCKED_FRIENDLY_NAME - DI_1_01
     suggested_area: MOCKED AREA 1
-    invert_state: true
+    invert_state: True
   di_1_02:
     id: MOCKED_ID_DI_1_02
     friendly_name: MOCKED_FRIENDLY_NAME - DI_1_02
@@ -36,7 +36,7 @@ features:
     id: MOCKED_ID_RO_2_01
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_01
     suggested_area: MOCKED AREA 2
-    invert_state: true
+    invert_state: True
   ro_2_02:
     id: MOCKED_ID_RO_2_02
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
@@ -60,11 +60,11 @@ modbus:
   - id: MOCKED_EASTRON_SDM120
     device:
       manufacturer: Eastron
-      model: SDM120M.yaml
+      model: eastron_SDM120M.yaml
     address: 1
     baud_rate: 2400
     parity: N
-    friendly_name: MOCKED EASTRON SDM120M.yaml
+    friendly_name: MOCKED EASTRON eastron_SDM120M.yaml
     suggested_area: MOCKED AREA
 logging:
   level: debug
@@ -72,413 +72,146 @@ logging:
 
 HARDWARE_DATA_CONTENT: Final[
     str
-] = """---
-type: L203
+] = """type: L203
 modbus_register_blocks:
-    - board_index : 1
-      start_reg   : 0
-      count       : 2
-      frequency   : 1
-    - board_index : 1
-      start_reg   : 2
-      count       : 3
-      frequency   : 10
-    - board_index : 1
-      start_reg   : 5
-      count       : 16
-      frequency   : 1
-    - board_index : 1
-      start_reg   : 1000
-      count       : 32
-      frequency   : 5
-    - board_index : 2
-      start_reg   : 100
-      count       : 35
-      frequency   : 1
-    - board_index : 2
-      start_reg   : 1100
-      count       : 29
-      frequency   : 5
-    - board_index : 3
-      start_reg   : 200
-      count       : 35
-      frequency   : 1
-    - board_index : 3
-      start_reg   : 1200
-      count       : 29
-      frequency   : 5
+    # DI 1.x / DO 1.x
+  - start_reg: 0
+    count: 2
+    # LED 1.x
+  - start_reg: 20
+    count: 1
+    # DI 2.x / RO 2.x
+  - start_reg: 100
+    count: 2
+    # DI 3.x / RO 3.x
+  - start_reg: 200
+    count: 2
 modbus_features:
-    - type        : AO
-      count       : 1
-      major_group : 1
-      modes       :
-        - Voltage
-        - Current
-        - Resistance
-      min_v       : 0
-      max_v       : 10
-      min_c       : 0
-      max_c       : 0.020
-      min_r       : 0
-      max_r       : 2000
-      val_reg     : 2
-      res_val_reg : 4
-      cal_reg     : 1024
-      mode_reg    : 1019
-    - type        : AI
-      count       : 1
-      major_group : 1
-      modes       :
-        - Voltage
-        - Current
-      tolerances  : brain
-      min_v       : 0
-      max_v       : 10
-      min_c       : 0
-      max_c       : 0.020
-      val_reg     : 3
-      cal_reg     : 1024
-      mode_reg    : 1024
-    - type        : DO
-      count       : 4
-      major_group : 1
-      modes       :
-        - Simple
-        - PWM
-      val_reg     : 1
-      val_coil    : 0
-      pwm_reg     : 16
-      pwm_ps_reg  : 1017
-      pwm_c_reg   : 1018
-    - type        : DI
-      count       : 4
-      major_group : 1
-      modes       :
-        - Simple
-        - DirectSwitch
-      ds_modes    :
-        - Simple
-        - Inverted
-        - Toggle
-      min_v       : 5
-      max_v       : 24
-      val_reg     : 0
-      counter_reg : 8
-      direct_reg  : 1014
-      deboun_reg  : 1010
-      polar_reg   : 1015
-      toggle_reg  : 1016
-    - type        : UART
-      major_group : 1
-      parity_modes :
-        - None
-        - Odd
-        - Even
-      speed_modes :
-        - 2400bps
-        - 4800bps
-        - 9600bps
-        - 19200bps
-        - 38400bps
-        - 57600bps
-        - 115200bps
-      stopb_modes :
-        - One
-        - Two
-      count       : 1
-      conf_reg    : 1031
-    - type        : LED
-      major_group : 1
-      count       : 4
-      val_coil    : 8
-      val_reg     : 20
-    - type        : WD
-      major_group : 1
-      count       : 1
-      val_reg     : 6
-      timeout_reg : 1008
-      nv_sav_coil : 1003
-      reset_coil  : 1002
-    - type        : REGISTER
-      major_group : 1
-      count       : 21
-      start_reg   : 0
-    - type        : REGISTER
-      major_group : 1
-      count       : 32
-      start_reg   : 1000
-    - type        : DI
-      count       : 16
-      major_group : 2
-      modes       :
-        - Simple
-        - DirectSwitch
-      ds_modes    :
-        - Simple
-        - Inverted
-        - Toggle
-      min_v       : 5
-      max_v       : 24
-      val_reg     : 100
-      counter_reg : 103
-      direct_reg  : 1126
-      deboun_reg  : 1110
-      polar_reg   : 1127
-      toggle_reg  : 1128
-    - type        : RO
-      major_group : 2
-      count       : 14
-      val_reg     : 101
-      val_coil    : 100
-      modes       :
-        - Simple
-    - type        : WD
-      count       : 1
-      major_group : 2
-      val_reg     : 102
-      timeout_reg : 1108
-      nv_sav_coil : 1103
-      reset_coil  : 1102
-    - type        : REGISTER
-      major_group : 2
-      count       : 35
-      start_reg   : 100
-    - type        : REGISTER
-      major_group : 2
-      count       : 29
-      start_reg   : 1100
-    - type        : DI
-      count       : 16
-      major_group : 3
-      modes       :
-        - Simple
-        - DirectSwitch
-      ds_modes    :
-        - Simple
-        - Inverted
-        - Toggle
-      min_v       : 5
-      max_v       : 24
-      val_reg     : 200
-      counter_reg : 203
-      direct_reg  : 1226
-      deboun_reg  : 1210
-      polar_reg   : 1227
-      toggle_reg  : 1228
-    - type        : RO
-      major_group : 3
-      count       : 14
-      val_reg     : 201
-      val_coil    : 200
-      modes       :
-        - Simple
-    - type        : WD
-      count       : 1
-      major_group : 3
-      val_reg     : 202
-      timeout_reg : 1208
-      nv_sav_coil : 1203
-      reset_coil  : 1202
-    - type        : REGISTER
-      major_group : 3
-      count       : 35
-      start_reg   : 200
-    - type        : REGISTER
-      major_group : 3
-      count       : 29
-      start_reg   : 1200
+  - type: DO
+    count: 4
+    major_group: 1
+    val_reg: 1
+    val_coil: 0
+  - type: DI
+    count: 4
+    major_group: 1
+    val_reg: 0
+  - type: LED
+    major_group: 1
+    count: 4
+    val_coil: 8
+    val_reg: 20
+  - type: DI
+    count: 16
+    major_group: 2
+    val_reg: 100
+  - type: RO
+    major_group: 2
+    count: 14
+    val_reg: 101
+    val_coil: 100
+  - type: DI
+    count: 16
+    major_group: 3
+    val_reg: 200
+  - type: RO
+    major_group: 3
+    count: 14
+    val_reg: 201
+    val_coil: 200
 """
 
 THIRD_PARTY_HARDWARE_DATA_CONTENT: Final[
     str
-] = """- model: SDM120M
-  type: meter
+] = """type: SDM120M
+modbus_register_blocks:
+    # Voltage
+  - start_reg: 0
+    count: 2
+    unit: 1
+    # Current
+  - start_reg: 6
+    count: 2
+    unit: 1
+    # Power (Active)
+  - start_reg: 12
+    count: 2
+    unit: 1
+    # Power (Apparent)
+  - start_reg: 18
+    count: 2
+    unit: 1
+    # Power (Reactive)
+  - start_reg: 24
+    count: 2
+    unit: 1
+    # Power factor
+  - start_reg: 30
+    count: 2
+    unit: 1
+    # Phase Angle
+  - start_reg: 36
+    count: 2
+    unit: 1
+    # Frequency
+    # Imported Energy (Active)
+    # Exported Energy (Active)
+    # Imported Energy (Reactive)
+    # Exported Energy (Reactive)
+  - start_reg: 70
+    count: 10
+    unit: 1
+    # Total Demand Power (Active)
+    # Maximum Total Demand Power (Active)
+    # Import Demand Power (Active)
+    # Maximum Import Demand Power (Active)
+  - start_reg: 84
+    count: 8
+    unit: 1
+    # Export Demand Power (Active)
+    # Maximum Export Demand Power (Active)
+  - start_reg: 92
+    count: 4
+    unit: 1
+    # Total Demand Current
+  - start_reg: 258
+    count: 2
+    unit: 1
+    # Maximum Total Demand Current
+  - start_reg: 264
+    count: 2
+    unit: 1
+    # Total Energy (Reactive)
+    # Total Energy (Reactive)
+  - start_reg: 342
+    count: 4
+    unit: 1
 """
 
 MODBUS_FEATURE_ENABLED: Final[int] = 1
 
-MODBUS_HOLDING_REGISTER: Final[List] = [
-    PropertyMock(registers=[0, 0]),
-    PropertyMock(registers=[0, 4, 7]),
-    PropertyMock(registers=[11332, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0]),
+MODBUS_REGISTER: Final[List] = [
+    # L203
+    PropertyMock(registers=[0, 12]),  # DI 1.x / DO 1.x
+    PropertyMock(registers=[0]),  # LED 1.x
+    PropertyMock(registers=[16384, 10240]),  # DI 2.x / RO 2.x
+    PropertyMock(registers=[24576, 8192]),  # DI 3.x / RO 3.x
+    # SDM120M
+    PropertyMock(registers=[17259, 13107]),  # Voltage
+    PropertyMock(registers=[16018, 28312]),  # Current
+    PropertyMock(registers=[16918, 52429]),  # Power (Active)
+    PropertyMock(registers=[16932, 32072]),  # Power (Apparent)
+    PropertyMock(registers=[49538, 26214]),  # Power (Reactive)
+    PropertyMock(registers=[16234, 55535]),  # Power factor
+    PropertyMock(registers=[0, 0]),  # Phase Angle
     PropertyMock(
-        registers=[
-            1336,
-            1028,
-            785,
-            16,
-            32,
-            5433,
-            0,
-            5,
-            5000,
-            12216,
-            50,
-            50,
-            50,
-            50,
-            0,
-            0,
-            0,
-            4799,
-            255,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            14,
-        ]
-    ),
+        registers=[16968, 10486, 16525, 20447, 0, 0, 16023, 36176, 16431, 11010]
+    ),  # Frequency, Imported Energy (Active), Exported Energy (Active), Imported Energy (Reactive), Exported Energy (Reactive)
     PropertyMock(
-        registers=[
-            16384,
-            6144,
-            8,
-            4,
-            0,
-            0,
-            0,
-            4,
-            0,
-            0,
-            0,
-            10,
-            0,
-            6,
-            0,
-            60,
-            0,
-            56,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            18,
-            0,
-            14,
-            0,
-        ]
-    ),
-    PropertyMock(
-        registers=[
-            1336,
-            4110,
-            0,
-            2064,
-            784,
-            7912,
-            0,
-            5,
-            5000,
-            1520,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            0,
-            0,
-            0,
-        ]
-    ),
-    PropertyMock(
-        registers=[
-            8192,
-            8192,
-            0,
-            20,
-            0,
-            29,
-            0,
-            0,
-            0,
-            0,
-            0,
-            4,
-            0,
-            0,
-            0,
-            5,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-            0,
-            84,
-            0,
-            95,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ]
-    ),
-    PropertyMock(
-        registers=[
-            1336,
-            4110,
-            0,
-            2064,
-            784,
-            7926,
-            0,
-            5,
-            5000,
-            1530,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            50,
-            0,
-            0,
-            0,
-        ]
-    ),
+        registers=[16917, 5097, 17058, 5854, 16917, 5097, 17058, 5854]
+    ),  # Total Demand Power (Active), Maximum Total Demand Power (Active), Import Demand Power (Active), Maximum Import Demand Power (Active)
+    PropertyMock(registers=[0, 0, 15609, 56093]),  # Export Demand Power (Active), Maximum Export Demand Power (Active)
+    PropertyMock(registers=[16020, 2247]),  # Total Demand Current
+    PropertyMock(registers=[16182, 44756]),  # Maximum Total Demand Current
+    PropertyMock(registers=[16525, 20447, 16450, 7340]),  # Total Energy (Reactive), Total Energy (Reactive)
 ]

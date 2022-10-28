@@ -6,6 +6,7 @@ from typing import AsyncIterable
 from typing import List
 from typing import Set
 
+from unipi_control.config import HardwareType
 from unipi_control.config import logger
 from unipi_control.logging import LOG_MQTT_PUBLISH
 from unipi_control.logging import LOG_MQTT_SUBSCRIBE
@@ -57,7 +58,7 @@ class FeaturesMqttPlugin:
 
     async def _publish(self):
         while self.PUBLISH_RUNNING:
-            await self._neuron.modbus_cache_data.scan()
+            await self._neuron.modbus_cache_data.scan([HardwareType.NEURON])
 
             for feature in self._neuron.features.by_feature_type(self.publish_feature_types):
                 if feature.changed:
