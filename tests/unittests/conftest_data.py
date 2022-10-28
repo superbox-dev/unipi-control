@@ -13,6 +13,9 @@ mqtt:
     keepalive: 15
     retry_limit: 30
     reconnect_interval: 10
+modbus:
+  baudrate: 2400
+  parity: N
 homeassistant:
   enabled: True
   discovery_prefix: homeassistant
@@ -56,16 +59,6 @@ covers:
     topic_name: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     circuit_up: ro_3_03
     circuit_down: ro_3_04
-modbus:
-  - id: MOCKED_EASTRON_SDM120
-    device:
-      manufacturer: Eastron
-      model: eastron_SDM120M.yaml
-    address: 1
-    baud_rate: 2400
-    parity: N
-    friendly_name: MOCKED EASTRON eastron_SDM120M.yaml
-    suggested_area: MOCKED AREA
 logging:
   level: debug
 """

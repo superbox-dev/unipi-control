@@ -103,21 +103,8 @@ class ModbusParity(Enum):
 
 
 @dataclass
-class ModbusDeviceInfo(ConfigLoaderMixin):
-    manufacturer: str = field(default_factory=str)
-    model: str = field(default_factory=str)
-
-    # TODO: Add validations
-
-
-@dataclass
 class ModbusConfig(ConfigLoaderMixin):
-    id: str = field(default_factory=str)  # pylint: disable=invalid-name
-    friendly_name: str = field(default_factory=str)
-    suggested_area: str = field(default_factory=str)
-    device: ModbusDeviceInfo = field(default_factory=ModbusDeviceInfo)
-    address: int = field(default_factory=int)
-    baud_rate: int = field(default_factory=int)
+    baudrate: int = field(default_factory=int)
     parity: str = field(default_factory=str)
 
     # TODO: Add validations
@@ -139,10 +126,10 @@ class ModbusConfig(ConfigLoaderMixin):
 class Config(ConfigLoaderMixin):
     device_info: DeviceInfo = field(default=DeviceInfo())
     mqtt: MqttConfig = field(default_factory=MqttConfig)
+    modbus: ModbusConfig = field(default_factory=ModbusConfig)
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
-    modbus: list = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=Path("/etc/unipi"))
     systemd_path: Path = field(default=Path("/etc/systemd/system"))
@@ -170,11 +157,6 @@ class Config(ConfigLoaderMixin):
             cover_config: CoverConfig = CoverConfig()
             cover_config.update(cover_data)
             self.covers[index] = cover_config
-
-        for index, modbus_data in enumerate(self.modbus):
-            modbus_config: ModbusConfig = ModbusConfig()
-            modbus_config.update(modbus_data)
-            self.modbus[index] = modbus_config
 
         self._validate_covers_circuits()
 

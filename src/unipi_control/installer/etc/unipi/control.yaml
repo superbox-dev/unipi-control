@@ -7,6 +7,9 @@ mqtt:
     keepalive: 15
     retry_limit: 30
     reconnect_interval: 10
+modbus:
+  baudrate: 2400
+  parity: N
 homeassistant:
   enabled: True
   discovery_prefix: homeassistant
@@ -182,4 +185,3 @@ covers:
     circuit_down: ro_2_12
 logging:
   level: info
-# TODO: Write config for UART (parity_modes, speed_modes, stopb_modes)
