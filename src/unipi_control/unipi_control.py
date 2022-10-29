@@ -16,23 +16,21 @@ from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
 
 from superbox_utils.argparse import init_argparse
-
-# # from superbox_utils.asyncio import cancel_tasks
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
 from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
-from unipi_control.covers import CoverMap
+from unipi_control.integrations.covers import CoverMap
 from unipi_control.logging import LOG_NAME
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.modbus import ModbusClient
+from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
+from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
+from unipi_control.mqtt.discovery.switches import HassSwitchesMqttPlugin
+from unipi_control.mqtt.features import FeaturesMqttPlugin
+from unipi_control.mqtt.integrations.covers import CoversMqttPlugin
 from unipi_control.neuron import Neuron
-from unipi_control.plugins.covers import CoversMqttPlugin
-from unipi_control.plugins.features import FeaturesMqttPlugin
-from unipi_control.plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
-from unipi_control.plugins.hass.covers import HassCoversMqttPlugin
-from unipi_control.plugins.hass.switches import HassSwitchesMqttPlugin
 from unipi_control.version import __version__
 
 
@@ -64,12 +62,6 @@ class UnipiControl:
         covers_plugin = CoversMqttPlugin(mqtt_client=mqtt_client, covers=covers)
         covers_tasks = await covers_plugin.init_tasks(stack)
         tasks.update(covers_tasks)
-
-        # modbus_devices_plugin = ModbusDevicesMqttPlugin(
-        #     mqtt_client=mqtt_client, devices=ModbusDeviceMap(config=self.config, hardware=self.neuron.hardware)
-        # )
-        # modbus_devices_tasks = await modbus_devices_plugin.init_tasks()
-        # tasks.update(modbus_devices_tasks)
 
         if self.config.homeassistant.enabled:
             hass_covers_plugin = HassCoversMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client, covers=covers)
@@ -125,7 +117,7 @@ class UnipiControl:
 
     async def run(self):
         await self._modbus_connect()
-        await self.neuron.read_boards()
+        await self.neuron.init()
 
         await mqtt_connect(
             mqtt_config=self.config.mqtt,

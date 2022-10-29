@@ -10,6 +10,9 @@ mqtt:
 modbus:
   baudrate: 2400
   parity: N
+  units:
+    - unit: 1
+      device_info: Eastron SDM120M
 homeassistant:
   enabled: True
   discovery_prefix: homeassistant
@@ -100,6 +103,7 @@ features:
     friendly_name: iPad mini 2 Power Supply
     suggested_area: Living Room
     invert_state: true
+# TODO: add integrations
 covers:
   - friendly_name: Workspace
     suggested_area: Workspace

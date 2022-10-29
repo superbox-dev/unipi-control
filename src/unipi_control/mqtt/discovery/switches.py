@@ -12,7 +12,7 @@ from unipi_control.config import HardwareData
 from unipi_control.config import logger
 from unipi_control.features import FeatureState
 from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.plugins.hass.discover import HassBaseDiscovery
+from unipi_control.mqtt.discovery.base import HassBaseDiscovery
 
 
 class HassSwitchesDiscovery(HassBaseDiscovery):
@@ -20,7 +20,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
 
     Attributes
     ----------
-    hardware : HardwareData
+    hardware: HardwareData
         The Unipi Neuron hardware definitions.
     """
 
@@ -61,7 +61,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
                 "device": {
                     "name": device_name,
                     "identifiers": device_name,
-                    "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
+                    "model": f"""{self.hardware["neuron"].name} {self.hardware["neuron"].model}""",
                     "sw_version": self._neuron.boards[feature.major_group - 1].firmware,
                     "manufacturer": self.config.device_info.manufacturer,
                 },

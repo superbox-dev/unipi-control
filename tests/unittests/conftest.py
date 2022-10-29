@@ -13,11 +13,12 @@ from _pytest.fixtures import SubRequest  # pylint: disable=import-private-name
 from pytest_mock import MockerFixture
 
 from unipi_control.config import Config
-from unipi_control.covers import CoverMap
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.integrations.covers import CoverMap
+from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
-from unipi_control.run import UnipiControl
-from unittests.conftest_data import MODBUS_REGISTER
+from unipi_control.unipi_control import UnipiControl
+from unittests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
+from unittests.conftest_data import NEURON_L203_MODBUS_REGISTER
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -36,9 +37,9 @@ class ConfigLoader:
         hardware_data_path.mkdir(parents=True)
         self.hardware_data_file_path = hardware_data_path / "MOCKED_MODEL.yaml"
 
-        third_party_hardware_data_path: Path = self.temp / "hardware/third_party"
-        third_party_hardware_data_path.mkdir(parents=True)
-        self.third_party_hardware_data_file_path = third_party_hardware_data_path / "MOCKED_EASTRON.yaml"
+        extension_hardware_data_path: Path = self.temp / "hardware/extensions"
+        extension_hardware_data_path.mkdir(parents=True)
+        self.extension_hardware_data_file_path = extension_hardware_data_path / "MOCKED_EASTRON.yaml"
 
         self.systemd_path: Path = self.temp / "systemd/system"
         self.systemd_path.mkdir(parents=True)
@@ -54,8 +55,8 @@ class ConfigLoader:
         with open(self.hardware_data_file_path, "w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def write_third_party_hardware_data(self, content: str):
-        with open(self.third_party_hardware_data_file_path, "w", encoding="utf-8") as _file:
+    def write_extension_hardware_data(self, content: str):
+        with open(self.extension_hardware_data_file_path, "w", encoding="utf-8") as _file:
             _file.write(content)
 
     def get_config(self) -> Config:
@@ -67,7 +68,7 @@ def _config_loader(request: SubRequest, tmp_path: Path) -> ConfigLoader:
     config_loader: ConfigLoader = ConfigLoader(temp=tmp_path)
     config_loader.write_config(request.param[0])
     config_loader.write_hardware_data(request.param[1])
-    config_loader.write_third_party_hardware_data(request.param[2])
+    config_loader.write_extension_hardware_data(request.param[2])
 
     logging.info("Create configuration: %s", tmp_path)
 
@@ -88,14 +89,18 @@ def _modbus_client(mocker: MockerFixture) -> ModbusClient:
     mock_response_is_error.isError.return_value = False
 
     mock_modbus_tcp_client: AsyncMock = AsyncMock()
-    mock_modbus_tcp_client.read_input_registers.side_effect = MODBUS_REGISTER + [
-        # Board 1
-        mock_response_is_error,
-        # Board 2
-        mock_response_is_error,
-        # Board 3
-        mock_response_is_error,
-    ]
+    mock_modbus_tcp_client.read_input_registers.side_effect = (
+        NEURON_L203_MODBUS_REGISTER
+        + [
+            # Board 1
+            mock_response_is_error,
+            # Board 2
+            mock_response_is_error,
+            # Board 3
+            mock_response_is_error,
+        ]
+        + EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
+    )
 
     mock_hardware_info: PropertyMock = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
     mock_hardware_info.return_value = MockHardwareInfo()
@@ -108,7 +113,7 @@ async def _neuron(_config_loader: ConfigLoader, _modbus_client: AsyncMock) -> As
     config: Config = _config_loader.get_config()
 
     _neuron: Neuron = Neuron(config=config, modbus_client=_modbus_client)
-    await _neuron.read_boards()
+    await _neuron.init()
 
     yield _neuron
 

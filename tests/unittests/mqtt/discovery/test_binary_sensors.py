@@ -10,19 +10,19 @@ import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from asyncio_mqtt import Client
 
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.modbus import ModbusClient
+from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsDiscovery
+from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
 from unipi_control.neuron import Neuron
-from unipi_control.plugins.hass.binary_sensors import HassBinarySensorsDiscovery
-from unipi_control.plugins.hass.binary_sensors import HassBinarySensorsMqttPlugin
 from unittests.conftest import ConfigLoader
 from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 
 class TestHappyPathHassBinarySensorsMqttPlugin:
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     def test_init_tasks(
         self,
@@ -67,7 +67,7 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
         "_config_loader, expected",
         [
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 [
                     {
                         "message": {

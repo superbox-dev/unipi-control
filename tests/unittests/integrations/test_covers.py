@@ -7,14 +7,14 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 
-from unipi_control.covers import Cover
-from unipi_control.covers import CoverMap
-from unipi_control.covers import CoverState
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.integrations.covers import Cover
+from unipi_control.integrations.covers import CoverMap
+from unipi_control.integrations.covers import CoverState
+from unipi_control.modbus import ModbusClient
 from unittests.conftest import ConfigLoader
 from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 
 @dataclass
@@ -53,13 +53,13 @@ class TestCovers:
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        mocker.patch("unipi_control.covers.CoverTimer", new_callable=MagicMock)
+        mocker.patch("unipi_control.integrations.covers.CoverTimer", new_callable=MagicMock)
 
 
 class TestHappyPathCovers(TestCovers):
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -85,7 +85,7 @@ class TestHappyPathCovers(TestCovers):
         cover: Cover = next(_covers.by_cover_type([options.cover_type]))
         cover.calibrate_mode = options.calibrate_mode
 
-        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.calibrate()
 
@@ -100,7 +100,7 @@ class TestHappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -156,7 +156,7 @@ class TestHappyPathCovers(TestCovers):
 
         assert cover.state == expected.current_cover_state
 
-        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
 
         if (cover_run_time := await cover.open()) is not None:
@@ -175,7 +175,7 @@ class TestHappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -231,7 +231,7 @@ class TestHappyPathCovers(TestCovers):
 
         assert cover.state == expected.current_cover_state
 
-        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
 
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.close()
@@ -252,7 +252,7 @@ class TestHappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -275,7 +275,7 @@ class TestHappyPathCovers(TestCovers):
         cover.position = options.position
         cover.state = options.cover_state
 
-        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
 
         await cover.stop()
@@ -283,7 +283,7 @@ class TestHappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -338,7 +338,7 @@ class TestHappyPathCovers(TestCovers):
 
         assert cover.state == expected.current_cover_state
 
-        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
 
         assert isinstance(options.tilt, int)
@@ -360,7 +360,7 @@ class TestHappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -415,7 +415,7 @@ class TestHappyPathCovers(TestCovers):
 
         assert cover.state == expected.current_cover_state
 
-        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
 
         assert isinstance(options.position, int)
@@ -436,7 +436,7 @@ class TestHappyPathCovers(TestCovers):
         assert cover.position_changed == expected.position_changed
 
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -451,7 +451,7 @@ class TestHappyPathCovers(TestCovers):
         assert str(cover) == expected
 
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -470,7 +470,7 @@ class TestHappyPathCovers(TestCovers):
         assert cover.state_changed == expected
 
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -493,7 +493,7 @@ class TestHappyPathCovers(TestCovers):
 class TestUnhappyPathCovers(TestCovers):
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize("options, expected", [(CoverOptions(cover_type="blind"), 105)])
     async def test_open_with_invalid_position(
@@ -514,7 +514,7 @@ class TestUnhappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize("options, expected", [(CoverOptions(cover_type="blind"), 50)])
     async def test_open_with_calibrate_mode(
@@ -531,7 +531,7 @@ class TestUnhappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize("options, expected", [(CoverOptions(cover_type="blind"), 50)])
     async def test_close_with_calibrate_mode(
@@ -548,7 +548,7 @@ class TestUnhappyPathCovers(TestCovers):
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
         "options, expected",
@@ -574,7 +574,7 @@ class TestUnhappyPathCovers(TestCovers):
         cover: Cover = next(_covers.by_cover_type([options.cover_type]))
         cover.calibrate_mode = options.calibrate_mode
 
-        mock_monotonic = mocker.patch("unipi_control.covers.time.monotonic", new_callable=MagicMock)
+        mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.calibrate()
 

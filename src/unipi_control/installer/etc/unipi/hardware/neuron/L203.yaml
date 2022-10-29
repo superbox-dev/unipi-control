@@ -1,4 +1,5 @@
-type: L203
+manufacturer: Unipi
+model: L203
 modbus_register_blocks:
     # DI 1.x / DO 1.x
   - start_reg: 0

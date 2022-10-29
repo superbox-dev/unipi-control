@@ -3,6 +3,7 @@ from collections.abc import Iterator
 from typing import List
 from typing import Optional
 from typing import Type
+from typing import Union
 
 import itertools
 
@@ -10,7 +11,8 @@ from superbox_utils.dict.data_dict import DataDict
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
 from unipi_control.config import LogPrefix
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.extensions.eastron import MeterFeature
+from unipi_control.modbus import ModbusClient
 
 
 class FeatureState:
@@ -18,18 +20,19 @@ class FeatureState:
     OFF: str = "OFF"
 
 
+# TODO: One ABC class for all features
 class Feature:
     """Base class from which all features inherit.
 
     Attributes
     ----------
-    modbus_client : ModbusClient
+    modbus_client: ModbusClient
         A modbus client.
-    circuit : str
+    circuit: str
         The machine-readable circuit name e.g. ro_2_01.
     """
 
-    name: str = "Feature"
+    name: str = "BaseFeature"
     feature_name: Optional[str] = None
 
     def __init__(
@@ -99,7 +102,7 @@ class Relay(Feature):
     feature_name: Optional[str] = "relay"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(address=self.coil, value=value, slave=0)
+        return await self.modbus_client.tcp.write_coil(address=self.coil, value=bool(value), slave=0)
 
 
 class DigitalOutput(Feature):
@@ -109,7 +112,7 @@ class DigitalOutput(Feature):
     feature_name: Optional[str] = "relay"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(address=self.coil, value=value, slave=0)
+        return await self.modbus_client.tcp.write_coil(address=self.coil, value=bool(value), slave=0)
 
 
 class DigitalInput(Feature):
@@ -126,35 +129,35 @@ class Led(Feature):
     feature_name: Optional[str] = "led"
 
     async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(self.coil, value, 0)
+        return await self.modbus_client.tcp.write_coil(address=self.coil, value=bool(value), slave=0)
 
 
 class FeatureMap(DataDict):
-    def register(self, feature: Feature):
+    def register(self, feature: Union[Feature, MeterFeature]):
         """Add a feature to the data storage.
 
         Parameters
         ----------
-        feature : Feature
+        feature: Feature or MeterFeature
         """
         if not self.data.get(feature.short_name):
             self.data[feature.short_name] = []
 
         self.data[feature.short_name].append(feature)
 
-    def by_circuit(self, circuit: str, feature_type: Optional[List[str]] = None) -> Type[Feature]:
+    # TODO: Refactor: Rename circuit to unique_name
+    def by_circuit(self, circuit: str, feature_type: Optional[List[str]] = None) -> Union[Type[Feature], MeterFeature]:
         """Get feature by circuit name.
 
         Parameters
         ----------
-        circuit : str
-            The machine readable circuit name e.g. ro_2_01.
-        feature_type : list
+        circuit: str
+            The machine-readable circuit name e.g. ro_2_01.
+        feature_type: list
 
         Returns
         -------
-        DigitalInput, DigitalOutput, Relay, Led
-            The feature class.
+        The feature class filtered by circuit.
 
         Raises
         ------
@@ -178,7 +181,7 @@ class FeatureMap(DataDict):
 
         Parameters
         ----------
-        feature_type : list
+        feature_type: list
 
         Returns
         -------

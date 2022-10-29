@@ -68,7 +68,7 @@ class CoverTimer:
 
         Parameters
         ----------
-        timeout : float
+        timeout: float
             The timer timeout in seconds.
         callback: Callable
             The callback function that is executed at the end of the timer.
@@ -94,35 +94,35 @@ class Cover:
 
     Attributes
     ----------
-    calibrate_mode : bool
+    calibrate_mode: bool
         Set the cover in calibration mode.
-    id : str, optional
+    id: str, optional
         ID. Used for ``Entity ID`` in Home Assistant.
-    friendly_name : str
+    friendly_name: str
         Friendly name of the cover. Used for ``Name`` in Home Assistant.
-    suggested_area : str, optional
+    suggested_area: str, optional
         Suggest an area. Used for ``Area`` in Home Assistant.
-    cover_type : str
+    cover_type: str
         Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
-    topic_name : str
+    topic_name: str
         Unique name for the MQTT topic.
-    cover_run_time : float or int, optional
+    cover_run_time: float or int, optional
         Define the time (in seconds) it takes for the cover to fully open or close.
-    tilt_change_time : float or int, optional
+    tilt_change_time: float or int, optional
         Define the time (in seconds) that the tilt changes from fully open to fully closed state.
-    circuit_up : str
+    circuit_up: str
         Output circuit name from a relay or digital output.
-    circuit_down : str
+    circuit_down: str
         Output circuit name from a relay or digital output.
-    state : str, optional
+    state: str, optional
         Current cover state defined in the ``CoverState()`` class.
-    position : int, optional
+    position: int, optional
         Current cover position.
-    tilt : int, optional
+    tilt: int, optional
         Current tilt position.
-    cover_up_feature : Feature
+    cover_up_feature: Feature
         The feature for opening the cover.
-    cover_down_feature : Feature
+    cover_down_feature: Feature
         The feature for closing the cover.
     """
 
@@ -131,7 +131,7 @@ class Cover:
 
         Parameters
         ----------
-        features : FeatureMap
+        features: FeatureMap
             All registered features (e.g. Relay, Digital Input, ...) from the
             Unipi Neuron.
         """
@@ -350,9 +350,9 @@ class Cover:
 
         Parameters
         ----------
-        position : int
+        position: int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
-        calibrate : bool
+        calibrate: bool
             Set position to ``0`` if ``True``.
 
         Returns
@@ -414,7 +414,7 @@ class Cover:
 
         Parameters
         ----------
-        position : int
+        position: int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
 
         Returns
@@ -556,7 +556,7 @@ class Cover:
 
         Parameters
         ----------
-        position : int
+        position: int
             The cover position. ``100`` is fully open and ``0`` is fully closed.
 
         Returns
@@ -583,7 +583,7 @@ class Cover:
 
         Parameters
         ----------
-        tilt : int
+        tilt: int
             The tilt position. ``100`` is fully open and ``0`` is fully closed.
 
         Returns

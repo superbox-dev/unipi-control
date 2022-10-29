@@ -9,7 +9,7 @@ from unipi_control.config import COVER_TYPES
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
 from unipi_control.config import logger
-from unipi_control.covers import CoverMap
+from unipi_control.integrations.covers import CoverMap
 from unipi_control.logging import LOG_MQTT_PUBLISH
 
 
@@ -18,7 +18,7 @@ class HassCoversDiscovery:
 
     Attributes
     ----------
-    hardware : HardwareData
+    hardware: HardwareData
         The Unipi Neuron hardware definitions.
     """
 
@@ -46,7 +46,7 @@ class HassCoversDiscovery:
             "device": {
                 "name": device_name,
                 "identifiers": device_name,
-                "model": f"""{self.hardware["neuron"]["name"]} {self.hardware["neuron"]["model"]}""",
+                "model": f"""{self.hardware["neuron"].name} {self.hardware["neuron"].model}""",
                 "manufacturer": self.config.device_info.manufacturer,
             },
         }

@@ -11,19 +11,19 @@ from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-
 from asyncio_mqtt import Client
 from pytest_mock import MockerFixture
 
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.modbus import ModbusClient
+from unipi_control.mqtt.features import FeaturesMqttPlugin
 from unipi_control.neuron import Neuron
-from unipi_control.plugins.features import FeaturesMqttPlugin
 from unittests.conftest import ConfigLoader
 from unittests.conftest import MockMQTTMessages
 from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 
 class TestHappyPathFeaturesMqttPlugin:
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     def test_init_tasks(
         self,
@@ -40,7 +40,7 @@ class TestHappyPathFeaturesMqttPlugin:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             mock_mqtt_client.filtered_messages.return_value = mock_mqtt_messages
 
-            mock_modbus_cache_data_scan: MagicMock = mocker.patch("unipi_control.modbus.cache.ModbusCacheData.scan")
+            mock_modbus_cache_data_scan: MagicMock = mocker.patch("unipi_control.modbus.ModbusCacheData.scan")
 
             FeaturesMqttPlugin.PUBLISH_RUNNING = PropertyMock(side_effect=[True, False])
             plugin: FeaturesMqttPlugin = FeaturesMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)

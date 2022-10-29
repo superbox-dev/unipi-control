@@ -3,7 +3,6 @@ import logging
 import re
 import socket
 import struct
-from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
@@ -11,6 +10,8 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import Final
 from typing import List
+from typing import NamedTuple
+from typing import TypedDict
 
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.config.loader import ConfigLoaderMixin
@@ -103,9 +104,25 @@ class ModbusParity(Enum):
 
 
 @dataclass
+class ModbusUnitConfig(ConfigLoaderMixin):
+    unit: int = field(default_factory=int)
+    device_info: str = field(default_factory=str)
+
+
+@dataclass
 class ModbusConfig(ConfigLoaderMixin):
     baudrate: int = field(default_factory=int)
     parity: str = field(default_factory=str)
+    units: list = field(init=False, default_factory=list)
+
+    def init(self):
+        for index, unit in enumerate(self.units):
+            unit_config: ModbusUnitConfig = ModbusUnitConfig()
+            unit_config.update(unit)
+            self.units[index] = unit_config
+
+    def get_units_by_device_info(self, device_info: str) -> List[int]:
+        return [modbus_unit.unit for modbus_unit in self.units if modbus_unit.device_info == device_info]
 
     # TODO: Add validations
 
@@ -145,9 +162,10 @@ class Config(ConfigLoaderMixin):
         self.update_from_yaml_file(config_path=self.config_base_path / "control.yaml")
         self.logging.update_level(name=LOG_NAME)
 
-    def validate(self):
-        super().validate()
+        self.init()
+        self.modbus.init()
 
+    def init(self):
         for circuit, feature_data in self.features.items():
             feature_config: FeatureConfig = FeatureConfig()
             feature_config.update(feature_data)
@@ -243,9 +261,22 @@ class HardwareInfo:
 
 
 class HardwareType:
-    NEURON: Final[str] = "neuron"
-    EXTENSION: Final[str] = "extension"
-    THIRD_PARTY: Final[str] = "third_party"
+    NEURON: Final[str] = "Neuron"
+    EXTENSION: Final[str] = "Extension"
+
+
+class HardwareDefinition(NamedTuple):
+    unit: int
+    manufacturer: str
+    model: str
+    hardware_type: str
+    modbus_register_blocks: List[dict]
+    modbus_features: List[dict]
+
+
+class HardwareDataDict(TypedDict):
+    neuron: HardwareInfo
+    definitions: List[HardwareDefinition]
 
 
 class HardwareData(DataDict):
@@ -254,36 +285,59 @@ class HardwareData(DataDict):
 
         self.config = config
 
-        self.data: dict = {
-            "neuron": asdict(HardwareInfo(sys_bus=config.sys_bus)),
-            "definitions": {},
-        }
+        self.data: HardwareDataDict = HardwareDataDict(
+            neuron=HardwareInfo(sys_bus=config.sys_bus),
+            definitions=[],
+        )
 
-        self._model: str = self.data["neuron"]["model"]
-
-        if self._model is None:
+        if self.data["neuron"].model is None:
             raise ConfigException("Hardware is not supported!")
 
         self._read_neuron_definition()
-        self._read_definitions()
-
-    def _read_definitions(self):
-        for definition in (HardwareType.EXTENSION, HardwareType.THIRD_PARTY):
-            try:
-                for extension_file in Path(f"{self.config.hardware_path}/{definition}").iterdir():
-                    if extension_file.suffix == ".yaml":
-                        self.data["definitions"][f"{definition}_{extension_file.stem.lower()}"] = yaml_loader_safe(
-                            extension_file
-                        )
-                        logger.debug("%s YAML definition loaded: %s", LogPrefix.CONFIG, extension_file)
-            except FileNotFoundError as error:
-                logger.info("%s %s", LogPrefix.CONFIG, str(error))
+        self._read_extension_definitions()
 
     def _read_neuron_definition(self):
-        definition_file: Path = Path(f"{self.config.hardware_path}/{HardwareType.NEURON}/{self._model}.yaml")
+        definition_file: Path = Path(f'{self.config.hardware_path}/neuron/{self.data["neuron"].model}.yaml')
 
         if definition_file.is_file():
-            self.data["definitions"][HardwareType.NEURON] = yaml_loader_safe(definition_file)
-            logger.debug("%s YAML neuron definition loaded: %s", LogPrefix.CONFIG, definition_file)
+            try:
+                self.data["definitions"].append(
+                    HardwareDefinition(
+                        unit=0,
+                        hardware_type=HardwareType.NEURON,
+                        **yaml_loader_safe(definition_file),
+                    )
+                )
+            except TypeError as error:
+                raise ConfigException(f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}") from error
+
+            logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
-            raise ConfigException(f"No valid YAML definition for active Neuron device! Device name is {self._model}")
+            raise ConfigException(
+                f'No valid YAML definition for active Neuron device! Device name is {self.data["neuron"].model}'
+            )
+
+    def _read_extension_definitions(self):
+        try:
+            for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
+                yaml_content: dict = yaml_loader_safe(definition_file)
+
+                try:
+                    units: List[int] = self.config.modbus.get_units_by_device_info(
+                        device_info=f'{yaml_content["manufacturer"]} {yaml_content["model"]}'
+                    )
+
+                    for unit in units:
+                        self.data["definitions"].append(
+                            HardwareDefinition(
+                                unit=unit,
+                                hardware_type=HardwareType.EXTENSION,
+                                **yaml_content,
+                            )
+                        )
+                except TypeError as error:
+                    raise ConfigException(f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}") from error
+
+                logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+        except FileNotFoundError as error:
+            logger.info("%s %s", LogPrefix.CONFIG, str(error))

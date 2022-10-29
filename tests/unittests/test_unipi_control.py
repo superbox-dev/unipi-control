@@ -9,12 +9,12 @@ from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-
 from pytest_mock import MockerFixture
 
 from unipi_control.config import Config
-from unipi_control.run import UnipiControl
-from unipi_control.run import parse_args
+from unipi_control.unipi_control import UnipiControl
+from unipi_control.unipi_control import parse_args
 from unittests.conftest import ConfigLoader
 from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 from .test_unipi_control_data import UNIPI_CONTROL_INSTALLER_WITHOUT_ENABLE_SYSTEMD_OUTPUT
 from .test_unipi_control_data import UNIPI_CONTROL_INSTALLER_WITHOUT_OVERWRITE_CONFIG_OUTPUT
 from .test_unipi_control_data import UNIPI_CONTROL_INSTALLER_WITH_ENABLE_SYSTEMD_OUTPUT
@@ -38,7 +38,7 @@ class TestHappyPathUnipiControl:
         ],
     )
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT)], indirect=True
+        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     def test_installer(
         self,

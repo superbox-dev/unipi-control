@@ -16,6 +16,9 @@ mqtt:
 modbus:
   baudrate: 2400
   parity: N
+  units:
+    - unit: 1
+      device_info: Eastron SDM120M
 homeassistant:
   enabled: True
   discovery_prefix: homeassistant
@@ -65,7 +68,8 @@ logging:
 
 HARDWARE_DATA_CONTENT: Final[
     str
-] = """type: L203
+] = """manufacturer: Unipi
+model: L203
 modbus_register_blocks:
     # DI 1.x / DO 1.x
   - start_reg: 0
@@ -80,15 +84,15 @@ modbus_register_blocks:
   - start_reg: 200
     count: 2
 modbus_features:
+  - type: DI
+    count: 4
+    major_group: 1
+    val_reg: 0
   - type: DO
     count: 4
     major_group: 1
     val_reg: 1
     val_coil: 0
-  - type: DI
-    count: 4
-    major_group: 1
-    val_reg: 0
   - type: LED
     major_group: 1
     count: 4
@@ -114,97 +118,175 @@ modbus_features:
     val_coil: 200
 """
 
-THIRD_PARTY_HARDWARE_DATA_CONTENT: Final[
+EXTENSION_HARDWARE_DATA_CONTENT: Final[
     str
-] = """type: SDM120M
+] = """manufacturer: Eastron
+model: SDM120M
 modbus_register_blocks:
     # Voltage
   - start_reg: 0
     count: 2
-    unit: 1
     # Current
   - start_reg: 6
     count: 2
-    unit: 1
-    # Power (Active)
+    # Active power
   - start_reg: 12
     count: 2
-    unit: 1
-    # Power (Apparent)
+    # Apparent power
   - start_reg: 18
     count: 2
-    unit: 1
-    # Power (Reactive)
+    # Reactive power
   - start_reg: 24
     count: 2
-    unit: 1
     # Power factor
   - start_reg: 30
     count: 2
-    unit: 1
     # Phase Angle
   - start_reg: 36
     count: 2
-    unit: 1
     # Frequency
-    # Imported Energy (Active)
-    # Exported Energy (Active)
-    # Imported Energy (Reactive)
-    # Exported Energy (Reactive)
+    # Import active energy
+    # Export active energy
+    # Imported reactive energy
+    # Exported reactive energy
   - start_reg: 70
     count: 10
-    unit: 1
-    # Total Demand Power (Active)
-    # Maximum Total Demand Power (Active)
-    # Import Demand Power (Active)
-    # Maximum Import Demand Power (Active)
+    # Total system power demand
+    # Maximum total system power demand
+    # Import system power demand
+    # Maximum import system power demand
   - start_reg: 84
     count: 8
-    unit: 1
-    # Export Demand Power (Active)
-    # Maximum Export Demand Power (Active)
+    # Export system power demand
+    # Maximum export system power demand
   - start_reg: 92
     count: 4
-    unit: 1
-    # Total Demand Current
+    # Current demand
   - start_reg: 258
     count: 2
-    unit: 1
-    # Maximum Total Demand Current
+    # Maximum current demand
   - start_reg: 264
     count: 2
-    unit: 1
-    # Total Energy (Reactive)
-    # Total Energy (Reactive)
+    # Total active energy
+    # Total reactive energy
   - start_reg: 342
     count: 4
-    unit: 1
+modbus_features:
+  - type: Meter
+    description: Voltage
+    start_reg: 0
+    count: 2
+  - type: Meter
+    description: Current
+    start_reg: 6
+    count: 2
+  - type: Meter
+    description: Active power
+    start_reg: 12
+    count: 2
+  - type: Meter
+    description: Apparent power
+    start_reg: 18
+    count: 2
+  - type: Meter
+    description: Reactive power
+    start_reg: 24
+    count: 2
+  - type: Meter
+    description: Power factor
+    start_reg: 30
+    count: 2
+  - type: Meter
+    description: Phase Angle
+    start_reg: 36
+    count: 2
+  - type: Meter
+    description: Frequency
+    start_reg: 70
+    count: 2
+  - type: Meter
+    description: Import active energy
+    start_reg: 72
+    count: 2
+  - type: Meter
+    description: Export active energy
+    start_reg: 74
+    count: 2
+  - type: Meter
+    description: Imported reactive energy
+    start_reg: 76
+    count: 2
+  - type: Meter
+    description: Exported reactive energy
+    start_reg: 78
+    count: 2
+  - type: Meter
+    description: Total system power demand
+    start_reg: 84
+    count: 2
+  - type: Meter
+    description: Maximum total system power demand
+    start_reg: 86
+    count: 2
+  - type: Meter
+    description: Import system power demand
+    start_reg: 88
+    count: 2
+  - type: Meter
+    description: Maximum import system power demand
+    start_reg: 90
+    count: 2
+  - type: Meter
+    description: Export system power demand
+    start_reg: 92
+    count: 2
+  - type: Meter
+    description: Maximum export system power demand
+    start_reg: 94
+    count: 2
+  - type: Meter
+    description: Current demand
+    start_reg: 258
+    count: 2
+  - type: Meter
+    description: Maximum current demand
+    start_reg: 264
+    count: 2
+  - type: Meter
+    description: Total active energy
+    start_reg: 342
+    count: 2
+  - type: Meter
+    description: Total reactive energy
+    start_reg: 344
+    count: 2
 """
 
 MODBUS_FEATURE_ENABLED: Final[int] = 1
 
-MODBUS_REGISTER: Final[List] = [
-    # L203
+NEURON_L203_MODBUS_REGISTER: Final[List] = [
     PropertyMock(registers=[0, 12]),  # DI 1.x / DO 1.x
     PropertyMock(registers=[0]),  # LED 1.x
     PropertyMock(registers=[16384, 10240]),  # DI 2.x / RO 2.x
     PropertyMock(registers=[24576, 8192]),  # DI 3.x / RO 3.x
-    # SDM120M
+]
+
+EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER: Final[List] = [
     PropertyMock(registers=[17259, 13107]),  # Voltage
     PropertyMock(registers=[16018, 28312]),  # Current
-    PropertyMock(registers=[16918, 52429]),  # Power (Active)
-    PropertyMock(registers=[16932, 32072]),  # Power (Apparent)
-    PropertyMock(registers=[49538, 26214]),  # Power (Reactive)
+    PropertyMock(registers=[16918, 52429]),  # Active power
+    PropertyMock(registers=[16932, 32072]),  # Apparent power
+    PropertyMock(registers=[49538, 26214]),  # Reactive power
     PropertyMock(registers=[16234, 55535]),  # Power factor
     PropertyMock(registers=[0, 0]),  # Phase Angle
     PropertyMock(
         registers=[16968, 10486, 16525, 20447, 0, 0, 16023, 36176, 16431, 11010]
-    ),  # Frequency, Imported Energy (Active), Exported Energy (Active), Imported Energy (Reactive), Exported Energy (Reactive)
+    ),  # Frequency, Import active energy, Export active energy, Imported reactive energy, Exported reactive energy
     PropertyMock(
         registers=[16917, 5097, 17058, 5854, 16917, 5097, 17058, 5854]
-    ),  # Total Demand Power (Active), Maximum Total Demand Power (Active), Import Demand Power (Active), Maximum Import Demand Power (Active)
-    PropertyMock(registers=[0, 0, 15609, 56093]),  # Export Demand Power (Active), Maximum Export Demand Power (Active)
-    PropertyMock(registers=[16020, 2247]),  # Total Demand Current
-    PropertyMock(registers=[16182, 44756]),  # Maximum Total Demand Current
-    PropertyMock(registers=[16525, 20447, 16450, 7340]),  # Total Energy (Reactive), Total Energy (Reactive)
+    ),  # Total system power demand, Maximum total system power demand, Import system power demand, Maximum import system power demand
+    PropertyMock(registers=[0, 0, 15609, 56093]),  # Export system power demand, Maximum export system power demand
+    PropertyMock(registers=[16020, 2247]),  # Current demand
+    PropertyMock(registers=[16182, 44756]),  # Maximum current demand
+    PropertyMock(registers=[16525, 20447, 16450, 7340]),  # Total active energy, Total reactive energy
 ]

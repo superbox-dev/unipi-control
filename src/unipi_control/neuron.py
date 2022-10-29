@@ -1,5 +1,6 @@
-from typing import Dict
 from typing import List
+
+import sys
 
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
@@ -8,11 +9,12 @@ from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
+from unipi_control.features import Feature
 from unipi_control.features import FeatureMap
 from unipi_control.features import Led
 from unipi_control.features import Relay
-from unipi_control.modbus.cache import ModbusCacheData
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.modbus import ModbusCacheData
+from unipi_control.modbus import ModbusClient
 
 
 class Board:
@@ -23,11 +25,11 @@ class Board:
 
         Parameters
         ----------
-        neuron : class
+        neuron: class
             The Neuron class for registering features.
-        versions : list
+        versions: list
             The modbus firmware version register (1000).
-        major_group : int
+        major_group: int
             The board group number.
         """
         self.neuron: Neuron = neuron
@@ -42,7 +44,7 @@ class Board:
             for index in range(0, max_count):
                 circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
 
-                ro = Relay(
+                ro: Feature = Relay(
                     board=self,
                     short_name=modbus_feature["type"],
                     circuit=circuit,
@@ -62,7 +64,7 @@ class Board:
             for index in range(0, max_count):
                 circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
 
-                di = DigitalInput(
+                di: Feature = DigitalInput(
                     board=self,
                     short_name=modbus_feature["type"],
                     circuit=circuit,
@@ -81,7 +83,7 @@ class Board:
             for index in range(0, max_count):
                 circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
 
-                do = DigitalOutput(
+                do: Feature = DigitalOutput(
                     board=self,
                     short_name=modbus_feature["type"],
                     circuit=circuit,
@@ -101,7 +103,7 @@ class Board:
             for index in range(0, max_count):
                 circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
 
-                led = Led(
+                led: Feature = Led(
                     board=self,
                     short_name=modbus_feature["type"],
                     circuit=circuit,
@@ -121,10 +123,7 @@ class Board:
             func(max_count, modbus_feature)
 
     def parse_features(self):
-        neuron_definition: Dict[str, dict] = self.neuron.hardware["definitions"]["neuron"]
-        modbus_features: dict = neuron_definition["modbus_features"]
-
-        for modbus_feature in modbus_features:
+        for modbus_feature in self.neuron.hardware["definitions"][0].modbus_features:
             self._parse_feature(modbus_feature)
 
 
@@ -136,13 +135,13 @@ class Neuron:
 
     Attributes
     ----------
-    modbus_client : ModbusClient
+    modbus_client: ModbusClient
         A modbus tcp client.
-    hardware : HardwareData
+    hardware: HardwareData
         The Unipi Neuron hardware definitions.
-    boards : list
+    boards: list
         All available boards from the Unipi Neuron.
-    features : FeatureMap
+    features: FeatureMap
         All registered features (e.g. Relay, Digital Input, ...) from the
         Unipi Neuron.
     """
@@ -155,13 +154,17 @@ class Neuron:
         self.features = FeatureMap()
 
         self.modbus_cache_data: ModbusCacheData = ModbusCacheData(
-            self.modbus_client,
-            hardware_definitions=self.hardware["definitions"],
+            modbus_client=self.modbus_client,
+            definitions=self.hardware["definitions"],
         )
+
+    async def init(self):
+        await self.read_boards()
+        await self.read_extensions()
 
     async def read_boards(self):
         logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
-        await self.modbus_cache_data.scan([HardwareType.NEURON, HardwareType.THIRD_PARTY])
+        await self.modbus_cache_data.scan([HardwareType.NEURON])
 
         for index in (1, 2, 3):
             response = await self.modbus_client.tcp.read_input_registers(address=1000, count=1, slave=index)
@@ -169,7 +172,19 @@ class Neuron:
             if response.isError():
                 logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
             else:
-                board = Board(self, versions=response.registers, major_group=index)
+                board = Board(neuron=self, versions=response.registers, major_group=index)
                 board.parse_features()
 
                 self.boards.append(board)
+
+    async def read_extensions(self):
+        logger.info("%s Reading extensions devices", LogPrefix.MODBUS)
+        await self.modbus_cache_data.scan([HardwareType.EXTENSION])
+
+        for definition in self.hardware["definitions"][1:]:
+            getattr(
+                sys.modules[f"unipi_control.extensions.{definition.manufacturer.lower()}"],
+                f"{definition.manufacturer}{definition.model}",
+            )(neuron=self, definition=definition).parse_features()
+
+            print(list(self.features.by_feature_type(["Meter"])))

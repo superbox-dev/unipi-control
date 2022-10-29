@@ -12,12 +12,12 @@ from unipi_control.features import DigitalOutput
 from unipi_control.features import Feature
 from unipi_control.features import Led
 from unipi_control.features import Relay
-from unipi_control.modbus.cache import ModbusClient
+from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
 from unittests.conftest import ConfigLoader
 from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from unittests.conftest_data import THIRD_PARTY_HARDWARE_DATA_CONTENT
 
 
 @dataclass
@@ -39,27 +39,27 @@ class TestHappyPathFeatures:
         "_config_loader, options, expected",
         [
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(circuit="di_2_15", feature_type="DI"),
                 FeatureExpected(topic_feature_name="input", value=1, repr="Digital Input 2.15"),
             ),
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(circuit="do_1_01", feature_type="DO"),
                 FeatureExpected(topic_feature_name="relay", value=0, repr="Digital Output 1.01"),
             ),
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(circuit="ro_2_13", feature_type="RO"),
                 FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13"),
             ),
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(circuit="ro_2_14", feature_type="RO"),
                 FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14"),
             ),
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(circuit="led_1_01", feature_type="LED"),
                 FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01"),
             ),
@@ -99,7 +99,7 @@ class TestUnhappyPathFeatures:
         "_config_loader, circuit, expected",
         [
             (
-                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, THIRD_PARTY_HARDWARE_DATA_CONTENT),
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 "INVALID",
                 "[CONFIG] 'INVALID' not found in FeatureMap!",
             )
