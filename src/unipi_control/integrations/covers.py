@@ -151,11 +151,11 @@ class Cover:
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
 
-        self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_circuit(
+        self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_unique_name(
             self.circuit_up, feature_type=["DO", "RO"]
         )
 
-        self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_circuit(
+        self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_unique_name(
             self.circuit_down, feature_type=["DO", "RO"]
         )
 

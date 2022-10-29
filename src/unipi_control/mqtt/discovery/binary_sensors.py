@@ -38,7 +38,7 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = (
             f"{self.config.homeassistant.discovery_prefix}/binary_sensor/"
-            f"{self.config.device_info.name.lower()}/{feature.circuit}/config"
+            f"{self.config.device_info.name.lower()}/{feature.unique_name}/config"
         )
 
         object_id: Optional[str] = self._get_object_id(feature)
@@ -51,7 +51,7 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
 
         message: dict = {
             "name": self._get_friendly_name(feature),
-            "unique_id": f"{self.config.device_info.name.lower()}_{feature.circuit}",
+            "unique_id": f"{self.config.device_info.name.lower()}_{feature.unique_name}",
             "state_topic": f"{feature.topic}/get",
             "qos": 2,
             "device": {

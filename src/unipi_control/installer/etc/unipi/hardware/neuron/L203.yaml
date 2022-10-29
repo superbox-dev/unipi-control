@@ -1,5 +1,5 @@
 manufacturer: Unipi
-model: L203
+model: Neuron L203
 modbus_register_blocks:
     # DI 1.x / DO 1.x
   - start_reg: 0
@@ -14,53 +14,34 @@ modbus_register_blocks:
   - start_reg: 200
     count: 2
 modbus_features:
-  - type: DI
+  - feature_type: DI
     count: 4
     major_group: 1
     val_reg: 0
-  - type: DO
+  - feature_type: DO
     count: 4
     major_group: 1
     val_reg: 1
     val_coil: 0
-#  - type: UART
-#    major_group: 1
-#    parity_modes:
-#      - None
-#      - Odd
-#      - Even
-#    speed_modes:
-#      - 2400bps
-#      - 4800bps
-#      - 9600bps
-#      - 19200bps
-#      - 38400bps
-#      - 57600bps
-#      - 115200bps
-#    stopb_modes:
-#      - One
-#      - Two
-#    count: 1
-#    conf_reg: 1031
-  - type: LED
+  - feature_type: LED
     major_group: 1
     count: 4
     val_coil: 8
     val_reg: 20
-  - type: DI
+  - feature_type: DI
     count: 16
     major_group: 2
     val_reg: 100
-  - type: RO
+  - feature_type: RO
     major_group: 2
     count: 14
     val_reg: 101
     val_coil: 100
-  - type: DI
+  - feature_type: DI
     count: 16
     major_group: 3
     val_reg: 200
-  - type: RO
+  - feature_type: RO
     major_group: 3
     count: 14
     val_reg: 201

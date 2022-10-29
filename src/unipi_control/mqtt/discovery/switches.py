@@ -38,12 +38,12 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = (
             f"{self.config.homeassistant.discovery_prefix}/switch/"
-            f"{self.config.device_info.name.lower()}/{feature.circuit}/config"
+            f"{self.config.device_info.name.lower()}/{feature.unique_name}/config"
         )
 
         message: dict = {}
 
-        if feature.circuit not in self.config.get_cover_circuits():
+        if feature.unique_name not in self.config.get_cover_circuits():
             object_id: Optional[str] = self._get_object_id(feature)
             invert_state: bool = self._get_invert_state(feature)
             suggested_area: Optional[str] = self._get_suggested_area(feature)
@@ -54,7 +54,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
 
             message = {
                 "name": self._get_friendly_name(feature),
-                "unique_id": f"{self.config.device_info.name.lower()}_{feature.circuit}",
+                "unique_id": f"{self.config.device_info.name.lower()}_{feature.unique_name}",
                 "command_topic": f"{feature.topic}/set",
                 "state_topic": f"{feature.topic}/get",
                 "qos": 2,

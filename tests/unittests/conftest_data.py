@@ -69,7 +69,7 @@ logging:
 HARDWARE_DATA_CONTENT: Final[
     str
 ] = """manufacturer: Unipi
-model: L203
+model: Neuron L203
 modbus_register_blocks:
     # DI 1.x / DO 1.x
   - start_reg: 0
@@ -84,34 +84,34 @@ modbus_register_blocks:
   - start_reg: 200
     count: 2
 modbus_features:
-  - type: DI
+  - feature_type: DI
     count: 4
     major_group: 1
     val_reg: 0
-  - type: DO
+  - feature_type: DO
     count: 4
     major_group: 1
     val_reg: 1
     val_coil: 0
-  - type: LED
+  - feature_type: LED
     major_group: 1
     count: 4
     val_coil: 8
     val_reg: 20
-  - type: DI
+  - feature_type: DI
     count: 16
     major_group: 2
     val_reg: 100
-  - type: RO
+  - feature_type: RO
     major_group: 2
     count: 14
     val_reg: 101
     val_coil: 100
-  - type: DI
+  - feature_type: DI
     count: 16
     major_group: 3
     val_reg: 200
-  - type: RO
+  - feature_type: RO
     major_group: 3
     count: 14
     val_reg: 201
@@ -172,92 +172,92 @@ modbus_register_blocks:
   - start_reg: 342
     count: 4
 modbus_features:
-  - type: Meter
-    description: Voltage
+  - feature_type: Meter
+    friendly_name: Voltage
     start_reg: 0
     count: 2
-  - type: Meter
-    description: Current
+  - feature_type: Meter
+    friendly_name: Current
     start_reg: 6
     count: 2
-  - type: Meter
-    description: Active power
+  - feature_type: Meter
+    friendly_name: Active power
     start_reg: 12
     count: 2
-  - type: Meter
-    description: Apparent power
+  - feature_type: Meter
+    friendly_name: Apparent power
     start_reg: 18
     count: 2
-  - type: Meter
-    description: Reactive power
+  - feature_type: Meter
+    friendly_name: Reactive power
     start_reg: 24
     count: 2
-  - type: Meter
-    description: Power factor
+  - feature_type: Meter
+    friendly_name: Power factor
     start_reg: 30
     count: 2
-  - type: Meter
-    description: Phase Angle
+  - feature_type: Meter
+    friendly_name: Phase Angle
     start_reg: 36
     count: 2
-  - type: Meter
-    description: Frequency
+  - feature_type: Meter
+    friendly_name: Frequency
     start_reg: 70
     count: 2
-  - type: Meter
-    description: Import active energy
+  - feature_type: Meter
+    friendly_name: Import active energy
     start_reg: 72
     count: 2
-  - type: Meter
-    description: Export active energy
+  - feature_type: Meter
+    friendly_name: Export active energy
     start_reg: 74
     count: 2
-  - type: Meter
-    description: Imported reactive energy
+  - feature_type: Meter
+    friendly_name: Imported reactive energy
     start_reg: 76
     count: 2
-  - type: Meter
-    description: Exported reactive energy
+  - feature_type: Meter
+    friendly_name: Exported reactive energy
     start_reg: 78
     count: 2
-  - type: Meter
-    description: Total system power demand
+  - feature_type: Meter
+    friendly_name: Total system power demand
     start_reg: 84
     count: 2
-  - type: Meter
-    description: Maximum total system power demand
+  - feature_type: Meter
+    friendly_name: Maximum total system power demand
     start_reg: 86
     count: 2
-  - type: Meter
-    description: Import system power demand
+  - feature_type: Meter
+    friendly_name: Import system power demand
     start_reg: 88
     count: 2
-  - type: Meter
-    description: Maximum import system power demand
+  - feature_type: Meter
+    friendly_name: Maximum import system power demand
     start_reg: 90
     count: 2
-  - type: Meter
-    description: Export system power demand
+  - feature_type: Meter
+    friendly_name: Export system power demand
     start_reg: 92
     count: 2
-  - type: Meter
-    description: Maximum export system power demand
+  - feature_type: Meter
+    friendly_name: Maximum export system power demand
     start_reg: 94
     count: 2
-  - type: Meter
-    description: Current demand
+  - feature_type: Meter
+    friendly_name: Current demand
     start_reg: 258
     count: 2
-  - type: Meter
-    description: Maximum current demand
+  - feature_type: Meter
+    friendly_name: Maximum current demand
     start_reg: 264
     count: 2
-  - type: Meter
-    description: Total active energy
+  - feature_type: Meter
+    friendly_name: Total active energy
     start_reg: 342
     count: 2
-  - type: Meter
-    description: Total reactive energy
+  - feature_type: Meter
+    friendly_name: Total reactive energy
     start_reg: 344
     count: 2
 """

@@ -166,10 +166,10 @@ class Config(ConfigLoaderMixin):
         self.modbus.init()
 
     def init(self):
-        for circuit, feature_data in self.features.items():
+        for unique_name, feature_data in self.features.items():
             feature_config: FeatureConfig = FeatureConfig()
             feature_config.update(feature_data)
-            self.features[circuit] = feature_config
+            self.features[unique_name] = feature_config
 
         for index, cover_data in enumerate(self.covers):
             cover_config: CoverConfig = CoverConfig()

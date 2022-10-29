@@ -1,17 +1,17 @@
+import importlib
 from typing import List
-
-import sys
 
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
+from unipi_control.config import HardwareDefinition
 from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
-from unipi_control.features import Feature
 from unipi_control.features import FeatureMap
 from unipi_control.features import Led
+from unipi_control.features import NeuronFeature
 from unipi_control.features import Relay
 from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import ModbusClient
@@ -33,97 +33,67 @@ class Board:
             The board group number.
         """
         self.neuron: Neuron = neuron
+        self.definition: HardwareDefinition = neuron.hardware["definitions"][0]
         self.major_group: int = major_group
         self.firmware = f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
 
     def _parse_feature_ro(self, max_count: int, modbus_feature: dict):
-        major_group: str = modbus_feature["major_group"]
-        feature_type: str = modbus_feature["type"]
-
-        if major_group == self.major_group:
+        if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
-                circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
-
-                ro: Feature = Relay(
-                    board=self,
-                    short_name=modbus_feature["type"],
-                    circuit=circuit,
-                    major_group=modbus_feature["major_group"],
-                    mask=(0x1 << (index % 16)),
-                    reg=modbus_feature["val_reg"],
-                    coil=modbus_feature["val_coil"] + index,
+                ro: Relay = Relay(
+                    neuron=self.neuron,
+                    definition=self.definition,
+                    index=index,
+                    **modbus_feature,
                 )
 
                 self.neuron.features.register(ro)
 
     def _parse_feature_di(self, max_count: int, modbus_feature: dict):
-        major_group: int = modbus_feature["major_group"]
-        feature_type: str = modbus_feature["type"]
-
-        if major_group == self.major_group:
+        if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
-                circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
-
-                di: Feature = DigitalInput(
-                    board=self,
-                    short_name=modbus_feature["type"],
-                    circuit=circuit,
-                    major_group=modbus_feature["major_group"],
-                    reg=modbus_feature["val_reg"],
-                    mask=(0x1 << (index % 16)),
+                di: NeuronFeature = DigitalInput(
+                    neuron=self.neuron,
+                    definition=self.definition,
+                    index=index,
+                    **modbus_feature,
                 )
 
                 self.neuron.features.register(di)
 
     def _parse_feature_do(self, max_count: int, modbus_feature: dict):
-        major_group: int = modbus_feature["major_group"]
-        feature_type: str = modbus_feature["type"]
-
-        if major_group == self.major_group:
+        if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
-                circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
-
-                do: Feature = DigitalOutput(
-                    board=self,
-                    short_name=modbus_feature["type"],
-                    circuit=circuit,
-                    major_group=modbus_feature["major_group"],
-                    mask=(0x1 << (index % 16)),
-                    reg=modbus_feature["val_reg"],
-                    coil=modbus_feature["val_coil"] + index,
+                do: NeuronFeature = DigitalOutput(
+                    neuron=self.neuron,
+                    definition=self.definition,
+                    index=index,
+                    **modbus_feature,
                 )
 
                 self.neuron.features.register(do)
 
     def _parse_feature_led(self, max_count: int, modbus_feature: dict):
-        major_group: int = modbus_feature["major_group"]
-        feature_type: str = modbus_feature["type"]
-
-        if major_group == self.major_group:
+        if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
-                circuit: str = f"{feature_type.lower()}_{major_group}_{index + 1:02d}"
-
-                led: Feature = Led(
-                    board=self,
-                    short_name=modbus_feature["type"],
-                    circuit=circuit,
-                    major_group=modbus_feature["major_group"],
-                    mask=(0x1 << (index % 16)),
-                    reg=modbus_feature["val_reg"],
-                    coil=modbus_feature["val_coil"] + index,
+                led: NeuronFeature = Led(
+                    neuron=self.neuron,
+                    definition=self.definition,
+                    index=index,
+                    **modbus_feature,
                 )
 
                 self.neuron.features.register(led)
 
     def _parse_feature(self, modbus_feature: dict):
         max_count: int = modbus_feature["count"]
-        feature_type: str = modbus_feature["type"].lower()
+        feature_type: str = modbus_feature["feature_type"].lower()
 
         if func := getattr(self, f"_parse_feature_{feature_type}", None):
             func(max_count, modbus_feature)
 
     def parse_features(self):
-        for modbus_feature in self.neuron.hardware["definitions"][0].modbus_features:
+        for modbus_feature in self.definition.modbus_features:
             self._parse_feature(modbus_feature)
 
 
@@ -183,7 +153,7 @@ class Neuron:
 
         for definition in self.hardware["definitions"][1:]:
             getattr(
-                sys.modules[f"unipi_control.extensions.{definition.manufacturer.lower()}"],
+                importlib.import_module(f"unipi_control.extensions.{definition.manufacturer.lower()}"),
                 f"{definition.manufacturer}{definition.model}",
             )(neuron=self, definition=definition).parse_features()
 
