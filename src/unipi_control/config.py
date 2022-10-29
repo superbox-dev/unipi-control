@@ -10,13 +10,14 @@ from pathlib import Path
 from tempfile import gettempdir
 from typing import Final
 from typing import List
+from typing import Literal
+from typing import Mapping
 from typing import NamedTuple
 from typing import TypedDict
 
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.config.loader import ConfigLoaderMixin
 from superbox_utils.config.loader import Validation
-from superbox_utils.dict.data_dict import DataDict
 from superbox_utils.hass.config import HomeAssistantConfig
 from superbox_utils.logging import init_logger
 from superbox_utils.logging import stream_handler
@@ -26,7 +27,6 @@ from superbox_utils.yaml.loader import yaml_loader_safe
 from unipi_control.logging import LOG_NAME
 
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
-MODBUS_TYPES: Final[List[str]] = ["meter"]
 
 logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
 
@@ -279,10 +279,8 @@ class HardwareDataDict(TypedDict):
     definitions: List[HardwareDefinition]
 
 
-class HardwareData(DataDict):
+class HardwareData(Mapping):
     def __init__(self, config: Config):
-        super().__init__()
-
         self.config = config
 
         self.data: HardwareDataDict = HardwareDataDict(
@@ -295,6 +293,15 @@ class HardwareData(DataDict):
 
         self._read_neuron_definition()
         self._read_extension_definitions()
+
+    def __getitem__(self, key: Literal["neuron", "definitions"]):
+        return self.data[key]
+
+    def __iter__(self):
+        return iter(self.data)
+
+    def __len__(self):
+        return len(self.data)
 
     def _read_neuron_definition(self):
         definition_file: Path = Path(f'{self.config.hardware_path}/neuron/{self.data["neuron"].model}.yaml')

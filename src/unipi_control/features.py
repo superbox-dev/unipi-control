@@ -1,14 +1,16 @@
-import re
 from abc import ABC
 from abc import abstractmethod
 from collections.abc import Iterator
+from enum import Enum
+from typing import Dict
+from typing import Final
 from typing import List
 from typing import Optional
 from typing import Union
 
 import itertools
 
-from superbox_utils.dict.data_dict import DataDict
+from superbox_utils.text.text import slugify
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
 from unipi_control.config import HardwareDefinition
@@ -21,6 +23,19 @@ class FeatureState:
     OFF: str = "OFF"
 
 
+class FeatureType(Enum):
+    DI: Final[tuple] = ("DI", "input", "Digital Input")
+    DO: Final[tuple] = ("DO", "relay", "Digital Output")
+    LED: Final[tuple] = ("LED", "led", "LED")
+    RO: Final[tuple] = ("RO", "relay", "Relay")
+    METER: Final[tuple] = ("Meter", "meter", "Meter")
+
+    def __init__(self, short_name: str, topic_name: str, long_name: str):
+        self.short_name: str = short_name
+        self.topic_name: str = topic_name
+        self.long_name: str = long_name
+
+
 class BaseFeature(ABC):
     """Base class from which all features inherit."""
 
@@ -28,7 +43,7 @@ class BaseFeature(ABC):
         self.config: Config = neuron.config
         self.modbus_client: ModbusClient = neuron.modbus_client
 
-        self.feature_type: str = feature_type
+        self.feature_type: FeatureType = FeatureType[feature_type]
         self.definition: HardwareDefinition = definition
 
     def __repr__(self) -> str:
@@ -36,11 +51,11 @@ class BaseFeature(ABC):
 
     @property
     def name(self) -> str:
-        return " ".join(re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", self.__class__.__name__))
+        return self.feature_type.long_name
 
     @property
     def feature_name(self) -> str:
-        return self.__class__.__name__.lower()
+        return self.feature_type.topic_name
 
     @property
     @abstractmethod
@@ -69,10 +84,9 @@ class NeuronFeature(BaseFeature):
         self,
         neuron,
         definition: HardwareDefinition,
-        feature_type: str,
         **kwargs,
     ):
-        super().__init__(neuron, definition, feature_type)
+        super().__init__(neuron, definition, kwargs["feature_type"])
 
         self.index: int = kwargs["index"]
         self.major_group: int = kwargs["major_group"]
@@ -85,7 +99,7 @@ class NeuronFeature(BaseFeature):
 
     @property
     def unique_name(self) -> str:
-        return f"{self.feature_type.lower()}_{self.major_group}_{self.index + 1:02d}"
+        return f"{self.feature_type.short_name.lower()}_{self.major_group}_{self.index + 1:02d}"
 
     @property
     def friendly_name(self) -> str:
@@ -156,22 +170,54 @@ class Led(NeuronFeature):
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=bool(value), slave=0)
 
 
-class FeatureMap(DataDict):
-    def register(self, feature: BaseFeature):
+class Meter(BaseFeature):
+    def __init__(
+        self,
+        neuron,
+        definition: HardwareDefinition,
+        **kwargs,
+    ):
+        super().__init__(neuron, definition, kwargs["feature_type"])
+
+        self._friendly_name: str = kwargs["friendly_name"]
+
+    @property
+    def unique_name(self) -> str:
+        return f"{slugify(self.friendly_name)}_{self.definition.unit}"
+
+    @property
+    def friendly_name(self) -> str:
+        return f"{self._friendly_name} {self.definition.unit}"
+
+    @property
+    def topic(self) -> str:
+        """Unique name for the MQTT topic."""
+        return f"{super().topic}/{self.unique_name}"
+
+    @property
+    def value(self) -> int:
+        return 0
+
+
+class FeatureMap:
+    def __init__(self):
+        self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, Meter]]] = {}
+
+    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, Meter]):
         """Add a feature to the data storage.
 
         Parameters
         ----------
-        feature: Feature or Meter
+        feature: Feature
         """
-        if not self.data.get(feature.feature_type):
-            self.data[feature.feature_type] = []
+        if not self.data.get(feature.feature_type.short_name):
+            self.data[feature.feature_type.short_name] = []
 
-        self.data[feature.feature_type].append(feature)
+        self.data[feature.feature_type.short_name].append(feature)
 
     def by_unique_name(
         self, unique_name: str, feature_type: Optional[List[str]] = None
-    ) -> Union[DigitalInput, DigitalOutput, Led, Relay]:
+    ) -> Union[DigitalInput, DigitalOutput, Led, Relay, Meter]:
         """Get feature by unique name.
 
         Parameters

@@ -11,7 +11,6 @@ from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
 from unipi_control.features import FeatureMap
 from unipi_control.features import Led
-from unipi_control.features import NeuronFeature
 from unipi_control.features import Relay
 from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import ModbusClient
@@ -52,7 +51,7 @@ class Board:
     def _parse_feature_di(self, max_count: int, modbus_feature: dict):
         if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
-                di: NeuronFeature = DigitalInput(
+                di: DigitalInput = DigitalInput(
                     neuron=self.neuron,
                     definition=self.definition,
                     index=index,
@@ -64,7 +63,7 @@ class Board:
     def _parse_feature_do(self, max_count: int, modbus_feature: dict):
         if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
-                do: NeuronFeature = DigitalOutput(
+                do: DigitalOutput = DigitalOutput(
                     neuron=self.neuron,
                     definition=self.definition,
                     index=index,
@@ -76,7 +75,7 @@ class Board:
     def _parse_feature_led(self, max_count: int, modbus_feature: dict):
         if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
-                led: NeuronFeature = Led(
+                led: Led = Led(
                     neuron=self.neuron,
                     definition=self.definition,
                     index=index,

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from pathlib import Path
 from typing import Callable
+from typing import Dict
 from typing import Final
 from typing import List
 from typing import Optional
@@ -15,7 +16,6 @@ import itertools
 import time
 
 from superbox_utils.asyncio import run_in_executor
-from superbox_utils.dict.data_dict import DataDict
 from unipi_control.config import Config
 from unipi_control.features import DigitalOutput
 from unipi_control.features import FeatureMap
@@ -611,9 +611,9 @@ class Cover:
         return cover_run_time
 
 
-class CoverMap(DataDict):
+class CoverMap:
     def __init__(self, config: Config, features: FeatureMap):
-        super().__init__()
+        self.data: Dict[str, List[Cover]] = {}
 
         for cover in config.covers:
             cover_type: str = cover.cover_type

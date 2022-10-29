@@ -172,91 +172,91 @@ modbus_register_blocks:
   - start_reg: 342
     count: 4
 modbus_features:
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Voltage
     start_reg: 0
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Current
     start_reg: 6
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Active power
     start_reg: 12
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Apparent power
     start_reg: 18
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Reactive power
     start_reg: 24
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Power factor
     start_reg: 30
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Phase Angle
     start_reg: 36
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Frequency
     start_reg: 70
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Import active energy
     start_reg: 72
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Export active energy
     start_reg: 74
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Imported reactive energy
     start_reg: 76
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Exported reactive energy
     start_reg: 78
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Total system power demand
     start_reg: 84
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Maximum total system power demand
     start_reg: 86
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Import system power demand
     start_reg: 88
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Maximum import system power demand
     start_reg: 90
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Export system power demand
     start_reg: 92
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Maximum export system power demand
     start_reg: 94
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Current demand
     start_reg: 258
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Maximum current demand
     start_reg: 264
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Total active energy
     start_reg: 342
     count: 2
-  - feature_type: Meter
+  - feature_type: METER
     friendly_name: Total reactive energy
     start_reg: 344
     count: 2

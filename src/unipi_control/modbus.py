@@ -9,7 +9,6 @@ from pymodbus.exceptions import ModbusIOException
 from pymodbus.pdu import ExceptionResponse
 
 from superbox_utils.core.exception import UnexpectedException
-from superbox_utils.dict.data_dict import DataDict
 from unipi_control.config import HardwareDefinition
 from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
@@ -21,7 +20,7 @@ class ModbusClient(NamedTuple):
     serial: AsyncModbusSerialClient
 
 
-class ModbusCacheData(DataDict):
+class ModbusCacheData:
     """Class that scan modbus register blocks and cache the response.
 
     Attributes
@@ -33,8 +32,6 @@ class ModbusCacheData(DataDict):
     """
 
     def __init__(self, modbus_client: ModbusClient, definitions: List[HardwareDefinition]):
-        super().__init__()
-
         self.modbus_client: ModbusClient = modbus_client
         self.definitions: List[HardwareDefinition] = definitions
 
