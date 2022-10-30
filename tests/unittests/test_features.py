@@ -83,15 +83,15 @@ class TestHappyPathFeatures:
         feature: Union[DigitalInput, DigitalOutput, Led, Relay, Meter] = _neuron.features.by_unique_name(
             options.unique_name, feature_type=[options.feature_type]
         )
-        feature._value = False
-
-        assert feature.value == expected.value
-        assert feature.state == ("ON" if expected.value == 1 else "OFF")
 
         assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.unique_name}"
         assert str(feature) == expected.repr
 
         if isinstance(feature, (Relay, DigitalOutput, Led)):
+            feature._value = False
+            assert feature.value == expected.value
+
+            assert feature.state == ("ON" if expected.value == 1 else "OFF")
             assert feature.changed == bool(expected.value)
 
             response = await feature.set_state(0)
