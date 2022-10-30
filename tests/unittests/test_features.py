@@ -11,6 +11,7 @@ from unipi_control.config import ConfigException
 from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
 from unipi_control.features import Led
+from unipi_control.features import Meter
 from unipi_control.features import Relay
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
@@ -79,7 +80,7 @@ class TestHappyPathFeatures:
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay] = _neuron.features.by_unique_name(
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, Meter] = _neuron.features.by_unique_name(
             options.unique_name, feature_type=[options.feature_type]
         )
         feature._value = False

@@ -241,7 +241,7 @@ class FeatureMap:
             data = self.by_feature_type(feature_type)
 
         try:
-            feature: Union[DigitalInput, DigitalOutput, Led, Relay] = next(
+            feature: Union[DigitalInput, DigitalOutput, Led, Relay, Meter] = next(
                 filter(lambda d: d.unique_name == unique_name, data)
             )
         except StopIteration as error:
