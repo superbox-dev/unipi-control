@@ -87,11 +87,11 @@ class TestHappyPathFeatures:
 
         assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.unique_name}"
         assert str(feature) == expected.repr
-        assert feature.val_coil == expected.coil
 
         if isinstance(feature, (Relay, DigitalOutput, Led)):
             feature._value = False
             assert feature.value == expected.value
+            assert feature.val_coil == expected.coil
 
             assert feature.state == ("ON" if expected.value == 1 else "OFF")
             assert feature.changed == bool(expected.value)
