@@ -81,6 +81,10 @@ mqtt:
     reconnect_interval: 10
 ```
 
+### Modbus
+
+TODO: Write modbus config and yaml files documentation
+
 ### Home Assistant
 
 | Key                | Value                                                           |
@@ -125,22 +129,25 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 
 | Key                | Value                                                                                                                                    |
 |--------------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| `id`               | Used for `Entity ID` in Home Assistant.                                                                                                  |
 | `friendly_name`    | Friendly name of the cover. It is used e.g. for Home Assistant.                                                                          |
 | `suggested_area`   | Suggest an area. e.g. `Living Room`.                                                                                                     |
 | `cover_type`       | Cover types can be "blind", "roller_shutter", or "garage_door".                                                                          |
-| `topic_name`       | Unique name for the MQTT topic.                                                                                                          |
 | `cover_run_time`   | Define the time (in seconds) it takes for the cover to fully open or close.                                                              |
 | `tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state. Tilt is only available for cover type "blind". |
 | `circuit_up`       | Output circuit name from a relay or digital output.                                                                                      |
 | `circuit_down`     | Output circuit name from a relay or digital output.                                                                                      |
 
+TODO: Remove circuit_up and to cover_up
+TODO: Remove circuit_down and to cover_down
+
 ```yaml
 # control.yaml
 covers:
-  - friendly_name: "Workspace - Blind 1"
+  - id: workspace_1
+    friendly_name: "Workspace - Blind 1"
     suggested_area: "Workspace"
     cover_type: "blind"
-    topic_name: workspace_1
     cover_run_time: 35.5
     tilt_change_time: 1.5
     circuit_up: ro_3_03
@@ -195,5 +202,4 @@ I have written a Home Assistant blueprint automation to control covers with bina
 
 ## TODO
 
-* Support Modbus RTU for extension modules (I don't have an extension)
 * Support analogue input/output (The implemented code is still untested)

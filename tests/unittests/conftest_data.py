@@ -14,7 +14,7 @@ mqtt:
     retry_limit: 30
     reconnect_interval: 10
 modbus:
-  baudrate: 2400
+  baud_rate: 2400
   parity: N
   units:
     - unit: 1
@@ -48,18 +48,17 @@ features:
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
     suggested_area: MOCKED AREA 2
 covers:
-  - id: MOCKED_ID_COVER_BLIND
+  - id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: blind
-    topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5
     tilt_change_time: 1.5
     circuit_up: ro_3_01
     circuit_down: ro_3_02
-  - friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
+  - id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
+    friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     suggested_area: MOCKED AREA
     cover_type: roller_shutter
-    topic_name: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     circuit_up: ro_3_03
     circuit_down: ro_3_04
 logging:

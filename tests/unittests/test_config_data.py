@@ -42,7 +42,7 @@ CONFIG_INVALID_COVER_PROPERTY: Final[
 ] = """device_info:
   name: MOCKED_UNIPI
 covers:
-  - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
+  - id: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: blind
     topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5
@@ -54,14 +54,14 @@ logging:
   level: debug"""
 
 
-CONFIG_INVALID_COVER_TOPIC_NAME: Final[
+CONFIG_INVALID_COVER_ID: Final[
     str
 ] = """device_info:
   name: MOCKED_UNIPI
 covers:
-  - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
+  - id: INVALID ID
+    friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: blind
-    topic_name: INVALID TOPIC NAME
     cover_run_time: 35.5
     tilt_change_time: 1.5
     circuit_up: ro_3_01
@@ -74,9 +74,9 @@ CONFIG_INVALID_COVER_TYPE: Final[
 ] = """device_info:
   name: MOCKED_UNIPI
 covers:
-  - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
+  - id: MOCKED_BLIND_TOPIC_NAME
+    friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: INVALID
-    topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5
     tilt_change_time: 1.5
     circuit_up: ro_3_01
@@ -103,16 +103,16 @@ CONFIG_DUPLICATE_COVERS_CIRCUITS: Final[
 ] = """device_info:
   name: MOCKED_UNIPI
 covers:
-  - friendly_name: MOCKED_FRIENDLY_NAME - BLIND
+  - id: MOCKED_BLIND_TOPIC_NAME
+    friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     cover_type: blind
-    topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5
     tilt_change_time: 1.5
     circuit_up: ro_3_01
     circuit_down: ro_3_02
-  - friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
+  - id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
+    friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     cover_type: roller_shutter
-    topic_name: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     circuit_up: ro_3_01
     circuit_down: ro_3_02
 logging:
@@ -131,3 +131,85 @@ CONFIG_INVALID_LOG_LEVEL: Final[
   name: MOCKED_UNIPI
 logging:
   level: invalid"""
+
+CONFIG_DUPLICATE_COVER_ID: Final[
+    str
+] = """device_info:
+  name: MOCKED_UNIPI
+covers:
+  - id: MOCKED_DUPLICATE_ID
+    friendly_name: MOCKED_FRIENDLY_NAME - BLIND
+    cover_type: blind
+    cover_run_time: 35.5
+    tilt_change_time: 1.5
+    circuit_up: ro_3_01
+    circuit_down: ro_3_02
+  - id: MOCKED_DUPLICATE_ID
+    friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
+    cover_type: roller_shutter
+    circuit_up: ro_3_03
+    circuit_down: ro_3_04
+logging:
+  level: debug"""
+
+CONFIG_DUPLICATE_FEATURE_ID: Final[
+    str
+] = """device_info:
+  name: MOCKED_UNIPI
+features:
+  di_3_01:
+    id: MOCKED_DUPLICATE_ID
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
+    suggested_area: MOCKED AREA 1
+  di_3_02:
+    id: MOCKED_DUPLICATE_ID
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_3_02
+    suggested_area: MOCKED AREA 1
+logging:
+  level: debug"""
+
+CONFIG_INVALID_FEATURE_ID: Final[
+    str
+] = """device_info:
+  name: MOCKED_UNIPI
+features:
+  di_3_01:
+    id: INVALID ID
+    friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
+    suggested_area: MOCKED AREA 1
+logging:
+  level: debug"""
+
+CONFIG_INVALID_MODBUS_BAUD_RATE: Final[
+    str
+] = """device_info:
+  name: MOCKED_UNIPI
+modbus:
+  baud_rate: 2401
+  parity: N
+logging:
+  level: debug"""
+
+CONFIG_INVALID_MODBUS_PARITY: Final[
+    str
+] = """device_info:
+  name: MOCKED_UNIPI
+modbus:
+  baud_rate: 2400
+  parity: S
+logging:
+  level: debug"""
+
+CONFIG_DUPLICATE_MODBUS_UNIT: Final[
+    str
+] = """device_info:
+  name: MOCKED_UNIPI
+modbus:
+  baud_rate: 2400
+  units:
+    - unit: 1
+      device_info: Eastron SDM120M
+    - unit: 1
+      device_info: Eastron SDM120M
+logging:
+  level: debug"""

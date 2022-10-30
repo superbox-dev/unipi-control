@@ -104,8 +104,6 @@ class Cover:
         Suggest an area. Used for ``Area`` in Home Assistant.
     cover_type: str
         Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
-    topic_name: str
-        Unique name for the MQTT topic.
     cover_run_time: float or int, optional
         Define the time (in seconds) it takes for the cover to fully open or close.
     tilt_change_time: float or int, optional
@@ -142,7 +140,6 @@ class Cover:
         self.friendly_name: str = kwargs["friendly_name"]
         self.suggested_area: str = kwargs["suggested_area"]
         self.cover_type: str = kwargs["cover_type"]
-        self.topic_name: str = kwargs["topic_name"]
         self.cover_run_time: Union[float, int] = kwargs["cover_run_time"]
         self.tilt_change_time: Union[float, int] = kwargs["tilt_change_time"]
         self.circuit_up: str = kwargs["circuit_up"]
@@ -179,7 +176,7 @@ class Cover:
     @property
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
-        return f"{self.config.device_info.name.lower()}/{self.topic_name}/cover/{self.cover_type}"
+        return f"{self.config.device_info.name.lower()}/{self.object_id}/cover/{self.cover_type}"
 
     @property
     def is_opening(self) -> bool:

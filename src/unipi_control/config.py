@@ -5,7 +5,6 @@ import socket
 import struct
 from dataclasses import dataclass
 from dataclasses import field
-from enum import Enum
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Final
@@ -26,13 +25,18 @@ from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
 from unipi_control.logging import LOG_NAME
 
+logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
+
 COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
-logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
+MODBUS_BAUD_RATES: Final[List[int]] = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
+MODBUS_PARITY: Final[List[str]] = ["E", "O", "N"]
 
 
 class LogPrefix:
     CONFIG: Final[str] = "[CONFIG]"
+    DEVICEINFO: Final[str] = "[DEVICEINFO]"
+    FEATURE: Final[str] = "[FEATURE]"
     COVER: Final[str] = "[COVER]"
     MODBUS: Final[str] = "[MODBUS]"
 
@@ -42,10 +46,11 @@ class DeviceInfo(ConfigLoaderMixin):
     name: str = field(default=socket.gethostname())
     manufacturer: str = field(default="Unipi technology")
 
-    def _validate_name(self, value: str, _field: dataclasses.Field) -> str:
+    @staticmethod
+    def _validate_name(value: str, _field: dataclasses.Field) -> str:
         if re.search(Validation.ALLOWED_CHARACTERS.regex, value) is None:
             raise ConfigException(
-                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
+                f"{LogPrefix.DEVICEINFO} Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
             )
 
         return value
@@ -58,6 +63,17 @@ class FeatureConfig(ConfigLoaderMixin):
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
 
+    @staticmethod
+    def _validate_id(value: str, _field: dataclasses.Field) -> str:
+        value = value.lower()
+
+        if re.search(Validation.ALLOWED_CHARACTERS.regex, value) is None:
+            raise ConfigException(
+                f"{LogPrefix.FEATURE} Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
+            )
+
+        return value
+
 
 @dataclass
 class CoverConfig(ConfigLoaderMixin):
@@ -65,25 +81,25 @@ class CoverConfig(ConfigLoaderMixin):
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
     cover_type: str = field(default_factory=str)
-    topic_name: str = field(default_factory=str)
     cover_run_time: float = field(default_factory=float)
     tilt_change_time: float = field(default_factory=float)
     circuit_up: str = field(default_factory=str)
     circuit_down: str = field(default_factory=str)
 
     def validate(self):
-        for _field in ("friendly_name", "topic_name", "cover_type", "circuit_up", "circuit_down"):
+        for _field in ("id", "friendly_name", "cover_type", "circuit_up", "circuit_down"):
             if not getattr(self, _field):
                 raise ConfigException(f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}")
 
         super().validate()
 
-    def _validate_topic_name(self, value: str, _field: dataclasses.Field) -> str:
+    @staticmethod
+    def _validate_id(value: str, _field: dataclasses.Field) -> str:
         value = value.lower()
 
         if re.search(Validation.ALLOWED_CHARACTERS.regex, value) is None:
             raise ConfigException(
-                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
+                f"{LogPrefix.COVER} Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
             )
 
         return value
@@ -97,24 +113,16 @@ class CoverConfig(ConfigLoaderMixin):
         return value
 
 
-class ModbusParity(Enum):
-    EVEN: Final[str] = "E"
-    ODD: Final[str] = "O"
-    NONE: Final[str] = "N"
-
-
-# TODO: Add validations
 @dataclass
 class ModbusUnitConfig(ConfigLoaderMixin):
     unit: int = field(default_factory=int)
     device_info: str = field(default_factory=str)
 
 
-# TODO: Add validations
 @dataclass
 class ModbusConfig(ConfigLoaderMixin):
-    baudrate: int = field(default_factory=int)
-    parity: str = field(default_factory=str)
+    baud_rate: int = field(default=2400)
+    parity: str = field(default="N")
     units: list = field(init=False, default_factory=list)
 
     def init(self):
@@ -123,17 +131,38 @@ class ModbusConfig(ConfigLoaderMixin):
             unit_config.update(unit)
             self.units[index] = unit_config
 
+        self._validate_unique_units()
+
     def get_units_by_device_info(self, device_info: str) -> List[int]:
         return [modbus_unit.unit for modbus_unit in self.units if modbus_unit.device_info == device_info]
 
-    def _validate_parity(self, value: str, _field: dataclasses.Field) -> str:
-        value = value.upper()
-        parity_options: List[str] = [parity.name for parity in ModbusParity]
+    def _validate_unique_units(self):
+        unique_units: List[int] = []
 
-        if value in parity_options:
+        for unit in self.units:
+            if unit.unit in unique_units:
+                raise ConfigException(f"{LogPrefix.MODBUS} Duplicate modbus unit '{unit.unit}' found in 'units'!")
+
+            unique_units.append(unit.unit)
+
+    @staticmethod
+    def _validate_baud_rate(value: str, _field: dataclasses.Field) -> str:
+        if value not in MODBUS_BAUD_RATES:
             raise ConfigException(
-                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{_field.name}'. "
-                f"The following parity options are allowed: {' '.join(parity_options)}."
+                f"{LogPrefix.MODBUS} Invalid baud rate '{value}. "
+                f"The following baud rates allowed: {' '.join(map(str, MODBUS_BAUD_RATES))}."
+            )
+
+        return value
+
+    @staticmethod
+    def _validate_parity(value: str, _field: dataclasses.Field) -> str:
+        value = value.upper()
+
+        if value not in MODBUS_PARITY:
+            raise ConfigException(
+                f"{LogPrefix.MODBUS} Invalid value '{value}' in '{_field.name}'. "
+                f"The following parity options are allowed: {' '.join(MODBUS_PARITY)}."
             )
 
         return value
@@ -176,7 +205,19 @@ class Config(ConfigLoaderMixin):
             cover_config.update(cover_data)
             self.covers[index] = cover_config
 
+        self._validate_feature_ids()
         self._validate_covers_circuits()
+        self._validate_cover_ids()
+
+    def _validate_feature_ids(self):
+        feature_ids: List[str] = []
+
+        for feature in self.features.values():
+            if feature.id in feature_ids:
+                raise ConfigException(f"{LogPrefix.FEATURE} Duplicate ID '{feature.id}' found in 'features'!")
+
+            if feature.id:
+                feature_ids.append(feature.id)
 
     def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config."""
@@ -203,6 +244,15 @@ class Config(ConfigLoaderMixin):
                     f"{LogPrefix.COVER} Duplicate circuits found in 'covers'. "
                     f"Driving both signals up and down at the same time can damage the motor!"
                 )
+
+    def _validate_cover_ids(self):
+        cover_ids: List[str] = []
+
+        for cover in self.covers:
+            if cover.id in cover_ids:
+                raise ConfigException(f"{LogPrefix.COVER} Duplicate ID '{cover.id}' found in 'covers'!")
+
+            cover_ids.append(cover.id)
 
 
 @dataclass

@@ -109,7 +109,7 @@ def _modbus_client(mocker: MockerFixture) -> ModbusClient:
 
 
 @pytest_asyncio.fixture()
-async def _neuron(_config_loader: ConfigLoader, _modbus_client: AsyncMock) -> AsyncGenerator:
+async def _neuron(_config_loader: ConfigLoader, _modbus_client: ModbusClient) -> AsyncGenerator:
     config: Config = _config_loader.get_config()
 
     _neuron: Neuron = Neuron(config=config, modbus_client=_modbus_client)

@@ -192,7 +192,7 @@ def main():
                 tcp=AsyncModbusTcpClient(host="localhost"),
                 serial=AsyncModbusSerialClient(
                     port="/dev/extcomm/0/0",
-                    baudrate=config.modbus.baudrate,
+                    baudrate=config.modbus.baud_rate,
                     parity=config.modbus.parity,
                 ),
             ),

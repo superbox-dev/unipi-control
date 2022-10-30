@@ -30,7 +30,7 @@ class HassCoversDiscovery:
         self.hardware: HardwareData = neuron.hardware
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
-        topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.topic_name}/config"
+        topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.object_id}/config"
         device_name: str = self.config.device_info.name
 
         if cover.suggested_area:
@@ -38,7 +38,7 @@ class HassCoversDiscovery:
 
         message: dict = {
             "name": cover.friendly_name,
-            "unique_id": f"{cover.cover_type}_{cover.topic_name}",
+            "unique_id": f"{cover.cover_type}_{cover.object_id}",
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
             "qos": 2,
