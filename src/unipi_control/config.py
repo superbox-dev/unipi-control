@@ -157,9 +157,7 @@ class ModbusConfig(ConfigLoaderMixin):
 
     @staticmethod
     def _validate_parity(value: str, _field: dataclasses.Field) -> str:
-        value = value.upper()
-
-        if value not in MODBUS_PARITY:
+        if (value := value.upper()) not in MODBUS_PARITY:
             raise ConfigException(
                 f"{LogPrefix.MODBUS} Invalid value '{value}' in '{_field.name}'. "
                 f"The following parity options are allowed: {' '.join(MODBUS_PARITY)}."
