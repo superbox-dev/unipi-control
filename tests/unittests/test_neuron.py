@@ -47,6 +47,6 @@ class TestUnhappyPathNeuron:
 
         logs: list = [record.getMessage() for record in caplog.records]
 
-        assert "No board on SPI 1" in logs
-        assert "No board on SPI 2" in logs
-        assert "No board on SPI 3" in logs
+        assert "[MODBUS] No board on SPI 1" in logs
+        assert "[MODBUS] No board on SPI 2" in logs
+        assert "[MODBUS] No board on SPI 3" in logs
