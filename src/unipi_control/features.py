@@ -120,7 +120,7 @@ class NeuronFeature(BaseFeature):
     @property
     def changed(self) -> bool:
         """Detect whether the status has changed."""
-        value: bool = bool(self.value)
+        value: bool = self.value == 1
 
         if changed := value != self._value:
             self._value = value
@@ -136,8 +136,8 @@ class NeuronFeature(BaseFeature):
 class Relay(NeuronFeature):
     """Class for the relay feature from the Unipi Neuron."""
 
-    async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=bool(value), slave=0)
+    async def set_state(self, value: bool):
+        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
 
 class DigitalOutput(NeuronFeature):
@@ -147,8 +147,8 @@ class DigitalOutput(NeuronFeature):
     def feature_name(self) -> str:
         return "relay"
 
-    async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=bool(value), slave=0)
+    async def set_state(self, value: bool):
+        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
 
 class DigitalInput(NeuronFeature):
@@ -166,8 +166,8 @@ class Led(NeuronFeature):
     def name(self) -> str:
         return self.__class__.__name__.upper()
 
-    async def set_state(self, value: int):
-        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=bool(value), slave=0)
+    async def set_state(self, value: bool):
+        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
 
 class Meter(BaseFeature):

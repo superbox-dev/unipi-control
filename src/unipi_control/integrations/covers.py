@@ -368,11 +368,11 @@ class Cover:
             return None
 
         self._update_position()
-        response = await self.cover_down_feature.set_state(0)
+        response = await self.cover_down_feature.set_state(False)
         self._stop_timer()
 
         if not response.isError():
-            await self.cover_up_feature.set_state(1)
+            await self.cover_up_feature.set_state(True)
 
             self._device_state = CoverDeviceState.OPEN
             self.state = CoverState.OPENING
@@ -433,11 +433,11 @@ class Cover:
             return None
 
         self._update_position()
-        response = await self.cover_up_feature.set_state(0)
+        response = await self.cover_up_feature.set_state(False)
         self._stop_timer()
 
         if not response.isError():
-            await self.cover_down_feature.set_state(1)
+            await self.cover_down_feature.set_state(True)
 
             self._device_state = CoverDeviceState.CLOSE
             self.state = CoverState.CLOSING
@@ -485,8 +485,8 @@ class Cover:
                 self.position = 0
                 return
 
-        await self.cover_down_feature.set_state(0)
-        await self.cover_up_feature.set_state(0)
+        await self.cover_down_feature.set_state(False)
+        await self.cover_up_feature.set_state(False)
 
         await self._write_position()
         self._stop_timer()
@@ -505,11 +505,11 @@ class Cover:
 
         if self.tilt_change_time:
             self._update_position()
-            response = await self.cover_down_feature.set_state(0)
+            response = await self.cover_down_feature.set_state(False)
             self._stop_timer()
 
             if not response.isError():
-                await self.cover_up_feature.set_state(1)
+                await self.cover_up_feature.set_state(True)
 
                 self._device_state = CoverDeviceState.OPEN
                 self.state = CoverState.OPENING
@@ -532,11 +532,11 @@ class Cover:
 
         if self.tilt_change_time:
             self._update_position()
-            response = await self.cover_up_feature.set_state(0)
+            response = await self.cover_up_feature.set_state(False)
             self._stop_timer()
 
             if not response.isError():
-                await self.cover_down_feature.set_state(1)
+                await self.cover_down_feature.set_state(True)
 
                 self._device_state = CoverDeviceState.CLOSE
                 self.state = CoverState.CLOSING

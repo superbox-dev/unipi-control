@@ -94,7 +94,7 @@ class TestHappyPathFeatures:
             assert feature.state == ("ON" if expected.value == 1 else "OFF")
             assert feature.changed == bool(expected.value)
 
-            response = await feature.set_state(0)
+            response = await feature.set_state(False)
             assert not response.isError()
 
 

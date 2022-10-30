@@ -50,9 +50,9 @@ class FeaturesMqttPlugin:
             value: str = message.payload.decode()
 
             if value == "ON":
-                await feature.set_state(1)
+                await feature.set_state(True)
             elif value == "OFF":
-                await feature.set_state(0)
+                await feature.set_state(False)
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
