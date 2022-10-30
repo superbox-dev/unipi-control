@@ -32,6 +32,7 @@ class FeatureExpected:
     topic_feature_name: Optional[str] = field(default=None)
     value: Optional[int] = field(default=None)
     repr: Optional[str] = field(default=None)
+    coil: Optional[int] = field(default=None)
 
 
 class TestHappyPathFeatures:
@@ -42,27 +43,27 @@ class TestHappyPathFeatures:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(unique_name="di_2_15", feature_type="DI"),
-                FeatureExpected(topic_feature_name="input", value=1, repr="Digital Input 2.15"),
+                FeatureExpected(topic_feature_name="input", value=1, repr="Digital Input 2.15", coil=None),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(unique_name="do_1_01", feature_type="DO"),
-                FeatureExpected(topic_feature_name="relay", value=0, repr="Digital Output 1.01"),
+                FeatureExpected(topic_feature_name="relay", value=0, repr="Digital Output 1.01", coil=0),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(unique_name="ro_2_13", feature_type="RO"),
-                FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13"),
+                FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13", coil=112),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(unique_name="ro_2_14", feature_type="RO"),
-                FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14"),
+                FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14", coil=113),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(unique_name="led_1_01", feature_type="LED"),
-                FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01"),
+                FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01", coil=8),
             ),
         ],
         indirect=["_config_loader"],
@@ -86,6 +87,7 @@ class TestHappyPathFeatures:
 
         assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.unique_name}"
         assert str(feature) == expected.repr
+        assert feature.val_coil == expected.coil
 
         if isinstance(feature, (Relay, DigitalOutput, Led)):
             feature._value = False

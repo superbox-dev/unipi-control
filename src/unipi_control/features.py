@@ -92,7 +92,7 @@ class NeuronFeature(BaseFeature):
         self.major_group: int = kwargs["major_group"]
 
         _val_coil: Optional[int] = kwargs.get("val_coil")
-        self.val_coil: Optional[int] = _val_coil + self.index if _val_coil else None
+        self.val_coil: Optional[int] = None if _val_coil is None else _val_coil + self.index
 
         self._reg_value = lambda: neuron.modbus_cache_data.get_register(address=kwargs["val_reg"], index=1, unit=0)[0]
         self._value: Optional[bool] = None
