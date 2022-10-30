@@ -103,12 +103,14 @@ class ModbusParity(Enum):
     NONE: Final[str] = "N"
 
 
+# TODO: Add validations
 @dataclass
 class ModbusUnitConfig(ConfigLoaderMixin):
     unit: int = field(default_factory=int)
     device_info: str = field(default_factory=str)
 
 
+# TODO: Add validations
 @dataclass
 class ModbusConfig(ConfigLoaderMixin):
     baudrate: int = field(default_factory=int)
@@ -123,8 +125,6 @@ class ModbusConfig(ConfigLoaderMixin):
 
     def get_units_by_device_info(self, device_info: str) -> List[int]:
         return [modbus_unit.unit for modbus_unit in self.units if modbus_unit.device_info == device_info]
-
-    # TODO: Add validations
 
     def _validate_parity(self, value: str, _field: dataclasses.Field) -> str:
         value = value.upper()

@@ -49,7 +49,6 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
         if suggested_area:
             device_name = f"{device_name}: {suggested_area}"
 
-        # TODO: Create TypedDict
         message: dict = {
             "name": self._get_friendly_name(feature),
             "unique_id": f"{self.config.device_info.name.lower()}_{feature.unique_name}",

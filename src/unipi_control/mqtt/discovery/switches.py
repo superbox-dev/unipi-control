@@ -41,7 +41,6 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
             f"{self.config.device_info.name.lower()}/{feature.unique_name}/config"
         )
 
-        # TODO: Create TypedDict
         message: dict = {}
 
         if feature.unique_name not in self.config.get_cover_circuits():
@@ -53,7 +52,6 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
             if suggested_area:
                 device_name = f"{device_name}: {suggested_area}"
 
-            # TODO: Create TypedDict
             message = {
                 "name": self._get_friendly_name(feature),
                 "unique_id": f"{self.config.device_info.name.lower()}_{feature.unique_name}",
