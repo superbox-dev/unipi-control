@@ -36,6 +36,7 @@ class HassCoversDiscovery:
         if cover.suggested_area:
             device_name = f"{device_name}: {cover.suggested_area}"
 
+        # TODO: Create TypedDict
         message: dict = {
             "name": cover.friendly_name,
             "unique_id": f"{cover.cover_type}_{cover.topic_name}",

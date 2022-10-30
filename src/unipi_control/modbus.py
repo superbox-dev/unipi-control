@@ -35,6 +35,7 @@ class ModbusCacheData:
         self.modbus_client: ModbusClient = modbus_client
         self.definitions: List[HardwareDefinition] = definitions
 
+        # TODO: Create TypedDict
         self.data: Dict[int, Dict[int, int]] = {}
 
     async def scan(self, hardware_types: List[str]):
@@ -46,6 +47,7 @@ class ModbusCacheData:
             self.data[definition.unit] = {}
 
             for modbus_register_block in definition.modbus_register_blocks:
+                # TODO: Create TypedDict
                 data: dict = {
                     "address": modbus_register_block["start_reg"],
                     "count": modbus_register_block["count"],
