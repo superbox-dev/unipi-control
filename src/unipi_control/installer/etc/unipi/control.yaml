@@ -13,6 +13,7 @@ modbus:
   units:
     - unit: 1
       device_info: Eastron SDM120M
+      suggested_area: Workspace
 homeassistant:
   enabled: True
   discovery_prefix: homeassistant
@@ -35,7 +36,6 @@ features:
     friendly_name: Volumio Power Supply
     suggested_area: Kitchen
     invert_state: true
-# TODO: add integrations
 covers:
   - id: workspace
     friendly_name: Workspace
@@ -43,13 +43,13 @@ covers:
     cover_type: blind
     cover_run_time: 35.5
     tilt_change_time: 1.6
-    circuit_up: ro_3_07
-    circuit_down: ro_3_06
+    cover_up: ro_3_07
+    cover_down: ro_3_06
   - id: bedroom
     friendly_name: Bedroom
     suggested_area: Bedroom
     cover_type: roller_shutter
-    circuit_up: ro_2_11
-    circuit_down: ro_2_12
+    cover_up: ro_2_11
+    cover_down: ro_2_12
 logging:
   level: info

@@ -124,7 +124,7 @@ class Neuron:
 
         self.modbus_cache_data: ModbusCacheData = ModbusCacheData(
             modbus_client=self.modbus_client,
-            definitions=self.hardware["definitions"],
+            hardware=self.hardware,
         )
 
     async def init(self):
@@ -133,7 +133,7 @@ class Neuron:
 
     async def read_boards(self):
         logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
-        await self.modbus_cache_data.scan([HardwareType.NEURON])
+        await self.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
         for index in (1, 2, 3):
             response = await self.modbus_client.tcp.read_input_registers(address=1000, count=1, slave=index)
@@ -147,13 +147,11 @@ class Neuron:
                 self.boards.append(board)
 
     async def read_extensions(self):
-        logger.info("%s Reading extensions devices", LogPrefix.MODBUS)
-        await self.modbus_cache_data.scan([HardwareType.EXTENSION])
+        logger.info("%s Reading extensions", LogPrefix.MODBUS)
+        await self.modbus_cache_data.scan("serial", hardware_types=[HardwareType.EXTENSION])
 
         for definition in self.hardware["definitions"][1:]:
             getattr(
                 importlib.import_module(f"unipi_control.extensions.{definition.manufacturer.lower()}"),
                 f"{definition.manufacturer}{definition.model}",
             )(neuron=self, definition=definition).parse_features()
-
-            print(list(self.features.by_feature_type(["Meter"])))

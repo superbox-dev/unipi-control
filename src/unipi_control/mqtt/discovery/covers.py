@@ -81,10 +81,6 @@ class HassCoversMqttPlugin:
     def __init__(self, neuron, mqtt_client, covers: CoverMap):
         self._hass = HassCoversDiscovery(neuron, mqtt_client, covers)
 
-    async def init_tasks(self) -> Set[Task]:
-        tasks: Set[Task] = set()
-
+    async def init_tasks(self, tasks: Set[Task]):
         task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)
-
-        return tasks

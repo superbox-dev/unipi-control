@@ -13,20 +13,36 @@ from unipi_control.logging import LOG_MQTT_SUBSCRIBE
 from unipi_control.logging import LOG_MQTT_SUBSCRIBE_TOPIC
 
 
-class FeaturesMqttPlugin:
-    """Provide features control as MQTT commands."""
-
+class BaseFeaturesMqttPlugin:
     PUBLISH_RUNNING: bool = True
-    subscribe_feature_types: List[str] = ["DO", "RO"]
-    publish_feature_types: List[str] = ["DI", "DO", "RO"]
+    subscribe_feature_types: List[str] = []
+    publish_feature_types: List[str] = []
 
     def __init__(self, neuron, mqtt_client):
         self._neuron = neuron
         self._mqtt_client = mqtt_client
 
-    async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
-        tasks: Set[Task] = set()
+    async def _publish(self, scan_type: str, hardware_types: List[str], feature_types: List[str], sleep: float):
+        while self.PUBLISH_RUNNING:
+            await self._neuron.modbus_cache_data.scan(scan_type, hardware_types)
 
+            for feature in self._neuron.features.by_feature_type(feature_types):
+                if feature.changed:
+                    topic: str = f"{feature.topic}/get"
+                    await self._mqtt_client.publish(topic, feature.payload, qos=1, retain=True)
+                    logger.info(LOG_MQTT_PUBLISH, topic, feature.payload)
+
+            await asyncio.sleep(sleep)
+
+
+class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
+    """Provide features control as MQTT commands."""
+
+    subscribe_feature_types: List[str] = ["DO", "RO"]
+    publish_feature_types: List[str] = ["DI", "DO", "RO"]
+    scan_interval: float = 25e-3
+
+    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]):
         for feature in self._neuron.features.by_feature_type(self.subscribe_feature_types):
             topic: str = f"{feature.topic}/set"
 
@@ -39,10 +55,16 @@ class FeaturesMqttPlugin:
             await self._mqtt_client.subscribe(topic)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-        task = asyncio.create_task(self._publish())
-        tasks.add(task)
+        task: Task[Any] = asyncio.create_task(
+            self._publish(
+                scan_type="tcp",
+                hardware_types=[HardwareType.NEURON],
+                feature_types=self.publish_feature_types,
+                sleep=self.scan_interval,
+            )
+        )
 
-        return tasks
+        tasks.add(task)
 
     @staticmethod
     async def _subscribe(feature, topic: str, messages: AsyncIterable):
@@ -56,14 +78,20 @@ class FeaturesMqttPlugin:
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
-    async def _publish(self):
-        while self.PUBLISH_RUNNING:
-            await self._neuron.modbus_cache_data.scan([HardwareType.NEURON])
 
-            for feature in self._neuron.features.by_feature_type(self.publish_feature_types):
-                if feature.changed:
-                    topic: str = f"{feature.topic}/get"
-                    await self._mqtt_client.publish(topic, feature.state, qos=1, retain=True)
-                    logger.info(LOG_MQTT_PUBLISH, topic, feature.state)
+class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
+    """Provide features control as MQTT commands."""
 
-            await asyncio.sleep(25e-3)
+    publish_feature_types: List[str] = ["METER"]
+    scan_interval: float = 150e-1
+
+    async def init_tasks(self, tasks: Set[Task]):
+        task: Task[Any] = asyncio.create_task(
+            self._publish(
+                scan_type="serial",
+                hardware_types=[HardwareType.EXTENSION],
+                feature_types=self.publish_feature_types,
+                sleep=self.scan_interval,
+            )
+        )
+        tasks.add(task)

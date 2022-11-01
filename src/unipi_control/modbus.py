@@ -2,15 +2,16 @@ import asyncio
 from typing import Dict
 from typing import List
 from typing import NamedTuple
+from typing import Optional
 
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusIOException
 from pymodbus.pdu import ExceptionResponse
+from pymodbus.register_read_message import ReadInputRegistersResponse
 
 from superbox_utils.core.exception import UnexpectedException
-from unipi_control.config import HardwareDefinition
-from unipi_control.config import HardwareType
+from unipi_control.config import HardwareData
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 
@@ -27,23 +28,22 @@ class ModbusCacheData:
     ----------
     modbus_client: ModbusClient
         A modbus client.
-    definitions: dict
-        hardware definition from the neuron, extensions and third party devices.
+    hardware: HardwareData
+        The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, modbus_client: ModbusClient, definitions: List[HardwareDefinition]):
+    def __init__(self, modbus_client: ModbusClient, hardware: HardwareData):
         self.modbus_client: ModbusClient = modbus_client
-        self.definitions: List[HardwareDefinition] = definitions
+        self.hardware: HardwareData = hardware
 
         self.data: Dict[int, Dict[int, int]] = {}
 
-    async def scan(self, hardware_types: List[str]):
+    async def scan(self, scan_type: str, hardware_types: List[str]):
         """Read modbus register blocks and cache the response."""
-        for definition in self.definitions:
-            if definition.hardware_type not in hardware_types:
-                continue
 
-            self.data[definition.unit] = {}
+        for definition in self.hardware.get_definition_by_hardware_types(hardware_types):
+            if not self.data.get(definition.unit):
+                self.data[definition.unit] = {}
 
             for modbus_register_block in definition.modbus_register_blocks:
                 data: dict = {
@@ -52,16 +52,18 @@ class ModbusCacheData:
                     "slave": definition.unit,
                 }
 
-                try:
-                    response = await (
-                        self.modbus_client.tcp.read_input_registers(**data)
-                        if definition.hardware_type == HardwareType.NEURON
-                        else self.modbus_client.serial.read_input_registers(**data)
-                    )
+                response: Optional[ReadInputRegistersResponse] = None
 
-                    if not isinstance(response, (ModbusIOException, ExceptionResponse)):
-                        for index in range(data["count"]):
-                            self.data[definition.unit][data["address"] + index] = response.registers[index]
+                try:
+                    if scan_type == "tcp":
+                        response = await self.modbus_client.tcp.read_input_registers(**data)
+                    elif scan_type == "serial":
+                        response = await self.modbus_client.serial.read_input_registers(**data)
+
+                    if response:
+                        if not isinstance(response, (ModbusIOException, ExceptionResponse)):
+                            for index in range(data["count"]):
+                                self.data[definition.unit][data["address"] + index] = response.registers[index]
                 except asyncio.exceptions.TimeoutError:
                     logger.error("%s Timeout on: %s", LogPrefix.MODBUS, data)
 
@@ -91,7 +93,7 @@ class ModbusCacheData:
 
         for _address in range(address, address + index):
             if _address not in self.data[unit] or self.data[unit][_address] is None:
-                raise UnexpectedException(f"Modbus error on address {_address} (unit: {unit})")
+                raise UnexpectedException(f"{LogPrefix.MODBUS} Error on address {_address} (unit: {unit})")
 
             ret += [self.data[unit][_address]]
 

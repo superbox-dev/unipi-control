@@ -10,6 +10,10 @@ class HassBaseDiscovery(ABC):
     def __init__(self, config: Config):
         self.config: Config = config
 
+    def _get_device_info(self, feature) -> str:
+        # TODO: add device info
+        return ""
+
     def _get_invert_state(self, feature) -> bool:
         """Check if invert state is enabled in the config."""
 

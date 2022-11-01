@@ -47,8 +47,8 @@ covers:
     topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
     invalid_property: INVALID
 logging:
   level: debug"""
@@ -64,8 +64,8 @@ covers:
     cover_type: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
 logging:
   level: debug"""
 
@@ -79,8 +79,8 @@ covers:
     cover_type: INVALID
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
 logging:
   level: debug"""
 
@@ -93,8 +93,8 @@ covers:
     cover_type: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
 logging:
   level: debug"""
 
@@ -108,13 +108,13 @@ covers:
     cover_type: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
   - id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     cover_type: roller_shutter
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
 logging:
   level: debug"""
 
@@ -142,13 +142,13 @@ covers:
     cover_type: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
   - id: MOCKED_DUPLICATE_ID
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     cover_type: roller_shutter
-    circuit_up: ro_3_03
-    circuit_down: ro_3_04
+    cover_up: ro_3_03
+    cover_down: ro_3_04
 logging:
   level: debug"""
 

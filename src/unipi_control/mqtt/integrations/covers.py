@@ -54,19 +54,10 @@ class CoversMqttPlugin:
 
             logger.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
 
-    async def init_tasks(self, stack: AsyncExitStack) -> Set[Task]:
-        """Add tasks to the ``AsyncExitStack``.
-
-        Parameters
-        ----------
-        stack: AsyncExitStack
-            The asynchronous context manager for the MQTT client.
-        """
-        tasks: Set[Task] = set()
-
-        tasks = await self._command_topic(stack, tasks)
-        tasks = await self._set_position_topic(stack, tasks)
-        tasks = await self._tilt_command_topic(stack, tasks)
+    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]):
+        await self._command_topic(stack, tasks)
+        await self._set_position_topic(stack, tasks)
+        await self._tilt_command_topic(stack, tasks)
 
         task = asyncio.create_task(self._publish())
         tasks.add(task)
@@ -74,8 +65,6 @@ class CoversMqttPlugin:
         for cover in self._covers.by_cover_type(COVER_TYPES):
             task = asyncio.create_task(self._subscribe_command_worker(cover))
             tasks.add(task)
-
-        return tasks
 
     async def _subscribe_command_worker(self, cover):
         while self.SUBSCRIBE_COMMAND_WORKER_RUNNING:
@@ -102,7 +91,7 @@ class CoversMqttPlugin:
             else:
                 queue.task_done()
 
-    async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
+    async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]):
         for cover in self._covers.by_cover_type(COVER_TYPES):
             topic: str = f"{cover.topic}/set"
 
@@ -115,9 +104,7 @@ class CoversMqttPlugin:
             await self._mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-        return tasks
-
-    async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
+    async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task]):
         for cover in self._covers.by_cover_type(COVER_TYPES):
             topic: str = f"{cover.topic}/position/set"
 
@@ -130,9 +117,7 @@ class CoversMqttPlugin:
             await self._mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-        return tasks
-
-    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> Set[Task]:
+    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task]):
         for cover in self._covers.by_cover_type(COVER_TYPES):
             if cover.tilt_change_time:
                 topic: str = f"{cover.topic}/tilt/set"
@@ -145,8 +130,6 @@ class CoversMqttPlugin:
 
                 await self._mqtt_client.subscribe(topic, qos=0)
                 logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
-
-        return tasks
 
     async def _subscribe_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable):
         async for message in messages:

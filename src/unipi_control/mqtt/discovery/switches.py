@@ -95,10 +95,6 @@ class HassSwitchesMqttPlugin:
     def __init__(self, neuron, mqtt_client):
         self._hass = HassSwitchesDiscovery(neuron, mqtt_client)
 
-    async def init_tasks(self) -> Set[Task]:
-        tasks: Set[Task] = set()
-
+    async def init_tasks(self, tasks: Set[Task]):
         task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)
-
-        return tasks

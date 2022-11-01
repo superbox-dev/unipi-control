@@ -8,6 +8,7 @@ from dataclasses import field
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Final
+from typing import Generator
 from typing import List
 from typing import Literal
 from typing import Mapping
@@ -83,11 +84,11 @@ class CoverConfig(ConfigLoaderMixin):
     cover_type: str = field(default_factory=str)
     cover_run_time: float = field(default_factory=float)
     tilt_change_time: float = field(default_factory=float)
-    circuit_up: str = field(default_factory=str)
-    circuit_down: str = field(default_factory=str)
+    cover_up: str = field(default_factory=str)
+    cover_down: str = field(default_factory=str)
 
     def validate(self):
-        for _field in ("id", "friendly_name", "cover_type", "circuit_up", "circuit_down"):
+        for _field in ("id", "friendly_name", "cover_type", "cover_up", "cover_down"):
             if not getattr(self, _field):
                 raise ConfigException(f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}")
 
@@ -117,6 +118,7 @@ class CoverConfig(ConfigLoaderMixin):
 class ModbusUnitConfig(ConfigLoaderMixin):
     unit: int = field(default_factory=int)
     device_info: str = field(default_factory=str)
+    suggested_area: str = field(default_factory=str)
 
 
 @dataclass
@@ -133,8 +135,8 @@ class ModbusConfig(ConfigLoaderMixin):
 
         self._validate_unique_units()
 
-    def get_units_by_device_info(self, device_info: str) -> List[int]:
-        return [modbus_unit.unit for modbus_unit in self.units if modbus_unit.device_info == device_info]
+    def get_units_by_device_info(self, device_info: str) -> Generator:
+        return (modbus_unit.unit for modbus_unit in self.units if modbus_unit.device_info == device_info)
 
     def _validate_unique_units(self):
         unique_units: List[int] = []
@@ -222,14 +224,14 @@ class Config(ConfigLoaderMixin):
         circuits: List[str] = []
 
         for cover in self.covers:
-            circuit_up: str = cover.circuit_up
-            circuit_down: str = cover.circuit_down
+            cover_up: str = cover.cover_up
+            cover_down: str = cover.cover_down
 
-            if circuit_up:
-                circuits.append(circuit_up)
+            if cover_up:
+                circuits.append(cover_up)
 
-            if circuit_down:
-                circuits.append(circuit_down)
+            if cover_down:
+                circuits.append(cover_down)
 
         return circuits
 
@@ -378,7 +380,7 @@ class HardwareData(Mapping):
                 yaml_content: dict = yaml_loader_safe(definition_file)
 
                 try:
-                    units: List[int] = self.config.modbus.get_units_by_device_info(
+                    units: Generator = self.config.modbus.get_units_by_device_info(
                         device_info=f'{yaml_content["manufacturer"]} {yaml_content["model"]}'
                     )
 
@@ -396,3 +398,6 @@ class HardwareData(Mapping):
                 logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         except FileNotFoundError as error:
             logger.info("%s %s", LogPrefix.CONFIG, str(error))
+
+    def get_definition_by_hardware_types(self, hardware_types: List[str]) -> Generator:
+        return (definition for definition in self.data["definitions"] if definition.hardware_type in hardware_types)

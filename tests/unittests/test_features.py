@@ -11,7 +11,7 @@ from unipi_control.config import ConfigException
 from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
 from unipi_control.features import Led
-from unipi_control.features import Meter
+from unipi_control.features import MeterFeature
 from unipi_control.features import Relay
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
@@ -81,20 +81,20 @@ class TestHappyPathFeatures:
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay, Meter] = _neuron.features.by_unique_name(
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_unique_name(
             options.unique_name, feature_type=[options.feature_type]
         )
 
         assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.unique_name}"
         assert str(feature) == expected.repr
 
-        if isinstance(feature, (Relay, DigitalOutput, Led)):
-            feature._value = False
-            assert feature.value == expected.value
-            assert feature.val_coil == expected.coil
+        feature._value = False
+        assert feature.changed == bool(expected.value)
+        assert feature.value == expected.value
 
-            assert feature.state == ("ON" if expected.value == 1 else "OFF")
-            assert feature.changed == bool(expected.value)
+        if isinstance(feature, (Relay, DigitalOutput, Led)):
+            assert feature.val_coil == expected.coil
+            assert feature.payload == ("ON" if expected.value == 1 else "OFF")
 
             response = await feature.set_state(False)
             assert not response.isError()

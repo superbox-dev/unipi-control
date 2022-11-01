@@ -135,11 +135,8 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 | `cover_type`       | Cover types can be "blind", "roller_shutter", or "garage_door".                                                                          |
 | `cover_run_time`   | Define the time (in seconds) it takes for the cover to fully open or close.                                                              |
 | `tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state. Tilt is only available for cover type "blind". |
-| `circuit_up`       | Output circuit name from a relay or digital output.                                                                                      |
-| `circuit_down`     | Output circuit name from a relay or digital output.                                                                                      |
-
-TODO: Remove circuit_up and to cover_up
-TODO: Remove circuit_down and to cover_down
+| `cover_up`       | Output circuit name from a relay or digital output.                                                                                      |
+| `cover_down`     | Output circuit name from a relay or digital output.                                                                                      |
 
 ```yaml
 # control.yaml
@@ -150,8 +147,8 @@ covers:
     cover_type: "blind"
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_03
-    circuit_down: ro_3_02
+    cover_up: ro_3_03
+    cover_down: ro_3_02
 ```
 
 #### Calibration

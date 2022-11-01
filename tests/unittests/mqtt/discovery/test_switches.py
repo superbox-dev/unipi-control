@@ -39,10 +39,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
                 tasks: Set[Task] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
-
-                plugin_tasks = await plugin.init_tasks()
-                tasks.update(plugin_tasks)
-
+                await plugin.init_tasks(tasks)
                 await asyncio.gather(*tasks)
 
                 for task in tasks:

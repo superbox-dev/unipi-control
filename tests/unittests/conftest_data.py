@@ -19,6 +19,7 @@ modbus:
   units:
     - unit: 1
       device_info: Eastron SDM120M
+      suggested_area: Workspace
 homeassistant:
   enabled: True
   discovery_prefix: homeassistant
@@ -53,14 +54,14 @@ covers:
     cover_type: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
-    circuit_up: ro_3_01
-    circuit_down: ro_3_02
+    cover_up: ro_3_01
+    cover_down: ro_3_02
   - id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     suggested_area: MOCKED AREA
     cover_type: roller_shutter
-    circuit_up: ro_3_03
-    circuit_down: ro_3_04
+    cover_up: ro_3_03
+    cover_down: ro_3_04
 logging:
   level: debug
 """
@@ -173,91 +174,91 @@ modbus_register_blocks:
 modbus_features:
   - feature_type: METER
     friendly_name: Voltage
-    start_reg: 0
+    val_reg: 0
     count: 2
   - feature_type: METER
     friendly_name: Current
-    start_reg: 6
+    val_reg: 6
     count: 2
   - feature_type: METER
     friendly_name: Active power
-    start_reg: 12
+    val_reg: 12
     count: 2
   - feature_type: METER
     friendly_name: Apparent power
-    start_reg: 18
+    val_reg: 18
     count: 2
   - feature_type: METER
     friendly_name: Reactive power
-    start_reg: 24
+    val_reg: 24
     count: 2
   - feature_type: METER
     friendly_name: Power factor
-    start_reg: 30
+    val_reg: 30
     count: 2
   - feature_type: METER
     friendly_name: Phase Angle
-    start_reg: 36
+    val_reg: 36
     count: 2
   - feature_type: METER
     friendly_name: Frequency
-    start_reg: 70
+    val_reg: 70
     count: 2
   - feature_type: METER
     friendly_name: Import active energy
-    start_reg: 72
+    val_reg: 72
     count: 2
   - feature_type: METER
     friendly_name: Export active energy
-    start_reg: 74
+    val_reg: 74
     count: 2
   - feature_type: METER
     friendly_name: Imported reactive energy
-    start_reg: 76
+    val_reg: 76
     count: 2
   - feature_type: METER
     friendly_name: Exported reactive energy
-    start_reg: 78
+    val_reg: 78
     count: 2
   - feature_type: METER
     friendly_name: Total system power demand
-    start_reg: 84
+    val_reg: 84
     count: 2
   - feature_type: METER
     friendly_name: Maximum total system power demand
-    start_reg: 86
+    val_reg: 86
     count: 2
   - feature_type: METER
     friendly_name: Import system power demand
-    start_reg: 88
+    val_reg: 88
     count: 2
   - feature_type: METER
     friendly_name: Maximum import system power demand
-    start_reg: 90
+    val_reg: 90
     count: 2
   - feature_type: METER
     friendly_name: Export system power demand
-    start_reg: 92
+    val_reg: 92
     count: 2
   - feature_type: METER
     friendly_name: Maximum export system power demand
-    start_reg: 94
+    val_reg: 94
     count: 2
   - feature_type: METER
     friendly_name: Current demand
-    start_reg: 258
+    val_reg: 258
     count: 2
   - feature_type: METER
     friendly_name: Maximum current demand
-    start_reg: 264
+    val_reg: 264
     count: 2
   - feature_type: METER
     friendly_name: Total active energy
-    start_reg: 342
+    val_reg: 342
     count: 2
   - feature_type: METER
     friendly_name: Total reactive energy
-    start_reg: 344
+    val_reg: 344
     count: 2
 """
 

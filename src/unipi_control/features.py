@@ -2,6 +2,7 @@ from abc import ABC
 from abc import abstractmethod
 from collections.abc import Iterator
 from enum import Enum
+from typing import Any
 from typing import Dict
 from typing import Final
 from typing import List
@@ -9,6 +10,8 @@ from typing import Optional
 from typing import Union
 
 import itertools
+from pymodbus.constants import Endian
+from pymodbus.payload import BinaryPayloadDecoder
 
 from superbox_utils.text.text import slugify
 from unipi_control.config import Config
@@ -28,7 +31,7 @@ class FeatureType(Enum):
     DO: Final[tuple] = ("DO", "relay", "Digital Output")
     LED: Final[tuple] = ("LED", "led", "LED")
     RO: Final[tuple] = ("RO", "relay", "Relay")
-    METER: Final[tuple] = ("Meter", "meter", "Meter")
+    METER: Final[tuple] = ("METER", "meter", "Meter")
 
     def __init__(self, short_name: str, topic_name: str, long_name: str):
         self.short_name: str = short_name
@@ -45,6 +48,8 @@ class BaseFeature(ABC):
 
         self.feature_type: FeatureType = FeatureType[feature_type]
         self.definition: HardwareDefinition = definition
+
+        self._value: Optional[Union[float, int]] = None
 
     def __repr__(self) -> str:
         return self.friendly_name
@@ -75,17 +80,28 @@ class BaseFeature(ABC):
 
     @property
     @abstractmethod
-    def value(self) -> int:
+    def value(self) -> Union[float, int]:
+        pass
+
+    @property
+    def changed(self) -> bool:
+        """Detect whether the status has changed."""
+        changed: bool = False
+
+        if self.value != self._value:
+            changed = True
+            self._value = self.value
+
+        return changed
+
+    @property
+    @abstractmethod
+    def payload(self) -> Any:
         pass
 
 
 class NeuronFeature(BaseFeature):
-    def __init__(
-        self,
-        neuron,
-        definition: HardwareDefinition,
-        **kwargs,
-    ):
+    def __init__(self, neuron, definition: HardwareDefinition, **kwargs):
         super().__init__(neuron, definition, kwargs["feature_type"])
 
         self.index: int = kwargs["index"]
@@ -95,7 +111,6 @@ class NeuronFeature(BaseFeature):
         self.val_coil: Optional[int] = None if _val_coil is None else _val_coil + self.index
 
         self._reg_value = lambda: neuron.modbus_cache_data.get_register(address=kwargs["val_reg"], index=1, unit=0)[0]
-        self._value: Optional[bool] = None
 
     @property
     def unique_name(self) -> str:
@@ -118,17 +133,7 @@ class NeuronFeature(BaseFeature):
         return 1 if self._reg_value() & mask else 0
 
     @property
-    def changed(self) -> bool:
-        """Detect whether the status has changed."""
-        value: bool = self.value == 1
-
-        if changed := value != self._value:
-            self._value = value
-
-        return changed
-
-    @property
-    def state(self) -> str:
+    def payload(self) -> str:
         """The feature state as friendly name."""
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
@@ -170,20 +175,15 @@ class Led(NeuronFeature):
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
 
-class Meter(BaseFeature):
-    def __init__(
-        self,
-        neuron,
-        definition: HardwareDefinition,
-        **kwargs,
-    ):
+class MeterFeature(BaseFeature):
+    def __init__(self, neuron, definition: HardwareDefinition, **kwargs):
         super().__init__(neuron, definition, kwargs["feature_type"])
 
         self._friendly_name: str = kwargs["friendly_name"]
 
     @property
     def unique_name(self) -> str:
-        return f"{slugify(self.friendly_name)}_{self.definition.unit}"
+        return f"{slugify(self.friendly_name)}"
 
     @property
     def friendly_name(self) -> str:
@@ -195,15 +195,39 @@ class Meter(BaseFeature):
         return f"{super().topic}/{self.unique_name}"
 
     @property
-    def value(self) -> int:
-        return 0
+    def value(self) -> float:
+        return 0.0
+
+    @property
+    def payload(self) -> float:
+        return self.value
+
+
+class EastronMeter(MeterFeature):
+    def __init__(self, neuron, definition: HardwareDefinition, **kwargs):
+        super().__init__(neuron, definition, **kwargs)
+
+        self._reg_value = lambda: neuron.modbus_cache_data.get_register(
+            address=kwargs["val_reg"], index=2, unit=definition.unit
+        )
+
+    @property
+    def value(self) -> float:
+        return round(
+            float(
+                BinaryPayloadDecoder.fromRegisters(
+                    self._reg_value(), byteorder=Endian.Big, wordorder=Endian.Big
+                ).decode_32bit_float()
+            ),
+            2,
+        )
 
 
 class FeatureMap:
     def __init__(self):
-        self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, Meter]]] = {}
+        self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]]] = {}
 
-    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, Meter]):
+    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]):
         """Add a feature to the data storage.
 
         Parameters
@@ -217,7 +241,7 @@ class FeatureMap:
 
     def by_unique_name(
         self, unique_name: str, feature_type: Optional[List[str]] = None
-    ) -> Union[DigitalInput, DigitalOutput, Led, Relay, Meter]:
+    ) -> Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]:
         """Get feature by unique name.
 
         Parameters
@@ -241,7 +265,7 @@ class FeatureMap:
             data = self.by_feature_type(feature_type)
 
         try:
-            feature: Union[DigitalInput, DigitalOutput, Led, Relay, Meter] = next(
+            feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = next(
                 filter(lambda d: d.unique_name == unique_name, data)
             )
         except StopIteration as error:

@@ -28,7 +28,8 @@ from unipi_control.modbus import ModbusClient
 from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
 from unipi_control.mqtt.discovery.switches import HassSwitchesMqttPlugin
-from unipi_control.mqtt.features import FeaturesMqttPlugin
+from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
+from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
 from unipi_control.mqtt.integrations.covers import CoversMqttPlugin
 from unipi_control.neuron import Neuron
 from unipi_control.version import __version__
@@ -53,32 +54,22 @@ class UnipiControl:
         tasks: Set[Task] = set()
         stack.push_async_callback(self._cancel_tasks, tasks)
 
-        features = FeaturesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
-        features_tasks = await features.init_tasks(stack)
-        tasks.update(features_tasks)
+        await NeuronFeaturesMqttPlugin(self.neuron, mqtt_client).init_tasks(stack, tasks)
+        await MeterFeaturesMqttPlugin(self.neuron, mqtt_client).init_tasks(tasks)
 
-        covers = CoverMap(config=self.config, features=self.neuron.features)
-
-        covers_plugin = CoversMqttPlugin(mqtt_client=mqtt_client, covers=covers)
-        covers_tasks = await covers_plugin.init_tasks(stack)
-        tasks.update(covers_tasks)
+        covers = CoverMap(self.config, self.neuron.features)
+        covers_plugin = CoversMqttPlugin(mqtt_client, covers)
+        await covers_plugin.init_tasks(stack, tasks)
 
         if self.config.homeassistant.enabled:
-            hass_covers_plugin = HassCoversMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client, covers=covers)
-            hass_covers_tasks = await hass_covers_plugin.init_tasks()
-            tasks.update(hass_covers_tasks)
-
-            hass_binary_sensors_plugin = HassBinarySensorsMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
-            hass_binary_sensors_tasks = await hass_binary_sensors_plugin.init_tasks()
-            tasks.update(hass_binary_sensors_tasks)
-
-            hass_switches_plugin = HassSwitchesMqttPlugin(neuron=self.neuron, mqtt_client=mqtt_client)
-            hass_switches_tasks = await hass_switches_plugin.init_tasks()
-            tasks.update(hass_switches_tasks)
+            await HassCoversMqttPlugin(self.neuron, mqtt_client, covers).init_tasks(tasks)
+            await HassBinarySensorsMqttPlugin(self.neuron, mqtt_client).init_tasks(tasks)
+            await HassSwitchesMqttPlugin(self.neuron, mqtt_client).init_tasks(tasks)
 
         await asyncio.gather(*tasks)
 
-    async def _cancel_tasks(self, tasks):
+    @staticmethod
+    async def _cancel_tasks(tasks):
         for task in tasks:
             if task.done():
                 continue
@@ -178,40 +169,29 @@ def parse_args(args) -> argparse.Namespace:
 
 
 def main():
-    args: argparse.Namespace = parse_args(sys.argv[1:])
-
-    config: Config = Config()
-    config.logging.update_level(LOG_NAME, verbose=args.verbose)
-
-    if args.install:
-        UnipiControl.install(config=config, assume_yes=args.yes)
-    else:
-        unipi_control: UnipiControl = UnipiControl(
-            config=config,
-            modbus_client=ModbusClient(
-                tcp=AsyncModbusTcpClient(host="localhost"),
-                serial=AsyncModbusSerialClient(
-                    port="/dev/extcomm/0/0",
-                    baudrate=config.modbus.baud_rate,
-                    parity=config.modbus.parity,
-                ),
-            ),
-        )
-
-        try:
-            asyncio.run(unipi_control.run())
-        except KeyboardInterrupt:
-            # KeyboardInterrupt for inside async code
-            pass
-        except asyncio.CancelledError:
-            pass
-        finally:
-            logger.info("Successfully shutdown the Unipi Control service.")
-
-
-if __name__ == "__main__":
     try:
-        main()
+        args: argparse.Namespace = parse_args(sys.argv[1:])
+
+        config: Config = Config()
+        config.logging.update_level(LOG_NAME, verbose=args.verbose)
+
+        if args.install:
+            UnipiControl.install(config=config, assume_yes=args.yes)
+        else:
+            unipi_control: UnipiControl = UnipiControl(
+                config=config,
+                modbus_client=ModbusClient(
+                    tcp=AsyncModbusTcpClient(host="localhost"),
+                    serial=AsyncModbusSerialClient(
+                        port="/dev/extcomm/0/0",
+                        baudrate=config.modbus.baud_rate,
+                        parity=config.modbus.parity,
+                        timeout=10,
+                    ),
+                ),
+            )
+
+            asyncio.run(unipi_control.run())
     except ConfigException as e:
         logger.error("%s %s", LogPrefix.CONFIG, e)
         sys.exit(1)
@@ -219,5 +199,12 @@ if __name__ == "__main__":
         logger.error(e)
         sys.exit(1)
     except KeyboardInterrupt:
-        # KeyboardInterrupt for outside async code
         pass
+    except asyncio.CancelledError:
+        pass
+    finally:
+        logger.info("Successfully shutdown the Unipi Control service.")
+
+
+if __name__ == "__main__":
+    main()

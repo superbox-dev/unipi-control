@@ -108,9 +108,9 @@ class Cover:
         Define the time (in seconds) it takes for the cover to fully open or close.
     tilt_change_time: float or int, optional
         Define the time (in seconds) that the tilt changes from fully open to fully closed state.
-    circuit_up: str
+    cover_up: str
         Output circuit name from a relay or digital output.
-    circuit_down: str
+    cover_down: str
         Output circuit name from a relay or digital output.
     state: str, optional
         Current cover state defined in the ``CoverState()`` class.
@@ -142,18 +142,18 @@ class Cover:
         self.cover_type: str = kwargs["cover_type"]
         self.cover_run_time: Union[float, int] = kwargs["cover_run_time"]
         self.tilt_change_time: Union[float, int] = kwargs["tilt_change_time"]
-        self.circuit_up: str = kwargs["circuit_up"]
-        self.circuit_down: str = kwargs["circuit_down"]
+        self.cover_up: str = kwargs["cover_up"]
+        self.cover_down: str = kwargs["cover_down"]
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
 
         self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_unique_name(
-            self.circuit_up, feature_type=["DO", "RO"]
+            self.cover_up, feature_type=["DO", "RO"]
         )
 
         self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_unique_name(
-            self.circuit_down, feature_type=["DO", "RO"]
+            self.cover_down, feature_type=["DO", "RO"]
         )
 
         self.settings: CoverFeatures = getattr(CoverSettings, self.cover_type)

@@ -1,5 +1,5 @@
 from unipi_control.config import HardwareDefinition
-from unipi_control.features import Meter
+from unipi_control.features import EastronMeter
 
 
 class EastronSDM120M:
@@ -15,7 +15,7 @@ class EastronSDM120M:
         self.definition: HardwareDefinition = definition
 
     def _parse_feature_meter(self, modbus_feature: dict):
-        meter: Meter = Meter(
+        meter: EastronMeter = EastronMeter(
             neuron=self.neuron,
             definition=self.definition,
             **modbus_feature,

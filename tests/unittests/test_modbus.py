@@ -9,7 +9,6 @@ from pytest_mock import MockerFixture
 from superbox_utils.core.exception import UnexpectedException
 from unipi_control.config import Config
 from unipi_control.config import HardwareType
-from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
 from unittests.conftest import ConfigLoader
@@ -24,22 +23,17 @@ class TestUnhappyPathModbus:
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     def test_modbus_exceptions(self, _config_loader: ConfigLoader, _neuron: Neuron):
-        assert isinstance(_neuron.modbus_cache_data, ModbusCacheData)
-
         with pytest.raises(UnexpectedException) as error:
             _neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
 
-        assert str(error.value) == "Modbus error on address 2 (unit: 1)"
+        assert str(error.value) == "[MODBUS] Error on address 2 (unit: 1)"
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     async def test_timeout_exceptions(
-        self,
-        mocker: MockerFixture,
-        _config_loader: ConfigLoader,
-        caplog: LogCaptureFixture,
+        self, mocker: MockerFixture, _config_loader: ConfigLoader, caplog: LogCaptureFixture
     ):
         config: Config = _config_loader.get_config()
 
@@ -54,7 +48,7 @@ class TestUnhappyPathModbus:
         _modbus_client = ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
         _neuron: Neuron = Neuron(config=config, modbus_client=_modbus_client)
 
-        await _neuron.modbus_cache_data.scan([HardwareType.NEURON])
+        await _neuron.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
         logs: list = [record.getMessage() for record in caplog.records]
 
