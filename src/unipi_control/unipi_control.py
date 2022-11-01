@@ -27,6 +27,7 @@ from unipi_control.logging import LOG_NAME
 from unipi_control.modbus import ModbusClient
 from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
+from unipi_control.mqtt.discovery.sensors import HassSensorsMqttPlugin
 from unipi_control.mqtt.discovery.switches import HassSwitchesMqttPlugin
 from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
 from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
@@ -64,6 +65,7 @@ class UnipiControl:
         if self.config.homeassistant.enabled:
             await HassCoversMqttPlugin(self.neuron, mqtt_client, covers).init_tasks(tasks)
             await HassBinarySensorsMqttPlugin(self.neuron, mqtt_client).init_tasks(tasks)
+            await HassSensorsMqttPlugin(self.neuron, mqtt_client).init_tasks(tasks)
             await HassSwitchesMqttPlugin(self.neuron, mqtt_client).init_tasks(tasks)
 
         await asyncio.gather(*tasks)

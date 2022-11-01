@@ -6,6 +6,8 @@ from typing import AsyncIterable
 from typing import List
 from typing import Set
 
+from asyncio_mqtt import Client
+
 from unipi_control.config import HardwareType
 from unipi_control.config import logger
 from unipi_control.logging import LOG_MQTT_PUBLISH
@@ -18,18 +20,18 @@ class BaseFeaturesMqttPlugin:
     subscribe_feature_types: List[str] = []
     publish_feature_types: List[str] = []
 
-    def __init__(self, neuron, mqtt_client):
-        self._neuron = neuron
-        self._mqtt_client = mqtt_client
+    def __init__(self, neuron, mqtt_client: Client):
+        self.neuron = neuron
+        self.mqtt_client: Client = mqtt_client
 
     async def _publish(self, scan_type: str, hardware_types: List[str], feature_types: List[str], sleep: float):
         while self.PUBLISH_RUNNING:
-            await self._neuron.modbus_cache_data.scan(scan_type, hardware_types)
+            await self.neuron.modbus_cache_data.scan(scan_type, hardware_types)
 
-            for feature in self._neuron.features.by_feature_type(feature_types):
+            for feature in self.neuron.features.by_feature_type(feature_types):
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
-                    await self._mqtt_client.publish(topic, feature.payload, qos=1, retain=True)
+                    await self.mqtt_client.publish(topic, feature.payload, qos=1, retain=True)
                     logger.info(LOG_MQTT_PUBLISH, topic, feature.payload)
 
             await asyncio.sleep(sleep)
@@ -43,16 +45,16 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     scan_interval: float = 25e-3
 
     async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]):
-        for feature in self._neuron.features.by_feature_type(self.subscribe_feature_types):
+        for feature in self.neuron.features.by_feature_type(self.subscribe_feature_types):
             topic: str = f"{feature.topic}/set"
 
-            manager = self._mqtt_client.filtered_messages(topic)
+            manager = self.mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
             subscribe_task: Task[Any] = asyncio.create_task(self._subscribe(feature, topic, messages))
             tasks.add(subscribe_task)
 
-            await self._mqtt_client.subscribe(topic)
+            await self.mqtt_client.subscribe(topic)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         task: Task[Any] = asyncio.create_task(

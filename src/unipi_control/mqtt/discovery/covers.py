@@ -5,6 +5,8 @@ from typing import Any
 from typing import Set
 from typing import Tuple
 
+from asyncio_mqtt import Client
+
 from unipi_control.config import COVER_TYPES
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
@@ -22,11 +24,11 @@ class HassCoversDiscovery:
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, neuron, mqtt_client, covers: CoverMap):
-        self.config: Config = neuron.config
+    def __init__(self, neuron, mqtt_client: Client, covers: CoverMap):
+        self.mqtt_client: Client = mqtt_client
+        self.covers: CoverMap = covers
 
-        self._mqtt_client = mqtt_client
-        self._covers: CoverMap = covers
+        self.config: Config = neuron.config
         self.hardware: HardwareData = neuron.hardware
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
@@ -46,7 +48,7 @@ class HassCoversDiscovery:
             "device": {
                 "name": device_name,
                 "identifiers": device_name,
-                "model": f"""{self.hardware["neuron"].name} {self.hardware["neuron"].model}""",
+                "model": f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}',
                 "manufacturer": self.config.device_info.manufacturer,
             },
         }
@@ -68,10 +70,10 @@ class HassCoversDiscovery:
         return topic, message
 
     async def publish(self):
-        for cover in self._covers.by_cover_type(COVER_TYPES):
+        for cover in self.covers.by_cover_type(COVER_TYPES):
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
-            await self._mqtt_client.publish(topic, json_data, qos=2, retain=True)
+            await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
             logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 

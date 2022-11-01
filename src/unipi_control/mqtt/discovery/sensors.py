@@ -8,20 +8,19 @@ from typing import Set
 from typing import Tuple
 
 from unipi_control.config import logger
-from unipi_control.features import FeatureState
 from unipi_control.logging import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.base import HassBaseDiscovery
 
 
-class HassBinarySensorsDiscovery(HassBaseDiscovery):
-    """Provide the binary sensors (e.g. digital input) as Home Assistant MQTT discovery."""
+# TODO: write test
+class HassSensorsDiscovery(HassBaseDiscovery):
+    """Provide the sensors (e.g. meter) as Home Assistant MQTT discovery."""
 
-    publish_feature_types: List[str] = ["DI"]
+    publish_feature_types: List[str] = ["METER"]
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
-        topic: str = self._get_topic("binary_sensor", feature)
+        topic: str = self._get_topic("sensor", feature)
         object_id: Optional[str] = self._get_object_id(feature)
-        invert_state: bool = self._get_invert_state(feature)
         suggested_area: Optional[str] = self._get_suggested_area(feature)
         device_name: str = self._get_device_name(feature)
 
@@ -36,18 +35,21 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
                 "model": self._get_device_model(feature),
                 "sw_version": feature.sw_version,
                 "manufacturer": self._get_device_manufacturer(feature),
+                # TODO: test via_device
             },
         }
+
+        if feature.device_class:
+            message["device_class"] = feature.device_class
+
+        if feature.state_class:
+            message["state_class"] = feature.state_class
 
         if object_id:
             message["object_id"] = object_id
 
         if suggested_area:
             message["device"]["suggested_area"] = suggested_area
-
-        if invert_state:
-            message["payload_on"] = FeatureState.OFF
-            message["payload_off"] = FeatureState.ON
 
         return topic, message
 
@@ -59,11 +61,11 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
             logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
-class HassBinarySensorsMqttPlugin:
-    """Provide Home Assistant MQTT commands for binary sensors."""
+class HassSensorsMqttPlugin:
+    """Provide Home Assistant MQTT commands for sensors."""
 
     def __init__(self, neuron, mqtt_client):
-        self._hass = HassBinarySensorsDiscovery(neuron, mqtt_client)
+        self._hass = HassSensorsDiscovery(neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]):
         task: Task[Any] = asyncio.create_task(self._hass.publish())

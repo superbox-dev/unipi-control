@@ -1,5 +1,6 @@
 device_info:
-  name: Unipi
+  name: Unipi  # TODO: update readme, this must be unique!
+  # TODO: add global suggested_area
 mqtt:
   host: localhost
   port: 1883
@@ -12,12 +13,14 @@ modbus:
   parity: N
   units:
     - unit: 1
-      device_info: Eastron SDM120M
+      device_name: Eastron SDM120M
+      identifier: Eastron_SDM120M
       suggested_area: Workspace
 homeassistant:
   enabled: True
   discovery_prefix: homeassistant
 features:
+  # TODO: meters feature overwrite
   di_3_01:
     id: workspace_blind_up
     friendly_name: Workspace - Blind up

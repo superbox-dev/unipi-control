@@ -43,11 +43,12 @@ class BaseFeature(ABC):
     """Base class from which all features inherit."""
 
     def __init__(self, neuron, definition: HardwareDefinition, feature_type: str):
+        self.neuron = neuron
+        self.definition: HardwareDefinition = definition
+        self.feature_type: FeatureType = FeatureType[feature_type]
+
         self.config: Config = neuron.config
         self.modbus_client: ModbusClient = neuron.modbus_client
-
-        self.feature_type: FeatureType = FeatureType[feature_type]
-        self.definition: HardwareDefinition = definition
 
         self._value: Optional[Union[float, int]] = None
 
@@ -80,6 +81,16 @@ class BaseFeature(ABC):
 
     @property
     @abstractmethod
+    def device_class(self) -> Optional[str]:
+        pass
+
+    @property
+    @abstractmethod
+    def state_class(self) -> Optional[str]:
+        pass
+
+    @property
+    @abstractmethod
     def value(self) -> Union[float, int]:
         pass
 
@@ -97,6 +108,11 @@ class BaseFeature(ABC):
     @property
     @abstractmethod
     def payload(self) -> Any:
+        pass
+
+    @property
+    @abstractmethod
+    def sw_version(self) -> str:
         pass
 
 
@@ -127,6 +143,14 @@ class NeuronFeature(BaseFeature):
         return f"{super().topic}/{self.unique_name}"
 
     @property
+    def device_class(self) -> Optional[str]:
+        return None
+
+    @property
+    def state_class(self) -> Optional[str]:
+        return None
+
+    @property
     def value(self) -> int:
         """The feature state as integer."""
         mask: int = 0x1 << (self.index % 16)
@@ -136,6 +160,10 @@ class NeuronFeature(BaseFeature):
     def payload(self) -> str:
         """The feature state as friendly name."""
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
+
+    @property
+    def sw_version(self) -> str:
+        return self.neuron.boards[self.major_group - 1].firmware
 
 
 class Relay(NeuronFeature):
@@ -180,6 +208,8 @@ class MeterFeature(BaseFeature):
         super().__init__(neuron, definition, kwargs["feature_type"])
 
         self._friendly_name: str = kwargs["friendly_name"]
+        self._device_class: Optional[str] = kwargs.get("device_class")
+        self._state_class: Optional[str] = kwargs.get("state_class")
 
     @property
     def unique_name(self) -> str:
@@ -195,12 +225,24 @@ class MeterFeature(BaseFeature):
         return f"{super().topic}/{self.unique_name}"
 
     @property
+    def device_class(self) -> Optional[str]:
+        return self._device_class
+
+    @property
+    def state_class(self) -> Optional[str]:
+        return self._state_class
+
+    @property
     def value(self) -> float:
         return 0.0
 
     @property
     def payload(self) -> float:
         return self.value
+
+    @property
+    def sw_version(self) -> str:
+        return ""
 
 
 class EastronMeter(MeterFeature):
@@ -221,6 +263,11 @@ class EastronMeter(MeterFeature):
             ),
             2,
         )
+
+    @property
+    def sw_version(self) -> str:
+        # TODO: Read sw version from device via modbus
+        return ""
 
 
 class FeatureMap:

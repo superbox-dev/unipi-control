@@ -1,5 +1,3 @@
-manufacturer: Unipi
-model: Neuron L203
 modbus_register_blocks:
     # DI 1.x / DO 1.x
   - start_reg: 0

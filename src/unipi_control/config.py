@@ -13,6 +13,7 @@ from typing import List
 from typing import Literal
 from typing import Mapping
 from typing import NamedTuple
+from typing import Optional
 from typing import TypedDict
 
 from superbox_utils.config.exception import ConfigException
@@ -117,7 +118,8 @@ class CoverConfig(ConfigLoaderMixin):
 @dataclass
 class ModbusUnitConfig(ConfigLoaderMixin):
     unit: int = field(default_factory=int)
-    device_info: str = field(default_factory=str)
+    device_name: str = field(default_factory=str)  # TODO: Validate - not empty
+    identifier: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
 
 
@@ -135,8 +137,8 @@ class ModbusConfig(ConfigLoaderMixin):
 
         self._validate_unique_units()
 
-    def get_units_by_device_info(self, device_info: str) -> Generator:
-        return (modbus_unit.unit for modbus_unit in self.units if modbus_unit.device_info == device_info)
+    def get_units_by_identifier(self, identifier: str) -> Generator:
+        return (modbus_unit for modbus_unit in self.units if modbus_unit.identifier == identifier)
 
     def _validate_unique_units(self):
         unique_units: List[int] = []
@@ -317,9 +319,11 @@ class HardwareType:
 
 class HardwareDefinition(NamedTuple):
     unit: int
-    manufacturer: str
-    model: str
     hardware_type: str
+    device_name: Optional[str]
+    suggested_area: Optional[str]
+    manufacturer: Optional[str]
+    model: Optional[str]
     modbus_register_blocks: List[dict]
     modbus_features: List[dict]
 
@@ -358,11 +362,18 @@ class HardwareData(Mapping):
 
         if definition_file.is_file():
             try:
+                yaml_content: dict = yaml_loader_safe(definition_file)
+
                 self.data["definitions"].append(
                     HardwareDefinition(
                         unit=0,
                         hardware_type=HardwareType.NEURON,
-                        **yaml_loader_safe(definition_file),
+                        device_name=None,
+                        suggested_area=None,
+                        manufacturer=yaml_content.get("manufacturer"),
+                        model=yaml_content.get("model"),
+                        modbus_register_blocks=yaml_content["modbus_register_blocks"],
+                        modbus_features=yaml_content["modbus_features"],
                     )
                 )
             except TypeError as error:
@@ -380,15 +391,15 @@ class HardwareData(Mapping):
                 yaml_content: dict = yaml_loader_safe(definition_file)
 
                 try:
-                    units: Generator = self.config.modbus.get_units_by_device_info(
-                        device_info=f'{yaml_content["manufacturer"]} {yaml_content["model"]}'
-                    )
+                    units: Generator = self.config.modbus.get_units_by_identifier(identifier=definition_file.stem)
 
                     for unit in units:
                         self.data["definitions"].append(
                             HardwareDefinition(
-                                unit=unit,
+                                unit=unit.unit,
                                 hardware_type=HardwareType.EXTENSION,
+                                device_name=unit.device_name,
+                                suggested_area=unit.suggested_area,
                                 **yaml_content,
                             )
                         )
