@@ -46,13 +46,93 @@ class TestHappyPathHassSensorsMqttPlugin:
                     assert task.done() is True
 
             logs: list = [record.getMessage() for record in caplog.records]
-            # TODO: add all logs
+
             assert (
                 '[MQTT] [homeassistant/sensor/mocked_unipi/voltage_1/config] Publishing message: {"name": "MOCKED_UNIPI: Voltage 1", "unique_id": "mocked_unipi_voltage_1", "state_topic": "mocked_unipi/meter/voltage_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "voltage", "state_class": "measurement", "unit_of_measurement": "V"}'
                 in logs
             )
             assert (
                 '[MQTT] [homeassistant/sensor/mocked_unipi/current_1/config] Publishing message: {"name": "MOCKED_UNIPI: Current 1", "unique_id": "mocked_unipi_current_1", "state_topic": "mocked_unipi/meter/current_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "current", "state_class": "measurement", "unit_of_measurement": "A"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/active_power_1/config] Publishing message: {"name": "MOCKED_UNIPI: Active power 1", "unique_id": "mocked_unipi_active_power_1", "state_topic": "mocked_unipi/meter/active_power_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power", "state_class": "measurement", "unit_of_measurement": "W"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/apparent_power_1/config] Publishing message: {"name": "MOCKED_UNIPI: Apparent power 1", "unique_id": "mocked_unipi_apparent_power_1", "state_topic": "mocked_unipi/meter/apparent_power_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "apparent_power", "state_class": "measurement", "unit_of_measurement": "VA"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/reactive_power_1/config] Publishing message: {"name": "MOCKED_UNIPI: Reactive power 1", "unique_id": "mocked_unipi_reactive_power_1", "state_topic": "mocked_unipi/meter/reactive_power_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "reactive_power", "state_class": "measurement", "unit_of_measurement": "var"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/power_factor_1/config] Publishing message: {"name": "MOCKED_UNIPI: Power factor 1", "unique_id": "mocked_unipi_power_factor_1", "state_topic": "mocked_unipi/meter/power_factor_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power_factor", "state_class": "measurement", "unit_of_measurement": "%"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/phase_angle_1/config] Publishing message: {"name": "MOCKED_UNIPI: Phase Angle 1", "unique_id": "mocked_unipi_phase_angle_1", "state_topic": "mocked_unipi/meter/phase_angle_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "state_class": "measurement"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/frequency_1/config] Publishing message: {"name": "MOCKED_UNIPI: Frequency 1", "unique_id": "mocked_unipi_frequency_1", "state_topic": "mocked_unipi/meter/frequency_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "frequency", "state_class": "measurement", "unit_of_measurement": "Hz"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/import_active_energy_1/config] Publishing message: {"name": "MOCKED_UNIPI: Import active energy 1", "unique_id": "mocked_unipi_import_active_energy_1", "state_topic": "mocked_unipi/meter/import_active_energy_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "energy", "state_class": "total", "unit_of_measurement": "kWh"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/export_active_energy_1/config] Publishing message: {"name": "MOCKED_UNIPI: Export active energy 1", "unique_id": "mocked_unipi_export_active_energy_1", "state_topic": "mocked_unipi/meter/export_active_energy_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "energy", "state_class": "measurement", "unit_of_measurement": "kWh"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/imported_reactive_energy_1/config] Publishing message: {"name": "MOCKED_UNIPI: Imported reactive energy 1", "unique_id": "mocked_unipi_imported_reactive_energy_1", "state_topic": "mocked_unipi/meter/imported_reactive_energy_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "state_class": "total", "unit_of_measurement": "kvarh"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/exported_reactive_energy_1/config] Publishing message: {"name": "MOCKED_UNIPI: Exported reactive energy 1", "unique_id": "mocked_unipi_exported_reactive_energy_1", "state_topic": "mocked_unipi/meter/exported_reactive_energy_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "state_class": "total", "unit_of_measurement": "kvarh"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/total_system_power_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Total system power demand 1", "unique_id": "mocked_unipi_total_system_power_demand_1", "state_topic": "mocked_unipi/meter/total_system_power_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power", "state_class": "measurement", "unit_of_measurement": "W"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/maximum_total_system_power_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Maximum total system power demand 1", "unique_id": "mocked_unipi_maximum_total_system_power_demand_1", "state_topic": "mocked_unipi/meter/maximum_total_system_power_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power", "state_class": "total", "unit_of_measurement": "W"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/import_system_power_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Import system power demand 1", "unique_id": "mocked_unipi_import_system_power_demand_1", "state_topic": "mocked_unipi/meter/import_system_power_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power", "state_class": "measurement", "unit_of_measurement": "W"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/maximum_import_system_power_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Maximum import system power demand 1", "unique_id": "mocked_unipi_maximum_import_system_power_demand_1", "state_topic": "mocked_unipi/meter/maximum_import_system_power_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power", "state_class": "measurement", "unit_of_measurement": "W"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/export_system_power_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Export system power demand 1", "unique_id": "mocked_unipi_export_system_power_demand_1", "state_topic": "mocked_unipi/meter/export_system_power_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power", "state_class": "measurement", "unit_of_measurement": "W"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/maximum_export_system_power_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Maximum export system power demand 1", "unique_id": "mocked_unipi_maximum_export_system_power_demand_1", "state_topic": "mocked_unipi/meter/maximum_export_system_power_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "power", "state_class": "measurement", "unit_of_measurement": "W"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/current_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Current demand 1", "unique_id": "mocked_unipi_current_demand_1", "state_topic": "mocked_unipi/meter/current_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "current", "state_class": "measurement", "unit_of_measurement": "A"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/maximum_current_demand_1/config] Publishing message: {"name": "MOCKED_UNIPI: Maximum current demand 1", "unique_id": "mocked_unipi_maximum_current_demand_1", "state_topic": "mocked_unipi/meter/maximum_current_demand_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "current", "state_class": "measurement", "unit_of_measurement": "A"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/total_active_energy_1/config] Publishing message: {"name": "MOCKED_UNIPI: Total active energy 1", "unique_id": "mocked_unipi_total_active_energy_1", "state_topic": "mocked_unipi/meter/total_active_energy_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "energy", "state_class": "total", "unit_of_measurement": "kWh"}'
+                in logs
+            )
+            assert (
+                '[MQTT] [homeassistant/sensor/mocked_unipi/total_reactive_energy_1/config] Publishing message: {"name": "MOCKED_UNIPI: Total reactive energy 1", "unique_id": "mocked_unipi_total_reactive_energy_1", "state_topic": "mocked_unipi/meter/total_reactive_energy_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "state_class": "total", "unit_of_measurement": "kvarh"}'
                 in logs
             )
 
