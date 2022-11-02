@@ -10,10 +10,10 @@ from typing import Tuple
 from unipi_control.config import logger
 from unipi_control.features import FeatureState
 from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.mqtt.discovery.base import HassBaseDiscovery
+from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 
-class HassSwitchesDiscovery(HassBaseDiscovery):
+class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
     """Provide the switches (e.g. relay) as Home Assistant MQTT discovery."""
 
     publish_feature_types: List[str] = ["RO", "DO"]
@@ -57,7 +57,7 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
         return topic, message
 
     async def publish(self):
-        for feature in self.neuron.features.by_feature_type(self.publish_feature_types):
+        for feature in self.neuron.features.by_feature_types(self.publish_feature_types):
             topic, message = self._get_discovery(feature)
 
             if message:
@@ -70,7 +70,7 @@ class HassSwitchesMqttPlugin:
     """Provide Home Assistant MQTT commands for switches."""
 
     def __init__(self, neuron, mqtt_client):
-        self._hass = HassSwitchesDiscovery(neuron, mqtt_client)
+        self._hass = HassSwitchesDiscoveryMixin(neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]):
         task: Task[Any] = asyncio.create_task(self._hass.publish())

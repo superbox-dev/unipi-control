@@ -79,7 +79,7 @@ class TestHappyPathFeatures:
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        feature: FeatureItem = _neuron.features.by_object_id(options.object_id, feature_type=[options.feature_type])
+        feature: FeatureItem = _neuron.features.by_object_id(options.object_id, feature_types=[options.feature_type])
 
         assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.object_id}"
         assert str(feature) == expected.repr
@@ -112,6 +112,6 @@ class TestUnhappyPathFeatures:
         self, _config_loader: ConfigLoader, _neuron: Neuron, object_id: str, expected: str
     ):
         with pytest.raises(ConfigException) as error:
-            _neuron.features.by_object_id(object_id, feature_type=["DO", "RO"])
+            _neuron.features.by_object_id(object_id, feature_types=["DO", "RO"])
 
         assert str(error.value) == expected

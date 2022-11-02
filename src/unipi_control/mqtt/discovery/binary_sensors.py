@@ -10,10 +10,10 @@ from typing import Tuple
 from unipi_control.config import logger
 from unipi_control.features import FeatureState
 from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.mqtt.discovery.base import HassBaseDiscovery
+from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 
-class HassBinarySensorsDiscovery(HassBaseDiscovery):
+class HassBinarySensorsDiscovery(HassDiscoveryMixin):
     """Provide the binary sensors (e.g. digital input) as Home Assistant MQTT discovery."""
 
     publish_feature_types: List[str] = ["DI"]
@@ -52,7 +52,7 @@ class HassBinarySensorsDiscovery(HassBaseDiscovery):
         return topic, message
 
     async def publish(self):
-        for feature in self.neuron.features.by_feature_type(self.publish_feature_types):
+        for feature in self.neuron.features.by_feature_types(self.publish_feature_types):
             topic, message = self._get_discovery(feature)
             json_data: str = json.dumps(message)
             await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)

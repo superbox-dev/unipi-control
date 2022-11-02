@@ -127,7 +127,7 @@ class TestHappyPathHassCoversMqttPlugin:
             neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers
         )
 
-        for index, cover in enumerate(_covers.by_cover_type(COVER_TYPES)):
+        for index, cover in enumerate(_covers.by_cover_types(COVER_TYPES)):
             topic, message = plugin._hass._get_discovery(cover)  # pylint: disable=protected-access
 
             assert message == expected[index]["message"]

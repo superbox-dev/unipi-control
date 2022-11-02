@@ -82,7 +82,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = options.calibrate_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
@@ -148,7 +148,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = False
         cover._current_position = options.position
         cover.position = options.position
@@ -223,7 +223,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = False
         cover._current_position = options.position
         cover.position = options.position
@@ -270,7 +270,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: str,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = False
         cover.position = options.position
         cover.state = options.cover_state
@@ -328,7 +328,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = False
         cover._current_tilt = options.current_tilt
         cover.tilt = options.current_tilt
@@ -405,7 +405,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = False
         cover._current_tilt = options.tilt
         cover.tilt = options.tilt
@@ -446,7 +446,7 @@ class TestHappyPathCovers(TestCovers):
         ],
     )
     def test_friendly_name(self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: str):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
 
         assert str(cover) == expected
 
@@ -463,7 +463,7 @@ class TestHappyPathCovers(TestCovers):
     def test_state_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover._current_state = options.current_cover_state
         cover.state = options.cover_state
 
@@ -483,7 +483,7 @@ class TestHappyPathCovers(TestCovers):
     def test_position_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover._current_position = options.current_position
         cover.position = options.position
 
@@ -503,7 +503,7 @@ class TestUnhappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: int,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = False
         cover._current_position = expected
         cover.position = expected
@@ -520,7 +520,7 @@ class TestUnhappyPathCovers(TestCovers):
     async def test_open_with_calibrate_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = True
         cover._current_position = expected
         cover.position = expected
@@ -537,7 +537,7 @@ class TestUnhappyPathCovers(TestCovers):
     async def test_close_with_calibrate_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = True
         cover._current_position = expected
         cover.position = expected
@@ -571,7 +571,7 @@ class TestUnhappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_type([options.cover_type]))
+        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
         cover.calibrate_mode = options.calibrate_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)

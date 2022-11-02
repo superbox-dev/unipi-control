@@ -26,7 +26,7 @@ disable = ["C0114", "C0115", "C0116", "C0301", "C0411", "E0401", "R0801", "R1732
 notes = ["FIXME"]
 
 load-plugins = [
-    # "pylint.extensions.bad_builtin",
+    "pylint.extensions.bad_builtin",
     "pylint.extensions.check_elif",
     "pylint.extensions.code_style",
     "pylint.extensions.comparetozero",

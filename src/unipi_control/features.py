@@ -307,14 +307,14 @@ class FeatureMap:
 
         self.data[feature.feature_type.short_name].append(feature)
 
-    def by_object_id(self, object_id: str, feature_type: Optional[List[str]] = None) -> FeatureItem:
-        """Get feature by unique name.
+    def by_object_id(self, object_id: str, feature_types: Optional[List[str]] = None) -> FeatureItem:
+        """Get feature by object id.
 
         Parameters
         ----------
         object_id: str
             The machine-readable unique name e.g. ro_2_01.
-        feature_type: list
+        feature_types: list
 
         Returns
         -------
@@ -323,15 +323,15 @@ class FeatureMap:
         Raises
         ------
         ConfigException
-            Get an exception if circuit not found.
+            Get an exception if feature type not found.
         """
         data: Iterator = itertools.chain.from_iterable(self.data.values())
 
-        if feature_type:
-            data = self.by_feature_type(feature_type)
+        if feature_types:
+            data = self.by_feature_types(feature_types)
 
         try:
-            feature: FeatureItem = next(filter(lambda d: d.object_id == object_id, data))
+            feature: FeatureItem = next((d for d in data if d.object_id == object_id))
         except StopIteration as error:
             raise ConfigException(
                 f"{LogPrefix.CONFIG} '{object_id}' not found in {self.__class__.__name__}!"
@@ -339,17 +339,18 @@ class FeatureMap:
 
         return feature
 
-    def by_feature_type(self, feature_type: List[str]) -> Iterator:
+    def by_feature_types(self, feature_types: List[str]) -> Iterator:
         """Filter features by feature type.
 
         Parameters
         ----------
-        feature_type: list
+        feature_types: list
 
         Returns
         -------
         Iterator
             A list of features filtered by feature type.
         """
-        # TODO: Change return -> pylint
-        return itertools.chain.from_iterable(filter(None, map(self.data.get, feature_type)))
+        return itertools.chain.from_iterable(
+            [item for item in (self.data.get(feature_type) for feature_type in feature_types) if item is not None]
+        )

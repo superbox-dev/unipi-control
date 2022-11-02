@@ -154,7 +154,7 @@ class ModbusConfig(ConfigLoaderMixin):
         if value not in MODBUS_BAUD_RATES:
             raise ConfigException(
                 f"{LogPrefix.MODBUS} Invalid baud rate '{value}. "
-                f"The following baud rates allowed: {' '.join(map(str, MODBUS_BAUD_RATES))}."
+                f"The following baud rates allowed: {' '.join((str(baud_rate) for baud_rate in MODBUS_BAUD_RATES))}."
             )
 
         return value

@@ -149,11 +149,11 @@ class Cover:
         self.tilt: Optional[int] = None
 
         self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_object_id(
-            self.cover_up, feature_type=["DO", "RO"]
+            self.cover_up, feature_types=["DO", "RO"]
         )
 
         self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_object_id(
-            self.cover_down, feature_type=["DO", "RO"]
+            self.cover_down, feature_types=["DO", "RO"]
         )
 
         self.settings: CoverFeatures = getattr(CoverSettings, self.cover_type)
@@ -623,5 +623,7 @@ class CoverMap:
 
             self.data[cover_type].append(c)
 
-    def by_cover_type(self, cover_type: List[str]) -> Iterator:
-        return itertools.chain.from_iterable(filter(None, map(self.data.get, cover_type)))
+    def by_cover_types(self, cover_types: List[str]) -> Iterator:
+        return itertools.chain.from_iterable(
+            [item for item in (self.data.get(cover_type) for cover_type in cover_types) if item is not None]
+        )

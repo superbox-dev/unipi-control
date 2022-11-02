@@ -28,7 +28,7 @@ class BaseFeaturesMqttPlugin:
         while self.PUBLISH_RUNNING:
             await self.neuron.modbus_cache_data.scan(scan_type, hardware_types)
 
-            for feature in self.neuron.features.by_feature_type(feature_types):
+            for feature in self.neuron.features.by_feature_types(feature_types):
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
                     await self.mqtt_client.publish(topic, feature.payload, qos=1, retain=True)
@@ -45,7 +45,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     scan_interval: float = 25e-3
 
     async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]):
-        for feature in self.neuron.features.by_feature_type(self.subscribe_feature_types):
+        for feature in self.neuron.features.by_feature_types(self.subscribe_feature_types):
             topic: str = f"{feature.topic}/set"
 
             manager = self.mqtt_client.filtered_messages(topic)

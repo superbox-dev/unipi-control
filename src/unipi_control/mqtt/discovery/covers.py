@@ -9,10 +9,10 @@ from unipi_control.config import COVER_TYPES
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.mqtt.discovery.base import HassBaseDiscovery
+from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 
-class HassCoversDiscovery(HassBaseDiscovery):
+class HassCoversDiscovery(HassDiscoveryMixin):
     """Provide the covers as Home Assistant MQTT discovery."""
 
     def __init__(self, covers: CoverMap, *args):
@@ -58,7 +58,7 @@ class HassCoversDiscovery(HassBaseDiscovery):
         return topic, message
 
     async def publish(self):
-        for cover in self.covers.by_cover_type(COVER_TYPES):
+        for cover in self.covers.by_cover_types(COVER_TYPES):
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
             await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)

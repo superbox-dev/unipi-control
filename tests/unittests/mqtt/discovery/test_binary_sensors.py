@@ -118,7 +118,7 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
     ):
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassBinarySensorsMqttPlugin = HassBinarySensorsMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
-        features: Iterator = _neuron.features.by_feature_type(HassBinarySensorsDiscovery.publish_feature_types)
+        features: Iterator = _neuron.features.by_feature_types(HassBinarySensorsDiscovery.publish_feature_types)
 
         for index, feature in enumerate(features):
             topic, message = plugin._hass._get_discovery(feature)  # pylint: disable=protected-access

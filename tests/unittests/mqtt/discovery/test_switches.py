@@ -11,7 +11,7 @@ from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-
 from asyncio_mqtt import Client
 
 from unipi_control.modbus import ModbusClient
-from unipi_control.mqtt.discovery.switches import HassSwitchesDiscovery
+from unipi_control.mqtt.discovery.switches import HassSwitchesDiscoveryMixin
 from unipi_control.mqtt.discovery.switches import HassSwitchesMqttPlugin
 from unipi_control.neuron import Neuron
 from unittests.conftest import ConfigLoader
@@ -115,7 +115,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
     ):
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassSwitchesMqttPlugin = HassSwitchesMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
-        features: Iterator = _neuron.features.by_feature_type(HassSwitchesDiscovery.publish_feature_types)
+        features: Iterator = _neuron.features.by_feature_types(HassSwitchesDiscoveryMixin.publish_feature_types)
 
         for index, feature in enumerate(features):
             topic, message = plugin._hass._get_discovery(feature)  # pylint: disable=protected-access

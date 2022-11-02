@@ -81,7 +81,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                             },
                             "device_class": "voltage",
                             "state_class": "measurement",
-                            'unit_of_measurement': "V",
+                            "unit_of_measurement": "V",
                         },
                         "topic": "homeassistant/sensor/mocked_unipi/voltage_1/config",
                     },
@@ -101,7 +101,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                             },
                             "device_class": "current",
                             "state_class": "measurement",
-                            'unit_of_measurement': "A",
+                            "unit_of_measurement": "A",
                         },
                         "topic": "homeassistant/sensor/mocked_unipi/current_1/config",
                     },
@@ -119,7 +119,7 @@ class TestHappyPathHassSensorsMqttPlugin:
     ):
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassSensorsMqttPlugin = HassSensorsMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
-        features: Iterator = _neuron.features.by_feature_type(HassSensorsDiscovery.publish_feature_types)
+        features: Iterator = _neuron.features.by_feature_types(HassSensorsDiscovery.publish_feature_types)
 
         for index, feature in enumerate(features):
             topic, message = plugin._hass._get_discovery(feature)  # pylint: disable=protected-access

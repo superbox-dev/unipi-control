@@ -1,7 +1,4 @@
-from abc import ABC
-from abc import abstractmethod
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 from asyncio_mqtt import Client
@@ -12,7 +9,7 @@ from unipi_control.features import FeatureItem
 from unipi_control.integrations.covers import Cover
 
 
-class HassBaseDiscovery(ABC):
+class HassDiscoveryMixin:
     def __init__(self, neuron, mqtt_client: Client):
         self.neuron = neuron
         self.mqtt_client: Client = mqtt_client
@@ -94,11 +91,3 @@ class HassBaseDiscovery(ABC):
             object_id = features_config.id.lower()
 
         return object_id
-
-    @abstractmethod
-    def _get_discovery(self, feature) -> Tuple[str, dict]:
-        pass
-
-    @abstractmethod
-    async def publish(self):
-        pass
