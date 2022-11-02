@@ -2,14 +2,16 @@
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
+from typing import Union
 from unittest.mock import MagicMock
 
 import pytest
 
 from unipi_control.config import ConfigException
+from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
-from unipi_control.features import FeatureItem
 from unipi_control.features import Led
+from unipi_control.features import MeterFeature
 from unipi_control.features import Relay
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
@@ -79,7 +81,9 @@ class TestHappyPathFeatures:
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        feature: FeatureItem = _neuron.features.by_object_id(options.object_id, feature_types=[options.feature_type])
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_object_id(
+            options.object_id, feature_types=[options.feature_type]
+        )
 
         assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.object_id}"
         assert str(feature) == expected.repr

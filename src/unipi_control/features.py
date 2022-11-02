@@ -7,7 +7,6 @@ from typing import Dict
 from typing import Final
 from typing import List
 from typing import Optional
-from typing import TypeVar
 from typing import Union
 
 import itertools
@@ -288,14 +287,11 @@ class EastronMeter(MeterFeature):
         return ""
 
 
-FeatureItem = TypeVar("FeatureItem", DigitalInput, DigitalOutput, Led, Relay, MeterFeature)
-
-
 class FeatureMap:
     def __init__(self):
-        self.data: Dict[str, List[FeatureItem]] = {}
+        self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]]] = {}
 
-    def register(self, feature: FeatureItem):
+    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]):
         """Add a feature to the data storage.
 
         Parameters
@@ -307,7 +303,9 @@ class FeatureMap:
 
         self.data[feature.feature_type.short_name].append(feature)
 
-    def by_object_id(self, object_id: str, feature_types: Optional[List[str]] = None) -> FeatureItem:
+    def by_object_id(
+        self, object_id: str, feature_types: Optional[List[str]] = None
+    ) -> Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]:
         """Get feature by object id.
 
         Parameters
@@ -331,7 +329,9 @@ class FeatureMap:
             data = self.by_feature_types(feature_types)
 
         try:
-            feature: FeatureItem = next((d for d in data if d.object_id == object_id))
+            feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = next(
+                (d for d in data if d.object_id == object_id)
+            )
         except StopIteration as error:
             raise ConfigException(
                 f"{LogPrefix.CONFIG} '{object_id}' not found in {self.__class__.__name__}!"
