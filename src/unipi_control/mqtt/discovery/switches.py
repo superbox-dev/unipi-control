@@ -20,14 +20,12 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = self._get_topic("switch", feature)
-        message: dict = {}
-
         object_id: Optional[str] = self._get_object_id(feature)
         invert_state: bool = self._get_invert_state(feature)
         suggested_area: Optional[str] = self._get_suggested_area(feature)
         device_name: str = self._get_device_name(feature)
 
-        message = {
+        message: dict = {
             "name": self._get_friendly_name(feature),
             "unique_id": self._get_unique_id(feature),
             "command_topic": f"{feature.topic}/set",
