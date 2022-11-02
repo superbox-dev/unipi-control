@@ -45,6 +45,9 @@ class HassSensorsDiscovery(HassBaseDiscovery):
         if feature.state_class:
             message["state_class"] = feature.state_class
 
+        if feature.unit_of_measurement:
+            message["unit_of_measurement"] = feature.unit_of_measurement
+
         if object_id:
             message["object_id"] = object_id
 

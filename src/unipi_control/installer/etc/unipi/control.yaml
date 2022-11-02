@@ -20,7 +20,7 @@ homeassistant:
   enabled: True
   discovery_prefix: homeassistant
 features:
-  # TODO: meters feature overwrite
+  # TODO: meters feature overwrite - Update README
   di_3_01:
     id: workspace_blind_up
     friendly_name: Workspace - Blind up

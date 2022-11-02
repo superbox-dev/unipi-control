@@ -47,11 +47,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
 
             logs: list = [record.getMessage() for record in caplog.records]
             assert (
-                '[MQTT] [homeassistant/switch/mocked_unipi/do_1_01/config] Publishing message: {"name": "MOCKED_UNIPI Digital Output 1.01", "unique_id": "mocked_unipi_do_1_01", "command_topic": "mocked_unipi/relay/do_1_01/set", "state_topic": "mocked_unipi/relay/do_1_01/get", "qos": 2, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology"}}'
+                '[MQTT] [homeassistant/switch/mocked_unipi/do_1_01/config] Publishing message: {"name": "MOCKED_UNIPI: Digital Output 1.01", "unique_id": "mocked_unipi_do_1_01", "command_topic": "mocked_unipi/relay/do_1_01/set", "state_topic": "mocked_unipi/relay/do_1_01/get", "qos": 2, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology"}}'
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/switch/mocked_unipi/do_1_02/config] Publishing message: {"name": "MOCKED_UNIPI Digital Output 1.02", "unique_id": "mocked_unipi_do_1_02", "command_topic": "mocked_unipi/relay/do_1_02/set", "state_topic": "mocked_unipi/relay/do_1_02/get", "qos": 2, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology"}}'
+                '[MQTT] [homeassistant/switch/mocked_unipi/do_1_02/config] Publishing message: {"name": "MOCKED_UNIPI: Digital Output 1.02", "unique_id": "mocked_unipi_do_1_02", "command_topic": "mocked_unipi/relay/do_1_02/set", "state_topic": "mocked_unipi/relay/do_1_02/get", "qos": 2, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology"}}'
                 in logs
             )
             assert len(logs) == 28

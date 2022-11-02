@@ -5,34 +5,22 @@ from typing import Any
 from typing import Set
 from typing import Tuple
 
-from asyncio_mqtt import Client
-
 from unipi_control.config import COVER_TYPES
-from unipi_control.config import Config
-from unipi_control.config import HardwareData
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.logging import LOG_MQTT_PUBLISH
+from unipi_control.mqtt.discovery.base import HassBaseDiscovery
 
 
-class HassCoversDiscovery:
-    """Provide the covers as Home Assistant MQTT discovery.
+class HassCoversDiscovery(HassBaseDiscovery):
+    """Provide the covers as Home Assistant MQTT discovery."""
 
-    Attributes
-    ----------
-    hardware: HardwareData
-        The Unipi Neuron hardware definitions.
-    """
-
-    def __init__(self, neuron, mqtt_client: Client, covers: CoverMap):
-        self.mqtt_client: Client = mqtt_client
+    def __init__(self, covers: CoverMap, *args):
+        super().__init__(*args)
         self.covers: CoverMap = covers
 
-        self.config: Config = neuron.config
-        self.hardware: HardwareData = neuron.hardware
-
     def _get_discovery(self, cover) -> Tuple[str, dict]:
-        topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.object_id}/config"
+        topic: str = self._get_topic("cover", cover)
         device_name: str = self.config.device_info.name
 
         if cover.suggested_area:
@@ -48,8 +36,8 @@ class HassCoversDiscovery:
             "device": {
                 "name": device_name,
                 "identifiers": device_name,
-                "model": f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}',
-                "manufacturer": self.config.device_info.manufacturer,
+                "model": self._get_device_model(),
+                "manufacturer": self._get_device_manufacturer(),
             },
         }
 
@@ -81,7 +69,7 @@ class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
     def __init__(self, neuron, mqtt_client, covers: CoverMap):
-        self._hass = HassCoversDiscovery(neuron, mqtt_client, covers)
+        self._hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]):
         task: Task[Any] = asyncio.create_task(self._hass.publish())

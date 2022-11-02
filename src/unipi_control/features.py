@@ -7,6 +7,7 @@ from typing import Dict
 from typing import Final
 from typing import List
 from typing import Optional
+from typing import TypeVar
 from typing import Union
 
 import itertools
@@ -65,7 +66,7 @@ class BaseFeature(ABC):
 
     @property
     @abstractmethod
-    def unique_name(self) -> str:
+    def object_id(self) -> str:
         pass
 
     @property
@@ -87,6 +88,11 @@ class BaseFeature(ABC):
     @property
     @abstractmethod
     def state_class(self) -> Optional[str]:
+        pass
+
+    @property
+    @abstractmethod
+    def unit_of_measurement(self) -> Optional[str]:
         pass
 
     @property
@@ -129,7 +135,7 @@ class NeuronFeature(BaseFeature):
         self._reg_value = lambda: neuron.modbus_cache_data.get_register(address=kwargs["val_reg"], index=1, unit=0)[0]
 
     @property
-    def unique_name(self) -> str:
+    def object_id(self) -> str:
         return f"{self.feature_type.short_name.lower()}_{self.major_group}_{self.index + 1:02d}"
 
     @property
@@ -140,14 +146,21 @@ class NeuronFeature(BaseFeature):
     @property
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
-        return f"{super().topic}/{self.unique_name}"
+        return f"{super().topic}/{self.object_id}"
 
     @property
     def device_class(self) -> Optional[str]:
+        # TODO: Add to yaml config
         return None
 
     @property
     def state_class(self) -> Optional[str]:
+        # TODO: Add to yaml config
+        return None
+
+    @property
+    def unit_of_measurement(self) -> Optional[str]:
+        # TODO: Add to yaml config
         return None
 
     @property
@@ -210,9 +223,10 @@ class MeterFeature(BaseFeature):
         self._friendly_name: str = kwargs["friendly_name"]
         self._device_class: Optional[str] = kwargs.get("device_class")
         self._state_class: Optional[str] = kwargs.get("state_class")
+        self._unit_of_measurement: Optional[str] = kwargs.get("unit_of_measurement")
 
     @property
-    def unique_name(self) -> str:
+    def object_id(self) -> str:
         return f"{slugify(self.friendly_name)}"
 
     @property
@@ -222,7 +236,7 @@ class MeterFeature(BaseFeature):
     @property
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
-        return f"{super().topic}/{self.unique_name}"
+        return f"{super().topic}/{self.object_id}"
 
     @property
     def device_class(self) -> Optional[str]:
@@ -231,6 +245,10 @@ class MeterFeature(BaseFeature):
     @property
     def state_class(self) -> Optional[str]:
         return self._state_class
+
+    @property
+    def unit_of_measurement(self) -> Optional[str]:
+        return self._unit_of_measurement
 
     @property
     def value(self) -> float:
@@ -270,11 +288,14 @@ class EastronMeter(MeterFeature):
         return ""
 
 
+FeatureItem = TypeVar("FeatureItem", DigitalInput, DigitalOutput, Led, Relay, MeterFeature)
+
+
 class FeatureMap:
     def __init__(self):
-        self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]]] = {}
+        self.data: Dict[str, List[FeatureItem]] = {}
 
-    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]):
+    def register(self, feature: FeatureItem):
         """Add a feature to the data storage.
 
         Parameters
@@ -286,14 +307,12 @@ class FeatureMap:
 
         self.data[feature.feature_type.short_name].append(feature)
 
-    def by_unique_name(
-        self, unique_name: str, feature_type: Optional[List[str]] = None
-    ) -> Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]:
+    def by_object_id(self, object_id: str, feature_type: Optional[List[str]] = None) -> FeatureItem:
         """Get feature by unique name.
 
         Parameters
         ----------
-        unique_name: str
+        object_id: str
             The machine-readable unique name e.g. ro_2_01.
         feature_type: list
 
@@ -312,12 +331,10 @@ class FeatureMap:
             data = self.by_feature_type(feature_type)
 
         try:
-            feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = next(
-                filter(lambda d: d.unique_name == unique_name, data)
-            )
+            feature: FeatureItem = next(filter(lambda d: d.object_id == object_id, data))
         except StopIteration as error:
             raise ConfigException(
-                f"{LogPrefix.CONFIG} '{unique_name}' not found in {self.__class__.__name__}!"
+                f"{LogPrefix.CONFIG} '{object_id}' not found in {self.__class__.__name__}!"
             ) from error
 
         return feature
@@ -334,4 +351,5 @@ class FeatureMap:
         Iterator
             A list of features filtered by feature type.
         """
+        # TODO: Change return -> pylint
         return itertools.chain.from_iterable(filter(None, map(self.data.get, feature_type)))

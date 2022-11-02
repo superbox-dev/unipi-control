@@ -22,7 +22,8 @@ class HassSwitchesDiscovery(HassBaseDiscovery):
         topic: str = self._get_topic("switch", feature)
         message: dict = {}
 
-        if feature.unique_name not in self.config.get_cover_circuits():
+        # TODO: filter before dis method!
+        if feature.object_id not in self.config.get_cover_circuits():
             object_id: Optional[str] = self._get_object_id(feature)
             invert_state: bool = self._get_invert_state(feature)
             suggested_area: Optional[str] = self._get_suggested_area(feature)

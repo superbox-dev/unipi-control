@@ -54,35 +54,42 @@ modbus_features:
     friendly_name: Voltage
     device_class: voltage
     state_class: measurement
+    unit_of_measurement: V
     val_reg: 0
     count: 2
   - feature_type: METER
     friendly_name: Current
     device_class: current
     state_class: measurement
+    unit_of_measurement: A
     val_reg: 6
     count: 2
   - feature_type: METER
     friendly_name: Active power
     device_class: power
+    state_class: measurement
+    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
     val_reg: 12
     count: 2
   - feature_type: METER
     friendly_name: Apparent power
     device_class: apparent_power
     state_class: measurement
+    unit_of_measurement: VA
     val_reg: 18
     count: 2
   - feature_type: METER
     friendly_name: Reactive power
     device_class: reactive_power
     state_class: measurement
+    unit_of_measurement: var
     val_reg: 24
     count: 2
   - feature_type: METER
     friendly_name: Power factor
     device_class: power_factor
     state_class: measurement
+    unit_of_measurement: '%'
     val_reg: 30
     count: 2
   - feature_type: METER
@@ -94,86 +101,101 @@ modbus_features:
     friendly_name: Frequency
     device_class: frequency
     state_class: measurement
+    unit_of_measurement: Hz
     val_reg: 70
     count: 2
   - feature_type: METER
     friendly_name: Import active energy
     device_class: energy
-    state_class: measurement
+    state_class: total
+    unit_of_measurement: kWh
     val_reg: 72
     count: 2
   - feature_type: METER
     friendly_name: Export active energy
     device_class: energy
     state_class: measurement
+    unit_of_measurement: kWh
     val_reg: 74
     count: 2
   - feature_type: METER
     friendly_name: Imported reactive energy
-    state_class: measurement
+    state_class: total
+    unit_of_measurement: kvarh
     val_reg: 76
     count: 2
   - feature_type: METER
     friendly_name: Exported reactive energy
-    state_class: measurement
+    state_class: total
+    unit_of_measurement: kvarh
     val_reg: 78
     count: 2
   - feature_type: METER
     friendly_name: Total system power demand
     device_class: power
-    state_class: total
+    state_class: measurement
+    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
     val_reg: 84
     count: 2
   - feature_type: METER
     friendly_name: Maximum total system power demand
     device_class: power
     state_class: total
+    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
     val_reg: 86
     count: 2
   - feature_type: METER
     friendly_name: Import system power demand
     device_class: power
     state_class: measurement
+    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
     val_reg: 88
     count: 2
   - feature_type: METER
     friendly_name: Maximum import system power demand
     device_class: power
     state_class: measurement
+    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
     val_reg: 90
     count: 2
   - feature_type: METER
     friendly_name: Export system power demand
     device_class: power
     state_class: measurement
+    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
     val_reg: 92
     count: 2
   - feature_type: METER
     friendly_name: Maximum export system power demand
     device_class: power
     state_class: measurement
+    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
     val_reg: 94
     count: 2
   - feature_type: METER
     friendly_name: Current demand
     device_class: current
     state_class: measurement
+    unit_of_measurement: A
     val_reg: 258
     count: 2
   - feature_type: METER
     friendly_name: Maximum current demand
     device_class: current
     state_class: measurement
+    unit_of_measurement: A
     val_reg: 264
     count: 2
   - feature_type: METER
     friendly_name: Total active energy
     device_class: energy
     state_class: total
+    unit_of_measurement: kWh
     val_reg: 342
     count: 2
   - feature_type: METER
     friendly_name: Total reactive energy
     state_class: total
+    unit_of_measurement: kvarh
     val_reg: 344
     count: 2

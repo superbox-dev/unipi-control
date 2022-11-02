@@ -50,11 +50,11 @@ class TestHappyPathHassCoversMqttPlugin:
 
             logs: list = [record.getMessage() for record in caplog.records]
             assert (
-                '[MQTT] [homeassistant/cover/mocked_blind_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - BLIND", "unique_id": "blind_mocked_blind_topic_name", "command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set", "state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology"}, "object_id": "mocked_blind_topic_name", "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", "set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set", "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt", "tilt_command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set"}'
+                '[MQTT] [homeassistant/cover/mocked_unipi/mocked_blind_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - BLIND", "unique_id": "blind_mocked_blind_topic_name", "command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set", "state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED_UNIPI", "identifiers": "MOCKED_UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology"}, "object_id": "mocked_blind_topic_name", "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", "set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set", "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt", "tilt_command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set"}'
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/cover/mocked_roller_shutter_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", "unique_id": "roller_shutter_mocked_roller_shutter_topic_name", "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED_UNIPI: MOCKED AREA", "identifiers": "MOCKED_UNIPI: MOCKED AREA", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA"}, "object_id": "mocked_roller_shutter_topic_name"}'
+                '[MQTT] [homeassistant/cover/mocked_unipi/mocked_roller_shutter_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", "unique_id": "roller_shutter_mocked_roller_shutter_topic_name", "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED_UNIPI: MOCKED AREA", "identifiers": "MOCKED_UNIPI: MOCKED AREA", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA"}, "object_id": "mocked_roller_shutter_topic_name"}'
                 in logs
             )
             assert len(logs) == 2
@@ -88,7 +88,7 @@ class TestHappyPathHassCoversMqttPlugin:
                             "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt",
                             "tilt_command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set",
                         },
-                        "topic": "homeassistant/cover/mocked_blind_topic_name/config",
+                        "topic": "homeassistant/cover/mocked_unipi/mocked_blind_topic_name/config",
                     },
                     {
                         "message": {
@@ -107,7 +107,7 @@ class TestHappyPathHassCoversMqttPlugin:
                             },
                             "object_id": "mocked_roller_shutter_topic_name",
                         },
-                        "topic": "homeassistant/cover/mocked_roller_shutter_topic_name/config",
+                        "topic": "homeassistant/cover/mocked_unipi/mocked_roller_shutter_topic_name/config",
                     },
                 ],
             ),

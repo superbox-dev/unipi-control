@@ -2,16 +2,14 @@
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
-from typing import Union
 from unittest.mock import MagicMock
 
 import pytest
 
 from unipi_control.config import ConfigException
-from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
+from unipi_control.features import FeatureItem
 from unipi_control.features import Led
-from unipi_control.features import MeterFeature
 from unipi_control.features import Relay
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
@@ -23,7 +21,7 @@ from unittests.conftest_data import HARDWARE_DATA_CONTENT
 
 @dataclass
 class FeatureOptions:
-    unique_name: str = field(default_factory=str)
+    object_id: str = field(default_factory=str)
     feature_type: str = field(default_factory=str)
 
 
@@ -42,27 +40,27 @@ class TestHappyPathFeatures:
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(unique_name="di_2_15", feature_type="DI"),
+                FeatureOptions(object_id="di_2_15", feature_type="DI"),
                 FeatureExpected(topic_feature_name="input", value=1, repr="Digital Input 2.15", coil=None),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(unique_name="do_1_01", feature_type="DO"),
+                FeatureOptions(object_id="do_1_01", feature_type="DO"),
                 FeatureExpected(topic_feature_name="relay", value=0, repr="Digital Output 1.01", coil=0),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(unique_name="ro_2_13", feature_type="RO"),
+                FeatureOptions(object_id="ro_2_13", feature_type="RO"),
                 FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13", coil=112),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(unique_name="ro_2_14", feature_type="RO"),
+                FeatureOptions(object_id="ro_2_14", feature_type="RO"),
                 FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14", coil=113),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(unique_name="led_1_01", feature_type="LED"),
+                FeatureOptions(object_id="led_1_01", feature_type="LED"),
                 FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01", coil=8),
             ),
         ],
@@ -81,11 +79,9 @@ class TestHappyPathFeatures:
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_unique_name(
-            options.unique_name, feature_type=[options.feature_type]
-        )
+        feature: FeatureItem = _neuron.features.by_object_id(options.object_id, feature_type=[options.feature_type])
 
-        assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.unique_name}"
+        assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.object_id}"
         assert str(feature) == expected.repr
 
         feature._value = False
@@ -102,7 +98,7 @@ class TestHappyPathFeatures:
 
 class TestUnhappyPathFeatures:
     @pytest.mark.parametrize(
-        "_config_loader, unique_name, expected",
+        "_config_loader, object_id, expected",
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -112,10 +108,10 @@ class TestUnhappyPathFeatures:
         ],
         indirect=["_config_loader"],
     )
-    def test_invalid_feature_by_unique_name(
-        self, _config_loader: ConfigLoader, _neuron: Neuron, unique_name: str, expected: str
+    def test_invalid_feature_by_object_id(
+        self, _config_loader: ConfigLoader, _neuron: Neuron, object_id: str, expected: str
     ):
         with pytest.raises(ConfigException) as error:
-            _neuron.features.by_unique_name(unique_name, feature_type=["DO", "RO"])
+            _neuron.features.by_object_id(object_id, feature_type=["DO", "RO"])
 
         assert str(error.value) == expected

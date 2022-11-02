@@ -48,11 +48,11 @@ class TestHappyPathHassSensorsMqttPlugin:
             logs: list = [record.getMessage() for record in caplog.records]
             # TODO: add all logs
             assert (
-                '[MQTT] [homeassistant/sensor/mocked_unipi/voltage_1/config] Publishing message: {"name": "MOCKED_UNIPI Voltage 1", "unique_id": "mocked_unipi_voltage_1", "state_topic": "mocked_unipi/meter/voltage_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "voltage", "state_class": "measurement"}'
+                '[MQTT] [homeassistant/sensor/mocked_unipi/voltage_1/config] Publishing message: {"name": "MOCKED_UNIPI: Voltage 1", "unique_id": "mocked_unipi_voltage_1", "state_topic": "mocked_unipi/meter/voltage_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "voltage", "state_class": "measurement", "unit_of_measurement": "V"}'
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/sensor/mocked_unipi/current_1/config] Publishing message: {"name": "MOCKED_UNIPI Current 1", "unique_id": "mocked_unipi_current_1", "state_topic": "mocked_unipi/meter/current_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "current", "state_class": "measurement"}'
+                '[MQTT] [homeassistant/sensor/mocked_unipi/current_1/config] Publishing message: {"name": "MOCKED_UNIPI: Current 1", "unique_id": "mocked_unipi_current_1", "state_topic": "mocked_unipi/meter/current_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "", "manufacturer": "Eastron", "suggested_area": "Workspace"}, "device_class": "current", "state_class": "measurement", "unit_of_measurement": "A"}'
                 in logs
             )
 
@@ -67,7 +67,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                 [
                     {
                         "message": {
-                            "name": "MOCKED_UNIPI Voltage 1",
+                            "name": "MOCKED_UNIPI: Voltage 1",
                             "unique_id": "mocked_unipi_voltage_1",
                             "state_topic": "mocked_unipi/meter/voltage_1/get",
                             "qos": 2,
@@ -81,12 +81,13 @@ class TestHappyPathHassSensorsMqttPlugin:
                             },
                             "device_class": "voltage",
                             "state_class": "measurement",
+                            'unit_of_measurement': "V",
                         },
                         "topic": "homeassistant/sensor/mocked_unipi/voltage_1/config",
                     },
                     {
                         "message": {
-                            "name": "MOCKED_UNIPI Current 1",
+                            "name": "MOCKED_UNIPI: Current 1",
                             "unique_id": "mocked_unipi_current_1",
                             "state_topic": "mocked_unipi/meter/current_1/get",
                             "qos": 2,
@@ -100,6 +101,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                             },
                             "device_class": "current",
                             "state_class": "measurement",
+                            'unit_of_measurement': "A",
                         },
                         "topic": "homeassistant/sensor/mocked_unipi/current_1/config",
                     },
