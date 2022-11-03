@@ -25,6 +25,7 @@ features:
     id: workspace_blind_up
     friendly_name: Workspace - Blind up
     suggested_area: Workspace
+    device_class:
   di_3_02:
     id: workspace_blind_down
     friendly_name: Workspace - Blind down
