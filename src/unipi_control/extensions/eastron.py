@@ -38,12 +38,13 @@ class EastronSDM120M:
             address=64514, count=2, slave=self.definition.unit
         )
 
-        if response.isError():
-            return None
+        sw_version: Optional[str] = None
 
-        meter_code: str = f"{format(response.registers[0], '0x')}{format(response.registers[1], '0x')}"
+        if not response.isError():
+            meter_code: str = f"{format(response.registers[0], '0x')}{format(response.registers[1], '0x')}"
+            sw_version = f"{meter_code[:3]}.{meter_code[3:]}"
 
-        return f"{meter_code[:3]}.{meter_code[3:]}"
+        return sw_version
 
     def parse_features(self):
         for modbus_feature in self.definition.modbus_features:

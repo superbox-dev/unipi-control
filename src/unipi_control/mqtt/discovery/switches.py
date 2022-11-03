@@ -3,7 +3,6 @@ import json
 from asyncio import Task
 from typing import Any
 from typing import List
-from typing import Optional
 from typing import Set
 from typing import Tuple
 
@@ -20,9 +19,6 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = self._get_topic("switch", feature)
-        object_id: Optional[str] = self._get_object_id(feature)
-        invert_state: bool = self._get_invert_state(feature)
-        suggested_area: Optional[str] = self._get_suggested_area(feature)
         device_name: str = self._get_device_name(feature)
 
         message: dict = {
@@ -40,13 +36,13 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
             },
         }
 
-        if object_id:
+        if object_id := self._get_object_id(feature):
             message["object_id"] = object_id
 
-        if suggested_area:
+        if suggested_area := self._get_suggested_area(feature):
             message["device"]["suggested_area"] = suggested_area
 
-        if invert_state:
+        if self._get_invert_state(feature):
             message["payload_on"] = FeatureState.OFF
             message["payload_off"] = FeatureState.ON
 

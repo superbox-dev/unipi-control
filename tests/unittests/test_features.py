@@ -30,7 +30,7 @@ class FeatureOptions:
 @dataclass
 class FeatureExpected:
     topic_feature_name: Optional[str] = field(default=None)
-    value: Optional[int] = field(default=None)
+    value: Optional[Union[float, int]] = field(default=None)
     repr: Optional[str] = field(default=None)
     coil: Optional[int] = field(default=None)
 
@@ -65,6 +65,11 @@ class TestHappyPathFeatures:
                 FeatureOptions(object_id="led_1_01", feature_type="LED"),
                 FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01", coil=8),
             ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                FeatureOptions(object_id="active_power_1", feature_type="METER"),
+                FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active power 1"),
+            ),
         ],
         indirect=["_config_loader"],
     )
@@ -95,9 +100,10 @@ class TestHappyPathFeatures:
         if isinstance(feature, (Relay, DigitalOutput, Led)):
             assert feature.val_coil == expected.coil
             assert feature.payload == ("ON" if expected.value == 1 else "OFF")
-
             response = await feature.set_state(False)
             assert not response.isError()
+        elif isinstance(feature, MeterFeature):
+            assert feature.payload == expected.value
 
 
 class TestUnhappyPathFeatures:

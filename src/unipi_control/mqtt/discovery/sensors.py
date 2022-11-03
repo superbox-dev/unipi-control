@@ -3,7 +3,6 @@ import json
 from asyncio import Task
 from typing import Any
 from typing import List
-from typing import Optional
 from typing import Set
 from typing import Tuple
 
@@ -19,8 +18,6 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
         topic: str = self._get_topic("sensor", feature)
-        object_id: Optional[str] = self._get_object_id(feature)
-        suggested_area: Optional[str] = self._get_suggested_area(feature)
         device_name: str = self._get_device_name(feature)
 
         message: dict = {
@@ -34,7 +31,7 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
                 "model": self._get_device_model(feature),
                 "sw_version": "" if feature.sw_version is None else str(feature.sw_version),
                 "manufacturer": self._get_device_manufacturer(feature),
-                # TODO: test via_device
+                "via_device": self._get_device_name(feature),
             },
         }
 
@@ -47,11 +44,14 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
         if feature.unit_of_measurement:
             message["unit_of_measurement"] = feature.unit_of_measurement
 
-        if object_id:
+        if object_id := self._get_object_id(feature):
             message["object_id"] = object_id
 
-        if suggested_area:
+        if suggested_area := self._get_suggested_area(feature):
             message["device"]["suggested_area"] = suggested_area
+
+        if via_device := self._get_via_device(feature):
+            message["device"]["via_device"] = via_device
 
         return topic, message
 

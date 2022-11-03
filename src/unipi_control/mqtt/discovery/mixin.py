@@ -30,6 +30,14 @@ class HassDiscoveryMixin:
     def _get_unique_id(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]) -> str:
         return f"{self.config.device_info.name.lower()}_{feature.object_id}"
 
+    def _get_via_device(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]) -> Optional[str]:
+        device_name: str = self.config.device_info.name
+
+        if device_name != self._get_device_model(feature):
+            return device_name
+
+        return None
+
     def _get_device_name(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]) -> str:
         suggested_area: Optional[str] = self._get_suggested_area(feature)
         device_name: str = self.config.device_info.name

@@ -89,23 +89,30 @@ def _modbus_client(mocker: MockerFixture) -> ModbusClient:
     mock_response_is_error.isError.return_value = False
 
     mock_modbus_tcp_client: AsyncMock = AsyncMock()
-    mock_modbus_tcp_client.read_input_registers.side_effect = (
-        NEURON_L203_MODBUS_REGISTER
-        + [
-            # Board 1
-            mock_response_is_error,
-            # Board 2
-            mock_response_is_error,
-            # Board 3
-            mock_response_is_error,
-        ]
-        + EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
-    )
+    mock_modbus_tcp_client.read_input_registers.side_effect = NEURON_L203_MODBUS_REGISTER + [
+        # Board 1
+        mock_response_is_error,
+        # Board 2
+        mock_response_is_error,
+        # Board 3
+        mock_response_is_error,
+    ]
+
+    mock_modbus_serial_client: AsyncMock = AsyncMock()
+    mock_modbus_serial_client.read_input_registers.side_effect = EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
+
+    mock_response_sw_version_is_error: MagicMock = MagicMock(registers=[32, 516])
+    mock_response_sw_version_is_error.isError.return_value = False
+
+    mock_modbus_serial_client.read_holding_registers.side_effect = [
+        # Eastron SDM120M Software Version
+        mock_response_sw_version_is_error
+    ]
 
     mock_hardware_info: PropertyMock = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
     mock_hardware_info.return_value = MockHardwareInfo()
 
-    return ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
+    return ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_serial_client)
 
 
 @pytest_asyncio.fixture()
