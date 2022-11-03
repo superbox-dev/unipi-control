@@ -28,12 +28,13 @@ features:
   di_1_01:
     id: MOCKED_ID_DI_1_01
     friendly_name: MOCKED_FRIENDLY_NAME - DI_1_01
-    suggested_area: MOCKED AREA 1
     invert_state: True
+    icon: mdi:power-standby
   di_1_02:
     id: MOCKED_ID_DI_1_02
     friendly_name: MOCKED_FRIENDLY_NAME - DI_1_02
     suggested_area: MOCKED AREA 2
+    device_class: heat
   di_3_01:
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
     suggested_area: MOCKED AREA 1

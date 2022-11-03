@@ -64,6 +64,8 @@ class FeatureConfig(ConfigLoaderMixin):
     invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
+    icon: str = field(default_factory=str)
+    device_class: str = field(default_factory=str)  # TODO: Validate switch device_class
 
     @staticmethod
     def _validate_id(value: str, _field: dataclasses.Field) -> str:

@@ -35,6 +35,12 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
             },
         }
 
+        if object_id := self._get_object_id(feature):
+            message["object_id"] = object_id
+
+        if feature.icon:
+            message["icon"] = feature.icon
+
         if feature.device_class:
             message["device_class"] = feature.device_class
 
@@ -43,9 +49,6 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
 
         if feature.unit_of_measurement:
             message["unit_of_measurement"] = feature.unit_of_measurement
-
-        if object_id := self._get_object_id(feature):
-            message["object_id"] = object_id
 
         if suggested_area := self._get_suggested_area(feature):
             message["device"]["suggested_area"] = suggested_area

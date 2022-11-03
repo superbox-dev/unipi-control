@@ -81,6 +81,11 @@ class BaseFeature(ABC):
 
     @property
     @abstractmethod
+    def icon(self) -> Optional[str]:
+        pass
+
+    @property
+    @abstractmethod
     def device_class(self) -> Optional[str]:
         pass
 
@@ -148,18 +153,25 @@ class NeuronFeature(BaseFeature):
         return f"{super().topic}/{self.object_id}"
 
     @property
+    def icon(self) -> Optional[str]:
+        if features_config := self.config.features.get(self.object_id):
+            return features_config.icon
+
+        return None
+
+    @property
     def device_class(self) -> Optional[str]:
-        # TODO: Add to yaml config
+        if features_config := self.config.features.get(self.object_id):
+            return features_config.device_class
+
         return None
 
     @property
-    def state_class(self) -> Optional[str]:
-        # TODO: Add to yaml config
+    def state_class(self) -> None:
         return None
 
     @property
-    def unit_of_measurement(self) -> Optional[str]:
-        # TODO: Add to yaml config
+    def unit_of_measurement(self) -> None:
         return None
 
     @property
@@ -238,13 +250,23 @@ class MeterFeature(BaseFeature):
         return f"{super().topic}/{self.object_id}"
 
     @property
+    def icon(self) -> Optional[str]:
+        if features_config := self.config.features.get(self.object_id):
+            return features_config.icon
+
+        return None
+
+    # TODO: Check features config for meters
+    @property
     def device_class(self) -> Optional[str]:
         return self._device_class
 
+    # TODO: Check features config for meters
     @property
     def state_class(self) -> Optional[str]:
         return self._state_class
 
+    # TODO: Check features config for meters
     @property
     def unit_of_measurement(self) -> Optional[str]:
         return self._unit_of_measurement
@@ -256,6 +278,10 @@ class MeterFeature(BaseFeature):
     @property
     def payload(self) -> float:
         return self.value
+
+    @property
+    def sw_version(self) -> Optional[str]:
+        return None
 
 
 class EastronMeter(MeterFeature):

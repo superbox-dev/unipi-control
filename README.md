@@ -110,6 +110,8 @@ It's possible to give the circuits friendly names. This names will be used for s
 | `suggested_area` | Used for `Area` in Home Assistant.               |
 | `invert_state`   | Invert the `ON`/`OFF` state. Default is `false`. |
 
+# TODO: Add all new keys
+
 ```yaml
 # control.yaml
 features:
@@ -137,6 +139,8 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 | `tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state. Tilt is only available for cover type "blind". |
 | `cover_up`       | Output circuit name from a relay or digital output.                                                                                      |
 | `cover_down`     | Output circuit name from a relay or digital output.                                                                                      |
+
+# TODO: Rename cover_type to device_class
 
 ```yaml
 # control.yaml

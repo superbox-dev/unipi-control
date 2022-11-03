@@ -25,7 +25,6 @@ features:
     id: workspace_blind_up
     friendly_name: Workspace - Blind up
     suggested_area: Workspace
-    device_class:
   di_3_02:
     id: workspace_blind_down
     friendly_name: Workspace - Blind down
@@ -39,7 +38,13 @@ features:
   do_1_03:
     friendly_name: Volumio Power Supply
     suggested_area: Kitchen
-    invert_state: true
+    invert_state: True
+    icon: mdi:power-standby
+  di_1_04:
+    id: button_radiator
+    friendly_name: Button - Radiator
+    suggested_area: Bathroom
+    device_class: heat
 covers:
   - id: workspace
     friendly_name: Workspace

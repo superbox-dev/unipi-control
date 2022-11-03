@@ -2,6 +2,7 @@ import asyncio
 import json
 from asyncio import Task
 from typing import Any
+from typing import Optional
 from typing import Set
 from typing import Tuple
 
@@ -22,8 +23,10 @@ class HassCoversDiscovery(HassDiscoveryMixin):
     def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = self._get_topic("cover", cover)
         device_name: str = self.config.device_info.name
+        via_device: Optional[str] = None
 
         if cover.suggested_area:
+            via_device = device_name
             device_name = f"{device_name}: {cover.suggested_area}"
 
         message: dict = {
@@ -46,6 +49,9 @@ class HassCoversDiscovery(HassDiscoveryMixin):
 
         if cover.suggested_area:
             message["device"]["suggested_area"] = cover.suggested_area
+
+        if via_device:
+            message["device"]["via_device"] = via_device
 
         if cover.settings.set_position:
             message["position_topic"] = f"{cover.topic}/position"

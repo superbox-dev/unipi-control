@@ -6,7 +6,7 @@ on:
       - develop
       - main
     tags:
-      - "*"
+      - '*'
 
 env:
   PIP_CACHE_DIR: ${{ github.workspace }}/.cache/pip
@@ -170,6 +170,10 @@ jobs:
         run: |
           pipenv run pylint --version
           pipenv run pylint $(git ls-files '*.py')
+      - name: Lint with yamllint
+        run: |
+          pipenv run yamllint --version
+          pipenv run yamllint $(git ls-files '*.yaml') $(git ls-files '*.yml')
   coverage:
     name: Coverage - Linux Python 3.8
     runs-on: ubuntu-latest
@@ -245,7 +249,7 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_TEST_API_TOKEN }}
           repository_url: https://test.pypi.org/legacy/
-          verbose: true
+          verbose: True
       - name: Publish package
         if: needs.check-tag.outputs.release-type == 'release'
         uses: pypa/gh-action-pypi-publish@release/v1

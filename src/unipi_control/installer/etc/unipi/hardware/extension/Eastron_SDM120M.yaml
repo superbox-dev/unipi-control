@@ -1,52 +1,52 @@
 manufacturer: Eastron
 model: SDM120M
 modbus_register_blocks:
-    # Voltage
+  # Voltage
   - start_reg: 0
     count: 2
-    # Current
+  # Current
   - start_reg: 6
     count: 2
-    # Active power
+  # Active power
   - start_reg: 12
     count: 2
-    # Apparent power
+  # Apparent power
   - start_reg: 18
     count: 2
-    # Reactive power
+  # Reactive power
   - start_reg: 24
     count: 2
-    # Power factor
+  # Power factor
   - start_reg: 30
     count: 2
-    # Phase Angle
+  # Phase Angle
   - start_reg: 36
     count: 2
-    # Frequency
-    # Import active energy
-    # Export active energy
-    # Imported reactive energy
-    # Exported reactive energy
+  # Frequency
+  # Import active energy
+  # Export active energy
+  # Imported reactive energy
+  # Exported reactive energy
   - start_reg: 70
     count: 10
-    # Total system power demand
-    # Maximum total system power demand
-    # Import system power demand
-    # Maximum import system power demand
+  # Total system power demand
+  # Maximum total system power demand
+  # Import system power demand
+  # Maximum import system power demand
   - start_reg: 84
     count: 8
-    # Export system power demand
-    # Maximum export system power demand
+  # Export system power demand
+  # Maximum export system power demand
   - start_reg: 92
     count: 4
     # Current demand
   - start_reg: 258
     count: 2
-    # Maximum current demand
+  # Maximum current demand
   - start_reg: 264
     count: 2
-    # Total active energy
-    # Total reactive energy
+  # Total active energy
+  # Total reactive energy
   - start_reg: 342
     count: 4
 modbus_features:

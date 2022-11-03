@@ -31,7 +31,7 @@ class HassDiscoveryMixin:
         return f"{self.config.device_info.name.lower()}_{feature.object_id}"
 
     def _get_via_device(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]) -> Optional[str]:
-        if (device_name := self.config.device_info.name) != self._get_device_model(feature):
+        if (device_name := self.config.device_info.name) != self._get_device_name(feature):
             return device_name
 
         return None

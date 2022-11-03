@@ -1,14 +1,14 @@
 modbus_register_blocks:
-    # DI 1.x / DO 1.x
+  # DI 1.x / DO 1.x
   - start_reg: 0
     count: 2
-    # LED 1.x
+  # LED 1.x
   - start_reg: 20
     count: 1
-    # DI 2.x / RO 2.x
+  # DI 2.x / RO 2.x
   - start_reg: 100
     count: 2
-    # DI 3.x / RO 3.x
+  # DI 3.x / RO 3.x
   - start_reg: 200
     count: 2
 modbus_features:
