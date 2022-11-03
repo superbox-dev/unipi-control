@@ -151,7 +151,7 @@ class Neuron:
         await self.modbus_cache_data.scan("serial", hardware_types=[HardwareType.EXTENSION])
 
         for definition in self.hardware["definitions"][1:]:
-            getattr(
+            await getattr(
                 importlib.import_module(f"unipi_control.extensions.{definition.manufacturer.lower()}"),
                 f"{definition.manufacturer}{definition.model}",
-            )(neuron=self, definition=definition).parse_features()
+            )(neuron=self, definition=definition).init()

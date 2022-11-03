@@ -112,12 +112,12 @@ class BaseFeature(ABC):
 
     @property
     @abstractmethod
-    def payload(self) -> Any:
+    def sw_version(self) -> Any:
         pass
 
     @property
     @abstractmethod
-    def sw_version(self) -> str:
+    def payload(self) -> Any:
         pass
 
 
@@ -257,18 +257,15 @@ class MeterFeature(BaseFeature):
     def payload(self) -> float:
         return self.value
 
-    @property
-    def sw_version(self) -> str:
-        return ""
-
 
 class EastronMeter(MeterFeature):
-    def __init__(self, neuron, definition: HardwareDefinition, **kwargs):
+    def __init__(self, neuron, definition: HardwareDefinition, sw_version: Optional[str], **kwargs):
         super().__init__(neuron, definition, **kwargs)
 
         self._reg_value = lambda: neuron.modbus_cache_data.get_register(
             address=kwargs["val_reg"], index=2, unit=definition.unit
         )
+        self._sw_version: Optional[str] = sw_version
 
     @property
     def value(self) -> float:
@@ -282,9 +279,8 @@ class EastronMeter(MeterFeature):
         )
 
     @property
-    def sw_version(self) -> str:
-        # TODO: Read sw version from device via modbus
-        return ""
+    def sw_version(self) -> Optional[str]:
+        return self._sw_version
 
 
 class FeatureMap:
