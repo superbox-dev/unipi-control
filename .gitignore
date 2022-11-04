@@ -12,3 +12,5 @@
 build/*
 dist/*
 tmp
+/coverage.xml
+/junit/test-results.xml
