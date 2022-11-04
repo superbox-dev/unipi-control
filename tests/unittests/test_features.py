@@ -23,7 +23,7 @@ from unittests.conftest_data import HARDWARE_DATA_CONTENT
 
 @dataclass
 class FeatureOptions:
-    object_id: str = field(default_factory=str)
+    feature_id: str = field(default_factory=str)
     feature_type: str = field(default_factory=str)
 
 
@@ -42,32 +42,32 @@ class TestHappyPathFeatures:
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(object_id="di_2_15", feature_type="DI"),
+                FeatureOptions(feature_id="di_2_15", feature_type="DI"),
                 FeatureExpected(topic_feature_name="input", value=1, repr="Digital Input 2.15", coil=None),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(object_id="do_1_01", feature_type="DO"),
+                FeatureOptions(feature_id="do_1_01", feature_type="DO"),
                 FeatureExpected(topic_feature_name="relay", value=0, repr="Digital Output 1.01", coil=0),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(object_id="ro_2_13", feature_type="RO"),
+                FeatureOptions(feature_id="ro_2_13", feature_type="RO"),
                 FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13", coil=112),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(object_id="ro_2_14", feature_type="RO"),
+                FeatureOptions(feature_id="ro_2_14", feature_type="RO"),
                 FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14", coil=113),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(object_id="led_1_01", feature_type="LED"),
+                FeatureOptions(feature_id="led_1_01", feature_type="LED"),
                 FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01", coil=8),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                FeatureOptions(object_id="active_power_1", feature_type="METER"),
+                FeatureOptions(feature_id="active_power_1", feature_type="METER"),
                 FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active power 1"),
             ),
         ],
@@ -86,11 +86,11 @@ class TestHappyPathFeatures:
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_object_id(
-            options.object_id, feature_types=[options.feature_type]
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_feature_id(
+            options.feature_id, feature_types=[options.feature_type]
         )
 
-        assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.object_id}"
+        assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.feature_id}"
         assert str(feature) == expected.repr
 
         feature._value = False
@@ -108,7 +108,7 @@ class TestHappyPathFeatures:
 
 class TestUnhappyPathFeatures:
     @pytest.mark.parametrize(
-        "_config_loader, object_id, expected",
+        "_config_loader, feature_id, expected",
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -118,10 +118,10 @@ class TestUnhappyPathFeatures:
         ],
         indirect=["_config_loader"],
     )
-    def test_invalid_feature_by_object_id(
-        self, _config_loader: ConfigLoader, _neuron: Neuron, object_id: str, expected: str
+    def test_invalid_feature_by_feature_id(
+        self, _config_loader: ConfigLoader, _neuron: Neuron, feature_id: str, expected: str
     ):
         with pytest.raises(ConfigException) as error:
-            _neuron.features.by_object_id(object_id, feature_types=["DO", "RO"])
+            _neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
 
         assert str(error.value) == expected

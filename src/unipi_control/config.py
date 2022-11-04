@@ -61,11 +61,13 @@ class DeviceInfo(ConfigLoaderMixin):
 @dataclass
 class FeatureConfig(ConfigLoaderMixin):
     id: str = field(default_factory=str)  # pylint: disable=invalid-name
-    invert_state: bool = field(default=False)
     friendly_name: str = field(default_factory=str)
-    suggested_area: str = field(default_factory=str)
     icon: str = field(default_factory=str)
     device_class: str = field(default_factory=str)  # TODO: Validate switch device_class
+    state_class: str = field(default_factory=str)  # TODO: Validate?
+    unit_of_measurement: str = field(default_factory=str)  # TODO: Validate?
+    suggested_area: str = field(default_factory=str)
+    invert_state: bool = field(default=False)
 
     @staticmethod
     def _validate_id(value: str, _field: dataclasses.Field) -> str:
@@ -84,7 +86,7 @@ class CoverConfig(ConfigLoaderMixin):
     id: str = field(default_factory=str)  # pylint: disable=invalid-name
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
-    cover_type: str = field(default_factory=str)
+    cover_type: str = field(default_factory=str)  # TODO: Rename to device_class
     cover_run_time: float = field(default_factory=float)
     tilt_change_time: float = field(default_factory=float)
     cover_up: str = field(default_factory=str)
@@ -199,10 +201,10 @@ class Config(ConfigLoaderMixin):
         self.modbus.init()
 
     def init(self):
-        for object_id, feature_data in self.features.items():
+        for feature_id, feature_data in self.features.items():
             feature_config: FeatureConfig = FeatureConfig()
             feature_config.update(feature_data)
-            self.features[object_id] = feature_config
+            self.features[feature_id] = feature_config
 
         for index, cover_data in enumerate(self.covers):
             cover_config: CoverConfig = CoverConfig()

@@ -20,7 +20,6 @@ homeassistant:
   enabled: True
   discovery_prefix: homeassistant
 features:
-  # TODO: meters feature overwrite - Update README
   di_3_01:
     id: workspace_blind_up
     friendly_name: Workspace - Blind up
@@ -35,16 +34,6 @@ features:
   di_2_08:
     friendly_name: Bedroom - Rolling shutter up
     suggested_area: Bedroom
-  do_1_03:
-    friendly_name: Volumio Power Supply
-    suggested_area: Kitchen
-    invert_state: True
-    icon: mdi:power-standby
-  di_1_04:
-    id: button_radiator
-    friendly_name: Button - Radiator
-    suggested_area: Bathroom
-    device_class: heat
 covers:
   - id: workspace
     friendly_name: Workspace

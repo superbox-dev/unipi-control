@@ -50,6 +50,10 @@ features:
     id: MOCKED_ID_RO_2_02
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
     suggested_area: MOCKED AREA 2
+  apparent_power_1:
+    id: MOCKED_ID_APPARENT_POWER
+    friendly_name: MOCKED_FRIENDLY_NAME - APPARENT_POWER
+    suggested_area: MOCKED AREA 3
 covers:
   - id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND

@@ -60,7 +60,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/sensor/mocked_unipi/apparent_power_1/config] Publishing message: {"name": "MOCKED_UNIPI: Apparent power 1", "unique_id": "mocked_unipi_apparent_power_1", "state_topic": "mocked_unipi/meter/apparent_power_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: Workspace", "identifiers": "Eastron SDM120M: Workspace", "model": "SDM120M", "sw_version": "202.04", "manufacturer": "Eastron", "via_device": "MOCKED_UNIPI", "suggested_area": "Workspace"}, "device_class": "apparent_power", "state_class": "measurement", "unit_of_measurement": "VA"}'
+                '[MQTT] [homeassistant/sensor/mocked_unipi/apparent_power_1/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - APPARENT_POWER", "unique_id": "mocked_unipi_apparent_power_1", "state_topic": "mocked_unipi/meter/apparent_power_1/get", "qos": 2, "device": {"name": "Eastron SDM120M: MOCKED AREA 3", "identifiers": "Eastron SDM120M: MOCKED AREA 3", "model": "SDM120M", "sw_version": "202.04", "manufacturer": "Eastron", "via_device": "MOCKED_UNIPI", "suggested_area": "MOCKED AREA 3"}, "object_id": "mocked_id_apparent_power", "device_class": "apparent_power", "state_class": "measurement", "unit_of_measurement": "VA"}'
                 in logs
             )
             assert (

@@ -18,12 +18,16 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
     publish_feature_types: List[str] = ["DI"]
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
-        topic: str = self._get_topic("binary_sensor", feature)
+        topic: str = (
+            f"{self.config.homeassistant.discovery_prefix}/binary_sensor/"
+            f"{self.config.device_info.name.lower()}/{feature.feature_id}/config"
+        )
+
         device_name: str = self._get_device_name(feature)
 
         message: dict = {
-            "name": self._get_friendly_name(feature),
-            "unique_id": self._get_unique_id(feature),
+            "name": feature.friendly_name,
+            "unique_id": feature.unique_id,
             "state_topic": f"{feature.topic}/get",
             "qos": 2,
             "device": {
@@ -35,8 +39,8 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
             },
         }
 
-        if object_id := self._get_object_id(feature):
-            message["object_id"] = object_id
+        if feature.object_id:
+            message["object_id"] = feature.object_id
 
         if feature.icon:
             message["icon"] = feature.icon
@@ -48,8 +52,8 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
             message["payload_on"] = FeatureState.OFF
             message["payload_off"] = FeatureState.ON
 
-        if suggested_area := self._get_suggested_area(feature):
-            message["device"]["suggested_area"] = suggested_area
+        if feature.suggested_area:
+            message["device"]["suggested_area"] = feature.suggested_area
 
         if via_device := self._get_via_device(feature):
             message["device"]["via_device"] = via_device

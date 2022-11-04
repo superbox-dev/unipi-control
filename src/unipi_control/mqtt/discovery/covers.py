@@ -6,22 +6,32 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
+from asyncio_mqtt import Client
+
 from unipi_control.config import COVER_TYPES
+from unipi_control.config import Config
+from unipi_control.config import HardwareData
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 
-class HassCoversDiscovery(HassDiscoveryMixin):
+class HassCoversDiscovery:
     """Provide the covers as Home Assistant MQTT discovery."""
 
-    def __init__(self, covers: CoverMap, *args):
-        super().__init__(*args)
+    def __init__(self, covers: CoverMap, neuron, mqtt_client: Client):
+        self.mqtt_client: Client = mqtt_client
         self.covers: CoverMap = covers
 
+        self.config: Config = neuron.config
+        self.hardware: HardwareData = neuron.hardware
+
     def _get_discovery(self, cover) -> Tuple[str, dict]:
-        topic: str = self._get_topic("cover", cover)
+        topic: str = (
+            f"{self.config.homeassistant.discovery_prefix}/cover/"
+            f"{self.config.device_info.name.lower()}/{cover.object_id}/config"
+        )
+
         device_name: str = self.config.device_info.name
         via_device: Optional[str] = None
 
@@ -39,8 +49,8 @@ class HassCoversDiscovery(HassDiscoveryMixin):
             "device": {
                 "name": device_name,
                 "identifiers": device_name,
-                "model": self._get_device_model(),
-                "manufacturer": self._get_device_manufacturer(),
+                "model": f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}',
+                "manufacturer": self.config.device_info.manufacturer,
             },
         }
 
