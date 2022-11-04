@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
+from functools import cached_property
 from pathlib import Path
 from typing import Callable
 from typing import Dict
@@ -169,11 +170,11 @@ class Cover:
     def __repr__(self) -> str:
         return self.friendly_name
 
-    @property
+    @cached_property
     def position_file(self) -> Path:
         return self.config.temp_path / self.topic.replace("/", "__")
 
-    @property
+    @cached_property
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
         return f"{self.config.device_info.name.lower()}/{self.object_id}/cover/{self.cover_type}"

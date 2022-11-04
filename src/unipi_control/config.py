@@ -5,6 +5,7 @@ import socket
 import struct
 from dataclasses import dataclass
 from dataclasses import field
+from functools import cached_property
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Final
@@ -188,7 +189,7 @@ class Config(ConfigLoaderMixin):
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
-    @property
+    @cached_property
     def hardware_path(self) -> Path:
         return self.config_base_path / "hardware"
 
