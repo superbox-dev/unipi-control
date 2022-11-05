@@ -248,7 +248,7 @@ class DigitalOutput(NeuronFeature):
 class DigitalInput(NeuronFeature):
     """Class for the digital input feature from the Unipi Neuron."""
 
-    pass
+    pass  # pylint: disable=unnecessary-pass
 
 
 class Led(NeuronFeature):
