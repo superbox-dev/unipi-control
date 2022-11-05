@@ -18,10 +18,7 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
     publish_feature_types: List[str] = ["DI"]
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
-        topic: str = (
-            f"{self.config.homeassistant.discovery_prefix}/binary_sensor/"
-            f"{self.config.device_info.name.lower()}/{feature.feature_id}/config"
-        )
+        topic: str = f"{self.config.homeassistant.discovery_prefix}/binary_sensor/{feature.unique_id}/config"
 
         device_name: str = self._get_device_name(feature)
 

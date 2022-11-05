@@ -76,15 +76,21 @@ class BaseFeature(ABC):
 
     @cached_property
     def unique_id(self) -> str:
-        return f"{self.config.device_info.name.lower()}_{self.feature_id}"
+        _unique_id: str = f"{slugify(self.config.device_info.name)}_"
+
+        if self.object_id:
+            _unique_id += self.object_id
+        else:
+            _unique_id += self.feature_id
+
+        return _unique_id
 
     @cached_property
     def object_id(self) -> Optional[str]:
-        # TODO: all features get a object_id? on some places we use feature_id e.g. topic in discovery!
         _object_id: Optional[str] = None
 
-        if self.features_config and self.features_config.id:
-            _object_id = self.features_config.id.lower()
+        if self.features_config and self.features_config.object_id:
+            _object_id = self.features_config.object_id.lower()
 
         return _object_id
 
@@ -118,7 +124,7 @@ class BaseFeature(ABC):
     @abstractmethod
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
-        return f"{self.config.device_info.name.lower()}/{self.feature_name}"
+        return f"{slugify(self.config.device_info.name)}/{self.feature_name}"
 
     @property
     @abstractmethod
@@ -235,10 +241,6 @@ class Relay(NeuronFeature):
 class DigitalOutput(NeuronFeature):
     """Class for the digital output feature from the Unipi Neuron."""
 
-    @cached_property
-    def feature_name(self) -> str:
-        return "relay"
-
     async def set_state(self, value: bool):
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
@@ -246,17 +248,11 @@ class DigitalOutput(NeuronFeature):
 class DigitalInput(NeuronFeature):
     """Class for the digital input feature from the Unipi Neuron."""
 
-    @cached_property
-    def feature_name(self) -> str:
-        return "input"
+    pass
 
 
 class Led(NeuronFeature):
     """Class for the LED feature from the Unipi Neuron."""
-
-    @cached_property
-    def name(self) -> str:
-        return self.__class__.__name__.upper()
 
     async def set_state(self, value: bool):
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)

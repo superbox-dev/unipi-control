@@ -30,7 +30,7 @@ from unipi_control.logging import LOG_NAME
 
 logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
 
-COVER_TYPES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
+DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
 MODBUS_BAUD_RATES: Final[List[int]] = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
 MODBUS_PARITY: Final[List[str]] = ["E", "O", "N"]
@@ -51,9 +51,9 @@ class DeviceInfo(ConfigLoaderMixin):
 
     @staticmethod
     def _validate_name(value: str, _field: dataclasses.Field) -> str:
-        if re.search(Validation.ALLOWED_CHARACTERS.regex, value) is None:
+        if re.search(Validation.NAME.regex, value) is None:
             raise ConfigException(
-                f"{LogPrefix.DEVICEINFO} Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
+                f"{LogPrefix.DEVICEINFO} Invalid value '{value}' in '{_field.name}'. {Validation.NAME.error}"
             )
 
         return value
@@ -61,22 +61,22 @@ class DeviceInfo(ConfigLoaderMixin):
 
 @dataclass
 class FeatureConfig(ConfigLoaderMixin):
-    id: str = field(default_factory=str)  # pylint: disable=invalid-name
+    object_id: str = field(default_factory=str)  # pylint: disable=invalid-name
     friendly_name: str = field(default_factory=str)
     icon: str = field(default_factory=str)
-    device_class: str = field(default_factory=str)  # TODO: Validate switch device_class
-    state_class: str = field(default_factory=str)  # TODO: Validate?
-    unit_of_measurement: str = field(default_factory=str)  # TODO: Validate?
+    device_class: str = field(default_factory=str)
+    state_class: str = field(default_factory=str)
+    unit_of_measurement: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
     invert_state: bool = field(default=False)
 
     @staticmethod
-    def _validate_id(value: str, _field: dataclasses.Field) -> str:
+    def _validate_object_id(value: str, _field: dataclasses.Field) -> str:
         value = value.lower()
 
-        if re.search(Validation.ALLOWED_CHARACTERS.regex, value) is None:
+        if re.search(Validation.ID.regex, value) is None:
             raise ConfigException(
-                f"{LogPrefix.FEATURE} Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
+                f"{LogPrefix.FEATURE} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
             )
 
         return value
@@ -87,14 +87,14 @@ class CoverConfig(ConfigLoaderMixin):
     id: str = field(default_factory=str)  # pylint: disable=invalid-name
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
-    cover_type: str = field(default_factory=str)  # TODO: Rename to device_class
+    device_class: str = field(default_factory=str)
     cover_run_time: float = field(default_factory=float)
     tilt_change_time: float = field(default_factory=float)
     cover_up: str = field(default_factory=str)
     cover_down: str = field(default_factory=str)
 
     def validate(self):
-        for _field in ("id", "friendly_name", "cover_type", "cover_up", "cover_down"):
+        for _field in ("id", "friendly_name", "device_class", "cover_up", "cover_down"):
             if not getattr(self, _field):
                 raise ConfigException(f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}")
 
@@ -104,17 +104,17 @@ class CoverConfig(ConfigLoaderMixin):
     def _validate_id(value: str, _field: dataclasses.Field) -> str:
         value = value.lower()
 
-        if re.search(Validation.ALLOWED_CHARACTERS.regex, value) is None:
+        if re.search(Validation.ID.regex, value) is None:
             raise ConfigException(
-                f"{LogPrefix.COVER} Invalid value '{value}' in '{_field.name}'. {Validation.ALLOWED_CHARACTERS.error}"
+                f"{LogPrefix.COVER} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
             )
 
         return value
 
-    def _validate_cover_type(self, value: str, _field: dataclasses.Field) -> str:
-        if (value := value.lower()) not in COVER_TYPES:
+    def _validate_device_class(self, value: str, _field: dataclasses.Field) -> str:
+        if (value := value.lower()) not in DEVICE_CLASSES:
             raise ConfigException(
-                f"{LogPrefix.COVER} Invalid value '{self.cover_type}' in '{_field.name}'. The following values are allowed: {' '.join(COVER_TYPES)}."
+                f"{LogPrefix.COVER} Invalid value '{self.device_class}' in '{_field.name}'. The following values are allowed: {' '.join(DEVICE_CLASSES)}."
             )
 
         return value
@@ -123,9 +123,15 @@ class CoverConfig(ConfigLoaderMixin):
 @dataclass
 class ModbusUnitConfig(ConfigLoaderMixin):
     unit: int = field(default_factory=int)
-    device_name: str = field(default_factory=str)  # TODO: Validate - not empty
+    device_name: str = field(default_factory=str)
     identifier: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
+
+    def _validate_device_name(self, value: str, _field: dataclasses.Field) -> str:
+        if not value:
+            raise ConfigException(f"{LogPrefix.MODBUS} Device name for unit '{self.unit}' is missing!")
+
+        return value
 
 
 @dataclass
@@ -159,7 +165,7 @@ class ModbusConfig(ConfigLoaderMixin):
         if value not in MODBUS_BAUD_RATES:
             raise ConfigException(
                 f"{LogPrefix.MODBUS} Invalid baud rate '{value}. "
-                f"The following baud rates allowed: {' '.join((str(baud_rate) for baud_rate in MODBUS_BAUD_RATES))}."
+                f"The following baud rates are allowed: {' '.join((str(baud_rate) for baud_rate in MODBUS_BAUD_RATES))}."
             )
 
         return value
@@ -212,19 +218,19 @@ class Config(ConfigLoaderMixin):
             cover_config.update(cover_data)
             self.covers[index] = cover_config
 
-        self._validate_feature_ids()
+        self._validate_feature_object_ids()
         self._validate_covers_circuits()
         self._validate_cover_ids()
 
-    def _validate_feature_ids(self):
-        feature_ids: List[str] = []
+    def _validate_feature_object_ids(self):
+        object_ids: List[str] = []
 
         for feature in self.features.values():
-            if feature.id in feature_ids:
-                raise ConfigException(f"{LogPrefix.FEATURE} Duplicate ID '{feature.id}' found in 'features'!")
+            if feature.object_id in object_ids:
+                raise ConfigException(f"{LogPrefix.FEATURE} Duplicate ID '{feature.object_id}' found in 'features'!")
 
-            if feature.id:
-                feature_ids.append(feature.id)
+            if feature.object_id:
+                object_ids.append(feature.object_id)
 
     def get_cover_circuits(self) -> List[str]:
         """Get all circuits that are defined in the cover config."""

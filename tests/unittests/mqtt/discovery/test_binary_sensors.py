@@ -49,11 +49,11 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
 
             logs: list = [record.getMessage() for record in caplog.records]
             assert (
-                '[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_01/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - DI_3_01", "unique_id": "mocked_unipi_di_3_01", "state_topic": "mocked_unipi/input/di_3_01/get", "qos": 2, "device": {"name": "MOCKED_UNIPI: MOCKED AREA 1", "identifiers": "MOCKED_UNIPI: MOCKED AREA 1", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA 1", "via_device": "MOCKED_UNIPI"}}'
+                '[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_01/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - DI_3_01", "unique_id": "mocked_unipi_di_3_01", "state_topic": "mocked_unipi/input/di_3_01/get", "qos": 2, "device": {"name": "MOCKED UNIPI: MOCKED AREA 1", "identifiers": "MOCKED UNIPI: MOCKED AREA 1", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA 1", "via_device": "MOCKED UNIPI"}}'
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_02/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - DI_3_02", "unique_id": "mocked_unipi_di_3_02", "state_topic": "mocked_unipi/input/di_3_02/get", "qos": 2, "device": {"name": "MOCKED_UNIPI: MOCKED AREA 1", "identifiers": "MOCKED_UNIPI: MOCKED AREA 1", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA 1", "via_device": "MOCKED_UNIPI"}}'
+                '[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_02/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - DI_3_02", "unique_id": "mocked_unipi_di_3_02", "state_topic": "mocked_unipi/input/di_3_02/get", "qos": 2, "device": {"name": "MOCKED UNIPI: MOCKED AREA 1", "identifiers": "MOCKED UNIPI: MOCKED AREA 1", "model": "MOCKED_NAME MOCKED_MODEL", "sw_version": "0.0", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA 1", "via_device": "MOCKED UNIPI"}}'
                 in logs
             )
 
@@ -70,7 +70,7 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
                     {
                         "message": {
                             "name": "MOCKED_FRIENDLY_NAME - DI_1_01",
-                            "unique_id": "mocked_unipi_di_1_01",
+                            "unique_id": "mocked_unipi_mocked_id_di_1_01",
                             "state_topic": "mocked_unipi/input/di_1_01/get",
                             "qos": 2,
                             "object_id": "mocked_id_di_1_01",
@@ -78,34 +78,34 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
                             "payload_on": "OFF",
                             "payload_off": "ON",
                             "device": {
-                                "name": "MOCKED_UNIPI",
-                                "identifiers": "MOCKED_UNIPI",
+                                "name": "MOCKED UNIPI",
+                                "identifiers": "MOCKED UNIPI",
                                 "model": "MOCKED_NAME MOCKED_MODEL",
                                 "sw_version": "0.0",
                                 "manufacturer": "Unipi technology",
                             },
                         },
-                        "topic": "homeassistant/binary_sensor/mocked_unipi/di_1_01/config",
+                        "topic": "homeassistant/binary_sensor/mocked_unipi_mocked_id_di_1_01/config",
                     },
                     {
                         "message": {
                             "name": "MOCKED_FRIENDLY_NAME - DI_1_02",
-                            "unique_id": "mocked_unipi_di_1_02",
+                            "unique_id": "mocked_unipi_mocked_id_di_1_02",
                             "state_topic": "mocked_unipi/input/di_1_02/get",
                             "qos": 2,
                             "object_id": "mocked_id_di_1_02",
                             "device_class": "heat",
                             "device": {
-                                "name": "MOCKED_UNIPI: MOCKED AREA 2",
-                                "identifiers": "MOCKED_UNIPI: MOCKED AREA 2",
+                                "name": "MOCKED UNIPI: MOCKED AREA 2",
+                                "identifiers": "MOCKED UNIPI: MOCKED AREA 2",
                                 "model": "MOCKED_NAME MOCKED_MODEL",
                                 "sw_version": "0.0",
-                                "via_device": "MOCKED_UNIPI",
+                                "via_device": "MOCKED UNIPI",
                                 "manufacturer": "Unipi technology",
                                 "suggested_area": "MOCKED AREA 2",
                             },
                         },
-                        "topic": "homeassistant/binary_sensor/mocked_unipi/di_1_02/config",
+                        "topic": "homeassistant/binary_sensor/mocked_unipi_mocked_id_di_1_02/config",
                     },
                 ],
             ),

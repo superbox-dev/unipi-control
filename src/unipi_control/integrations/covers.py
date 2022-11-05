@@ -17,6 +17,7 @@ import itertools
 import time
 
 from superbox_utils.asyncio import run_in_executor
+from superbox_utils.text.text import slugify
 from unipi_control.config import Config
 from unipi_control.features import DigitalOutput
 from unipi_control.features import FeatureMap
@@ -103,8 +104,8 @@ class Cover:
         Friendly name of the cover. Used for ``Name`` in Home Assistant.
     suggested_area: str, optional
         Suggest an area. Used for ``Area`` in Home Assistant.
-    cover_type: str
-        Cover types can be ``blind``, ``roller_shutter``, or ``garage_door``.
+    device_class: str
+        Device class can be ``blind``, ``roller_shutter``, or ``garage_door``.
     cover_run_time: float or int, optional
         Define the time (in seconds) it takes for the cover to fully open or close.
     tilt_change_time: float or int, optional
@@ -140,7 +141,7 @@ class Cover:
         self.object_id: str = kwargs["id"]
         self.friendly_name: str = kwargs["friendly_name"]
         self.suggested_area: str = kwargs["suggested_area"]
-        self.cover_type: str = kwargs["cover_type"]
+        self.device_class: str = kwargs["device_class"]
         self.cover_run_time: Union[float, int] = kwargs["cover_run_time"]
         self.tilt_change_time: Union[float, int] = kwargs["tilt_change_time"]
         self.cover_up: str = kwargs["cover_up"]
@@ -157,7 +158,7 @@ class Cover:
             self.cover_down, feature_types=["DO", "RO"]
         )
 
-        self.settings: CoverFeatures = getattr(CoverSettings, self.cover_type)
+        self.settings: CoverFeatures = getattr(CoverSettings, self.device_class)
 
         self._timer: Optional[CoverTimer] = None
         self._start_timer: Optional[float] = None
@@ -171,13 +172,17 @@ class Cover:
         return self.friendly_name
 
     @cached_property
-    def position_file(self) -> Path:
-        return self.config.temp_path / self.topic.replace("/", "__")
+    def unique_id(self) -> str:
+        return f"{slugify(self.config.device_info.name)}_{self.object_id}"
 
     @cached_property
     def topic(self) -> str:
         """Unique name for the MQTT topic."""
-        return f"{self.config.device_info.name.lower()}/{self.object_id}/cover/{self.cover_type}"
+        return f"{slugify(self.config.device_info.name)}/{self.object_id}/cover/{self.device_class}"
+
+    @cached_property
+    def position_file(self) -> Path:
+        return self.config.temp_path / self.topic.replace("/", "__")
 
     @property
     def is_opening(self) -> bool:
@@ -614,17 +619,17 @@ class CoverMap:
         self.data: Dict[str, List[Cover]] = {}
 
         for cover in config.covers:
-            cover_type: str = cover.cover_type
+            device_class: str = cover.device_class
 
-            if not self.data.get(cover_type):
-                self.data[cover_type] = []
+            if not self.data.get(device_class):
+                self.data[device_class] = []
 
             c = Cover(config, features, **asdict(cover))
             c.read_position()
 
-            self.data[cover_type].append(c)
+            self.data[device_class].append(c)
 
-    def by_cover_types(self, cover_types: List[str]) -> Iterator:
+    def by_device_classes(self, device_classes: List[str]) -> Iterator:
         return itertools.chain.from_iterable(
-            [item for item in (self.data.get(cover_type) for cover_type in cover_types) if item is not None]
+            [item for item in (self.data.get(device_class) for device_class in device_classes) if item is not None]
         )

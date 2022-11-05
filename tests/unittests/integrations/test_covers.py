@@ -19,7 +19,7 @@ from unittests.conftest_data import HARDWARE_DATA_CONTENT
 
 @dataclass
 class CoverOptions:
-    cover_type: str
+    device_class: str
     calibrate_mode: bool = field(default_factory=bool)
     position: Optional[int] = field(default=None)
     current_position: Optional[int] = field(default=None)
@@ -65,11 +65,11 @@ class TestHappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(cover_type="blind", calibrate_mode=True),
+                CoverOptions(device_class="blind", calibrate_mode=True),
                 CoverExpected(calibration_started=True, calibrate_mode=False),
             ),
             (
-                CoverOptions(cover_type="roller_shutter", calibrate_mode=False),
+                CoverOptions(device_class="roller_shutter", calibrate_mode=False),
                 CoverExpected(calibration_started=False, calibrate_mode=False),
             ),
         ],
@@ -82,7 +82,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = options.calibrate_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
@@ -106,7 +106,7 @@ class TestHappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(cover_type="blind", position=0),
+                CoverOptions(device_class="blind", position=0),
                 CoverExpected(
                     position=100,
                     tilt=100,
@@ -117,7 +117,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="blind", position=50),
+                CoverOptions(device_class="blind", position=50),
                 CoverExpected(
                     position=100,
                     tilt=100,
@@ -128,7 +128,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="roller_shutter", position=None),
+                CoverOptions(device_class="roller_shutter", position=None),
                 CoverExpected(
                     position=None,
                     tilt=None,
@@ -148,7 +148,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = False
         cover._current_position = options.position
         cover.position = options.position
@@ -181,7 +181,7 @@ class TestHappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(cover_type="blind", position=100),
+                CoverOptions(device_class="blind", position=100),
                 CoverExpected(
                     position=0,
                     tilt=0,
@@ -192,7 +192,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="blind", position=50),
+                CoverOptions(device_class="blind", position=50),
                 CoverExpected(
                     position=0,
                     tilt=0,
@@ -203,7 +203,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="roller_shutter", position=None),
+                CoverOptions(device_class="roller_shutter", position=None),
                 CoverExpected(
                     position=None,
                     tilt=None,
@@ -223,7 +223,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = False
         cover._current_position = options.position
         cover.position = options.position
@@ -257,9 +257,9 @@ class TestHappyPathCovers(TestCovers):
     @pytest.mark.parametrize(
         "options, expected",
         [
-            (CoverOptions(cover_type="blind", position=0, cover_state=CoverState.CLOSING), "closed"),
-            (CoverOptions(cover_type="blind", position=50, cover_state=CoverState.OPENING), "stopped"),
-            (CoverOptions(cover_type="blind", position=100, cover_state=CoverState.OPENING), "open"),
+            (CoverOptions(device_class="blind", position=0, cover_state=CoverState.CLOSING), "closed"),
+            (CoverOptions(device_class="blind", position=50, cover_state=CoverState.OPENING), "stopped"),
+            (CoverOptions(device_class="blind", position=100, cover_state=CoverState.OPENING), "open"),
         ],
     )
     async def test_stop(
@@ -270,7 +270,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: str,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = False
         cover.position = options.position
         cover.state = options.cover_state
@@ -289,7 +289,7 @@ class TestHappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(cover_type="blind", position=50, current_tilt=50, tilt=25),
+                CoverOptions(device_class="blind", position=50, current_tilt=50, tilt=25),
                 CoverExpected(
                     tilt=25,
                     current_cover_state="stopped",
@@ -299,7 +299,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="blind", position=50, current_tilt=50, tilt=75),
+                CoverOptions(device_class="blind", position=50, current_tilt=50, tilt=75),
                 CoverExpected(
                     tilt=75,
                     current_cover_state="stopped",
@@ -309,7 +309,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="roller_shutter", position=None, current_tilt=None, tilt=25),
+                CoverOptions(device_class="roller_shutter", position=None, current_tilt=None, tilt=25),
                 CoverExpected(
                     tilt=None,
                     current_cover_state="stopped",
@@ -328,7 +328,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = False
         cover._current_tilt = options.current_tilt
         cover.tilt = options.current_tilt
@@ -366,7 +366,7 @@ class TestHappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(cover_type="blind", current_position=50, tilt=50, position=25),
+                CoverOptions(device_class="blind", current_position=50, tilt=50, position=25),
                 CoverExpected(
                     position=25,
                     current_cover_state="stopped",
@@ -376,7 +376,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="blind", current_position=50, tilt=50, position=75),
+                CoverOptions(device_class="blind", current_position=50, tilt=50, position=75),
                 CoverExpected(
                     position=75,
                     current_cover_state="stopped",
@@ -386,7 +386,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(cover_type="roller_shutter", current_position=None, tilt=None, position=25),
+                CoverOptions(device_class="roller_shutter", current_position=None, tilt=None, position=25),
                 CoverExpected(
                     position=None,
                     current_cover_state="stopped",
@@ -405,7 +405,7 @@ class TestHappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = False
         cover._current_tilt = options.tilt
         cover.tilt = options.tilt
@@ -441,12 +441,12 @@ class TestHappyPathCovers(TestCovers):
     @pytest.mark.parametrize(
         "options, expected",
         [
-            (CoverOptions(cover_type="blind"), "MOCKED_FRIENDLY_NAME - BLIND"),
-            (CoverOptions(cover_type="roller_shutter"), "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER"),
+            (CoverOptions(device_class="blind"), "MOCKED_FRIENDLY_NAME - BLIND"),
+            (CoverOptions(device_class="roller_shutter"), "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER"),
         ],
     )
     def test_friendly_name(self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: str):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
 
         assert str(cover) == expected
 
@@ -456,14 +456,14 @@ class TestHappyPathCovers(TestCovers):
     @pytest.mark.parametrize(
         "options, expected",
         [
-            (CoverOptions(cover_type="blind", current_cover_state="stopped", cover_state="close"), True),
-            (CoverOptions(cover_type="blind", current_cover_state="closed", cover_state="closed"), False),
+            (CoverOptions(device_class="blind", current_cover_state="stopped", cover_state="close"), True),
+            (CoverOptions(device_class="blind", current_cover_state="closed", cover_state="closed"), False),
         ],
     )
     def test_state_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._current_state = options.current_cover_state
         cover.state = options.cover_state
 
@@ -475,15 +475,15 @@ class TestHappyPathCovers(TestCovers):
     @pytest.mark.parametrize(
         "options, expected",
         [
-            (CoverOptions(cover_type="blind", current_position=0, position=50), True),
-            (CoverOptions(cover_type="blind", current_position=50, position=50), False),
-            (CoverOptions(cover_type="roller_shutter", current_position=None, position=None), False),
+            (CoverOptions(device_class="blind", current_position=0, position=50), True),
+            (CoverOptions(device_class="blind", current_position=50, position=50), False),
+            (CoverOptions(device_class="roller_shutter", current_position=None, position=None), False),
         ],
     )
     def test_position_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._current_position = options.current_position
         cover.position = options.position
 
@@ -495,7 +495,7 @@ class TestUnhappyPathCovers(TestCovers):
     @pytest.mark.parametrize(
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    @pytest.mark.parametrize("options, expected", [(CoverOptions(cover_type="blind"), 105)])
+    @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 105)])
     async def test_open_with_invalid_position(
         self,
         _config_loader: ConfigLoader,
@@ -503,7 +503,7 @@ class TestUnhappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: int,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = False
         cover._current_position = expected
         cover.position = expected
@@ -516,11 +516,11 @@ class TestUnhappyPathCovers(TestCovers):
     @pytest.mark.parametrize(
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    @pytest.mark.parametrize("options, expected", [(CoverOptions(cover_type="blind"), 50)])
+    @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
     async def test_open_with_calibrate_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = True
         cover._current_position = expected
         cover.position = expected
@@ -533,11 +533,11 @@ class TestUnhappyPathCovers(TestCovers):
     @pytest.mark.parametrize(
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    @pytest.mark.parametrize("options, expected", [(CoverOptions(cover_type="blind"), 50)])
+    @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
     async def test_close_with_calibrate_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = True
         cover._current_position = expected
         cover.position = expected
@@ -554,11 +554,11 @@ class TestUnhappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(cover_type="blind", calibrate_mode=True),
+                CoverOptions(device_class="blind", calibrate_mode=True),
                 CoverExpected(calibration_started=True, calibrate_mode=True),
             ),
             (
-                CoverOptions(cover_type="roller_shutter", calibrate_mode=False),
+                CoverOptions(device_class="roller_shutter", calibrate_mode=False),
                 CoverExpected(calibration_started=False, calibrate_mode=False),
             ),
         ],
@@ -571,7 +571,7 @@ class TestUnhappyPathCovers(TestCovers):
         options: CoverOptions,
         expected: CoverExpected,
     ):
-        cover: Cover = next(_covers.by_cover_types([options.cover_type]))
+        cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover.calibrate_mode = options.calibrate_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)

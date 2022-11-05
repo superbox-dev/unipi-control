@@ -8,8 +8,8 @@ from typing import Tuple
 
 from asyncio_mqtt import Client
 
-from unipi_control.config import COVER_TYPES
 from unipi_control.config import Config
+from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import HardwareData
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
@@ -27,10 +27,7 @@ class HassCoversDiscovery:
         self.hardware: HardwareData = neuron.hardware
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
-        topic: str = (
-            f"{self.config.homeassistant.discovery_prefix}/cover/"
-            f"{self.config.device_info.name.lower()}/{cover.object_id}/config"
-        )
+        topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.unique_id}/config"
 
         device_name: str = self.config.device_info.name
         via_device: Optional[str] = None
@@ -41,7 +38,7 @@ class HassCoversDiscovery:
 
         message: dict = {
             "name": cover.friendly_name,
-            "unique_id": f"{cover.cover_type}_{cover.object_id}",
+            "unique_id": f"{cover.unique_id}",
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
             "qos": 2,
@@ -74,7 +71,7 @@ class HassCoversDiscovery:
         return topic, message
 
     async def publish(self):
-        for cover in self.covers.by_cover_types(COVER_TYPES):
+        for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
             await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)

@@ -12,7 +12,7 @@ from typing import Set
 
 from asyncio_mqtt import Client
 
-from unipi_control.config import COVER_TYPES
+from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.integrations.covers import Cover
@@ -44,7 +44,7 @@ class CoversMqttPlugin:
         self._init_queues()
 
     def _init_queues(self):
-        for cover in self.covers.by_cover_types(COVER_TYPES):
+        for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             self._queues[cover.topic] = Queue()
 
     async def _clear_queue(self, cover):
@@ -65,7 +65,7 @@ class CoversMqttPlugin:
         task = asyncio.create_task(self._publish())
         tasks.add(task)
 
-        for cover in self.covers.by_cover_types(COVER_TYPES):
+        for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             task = asyncio.create_task(self._subscribe_command_worker(cover))
             tasks.add(task)
 
@@ -95,7 +95,7 @@ class CoversMqttPlugin:
                 queue.task_done()
 
     async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]):
-        for cover in self.covers.by_cover_types(COVER_TYPES):
+        for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic: str = f"{cover.topic}/set"
 
             manager = self.mqtt_client.filtered_messages(topic)
@@ -108,7 +108,7 @@ class CoversMqttPlugin:
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
     async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task]):
-        for cover in self.covers.by_cover_types(COVER_TYPES):
+        for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic: str = f"{cover.topic}/position/set"
 
             manager = self.mqtt_client.filtered_messages(topic)
@@ -121,7 +121,7 @@ class CoversMqttPlugin:
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
     async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task]):
-        for cover in self.covers.by_cover_types(COVER_TYPES):
+        for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             if cover.tilt_change_time:
                 topic: str = f"{cover.topic}/tilt/set"
 
@@ -183,7 +183,7 @@ class CoversMqttPlugin:
 
     async def _publish(self):
         while self.PUBLISH_RUNNING:
-            for cover in self.covers.by_cover_types(COVER_TYPES):
+            for cover in self.covers.by_device_classes(DEVICE_CLASSES):
                 if cover.position_changed:
                     position_topic: str = f"{cover.topic}/position"
                     await self.mqtt_client.publish(position_topic, cover.position, qos=1, retain=True)

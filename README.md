@@ -50,9 +50,9 @@ You can set the client settings in the `/etc/unipi/control.yaml`.
 
 ### Device
 
-| Key    | Value                                                                          |
-|--------|--------------------------------------------------------------------------------|
-| `name` | The device name for the subscribe and publish topics. Default is the hostname. |
+| Key    | Value                                                                                                                                                               |
+|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `name` | The device name for the subscribe and publish topics. Default is the hostname. This name must be unique. This is important if multiple Unipi devices are available. |
 
 ```yaml
 # control.yaml
@@ -83,7 +83,26 @@ mqtt:
 
 ### Modbus
 
-TODO: Write modbus config and yaml files documentation
+| Key                       | Value                                               |
+|---------------------------|-----------------------------------------------------|
+| `baud_rate`               | The baud rate for modbus RTU. Default is `2400`.    |
+| `parity`                  | The parity for modbus RTU. Default is `N`.          |
+| `unit`                    | A list of all modbus RTU devices.                   |
+| `unit` » `unit`          | The unique modbus RTU unit ID.                      |
+| `unit` » `device_name`    | Custom device name. Used for the Home Assistant UI. |
+| `unit` » `suggested_area` | Used as entity area in Home Assistant.              |
+
+```yaml
+# control.yaml
+modbus:
+  baud_rate: 9600
+  parity: N
+  units:
+    - unit: 1
+      device_name: Eastron SDM120M
+      identifier: Eastron_SDM120M
+      suggested_area: Workspace
+```
 
 ### Home Assistant
 
@@ -103,24 +122,35 @@ homeassistant:
 
 It's possible to give the circuits friendly names. This names will be used for switches and binary sensors in Home Assistant.
 
-| Key              | Value                                            |
-|------------------|--------------------------------------------------|
-| `id`             | Used for `Entity ID` in Home Assistant.          |
-| `friendly_name`  | Used for `Name` in Home Assistant.               |
-| `suggested_area` | Used for `Area` in Home Assistant.               |
-| `invert_state`   | Invert the `ON`/`OFF` state. Default is `false`. |
-
-# TODO: Add all new keys
+| Key                   | Value                                                                                                                                               |
+|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `object_id`           | Used as entity ID in Home Assistant.                                                                                                                |
+| `friendly_name`       | Used as entity name in Home Assistant.                                                                                                              |
+| `icon`                | Used as icon in Home Assistant. Any icon from [materialdesignicons.com](https://materialdesignicons.com). Prefix name with mdi:, ie mdi:home.       |
+| `device_class`        | Used for [Device Class](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class) in Home Assistant.                      |
+| `state_class`         | Used for [State Class](https://developers.home-assistant.io/docs/core/entity/sensor/#available-state-classes) in Home Assistant. Only for sensors.  |
+| `unit_of_measurement` | Used as measurement unit in Home Assistant. Only for sensors.                                                                                       |
+| `suggested_area`      | Used as entity area in Home Assistant.                                                                                                              |
+| `invert_state`        | Invert the `ON`/`OFF` state. Default is `false`. Only for binary sensors.                                                                           |
 
 ```yaml
 # control.yaml
 features:
   di_3_02:
-    friendly_name: "Workspace - Switch up"
-    suggested_area: "Workspace"
+    object_id: workspace_switch_up
+    friendly_name: Workspace - Switch up
+    suggested_area: Workspace
   di_3_03:
-    friendly_name: "Workspace - Switch down"
-    suggested_area: "Workspace"
+    object_id: workspace_switch_down
+    friendly_name: Workspace - Switch down
+    suggested_area: Workspace
+  active_power_1:
+    object_id: workspace_active_power
+    friendly_name: Workspace - Active Power
+    suggested_area: Workspace
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
 ```
 
 ### Covers
@@ -134,13 +164,11 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 | `id`               | Used for `Entity ID` in Home Assistant.                                                                                                  |
 | `friendly_name`    | Friendly name of the cover. It is used e.g. for Home Assistant.                                                                          |
 | `suggested_area`   | Suggest an area. e.g. `Living Room`.                                                                                                     |
-| `cover_type`       | Cover types can be "blind", "roller_shutter", or "garage_door".                                                                          |
+| `device_class`       | Device class can be "blind", "roller_shutter", or "garage_door".                                                                         |
 | `cover_run_time`   | Define the time (in seconds) it takes for the cover to fully open or close.                                                              |
 | `tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state. Tilt is only available for cover type "blind". |
 | `cover_up`         | Output circuit name from a relay or digital output.                                                                                      |
 | `cover_down`       | Output circuit name from a relay or digital output.                                                                                      |
-
-# TODO: Rename cover_type to device_class
 
 ```yaml
 # control.yaml
@@ -148,7 +176,7 @@ covers:
   - id: workspace_1
     friendly_name: "Workspace - Blind 1"
     suggested_area: "Workspace"
-    cover_type: "blind"
+    device_class: "blind"
     cover_run_time: 35.5
     tilt_change_time: 1.5
     cover_up: ro_3_03
@@ -178,24 +206,24 @@ Available MQTT topics:
 
 ### Features
 
-| Topic                                                  | Response/Request | Description                                                                                          |
-|--------------------------------------------------------|------------------|------------------------------------------------------------------------------------------------------|
-| `[device_name]/relay/physical/ro_[1-9]_[0-9][0-9]/get` | `ON` or `OFF`    | Get a string with the value `ON` or `OFF` from this topic.                                           |
-| `[device_name]/relay/digital/do_[1-9]_[0-9][0-9]/get`  | `ON` or `OFF`    | Get a string with the value `ON` or `OFF` from this topic.                                           |
-| `[device_name]/input/digital/di_[1-9]_[0-9][0-9]/get`  | `ON` or `OFF`    | Get a string with the value `ON` or `OFF` from this topic.                                           |
-| `[device_name]/relay/physical/ro_[1-9]_[0-9][0-9]/set` | `ON` or `OFF`    | Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay. |
-| `[device_name]/relay/digital/do_[1-9]_[0-9][0-9]/set`  | `ON` or `OFF`    | Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay. |
+| Topic                                         | Response/Request | Description                                                                                          |
+|-----------------------------------------------|------------------|------------------------------------------------------------------------------------------------------|
+| `[device_name]/relay/ro_[1-9]_[0-9][0-9]/get` | `ON` or `OFF`    | Get a string with the value `ON` or `OFF` from this topic.                                           |
+| `[device_name]/relay/do_[1-9]_[0-9][0-9]/get` | `ON` or `OFF`    | Get a string with the value `ON` or `OFF` from this topic.                                           |
+| `[device_name]/input/di_[1-9]_[0-9][0-9]/get` | `ON` or `OFF`    | Get a string with the value `ON` or `OFF` from this topic.                                           |
+| `[device_name]/relay/ro_[1-9]_[0-9][0-9]/set` | `ON` or `OFF`    | Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay. |
+| `[device_name]/relay/do_[1-9]_[0-9][0-9]/set` | `ON` or `OFF`    | Send a string with the value `ON` or `OFF` to this topic. This enable or disable the selected relay. |
 
 ### Covers
 
-| Topic                                                        | Response/Request                                    | Description                                                          |
-|--------------------------------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------|
-| `[device_name]/[topic_name]/cover/[cover_type]/state`        | `open`, `opening`, `closing`, `closed` or `stopped` | Get the cover state.                                                 |
-| `[device_name]/[topic_name]/cover/[cover_type]/set`          | `OPEN`, `CLOSE` or `STOP`                           | Send a string to control the cover.                                  |
-| `[device_name]/[topic_name]/cover/[cover_type]/position`     | `0` to `100`                                        | Get the cover position. `100` is fully open and `0` is fully closed. |
-| `[device_name]/[topic_name]/cover/[cover_type]/position/set` | `0` to `100`                                        | Send an integer to set the cover position.                           |
-| `[device_name]/[topic_name]/cover/[cover_type]/tilt`         | `0` to `100`                                        | Get the tilt position. `100` is fully open and `0` is fully closed.  |
-| `[device_name]/[topic_name]/cover/[cover_type]/tilt/set`     | `0` to `100`                                        | Send an integer to set the cover position.                           |
+| Topic                                                  | Response/Request                                    | Description                                                          |
+|--------------------------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------|
+| `[device_name]/[id]/cover/[device_class]/state`        | `open`, `opening`, `closing`, `closed` or `stopped` | Get the cover state.                                                 |
+| `[device_name]/[id]/cover/[device_class]/set`          | `OPEN`, `CLOSE` or `STOP`                           | Send a string to control the cover.                                  |
+| `[device_name]/[id]/cover/[device_class]/position`     | `0` to `100`                                        | Get the cover position. `100` is fully open and `0` is fully closed. |
+| `[device_name]/[id]/cover/[device_class]/position/set` | `0` to `100`                                        | Send an integer to set the cover position.                           |
+| `[device_name]/[id]/cover/[device_class]/tilt`         | `0` to `100`                                        | Get the tilt position. `100` is fully open and `0` is fully closed.  |
+| `[device_name]/[id]/cover/[device_class]/tilt/set`       | `0` to `100`                                        | Send an integer to set the cover position.                           |
 
 ## Extras
 

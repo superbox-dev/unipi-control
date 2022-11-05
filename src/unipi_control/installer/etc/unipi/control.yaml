@@ -1,6 +1,5 @@
 device_info:
-  name: Unipi  # TODO: update readme, this must be unique!
-  # TODO: add global suggested_area
+  name: Unipi
 mqtt:
   host: localhost
   port: 1883
@@ -21,11 +20,11 @@ homeassistant:
   discovery_prefix: homeassistant
 features:
   di_3_01:
-    id: workspace_blind_up
+    object_id: workspace_blind_up
     friendly_name: Workspace - Blind up
     suggested_area: Workspace
   di_3_02:
-    id: workspace_blind_down
+    object_id: workspace_blind_down
     friendly_name: Workspace - Blind down
     suggested_area: Workspace
   di_2_07:
@@ -38,7 +37,7 @@ covers:
   - id: workspace
     friendly_name: Workspace
     suggested_area: Workspace
-    cover_type: blind
+    device_class: blind
     cover_run_time: 35.5
     tilt_change_time: 1.6
     cover_up: ro_3_07
@@ -46,7 +45,7 @@ covers:
   - id: bedroom
     friendly_name: Bedroom
     suggested_area: Bedroom
-    cover_type: roller_shutter
+    device_class: roller_shutter
     cover_up: ro_2_11
     cover_down: ro_2_12
 logging:

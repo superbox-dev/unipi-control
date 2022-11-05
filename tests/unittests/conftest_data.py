@@ -5,7 +5,7 @@ from unittest.mock import PropertyMock
 CONFIG_CONTENT: Final[
     str
 ] = """device_info:
-  name: MOCKED_UNIPI
+  name: MOCKED UNIPI
 mqtt:
   host: localhost
   port: 1883
@@ -26,12 +26,12 @@ homeassistant:
   discovery_prefix: homeassistant
 features:
   di_1_01:
-    id: MOCKED_ID_DI_1_01
+    object_id: MOCKED_ID_DI_1_01
     friendly_name: MOCKED_FRIENDLY_NAME - DI_1_01
     invert_state: True
     icon: mdi:power-standby
   di_1_02:
-    id: MOCKED_ID_DI_1_02
+    object_id: MOCKED_ID_DI_1_02
     friendly_name: MOCKED_FRIENDLY_NAME - DI_1_02
     suggested_area: MOCKED AREA 2
     device_class: heat
@@ -42,22 +42,22 @@ features:
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_02
     suggested_area: MOCKED AREA 1
   ro_2_01:
-    id: MOCKED_ID_RO_2_01
+    object_id: MOCKED_ID_RO_2_01
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_01
     suggested_area: MOCKED AREA 2
     invert_state: True
   ro_2_02:
-    id: MOCKED_ID_RO_2_02
+    object_id: MOCKED_ID_RO_2_02
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
     suggested_area: MOCKED AREA 2
   apparent_power_1:
-    id: MOCKED_ID_APPARENT_POWER
+    object_id: MOCKED_ID_APPARENT_POWER
     friendly_name: MOCKED_FRIENDLY_NAME - APPARENT_POWER
     suggested_area: MOCKED AREA 3
 covers:
   - id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
-    cover_type: blind
+    device_class: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
     cover_up: ro_3_01
@@ -65,7 +65,7 @@ covers:
   - id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     suggested_area: MOCKED AREA
-    cover_type: roller_shutter
+    device_class: roller_shutter
     cover_up: ro_3_03
     cover_down: ro_3_04
 logging:

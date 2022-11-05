@@ -18,10 +18,7 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
     publish_feature_types: List[str] = ["RO", "DO"]
 
     def _get_discovery(self, feature) -> Tuple[str, dict]:
-        topic: str = (
-            f"{self.config.homeassistant.discovery_prefix}/switch/"
-            f"{self.config.device_info.name.lower()}/{feature.feature_id}/config"
-        )
+        topic: str = f"{self.config.homeassistant.discovery_prefix}/switch/{feature.unique_id}/config"
 
         device_name: str = self._get_device_name(feature)
 

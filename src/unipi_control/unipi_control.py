@@ -19,6 +19,7 @@ from superbox_utils.argparse import init_argparse
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
+from superbox_utils.text.text import slugify
 from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
@@ -115,7 +116,7 @@ class UnipiControl:
         await mqtt_connect(
             mqtt_config=self.config.mqtt,
             logger=logger,
-            mqtt_client_id=f"{self.config.device_info.name.lower()}-{uuid.uuid4()}",
+            mqtt_client_id=f"{slugify(self.config.device_info.name)}-{uuid.uuid4()}",
             callback=self._init_tasks,
         )
 
