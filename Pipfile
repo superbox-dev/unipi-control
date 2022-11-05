@@ -23,7 +23,7 @@ pytest = "~=7.2.0"
 pytest-cov = "~=4.0.0"
 pytest-asyncio = "~=0.20.1"
 pytest-mock = "~=3.10.0"
-yamllint = "*"
+yamllint = "~=1.28.0"
 
 [requires]
 python_version = "3.8"
