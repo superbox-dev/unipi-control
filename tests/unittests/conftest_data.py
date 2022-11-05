@@ -55,14 +55,14 @@ features:
     friendly_name: MOCKED_FRIENDLY_NAME - APPARENT_POWER
     suggested_area: MOCKED AREA 3
 covers:
-  - id: MOCKED_BLIND_TOPIC_NAME
+  - object_id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     device_class: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
     cover_up: ro_3_01
     cover_down: ro_3_02
-  - id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
+  - object_id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     suggested_area: MOCKED AREA
     device_class: roller_shutter

@@ -98,7 +98,7 @@ class Cover:
     ----------
     calibrate_mode: bool
         Set the cover in calibration mode.
-    id: str, optional
+    object_id: str, optional
         ID. Used for ``Entity ID`` in Home Assistant.
     friendly_name: str
         Friendly name of the cover. Used for ``Name`` in Home Assistant.
@@ -138,7 +138,7 @@ class Cover:
         self.config: Config = config
 
         self.calibrate_mode: bool = False
-        self.object_id: str = kwargs["id"]
+        self.object_id: str = kwargs["object_id"]
         self.friendly_name: str = kwargs["friendly_name"]
         self.suggested_area: str = kwargs["suggested_area"]
         self.device_class: str = kwargs["device_class"]

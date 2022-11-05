@@ -84,7 +84,7 @@ class FeatureConfig(ConfigLoaderMixin):
 
 @dataclass
 class CoverConfig(ConfigLoaderMixin):
-    id: str = field(default_factory=str)  # pylint: disable=invalid-name
+    object_id: str = field(default_factory=str)  # pylint: disable=invalid-name
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
     device_class: str = field(default_factory=str)
@@ -94,14 +94,14 @@ class CoverConfig(ConfigLoaderMixin):
     cover_down: str = field(default_factory=str)
 
     def validate(self):
-        for _field in ("id", "friendly_name", "device_class", "cover_up", "cover_down"):
+        for _field in ("object_id", "friendly_name", "device_class", "cover_up", "cover_down"):
             if not getattr(self, _field):
                 raise ConfigException(f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}")
 
         super().validate()
 
     @staticmethod
-    def _validate_id(value: str, _field: dataclasses.Field) -> str:
+    def _validate_object_id(value: str, _field: dataclasses.Field) -> str:
         value = value.lower()
 
         if re.search(Validation.ID.regex, value) is None:
@@ -259,13 +259,13 @@ class Config(ConfigLoaderMixin):
                 )
 
     def _validate_cover_ids(self):
-        cover_ids: List[str] = []
+        object_ids: List[str] = []
 
         for cover in self.covers:
-            if cover.id in cover_ids:
-                raise ConfigException(f"{LogPrefix.COVER} Duplicate ID '{cover.id}' found in 'covers'!")
+            if cover.object_id in object_ids:
+                raise ConfigException(f"{LogPrefix.COVER} Duplicate ID '{cover.object_id}' found in 'covers'!")
 
-            cover_ids.append(cover.id)
+            object_ids.append(cover.object_id)
 
 
 @dataclass

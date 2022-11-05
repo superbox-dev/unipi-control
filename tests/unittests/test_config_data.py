@@ -42,7 +42,7 @@ CONFIG_INVALID_COVER_PROPERTY: Final[
 ] = """device_info:
   name: MOCKED UNIPI
 covers:
-  - id: MOCKED_FRIENDLY_NAME - BLIND
+  - object_id: MOCKED_FRIENDLY_NAME - BLIND
     device_class: blind
     topic_name: MOCKED_BLIND_TOPIC_NAME
     cover_run_time: 35.5
@@ -59,7 +59,7 @@ CONFIG_INVALID_COVER_ID: Final[
 ] = """device_info:
   name: MOCKED UNIPI
 covers:
-  - id: INVALID ID
+  - object_id: INVALID ID
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     device_class: blind
     cover_run_time: 35.5
@@ -74,7 +74,7 @@ CONFIG_INVALID_DEVICE_CLASS: Final[
 ] = """device_info:
   name: MOCKED UNIPI
 covers:
-  - id: MOCKED_BLIND_TOPIC_NAME
+  - object_id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     device_class: INVALID
     cover_run_time: 35.5
@@ -103,14 +103,14 @@ CONFIG_DUPLICATE_COVERS_CIRCUITS: Final[
 ] = """device_info:
   name: MOCKED UNIPI
 covers:
-  - id: MOCKED_BLIND_TOPIC_NAME
+  - object_id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     device_class: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
     cover_up: ro_3_01
     cover_down: ro_3_02
-  - id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
+  - object_id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     device_class: roller_shutter
     cover_up: ro_3_01
@@ -137,14 +137,14 @@ CONFIG_DUPLICATE_COVER_ID: Final[
 ] = """device_info:
   name: MOCKED UNIPI
 covers:
-  - id: MOCKED_DUPLICATE_ID
+  - object_id: MOCKED_DUPLICATE_ID
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
     device_class: blind
     cover_run_time: 35.5
     tilt_change_time: 1.5
     cover_up: ro_3_01
     cover_down: ro_3_02
-  - id: MOCKED_DUPLICATE_ID
+  - object_id: MOCKED_DUPLICATE_ID
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
     device_class: roller_shutter
     cover_up: ro_3_03

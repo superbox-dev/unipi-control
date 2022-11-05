@@ -34,7 +34,7 @@ features:
     friendly_name: Bedroom - Rolling shutter up
     suggested_area: Bedroom
 covers:
-  - id: workspace
+  - object_id: workspace
     friendly_name: Workspace
     suggested_area: Workspace
     device_class: blind
@@ -42,7 +42,7 @@ covers:
     tilt_change_time: 1.6
     cover_up: ro_3_07
     cover_down: ro_3_06
-  - id: bedroom
+  - object_id: bedroom
     friendly_name: Bedroom
     suggested_area: Bedroom
     device_class: roller_shutter

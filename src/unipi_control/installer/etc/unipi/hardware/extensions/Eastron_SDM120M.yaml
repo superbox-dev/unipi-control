@@ -68,7 +68,7 @@ modbus_features:
     friendly_name: Active power
     device_class: power
     state_class: measurement
-    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
+    unit_of_measurement: W
     val_reg: 12
     count: 2
   - feature_type: METER
@@ -134,42 +134,42 @@ modbus_features:
     friendly_name: Total system power demand
     device_class: power
     state_class: measurement
-    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
+    unit_of_measurement: W
     val_reg: 84
     count: 2
   - feature_type: METER
     friendly_name: Maximum total system power demand
     device_class: power
     state_class: total
-    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
+    unit_of_measurement: W
     val_reg: 86
     count: 2
   - feature_type: METER
     friendly_name: Import system power demand
     device_class: power
     state_class: measurement
-    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
+    unit_of_measurement: W
     val_reg: 88
     count: 2
   - feature_type: METER
     friendly_name: Maximum import system power demand
     device_class: power
     state_class: measurement
-    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
+    unit_of_measurement: W
     val_reg: 90
     count: 2
   - feature_type: METER
     friendly_name: Export system power demand
     device_class: power
     state_class: measurement
-    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
+    unit_of_measurement: W
     val_reg: 92
     count: 2
   - feature_type: METER
     friendly_name: Maximum export system power demand
     device_class: power
     state_class: measurement
-    unit_of_measurement: W  # TODO: Add a group für one mqtt sensor return (json attributes)
+    unit_of_measurement: W
     val_reg: 94
     count: 2
   - feature_type: METER

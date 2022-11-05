@@ -44,7 +44,7 @@ class TestUnhappyPathConfig:
             ),
             (
                 (CONFIG_INVALID_COVER_ID, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[COVER] Invalid value 'invalid id' in 'id'. The following characters are prohibited: a-z 0-9 -_",
+                "[COVER] Invalid value 'invalid id' in 'object_id'. The following characters are prohibited: a-z 0-9 -_",
             ),
             (
                 (CONFIG_INVALID_DEVICE_CLASS, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -52,7 +52,7 @@ class TestUnhappyPathConfig:
             ),
             (
                 (CONFIG_MISSING_COVER_KEY, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[COVER] Required key 'id' is missing! CoverConfig(id='', friendly_name='MOCKED_FRIENDLY_NAME - BLIND', suggested_area='', device_class='blind', cover_run_time=35.5, tilt_change_time=1.5, cover_up='ro_3_01', cover_down='ro_3_02')",
+                "[COVER] Required key 'object_id' is missing! CoverConfig(object_id='', friendly_name='MOCKED_FRIENDLY_NAME - BLIND', suggested_area='', device_class='blind', cover_run_time=35.5, tilt_change_time=1.5, cover_up='ro_3_01', cover_down='ro_3_02')",
             ),
             (
                 (CONFIG_DUPLICATE_COVERS_CIRCUITS, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
