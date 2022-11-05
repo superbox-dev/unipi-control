@@ -85,7 +85,7 @@ class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     """Provide features control as MQTT commands."""
 
     publish_feature_types: List[str] = ["METER"]
-    scan_interval: float = 60
+    scan_interval: float = 50e-1
 
     async def init_tasks(self, tasks: Set[Task]):
         task: Task[Any] = asyncio.create_task(

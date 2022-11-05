@@ -120,8 +120,8 @@ class TestHappyPathMeterFeaturesMqttPlugin:
             assert "[MQTT] [mocked_unipi/meter/frequency_1/get] Publishing message: 50.04" in logs
             assert "[MQTT] [mocked_unipi/meter/import_active_energy_1/get] Publishing message: 4.42" in logs
             assert "[MQTT] [mocked_unipi/meter/export_active_energy_1/get] Publishing message: 0.0" in logs
-            assert "[MQTT] [mocked_unipi/meter/imported_reactive_energy_1/get] Publishing message: 0.3" in logs
-            assert "[MQTT] [mocked_unipi/meter/exported_reactive_energy_1/get] Publishing message: 2.74" in logs
+            assert "[MQTT] [mocked_unipi/meter/import_reactive_energy_1/get] Publishing message: 0.3" in logs
+            assert "[MQTT] [mocked_unipi/meter/export_reactive_energy_1/get] Publishing message: 2.74" in logs
             assert "[MQTT] [mocked_unipi/meter/total_system_power_demand_1/get] Publishing message: 37.27" in logs
             assert (
                 "[MQTT] [mocked_unipi/meter/maximum_total_system_power_demand_1/get] Publishing message: 81.04" in logs

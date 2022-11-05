@@ -68,7 +68,7 @@ class TestHappyPathFeatures:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="active_power_1", feature_type="METER"),
-                FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active power 1"),
+                FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active Power 1"),
             ),
         ],
         indirect=["_config_loader"],

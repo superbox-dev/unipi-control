@@ -43,6 +43,16 @@ $ unipi-control --install
 | `--yes`     | automatic yes to install prompts                                      |
 | `-v`        | verbose mode: multiple -v options increase the verbosity (maximum: 4) |
 
+## Supported Devices
+
+* Unipi Neuron L203
+
+If you have an Unipi device, that is not supported, then contact me.
+
+### External Modbus RTU devices supported:
+
+* [Eastron SDM120M](https://www.eastroneurope.com/products/view/sdm120modbus)
+
 
 ## Configuration
 
@@ -218,7 +228,30 @@ Available MQTT topics:
 
 #### Eastron SDM120M
 
-# TODO Add topics
+| Topic                                                              | Unit  |
+|--------------------------------------------------------------------|-------|
+| `[device_name]/meter/voltage_[unit]/get`                           | V     |
+| `[device_name]/meter/current[unit]/get`                            | A     |
+| `[device_name]/meter/current_demand[unit]/get`                     | A     |
+| `[device_name]/meter/maximum_current_demand[unit]/get`             | A     |
+| `[device_name]/meter/active_power[unit]/get`                       | W     |
+| `[device_name]/meter/total_system_power_demand[unit]/get`          | W     |
+| `[device_name]/meter/maximum_total_system_power_demand[unit]/get`  | W     |
+| `[device_name]/meter/import_system_power_demand[unit]/get`         | W     |
+| `[device_name]/meter/maximum_import_system_power_demand[unit]/get` | W     |
+| `[device_name]/meter/export_system_power_demand[unit]/get`         | W     |
+| `[device_name]/meter/maximum_export_system_power_demand[unit]/get` | W     |
+| `[device_name]/meter/apparent_power[unit]/get`                     | VA    |
+| `[device_name]/meter/reactive_power[unit]/get`                     | var   |
+| `[device_name]/meter/frequency[unit]/get`                          | Hz    |
+| `[device_name]/meter/import_active_energy[unit]/get`               | kWh   |
+| `[device_name]/meter/export_active_energy[unit]/get`               | kWh   |
+| `[device_name]/meter/total_active_energy[unit]/get`                | kWh   |
+| `[device_name]/meter/import_reactive_energy[unit]/get`             | kvarh |
+| `[device_name]/meter/export_reactive_energy[unit]/get`             | kvarh |
+| `[device_name]/meter/total_reactive_energy[unit]/get`              | kvarh |
+| `[device_name]/meter/power_factor[unit]/get`                       |       |
+| `[device_name]/meter/phase_angle[unit]/get`                        |       |
 
 ### Covers
 

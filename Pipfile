@@ -7,6 +7,7 @@ name = "pypi"
 pymodbus = "~=3.0.0"
 superbox-utils = "~=2022.2"
 pyserial-asyncio = "~=0.6"
+flake8-docstrings = "~=1.6.0"
 
 [dev-packages]
 black = "*"

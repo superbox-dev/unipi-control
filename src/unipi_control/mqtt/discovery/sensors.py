@@ -26,6 +26,7 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
             "unique_id": feature.unique_id,
             "state_topic": f"{feature.topic}/get",
             "qos": 2,
+            "force_update": True,
             "device": {
                 "name": device_name,
                 "identifiers": device_name,

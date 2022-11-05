@@ -50,10 +50,13 @@ features:
     object_id: MOCKED_ID_RO_2_02
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
     suggested_area: MOCKED AREA 2
+    icon: mdi:power-standby
+    device_class: switch
   apparent_power_1:
     object_id: MOCKED_ID_APPARENT_POWER
     friendly_name: MOCKED_FRIENDLY_NAME - APPARENT_POWER
     suggested_area: MOCKED AREA 3
+    icon: mdi:power-standby
 covers:
   - object_id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND
@@ -127,52 +130,52 @@ EXTENSION_HARDWARE_DATA_CONTENT: Final[
 ] = """manufacturer: Eastron
 model: SDM120M
 modbus_register_blocks:
-    # Voltage
+  # Voltage
   - start_reg: 0
     count: 2
-    # Current
+  # Current
   - start_reg: 6
     count: 2
-    # Active power
+  # Active Power
   - start_reg: 12
     count: 2
-    # Apparent power
+  # Apparent Power
   - start_reg: 18
     count: 2
-    # Reactive power
+  # Reactive Power
   - start_reg: 24
     count: 2
-    # Power factor
+  # Power Factor
   - start_reg: 30
     count: 2
-    # Phase Angle
+  # Phase Angle
   - start_reg: 36
     count: 2
-    # Frequency
-    # Import active energy
-    # Export active energy
-    # Imported reactive energy
-    # Exported reactive energy
+  # Frequency
+  # Import Active Energy
+  # Export Active Energy
+  # Import Reactive Energy
+  # Export Reactive Energy
   - start_reg: 70
     count: 10
-    # Total system power demand
-    # Maximum total system power demand
-    # Import system power demand
-    # Maximum import system power demand
+  # Total System Power Demand
+  # Maximum Total System Power Demand
+  # Import System Power Demand
+  # Maximum Import System Power Demand
   - start_reg: 84
     count: 8
-    # Export system power demand
-    # Maximum export system power demand
+  # Export System Power Demand
+  # Maximum Export System Power Demand
   - start_reg: 92
     count: 4
-    # Current demand
+    # Current Demand
   - start_reg: 258
     count: 2
-    # Maximum current demand
+  # Maximum Current Demand
   - start_reg: 264
     count: 2
-    # Total active energy
-    # Total reactive energy
+  # Total Active Energy
+  # Total Reactive Energy
   - start_reg: 342
     count: 4
 modbus_features:
@@ -191,31 +194,30 @@ modbus_features:
     val_reg: 6
     count: 2
   - feature_type: METER
-    friendly_name: Active power
+    friendly_name: Active Power
     device_class: power
     state_class: measurement
     unit_of_measurement: W
     val_reg: 12
     count: 2
   - feature_type: METER
-    friendly_name: Apparent power
+    friendly_name: Apparent Power
     device_class: apparent_power
     state_class: measurement
     unit_of_measurement: VA
     val_reg: 18
     count: 2
   - feature_type: METER
-    friendly_name: Reactive power
+    friendly_name: Reactive Power
     device_class: reactive_power
     state_class: measurement
     unit_of_measurement: var
     val_reg: 24
     count: 2
   - feature_type: METER
-    friendly_name: Power factor
+    friendly_name: Power Factor
     device_class: power_factor
     state_class: measurement
-    unit_of_measurement: '%'
     val_reg: 30
     count: 2
   - feature_type: METER
@@ -231,96 +233,96 @@ modbus_features:
     val_reg: 70
     count: 2
   - feature_type: METER
-    friendly_name: Import active energy
+    friendly_name: Import Active Energy
     device_class: energy
     state_class: total
     unit_of_measurement: kWh
     val_reg: 72
     count: 2
   - feature_type: METER
-    friendly_name: Export active energy
+    friendly_name: Export Active Energy
     device_class: energy
     state_class: measurement
     unit_of_measurement: kWh
     val_reg: 74
     count: 2
   - feature_type: METER
-    friendly_name: Imported reactive energy
+    friendly_name: Import Reactive Energy
     state_class: total
     unit_of_measurement: kvarh
     val_reg: 76
     count: 2
   - feature_type: METER
-    friendly_name: Exported reactive energy
+    friendly_name: Export Reactive Energy
     state_class: total
     unit_of_measurement: kvarh
     val_reg: 78
     count: 2
   - feature_type: METER
-    friendly_name: Total system power demand
+    friendly_name: Total System Power Demand
     device_class: power
     state_class: measurement
     unit_of_measurement: W
     val_reg: 84
     count: 2
   - feature_type: METER
-    friendly_name: Maximum total system power demand
+    friendly_name: Maximum Total System Power Demand
     device_class: power
     state_class: total
     unit_of_measurement: W
     val_reg: 86
     count: 2
   - feature_type: METER
-    friendly_name: Import system power demand
+    friendly_name: Import System Power Demand
     device_class: power
     state_class: measurement
     unit_of_measurement: W
     val_reg: 88
     count: 2
   - feature_type: METER
-    friendly_name: Maximum import system power demand
+    friendly_name: Maximum Import System Power Demand
     device_class: power
     state_class: measurement
     unit_of_measurement: W
     val_reg: 90
     count: 2
   - feature_type: METER
-    friendly_name: Export system power demand
+    friendly_name: Export System Power Demand
     device_class: power
     state_class: measurement
     unit_of_measurement: W
     val_reg: 92
     count: 2
   - feature_type: METER
-    friendly_name: Maximum export system power demand
+    friendly_name: Maximum Export System Power Demand
     device_class: power
     state_class: measurement
     unit_of_measurement: W
     val_reg: 94
     count: 2
   - feature_type: METER
-    friendly_name: Current demand
+    friendly_name: Current Demand
     device_class: current
     state_class: measurement
     unit_of_measurement: A
     val_reg: 258
     count: 2
   - feature_type: METER
-    friendly_name: Maximum current demand
+    friendly_name: Maximum Current Demand
     device_class: current
     state_class: measurement
     unit_of_measurement: A
     val_reg: 264
     count: 2
   - feature_type: METER
-    friendly_name: Total active energy
+    friendly_name: Total Active Energy
     device_class: energy
     state_class: total
     unit_of_measurement: kWh
     val_reg: 342
     count: 2
   - feature_type: METER
-    friendly_name: Total reactive energy
+    friendly_name: Total Reactive Energy
     state_class: total
     unit_of_measurement: kvarh
     val_reg: 344
