@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 pymodbus = "~=3.0.0"
-superbox-utils = "~=2022.1"
+superbox-utils = "~=2022.2"
 pyserial-asyncio = "~=0.6"
 
 [dev-packages]
