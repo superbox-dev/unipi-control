@@ -62,13 +62,13 @@ device_info:
 
 ### MQTT
 
-| Key                  | Value                                                                                                                                                                                                                   |
-|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `host`               | The hostname or IP address of the remote broker: Default is `localhost`.                                                                                                                                                |
-| `port`               | The network port of the server host to connect to. Defaults is `1883`.                                                                                                                                                  |
-| `keepalive`          | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default tis `15`. |
-| `retry_limit`        | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).                                                                                                                               |
-| `reconnect_interval` | Time between connection attempts. Default is `10`.                                                                                                                                                                      |
+| Key                  | Value                                                                                                                                                                                                                  |
+|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `host`               | The hostname or IP address of the remote broker: Default is `localhost`.                                                                                                                                               |
+| `port`               | The network port of the server host to connect to. Defaults is `1883`.                                                                                                                                                 |
+| `keepalive`          | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default is `15`. |
+| `retry_limit`        | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).                                                                                                                              |
+| `reconnect_interval` | Time between connection attempts. Default is `10`.                                                                                                                                                                     |
 
 ```yaml
 # control.yaml
@@ -122,16 +122,16 @@ homeassistant:
 
 It's possible to give the features friendly names. This names will be used for switches and binary sensors and sensors in Home Assistant.
 
-| Key                   | Value                                                                                                                                               |            |
-|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------|
-| `object_id`           | Used as entity ID in Home Assistant.                                                                                                                | optionally |
-| `friendly_name`       | Used as entity name in Home Assistant.                                                                                                              | optionally |
-| `icon`                | Used as icon in Home Assistant. Any icon from [materialdesignicons.com](https://materialdesignicons.com). Prefix name with mdi:, ie mdi:home.       | optionally |
-| `device_class`        | Used for [Device Class](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class) in Home Assistant.                      | optionally |
-| `state_class`         | Used for [State Class](https://developers.home-assistant.io/docs/core/entity/sensor/#available-state-classes) in Home Assistant. Only for sensors.  | optionally |
-| `unit_of_measurement` | Used as measurement unit in Home Assistant. Only for sensors.                                                                                       | optionally |
-| `suggested_area`      | Used as entity area in Home Assistant.                                                                                                              | optionally |
-| `invert_state`        | Invert the `ON`/`OFF` state. Default is `false`. Only for binary sensors.                                                                           | optionally |
+| Key                   | Value                                                                                                                                                      |            |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| `object_id`           | Used as entity ID in Home Assistant.                                                                                                                       | optionally |
+| `friendly_name`       | Used as entity name in Home Assistant.                                                                                                                     | optionally |
+| `icon`                | Used as icon in Home Assistant. Any icon from [materialdesignicons.com](https://materialdesignicons.com). Prefix name with mdi:, ie `mdi:home`.            | optionally |
+| `device_class`        | Used for [Device Class](https://www.home-assistant.io/docs/configuration/customizing-devices/#device-class) in Home Assistant.                             | optionally |
+| `state_class`         | Used for [State Class](https://developers.home-assistant.io/docs/core/entity/sensor/#available-state-classes) in Home Assistant. Thid is only for sensors. | optionally |
+| `unit_of_measurement` | Used as measurement unit in Home Assistant. Only for sensors.                                                                                              | optionally |
+| `suggested_area`      | Used as entity area in Home Assistant.                                                                                                                     | optionally |
+| `invert_state`        | Invert the `ON`/`OFF` state. Default is `false`. Only for binary sensors.                                                                                  | optionally |
 
 ```yaml
 # control.yaml
@@ -234,7 +234,3 @@ Available MQTT topics:
 ## Extras
 
 I have written a Home Assistant blueprint automation to control covers with binary sensors. Take a look in the extra's folder.
-
-## TODO
-
-* Support analogue input/output (The implemented code is still untested)
