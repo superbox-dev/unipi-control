@@ -195,8 +195,8 @@ covers:
 
 #### Calibration
 
-The covers save its cover and tilt position in a temporary file each time a stop command is executed. If the Unipi control is interrupted, and a command (open/closing) is currently being executed, or the system is restarted, the calibration mode is enabled.
-When the Unipi control starts in calibration mode, the cover fully open and disable calibration mode. This is required for the correct cover and tilt position.
+The covers save its cover and tilt position in a temporary file each time a stop command is executed. If the Unipi Control is interrupted, and a command (open/closing) is currently being executed, or the system is restarted, the calibration mode is enabled.
+When the Unipi Control starts in calibration mode, the cover fully open and disable calibration mode. This is required for the correct cover and tilt position.
 
 ### Logging
 

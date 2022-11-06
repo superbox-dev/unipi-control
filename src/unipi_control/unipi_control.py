@@ -193,7 +193,7 @@ def parse_args(args: list) -> argparse.Namespace:
 
 
 def main():
-    """Entrypoint for Unipi control script."""
+    """Entrypoint for Unipi Control script."""
     try:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
