@@ -163,7 +163,7 @@ jobs:
       - name: Lint with flake8
         run: |
           pipenv run flake8 --version
-          pipenv run flake8 --config setup.cfg --show-source --statistics $(git ls-files '*.py')
+          pipenv run flake8 --show-source --statistics $(git ls-files '*.py')
       - name: Lint with mypy
         run: pipenv run mypy $(git ls-files '*.py')
       - name: Lint with pylint
