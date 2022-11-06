@@ -28,7 +28,6 @@ class HassCoversDiscovery:
 
     def _get_discovery(self, cover) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.unique_id}/config"
-
         device_name: str = self.config.device_info.name
         via_device: Optional[str] = None
 
