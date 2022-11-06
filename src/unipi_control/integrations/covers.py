@@ -84,9 +84,11 @@ class CoverTimer:
         await self._callback()
 
     def start(self):
+        """Start cover run timer."""
         self._task = asyncio.create_task(self._job())
 
     def cancel(self):
+        """Cancel cover run timer."""
         if self._task:
             self._task.cancel()
 
@@ -173,23 +175,57 @@ class Cover:
 
     @cached_property
     def unique_id(self) -> str:
+        """Get unique id for Home Assistant discovery.
+
+        Returns
+        -------
+        str:
+            Unique ID for Home Assistant discovery.
+        """
         return f"{slugify(self.config.device_info.name)}_{self.object_id}"
 
     @cached_property
     def topic(self) -> str:
-        """Unique name for the MQTT topic."""
+        """Get unique name for the MQTT topic.
+
+        Returns
+        -------
+        str:
+            Path for MQTT topic.
+        """
         return f"{slugify(self.config.device_info.name)}/{self.object_id}/cover/{self.device_class}"
 
     @cached_property
     def position_file(self) -> Path:
+        """Path to temporary cover file.
+
+        Returns
+        -------
+        Path:
+            Path to temporary cover file.
+        """
         return self.config.temp_path / self.topic.replace("/", "__")
 
     @property
     def is_opening(self) -> bool:
+        """Check if cover is opening.
+
+        Returns
+        -------
+        bool:
+            ``True`` if cover is opening else ``False``.
+        """
         return self.state == CoverState.OPENING
 
     @property
     def is_closing(self) -> bool:
+        """Check if cover is closing.
+
+        Returns
+        -------
+        bool:
+            ``True`` if cover is closing else ``False``.
+        """
         return self.state == CoverState.CLOSING
 
     @property
@@ -320,6 +356,7 @@ class Cover:
             self.position_file.write_text(f"{self.position}/{self.tilt}")
 
     def read_position(self):
+        """Read the cover position and tilt from the temporary cover file."""
         if self.settings.set_position is True:
             try:
                 data: list = self.position_file.read_text().split("/")
@@ -331,7 +368,14 @@ class Cover:
 
                 self.calibrate_mode = True
 
-    async def calibrate(self):
+    async def calibrate(self) -> Optional[float]:
+        """Calibrate cover if it is not calibrated.
+
+        Returns
+        -------
+        float, optional
+            Cover run time for fully opened cover.
+        """
         cover_run_time: Optional[float] = None
 
         if self.calibrate_mode is True and not self._calibration_started:
@@ -630,6 +674,18 @@ class CoverMap:
             self.data[device_class].append(c)
 
     def by_device_classes(self, device_classes: List[str]) -> Iterator:
+        """Filter covers by device classes.
+
+        Parameters
+        ----------
+        device_classes: list
+            A list of device classes to filter covers.
+
+        Returns
+        -------
+        Iterator:
+            Filtered covers list.
+        """
         return itertools.chain.from_iterable(
             [item for item in (self.data.get(device_class) for device_class in device_classes) if item is not None]
         )

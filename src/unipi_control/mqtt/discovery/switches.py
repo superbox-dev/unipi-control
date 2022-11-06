@@ -59,6 +59,7 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
         return topic, message
 
     async def publish(self):
+        """Publish MQTT Home Assistant discovery topics for switches."""
         for feature in self.neuron.features.by_feature_types(self.publish_feature_types):
             if feature.feature_id not in self.config.get_cover_circuits():
                 topic, message = self._get_discovery(feature)
@@ -76,5 +77,12 @@ class HassSwitchesMqttPlugin:
         self._hass = HassSwitchesDiscoveryMixin(neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]):
+        """Initialize MQTT tasks for publish MQTT topics.
+
+        Parameters
+        ----------
+        tasks: set
+            A set of all MQTT tasks.
+        """
         task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)

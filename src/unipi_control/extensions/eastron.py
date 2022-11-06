@@ -47,9 +47,14 @@ class EastronSDM120M:
         return sw_version
 
     def parse_features(self):
+        """Parse features from hardware definition."""
         for modbus_feature in self.definition.modbus_features:
             self._parse_feature(modbus_feature)
 
     async def init(self):
+        """Initialize Eastron SDM120M device class.
+
+        Read software version from Modbus RTU and parse features.
+        """
         self._sw_version = await self._get_sw_version()
         self.parse_features()

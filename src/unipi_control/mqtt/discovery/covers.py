@@ -71,6 +71,7 @@ class HassCoversDiscovery:
         return topic, message
 
     async def publish(self):
+        """Publish MQTT Home Assistant discovery topics for covers."""
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic, message = self._get_discovery(cover)
             json_data: str = json.dumps(message)
@@ -85,5 +86,12 @@ class HassCoversMqttPlugin:
         self._hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]):
+        """Initialize MQTT tasks for publish MQTT topics.
+
+        Parameters
+        ----------
+        tasks: set
+            A set of all MQTT tasks.
+        """
         task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)

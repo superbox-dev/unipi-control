@@ -94,6 +94,7 @@ class CoverConfig(ConfigLoaderMixin):
     cover_down: str = field(default_factory=str)
 
     def validate(self):
+        """Validate cover configuration."""
         for _field in ("object_id", "friendly_name", "device_class", "cover_up", "cover_down"):
             if not getattr(self, _field):
                 raise ConfigException(f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}")
@@ -114,7 +115,8 @@ class CoverConfig(ConfigLoaderMixin):
     def _validate_device_class(self, value: str, _field: dataclasses.Field) -> str:
         if (value := value.lower()) not in DEVICE_CLASSES:
             raise ConfigException(
-                f"{LogPrefix.COVER} Invalid value '{self.device_class}' in '{_field.name}'. The following values are allowed: {' '.join(DEVICE_CLASSES)}."
+                f"{LogPrefix.COVER} Invalid value '{self.device_class}' in '{_field.name}'. "
+                f"The following values are allowed: {' '.join(DEVICE_CLASSES)}."
             )
 
         return value
@@ -141,6 +143,7 @@ class ModbusConfig(ConfigLoaderMixin):
     units: list = field(init=False, default_factory=list)
 
     def init(self):
+        """Initialize Modbus configuration and start custom validation."""
         for index, unit in enumerate(self.units):
             unit_config: ModbusUnitConfig = ModbusUnitConfig()
             unit_config.update(unit)
@@ -149,6 +152,18 @@ class ModbusConfig(ConfigLoaderMixin):
         self._validate_unique_units()
 
     def get_units_by_identifier(self, identifier: str) -> Generator:
+        """Filter units by identifier.
+
+        Parameters
+        ----------
+        identifier: str
+            A unique units identifier.
+
+        Returns
+        -------
+        Generator:
+            Filtered units.
+        """
         return (modbus_unit for modbus_unit in self.units if modbus_unit.identifier == identifier)
 
     def _validate_unique_units(self):
@@ -165,7 +180,8 @@ class ModbusConfig(ConfigLoaderMixin):
         if value not in MODBUS_BAUD_RATES:
             raise ConfigException(
                 f"{LogPrefix.MODBUS} Invalid baud rate '{value}. "
-                f"The following baud rates are allowed: {' '.join((str(baud_rate) for baud_rate in MODBUS_BAUD_RATES))}."
+                f"The following baud rates are allowed: "
+                f"{' '.join((str(baud_rate) for baud_rate in MODBUS_BAUD_RATES))}."
             )
 
         return value
@@ -197,6 +213,7 @@ class Config(ConfigLoaderMixin):
 
     @cached_property
     def hardware_path(self) -> Path:
+        """Return hardware path to neuron devices and extensions."""
         return self.config_base_path / "hardware"
 
     def __post_init__(self):
@@ -208,6 +225,7 @@ class Config(ConfigLoaderMixin):
         self.modbus.init()
 
     def init(self):
+        """Initialize configuration and start custom validation."""
         for feature_id, feature_data in self.features.items():
             feature_config: FeatureConfig = FeatureConfig()
             feature_config.update(feature_data)
@@ -422,4 +440,16 @@ class HardwareData(Mapping):
             logger.info("%s %s", LogPrefix.CONFIG, str(error))
 
     def get_definition_by_hardware_types(self, hardware_types: List[str]) -> Generator:
+        """Filter hardware definitions by hardware types.
+
+        Parameters
+        ----------
+        hardware_types: list
+            A list of hardware types to filter hardware definitions.
+
+        Returns
+        -------
+        Generator:
+            Filtered hardware definitions.
+        """
         return (definition for definition in self.data["definitions"] if definition.hardware_type in hardware_types)

@@ -63,7 +63,6 @@ class ModbusCacheData:
 
     async def scan(self, scan_type: str, hardware_types: List[str]):
         """Read modbus register blocks and cache the response."""
-
         for definition in self.hardware.get_definition_by_hardware_types(hardware_types):
             if not self.data.get(definition.unit):
                 self.data[definition.unit] = {}

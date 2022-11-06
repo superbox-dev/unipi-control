@@ -110,6 +110,7 @@ class UnipiControl:
             raise UnexpectedException(f"Serial client can't connect to {self.modbus_client.serial.params.port}")
 
     async def run(self):
+        """Connect to Modbus TCP and RTU and initialize Unipi Neuron hardware."""
         await self._modbus_connect()
         await self.neuron.init()
 
@@ -122,6 +123,15 @@ class UnipiControl:
 
     @classmethod
     def install(cls, config: Config, assume_yes: bool):
+        """Interactive installer for Unipi Control.
+
+        Parameters
+        ----------
+        config: Config
+            Unipi Control configugration
+        assume_yes: bool
+            Non-interactive mode. Accept all prompts with ``yes``.
+        """
         src_config_path: Path = Path(__file__).parents[0] / "installer/etc/unipi"
         src_systemd_path: Path = Path(__file__).parents[0] / f"installer/etc/systemd/system/{cls.NAME}.service"
         dest_config_path: Path = config.config_base_path
@@ -162,7 +172,18 @@ class UnipiControl:
             print(f"systemctl enable --now {cls.NAME}")
 
 
-def parse_args(args) -> argparse.Namespace:
+def parse_args(args: list) -> argparse.Namespace:
+    """Initialize argument parser options.
+
+    Parameters
+    ----------
+    args: list
+        Arguments as list.
+
+    Returns
+    -------
+    Argparse namespace
+    """
     parser: argparse.ArgumentParser = init_argparse(description="Control Unipi I/O with MQTT commands")
     parser.add_argument("-i", "--install", action="store_true", help=f"install {UnipiControl.NAME}")
     parser.add_argument("-y", "--yes", action="store_true", help="automatic yes to install prompts")
@@ -172,6 +193,7 @@ def parse_args(args) -> argparse.Namespace:
 
 
 def main():
+    """Entrypoint for Unipi control script."""
     try:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 

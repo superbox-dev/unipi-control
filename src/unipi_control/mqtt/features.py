@@ -45,6 +45,14 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     scan_interval: float = 25e-3
 
     async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]):
+        """Initialize MQTT tasks for subscribe and publish MQTT topics.
+
+        Parameters
+        ----------
+        stack: AsyncExitStack
+        tasks: set
+            A set of all MQTT tasks.
+        """
         for feature in self.neuron.features.by_feature_types(self.subscribe_feature_types):
             topic: str = f"{feature.topic}/set"
 
@@ -88,6 +96,13 @@ class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     scan_interval: float = 50e-1
 
     async def init_tasks(self, tasks: Set[Task]):
+        """Initialize MQTT tasks for publish MQTT topics.
+
+        Parameters
+        ----------
+        tasks: set
+            A set of all MQTT tasks.
+        """
         task: Task[Any] = asyncio.create_task(
             self._publish(
                 scan_type="serial",

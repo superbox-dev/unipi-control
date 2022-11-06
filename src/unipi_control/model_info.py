@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 def main():
+    """Tiny script to detect the Unipi Neuron model."""
     unipi_1: Path = Path("/sys/bus/i2c/devices/1-0050/eeprom")
     unipi_patron: Path = Path("/sys/bus/i2c/devices/2-0057/eeprom")
     unipi_neuron_1: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")

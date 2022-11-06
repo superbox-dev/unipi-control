@@ -13,6 +13,7 @@ from typing import Union
 import itertools
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ModbusResponse
 
 from superbox_utils.text.text import slugify
 from unipi_control.config import Config
@@ -59,23 +60,28 @@ class BaseFeature(ABC):
 
     @cached_property
     def features_config(self) -> Optional[FeatureConfig]:
+        """Return custom feature configuration."""
         return self.config.features.get(self.feature_id)
 
     @cached_property
     def name(self) -> str:
+        """Return long name from FeatureType class."""
         return self.feature_type.long_name
 
     @cached_property
     def feature_name(self) -> str:
+        """Return topic name from FeatureType class."""
         return self.feature_type.topic_name
 
     @cached_property
     @abstractmethod
     def feature_id(self) -> str:
-        pass
+        """Abstract method for feature id."""
+        pass  # pylint: disable=unnecessary-pass
 
     @cached_property
     def unique_id(self) -> str:
+        """Return unique id for Home Assistant."""
         _unique_id: str = f"{slugify(self.config.device_info.name)}_"
 
         if self.object_id:
@@ -87,6 +93,7 @@ class BaseFeature(ABC):
 
     @cached_property
     def object_id(self) -> Optional[str]:
+        """Return object id for Home Assistant."""
         _object_id: Optional[str] = None
 
         if self.features_config and self.features_config.object_id:
@@ -97,10 +104,12 @@ class BaseFeature(ABC):
     @cached_property
     @abstractmethod
     def base_friendly_name(self) -> str:
-        pass
+        """Abstract method for friendly name."""
+        pass  # pylint: disable=unnecessary-pass
 
     @property
     def friendly_name(self) -> str:
+        """Return friendly name for Home Assistant."""
         _friendly_name: str = f"{self.config.device_info.name}: {self.base_friendly_name}"
 
         if self.features_config and self.features_config.friendly_name:
@@ -110,6 +119,7 @@ class BaseFeature(ABC):
 
     @cached_property
     def suggested_area(self) -> Optional[str]:
+        """Return suggested area for Home Assistant from hardware definition or custom feature configuration."""
         _suggested_area: Optional[str] = None
 
         if self.definition.suggested_area:
@@ -123,18 +133,20 @@ class BaseFeature(ABC):
     @cached_property
     @abstractmethod
     def topic(self) -> str:
-        """Unique name for the MQTT topic."""
+        """Return Unique name for the MQTT topic."""
         return f"{slugify(self.config.device_info.name)}/{self.feature_name}"
 
     @property
     @abstractmethod
     def payload(self) -> Any:
-        pass
+        """Abstract method for payload."""
+        pass  # pylint: disable=unnecessary-pass
 
     @property
     @abstractmethod
     def value(self) -> Union[float, int]:
-        pass
+        """Abstract method for value."""
+        pass  # pylint: disable=unnecessary-pass
 
     @property
     def changed(self) -> bool:
@@ -150,27 +162,32 @@ class BaseFeature(ABC):
     @cached_property
     @abstractmethod
     def icon(self) -> Optional[str]:
-        pass
+        """Abstract method for icon."""
+        pass  # pylint: disable=unnecessary-pass
 
     @cached_property
     @abstractmethod
     def device_class(self) -> Optional[str]:
-        pass
+        """Abstract method for device class."""
+        pass  # pylint: disable=unnecessary-pass
 
     @cached_property
     @abstractmethod
     def state_class(self) -> Optional[str]:
-        pass
+        """Abstract method for state class."""
+        pass  # pylint: disable=unnecessary-pass
 
     @cached_property
     @abstractmethod
     def unit_of_measurement(self) -> Optional[str]:
-        pass
+        """Abstract method for unit of measurement."""
+        pass  # pylint: disable=unnecessary-pass
 
     @cached_property
     @abstractmethod
     def sw_version(self) -> Any:
-        pass
+        """Abstract method for software version."""
+        pass  # pylint: disable=unnecessary-pass
 
 
 class NeuronFeature(BaseFeature):
@@ -187,6 +204,7 @@ class NeuronFeature(BaseFeature):
 
     @cached_property
     def feature_id(self) -> str:
+        """Return unique feature id."""
         return f"{self.feature_type.short_name.lower()}_{self.major_group}_{self.index + 1:02d}"
 
     @cached_property
@@ -196,38 +214,43 @@ class NeuronFeature(BaseFeature):
 
     @cached_property
     def topic(self) -> str:
-        """Unique name for the MQTT topic."""
+        """Return Unique name for the MQTT topic."""
         return f"{super().topic}/{self.feature_id}"
 
     @property
     def payload(self) -> str:
-        """The feature state as friendly name."""
+        """Return the feature state as friendly name."""
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     @property
     def value(self) -> int:
-        """The feature state as integer."""
+        """Return the feature state as integer."""
         mask: int = 0x1 << (self.index % 16)
         return 1 if self._reg_value() & mask else 0
 
     @cached_property
     def icon(self) -> Optional[str]:
+        """Return icon from custom feature configuration."""
         return self.features_config.icon if self.features_config else None
 
     @cached_property
     def device_class(self) -> Optional[str]:
+        """Return unit of device class from custom feature configuration."""
         return self.features_config.device_class if self.features_config else None
 
     @cached_property
     def state_class(self) -> None:
+        """Return dummy placeholder for state class."""
         return None
 
     @cached_property
     def unit_of_measurement(self) -> None:
+        """Return dummy placeholder for unit of measurement."""
         return None
 
     @cached_property
     def sw_version(self) -> str:
+        """Return software version from the Unipi Neuron."""
         return self.neuron.boards[self.major_group - 1].firmware
 
 
@@ -235,13 +258,33 @@ class Relay(NeuronFeature):
     """Class for the relay feature from the Unipi Neuron."""
 
     async def set_state(self, value: bool):
+        """Set state for relay feature.
+
+        Parameters
+        ----------
+        value: bool
+
+        Returns
+        -------
+        ModbusResponse
+        """
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
 
 class DigitalOutput(NeuronFeature):
     """Class for the digital output feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool):
+    async def set_state(self, value: bool) -> ModbusResponse:
+        """Set state for digital output feature.
+
+        Parameters
+        ----------
+        value: bool
+
+        Returns
+        -------
+        ModbusResponse
+        """
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
 
@@ -254,7 +297,17 @@ class DigitalInput(NeuronFeature):
 class Led(NeuronFeature):
     """Class for the LED feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool):
+    async def set_state(self, value: bool) -> ModbusResponse:
+        """Set state for LED feature.
+
+        Parameters
+        ----------
+        value: bool
+
+        Returns
+        -------
+        ModbusResponse
+        """
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
 
@@ -269,31 +322,37 @@ class MeterFeature(BaseFeature):
 
     @cached_property
     def feature_id(self) -> str:
+        """Return slugify friendly name for unique feature id."""
         return f"{slugify(self.base_friendly_name)}"
 
     @cached_property
     def base_friendly_name(self) -> str:
+        """Return friendly name."""
         return f"{self._base_friendly_name} {self.definition.unit}"
 
     @cached_property
     def topic(self) -> str:
-        """Unique name for the MQTT topic."""
+        """Return Unique name for the MQTT topic."""
         return f"{super().topic}/{self.feature_id}"
 
     @property
     def payload(self) -> float:
+        """Return meter payload."""
         return self.value
 
     @property
     def value(self) -> float:
+        """Return meter value."""
         return 0.0
 
     @cached_property
     def icon(self) -> Optional[str]:
+        """Return icon from custom feature configuration."""
         return self.features_config.icon if self.features_config else None
 
     @cached_property
     def device_class(self) -> Optional[str]:
+        """Return unit of device class from hardware definition or custom feature configuration."""
         _device_class: Optional[str] = self._device_class
 
         if self.features_config and self.features_config.device_class:
@@ -303,6 +362,7 @@ class MeterFeature(BaseFeature):
 
     @cached_property
     def state_class(self) -> Optional[str]:
+        """Return unit of state class from hardware definition or custom feature configuration."""
         _state_class: Optional[str] = self._state_class
 
         if self.features_config and self.features_config.state_class:
@@ -312,6 +372,7 @@ class MeterFeature(BaseFeature):
 
     @cached_property
     def unit_of_measurement(self) -> Optional[str]:
+        """Return unit of measurement from hardware definition or custom feature configuration."""
         _unit_of_measurement: Optional[str] = self._unit_of_measurement
 
         if self.features_config and self.features_config.unit_of_measurement:
@@ -321,6 +382,7 @@ class MeterFeature(BaseFeature):
 
     @cached_property
     def sw_version(self) -> Optional[str]:
+        """Return software version from the meter."""
         return None
 
 
@@ -335,6 +397,7 @@ class EastronMeter(MeterFeature):
 
     @property
     def value(self) -> float:
+        """Return Eastron meter value."""
         return round(
             float(
                 BinaryPayloadDecoder.fromRegisters(
@@ -346,6 +409,7 @@ class EastronMeter(MeterFeature):
 
     @cached_property
     def sw_version(self) -> Optional[str]:
+        """Return software version from the Eastron meter."""
         return self._sw_version
 
 

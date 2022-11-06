@@ -54,7 +54,6 @@ class HassDiscoveryMixin:
     @staticmethod
     def _get_invert_state(feature: NeuronFeature) -> bool:
         """Check if invert state is enabled in the config."""
-
         if feature.features_config and feature.features_config.invert_state:
             return feature.features_config.invert_state
 

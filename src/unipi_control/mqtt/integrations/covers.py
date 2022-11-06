@@ -58,6 +58,14 @@ class CoversMqttPlugin:
             logger.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
 
     async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]):
+        """Initialize MQTT tasks for subscribe and publish MQTT topics.
+
+        Parameters
+        ----------
+        stack: AsyncExitStack
+        tasks: set
+            A set of all MQTT tasks.
+        """
         await self._command_topic(stack, tasks)
         await self._set_position_topic(stack, tasks)
         await self._tilt_command_topic(stack, tasks)

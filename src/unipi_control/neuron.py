@@ -92,6 +92,7 @@ class Board:
             func(max_count, modbus_feature)
 
     def parse_features(self):
+        """Parse features from hardware definition."""
         for modbus_feature in self.definition.modbus_features:
             self._parse_feature(modbus_feature)
 
@@ -128,10 +129,12 @@ class Neuron:
         )
 
     async def init(self):
+        """Initialize internal and external hardware."""
         await self.read_boards()
         await self.read_extensions()
 
     async def read_boards(self):
+        """Scan Modbus TCP and initialize Unipi Neuron board."""
         logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
         await self.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
@@ -147,6 +150,7 @@ class Neuron:
                 self.boards.append(board)
 
     async def read_extensions(self):
+        """Scan Modbus RTU and initialize extension classes."""
         logger.info("%s Reading extensions", LogPrefix.MODBUS)
         await self.modbus_cache_data.scan("serial", hardware_types=[HardwareType.EXTENSION])
 
