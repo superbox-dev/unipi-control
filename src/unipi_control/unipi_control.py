@@ -42,7 +42,7 @@ class UnipiControl:
 
     Unipi Control use Modbus for fast access to the I/O and provide MQTT
     topics for reading and writing the circuits. Optionally you can enable
-    the Home Assistant MQTT discovery for binary sensors, switches and covers.
+    the Home Assistant MQTT discovery for binary sensors, sensors, switches and covers.
     """
 
     NAME: Final[str] = "unipi-control"
