@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pymodbus = "~=3.0.0"
+pymodbus = "~=3.0.2"
 superbox-utils = "~=2022.3"
 pyserial-asyncio = "~=0.6"
 flake8-docstrings = "~=1.6.0"
