@@ -10,9 +10,9 @@ from asyncio_mqtt import Client
 
 from unipi_control.config import HardwareType
 from unipi_control.config import logger
-from unipi_control.logging import LOG_MQTT_PUBLISH
-from unipi_control.logging import LOG_MQTT_SUBSCRIBE
-from unipi_control.logging import LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.log import LOG_MQTT_PUBLISH
+from unipi_control.log import LOG_MQTT_SUBSCRIBE
+from unipi_control.log import LOG_MQTT_SUBSCRIBE_TOPIC
 
 
 class BaseFeaturesMqttPlugin:

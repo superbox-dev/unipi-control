@@ -3,28 +3,29 @@ import argparse
 import asyncio
 import shutil
 import subprocess
+import sys
 import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Final
+from typing import Optional
 from typing import Set
 
-import sys
 from asyncio_mqtt import Client
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
-
 from superbox_utils.argparse import init_argparse
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
 from superbox_utils.text.text import slugify
+
 from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.logging import LOG_NAME
+from unipi_control.log import LOG_NAME
 from unipi_control.modbus import ModbusClient
 from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
@@ -110,7 +111,7 @@ class UnipiControl:
             raise UnexpectedException(f"Serial client can't connect to {self.modbus_client.serial.params.port}")
 
     async def run(self):
-        """Connect to Modbus TCP and RTU and initialize Unipi Neuron hardware."""
+        """Connect to Modbus and initialize Unipi Neuron hardware."""
         await self._modbus_connect()
         await self.neuron.init()
 
@@ -128,7 +129,7 @@ class UnipiControl:
         Parameters
         ----------
         config: Config
-            Unipi Control configugration
+            Unipi Control configuration
         assume_yes: bool
             Non-interactive mode. Accept all prompts with ``yes``.
         """
@@ -194,6 +195,8 @@ def parse_args(args: list) -> argparse.Namespace:
 
 def main():
     """Entrypoint for Unipi Control script."""
+    unipi_control: Optional[UnipiControl] = None
+
     try:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
@@ -217,18 +220,19 @@ def main():
             )
 
             asyncio.run(unipi_control.run())
-    except ConfigException as e:
-        logger.error("%s %s", LogPrefix.CONFIG, e)
+    except ConfigException as error:
+        logger.error("%s %s", LogPrefix.CONFIG, error)
         sys.exit(1)
-    except UnexpectedException as e:
-        logger.error(e)
+    except UnexpectedException as error:
+        logger.error(error)
         sys.exit(1)
     except KeyboardInterrupt:
         pass
     except asyncio.CancelledError:
         pass
     finally:
-        logger.info("Successfully shutdown the Unipi Control service.")
+        if unipi_control:
+            logger.info("Successfully shutdown the Unipi Control service.")
 
 
 if __name__ == "__main__":

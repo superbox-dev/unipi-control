@@ -13,7 +13,7 @@ from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import HardwareData
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.logging import LOG_MQTT_PUBLISH
+from unipi_control.log import LOG_MQTT_PUBLISH
 
 
 class HassCoversDiscovery:

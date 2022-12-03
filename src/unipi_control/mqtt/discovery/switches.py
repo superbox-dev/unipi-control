@@ -8,7 +8,7 @@ from typing import Tuple
 
 from unipi_control.config import logger
 from unipi_control.features import FeatureState
-from unipi_control.logging import LOG_MQTT_PUBLISH
+from unipi_control.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 

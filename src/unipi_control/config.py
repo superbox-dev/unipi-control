@@ -26,7 +26,8 @@ from superbox_utils.logging import stream_handler
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
-from unipi_control.logging import LOG_NAME
+
+from unipi_control.log import LOG_NAME
 
 logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
 
@@ -38,9 +39,9 @@ MODBUS_PARITY: Final[List[str]] = ["E", "O", "N"]
 
 class LogPrefix:
     CONFIG: Final[str] = "[CONFIG]"
+    COVER: Final[str] = "[COVER]"
     DEVICEINFO: Final[str] = "[DEVICEINFO]"
     FEATURE: Final[str] = "[FEATURE]"
-    COVER: Final[str] = "[COVER]"
     MODBUS: Final[str] = "[MODBUS]"
 
 
@@ -61,7 +62,7 @@ class DeviceInfo(ConfigLoaderMixin):
 
 @dataclass
 class FeatureConfig(ConfigLoaderMixin):
-    object_id: str = field(default_factory=str)  # pylint: disable=invalid-name
+    object_id: str = field(default_factory=str)
     friendly_name: str = field(default_factory=str)
     icon: str = field(default_factory=str)
     device_class: str = field(default_factory=str)
