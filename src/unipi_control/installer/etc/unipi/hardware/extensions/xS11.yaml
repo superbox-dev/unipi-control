@@ -1,5 +1,5 @@
 manufacturer: Unipi
-model: xs11
+model: xS11
 modbus_register_blocks:
   # DI 1.x / RO 1.x
   - start_reg: 0
