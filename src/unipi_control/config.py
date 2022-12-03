@@ -26,7 +26,6 @@ from superbox_utils.logging import stream_handler
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
-
 from unipi_control.log import LOG_NAME
 
 logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
@@ -400,8 +399,8 @@ class HardwareData(Mapping):
                         hardware_type=HardwareType.NEURON,
                         device_name=None,
                         suggested_area=None,
-                        manufacturer=yaml_content.get("manufacturer"),
-                        model=yaml_content.get("model"),
+                        manufacturer=None,
+                        model=f'{self.data["neuron"].name} {self.data["neuron"].model}',
                         modbus_register_blocks=yaml_content["modbus_register_blocks"],
                         modbus_features=yaml_content["modbus_features"],
                     )
