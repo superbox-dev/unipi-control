@@ -1,4 +1,6 @@
 import asyncio
+import itertools
+import time
 from asyncio import Task
 from collections.abc import Iterator
 from dataclasses import asdict
@@ -13,8 +15,7 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-import itertools
-import time
+from pymodbus.pdu import ModbusResponse
 
 from superbox_utils.asyncio import run_in_executor
 from superbox_utils.text.text import slugify
@@ -415,7 +416,7 @@ class Cover:
             return None
 
         self._update_position()
-        response = await self.cover_down_feature.set_state(False)
+        response: ModbusResponse = await self.cover_down_feature.set_state(False)
         self._stop_timer()
 
         if not response.isError():
@@ -480,7 +481,7 @@ class Cover:
             return None
 
         self._update_position()
-        response = await self.cover_up_feature.set_state(False)
+        response: ModbusResponse = await self.cover_up_feature.set_state(False)
         self._stop_timer()
 
         if not response.isError():
@@ -552,7 +553,7 @@ class Cover:
 
         if self.tilt_change_time:
             self._update_position()
-            response = await self.cover_down_feature.set_state(False)
+            response: ModbusResponse = await self.cover_down_feature.set_state(False)
             self._stop_timer()
 
             if not response.isError():
@@ -579,7 +580,7 @@ class Cover:
 
         if self.tilt_change_time:
             self._update_position()
-            response = await self.cover_up_feature.set_state(False)
+            response: ModbusResponse = await self.cover_up_feature.set_state(False)
             self._stop_timer()
 
             if not response.isError():

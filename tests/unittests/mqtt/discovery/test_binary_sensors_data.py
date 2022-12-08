@@ -30,8 +30,8 @@ discovery_message_expected: List[dict] = [
             "object_id": "mocked_id_di_1_02",
             "device_class": "heat",
             "device": {
-                "name": "MOCKED UNIPI: MOCKED AREA 2",
-                "identifiers": "MOCKED UNIPI: MOCKED AREA 2",
+                "name": "MOCKED UNIPI - MOCKED AREA 2",
+                "identifiers": "MOCKED UNIPI - MOCKED AREA 2",
                 "model": "MOCKED_NAME MOCKED_MODEL",
                 "sw_version": "0.0",
                 "via_device": "MOCKED UNIPI",
@@ -336,8 +336,8 @@ discovery_message_expected: List[dict] = [
             "state_topic": "mocked_unipi/input/di_3_01/get",
             "qos": 2,
             "device": {
-                "name": "MOCKED UNIPI: MOCKED AREA 1",
-                "identifiers": "MOCKED UNIPI: MOCKED AREA 1",
+                "name": "MOCKED UNIPI - MOCKED AREA 1",
+                "identifiers": "MOCKED UNIPI - MOCKED AREA 1",
                 "model": "MOCKED_NAME MOCKED_MODEL",
                 "sw_version": "0.0",
                 "manufacturer": "Unipi technology",
@@ -354,8 +354,8 @@ discovery_message_expected: List[dict] = [
             "state_topic": "mocked_unipi/input/di_3_02/get",
             "qos": 2,
             "device": {
-                "name": "MOCKED UNIPI: MOCKED AREA 1",
-                "identifiers": "MOCKED UNIPI: MOCKED AREA 1",
+                "name": "MOCKED UNIPI - MOCKED AREA 1",
+                "identifiers": "MOCKED UNIPI - MOCKED AREA 1",
                 "model": "MOCKED_NAME MOCKED_MODEL",
                 "sw_version": "0.0",
                 "manufacturer": "Unipi technology",

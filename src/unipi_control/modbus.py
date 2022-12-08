@@ -10,7 +10,6 @@ from pymodbus.exceptions import ModbusIOException
 from pymodbus.pdu import ExceptionResponse
 from pymodbus.register_read_message import ReadInputRegistersResponse
 
-from superbox_utils.core.exception import UnexpectedException
 from unipi_control.config import HardwareData
 from unipi_control.config import HardwareDefinition
 from unipi_control.config import LogPrefix
@@ -86,18 +85,13 @@ class ModbusCacheData:
         -------
         list
             A list of cached modbus register blocks.
-
-        Raises
-        ------
-        UnexpectedException
-            Because modbus error on register.
         """
         ret: list = []
 
         for _address in range(address, address + index):
             if _address not in self.data[unit] or self.data[unit][_address] is None:
-                raise UnexpectedException(f"{LogPrefix.MODBUS} Error on address {_address} (unit: {unit})")
-
-            ret += [self.data[unit][_address]]
+                logger.error("%s Error on address %s (unit: %s)", LogPrefix.MODBUS, address, unit)
+            else:
+                ret += [self.data[unit][_address]]
 
         return ret

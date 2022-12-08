@@ -9,8 +9,8 @@ discovery_message_expected: List[dict] = [
             "state_topic": "mocked_unipi/relay/ro_2_01/get",
             "qos": 2,
             "device": {
-                "name": "MOCKED UNIPI: MOCKED AREA 2",
-                "identifiers": "MOCKED UNIPI: MOCKED AREA 2",
+                "name": "MOCKED UNIPI - MOCKED AREA 2",
+                "identifiers": "MOCKED UNIPI - MOCKED AREA 2",
                 "model": "MOCKED_NAME MOCKED_MODEL",
                 "sw_version": "0.0",
                 "manufacturer": "Unipi technology",
@@ -31,8 +31,8 @@ discovery_message_expected: List[dict] = [
             "state_topic": "mocked_unipi/relay/ro_2_02/get",
             "qos": 2,
             "device": {
-                "name": "MOCKED UNIPI: MOCKED AREA 2",
-                "identifiers": "MOCKED UNIPI: MOCKED AREA 2",
+                "name": "MOCKED UNIPI - MOCKED AREA 2",
+                "identifiers": "MOCKED UNIPI - MOCKED AREA 2",
                 "model": "MOCKED_NAME MOCKED_MODEL",
                 "sw_version": "0.0",
                 "manufacturer": "Unipi technology",

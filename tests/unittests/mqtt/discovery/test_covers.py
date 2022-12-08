@@ -54,7 +54,7 @@ class TestHappyPathHassCoversMqttPlugin:
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/cover/mocked_unipi_mocked_roller_shutter_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", "unique_id": "mocked_unipi_mocked_roller_shutter_topic_name", "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED UNIPI: MOCKED AREA", "identifiers": "MOCKED UNIPI: MOCKED AREA", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA", "via_device": "MOCKED UNIPI"}, "object_id": "mocked_roller_shutter_topic_name"}'
+                '[MQTT] [homeassistant/cover/mocked_unipi_mocked_roller_shutter_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", "unique_id": "mocked_unipi_mocked_roller_shutter_topic_name", "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED UNIPI - MOCKED AREA", "identifiers": "MOCKED UNIPI - MOCKED AREA", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology", "suggested_area": "MOCKED AREA", "via_device": "MOCKED UNIPI"}, "object_id": "mocked_roller_shutter_topic_name"}'
                 in logs
             )
             assert len(logs) == 2
@@ -99,8 +99,8 @@ class TestHappyPathHassCoversMqttPlugin:
                             "qos": 2,
                             "optimistic": False,
                             "device": {
-                                "name": "MOCKED UNIPI: MOCKED AREA",
-                                "identifiers": "MOCKED UNIPI: MOCKED AREA",
+                                "name": "MOCKED UNIPI - MOCKED AREA",
+                                "identifiers": "MOCKED UNIPI - MOCKED AREA",
                                 "model": "MOCKED_NAME MOCKED_MODEL",
                                 "manufacturer": "Unipi technology",
                                 "suggested_area": "MOCKED AREA",

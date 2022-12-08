@@ -1,6 +1,11 @@
+import asyncio
 from typing import Optional
 
+from pymodbus.register_read_message import ReadHoldingRegistersResponse
+
 from unipi_control.config import HardwareDefinition
+from unipi_control.config import LogPrefix
+from unipi_control.config import logger
 from unipi_control.features import EastronMeter
 
 
@@ -34,15 +39,24 @@ class EastronSDM120M:
             func(modbus_feature)
 
     async def _get_sw_version(self) -> Optional[str]:
-        response = await self.neuron.modbus_client.serial.read_holding_registers(
-            address=64514, count=2, slave=self.definition.unit
-        )
-
         sw_version: Optional[str] = None
 
-        if not response.isError():
-            meter_code: str = f"{format(response.registers[0], '0x')}{format(response.registers[1], '0x')}"
-            sw_version = f"{meter_code[:3]}.{meter_code[3:]}"
+        data: dict = {
+            "address": 64514,
+            "count": 2,
+            "slave": self.definition.unit,
+        }
+
+        try:
+            response: ReadHoldingRegistersResponse = await self.neuron.modbus_client.serial.read_holding_registers(
+                **data
+            )
+
+            if not response.isError():
+                meter_code: str = f"{format(response.registers[0], '0x')}{format(response.registers[1], '0x')}"
+                sw_version = f"{meter_code[:3]}.{meter_code[3:]}"
+        except asyncio.exceptions.TimeoutError:
+            logger.error("%s Timeout on: %s", LogPrefix.MODBUS, data)
 
         return sw_version
 

@@ -18,7 +18,7 @@ modbus:
   parity: N
   units:
     - unit: 1
-      device_name: Eastron SDM120M
+      device_name: MOCKED Eastron SDM120M
       identifier: MOCKED_EASTRON
       suggested_area: Workspace
 homeassistant:

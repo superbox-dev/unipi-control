@@ -31,7 +31,7 @@ class HassDiscoveryMixin:
             device_name = feature.definition.device_name
 
         if suggested_area:
-            device_name = f"{device_name}: {suggested_area}"
+            device_name = f"{device_name} - {suggested_area}"
 
         return device_name
 

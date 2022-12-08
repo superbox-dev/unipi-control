@@ -1,3 +1,4 @@
+import itertools
 from abc import ABC
 from abc import abstractmethod
 from collections.abc import Iterator
@@ -10,7 +11,7 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-import itertools
+from pymodbus.bit_write_message import WriteSingleCoilResponse
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusResponse
@@ -104,18 +105,14 @@ class BaseFeature(ABC):
     @cached_property
     @abstractmethod
     def base_friendly_name(self) -> str:
-        """Abstract method for friendly name."""
+        """Abstract method for base friendly name."""
         pass  # pylint: disable=unnecessary-pass
 
-    @property
+    @cached_property
+    @abstractmethod
     def friendly_name(self) -> str:
-        """Return friendly name for Home Assistant."""
-        _friendly_name: str = f"{self.config.device_info.name}: {self.base_friendly_name}"
-
-        if self.features_config and self.features_config.friendly_name:
-            _friendly_name = self.features_config.friendly_name
-
-        return _friendly_name
+        """Abstract method for friendly name."""
+        pass  # pylint: disable=unnecessary-pass
 
     @cached_property
     def suggested_area(self) -> Optional[str]:
@@ -144,7 +141,7 @@ class BaseFeature(ABC):
 
     @property
     @abstractmethod
-    def value(self) -> Union[float, int]:
+    def value(self) -> Optional[Union[float, int]]:
         """Abstract method for value."""
         pass  # pylint: disable=unnecessary-pass
 
@@ -213,6 +210,19 @@ class NeuronFeature(BaseFeature):
         return f"{self.name} {self.major_group}.{self.index + 1:02d}"
 
     @cached_property
+    def friendly_name(self) -> str:
+        """Return friendly name for Home Assistant."""
+        _friendly_name: str = f"{self.config.device_info.name}: {self.base_friendly_name}"
+
+        if self.suggested_area:
+            _friendly_name = f"{self.config.device_info.name} - {self.suggested_area}: {self.base_friendly_name}"
+
+        if self.features_config and self.features_config.friendly_name:
+            _friendly_name = self.features_config.friendly_name
+
+        return _friendly_name
+
+    @cached_property
     def topic(self) -> str:
         """Return Unique name for the MQTT topic."""
         return f"{super().topic}/{self.feature_id}"
@@ -257,7 +267,7 @@ class NeuronFeature(BaseFeature):
 class Relay(NeuronFeature):
     """Class for the relay feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool):
+    async def set_state(self, value: bool) -> WriteSingleCoilResponse:
         """Set state for relay feature.
 
         Parameters
@@ -266,7 +276,7 @@ class Relay(NeuronFeature):
 
         Returns
         -------
-        ModbusResponse
+        WriteSingleCoilResponse
         """
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
@@ -274,7 +284,7 @@ class Relay(NeuronFeature):
 class DigitalOutput(NeuronFeature):
     """Class for the digital output feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool) -> ModbusResponse:
+    async def set_state(self, value: bool) -> WriteSingleCoilResponse:
         """Set state for digital output feature.
 
         Parameters
@@ -283,7 +293,7 @@ class DigitalOutput(NeuronFeature):
 
         Returns
         -------
-        ModbusResponse
+        WriteSingleCoilResponse
         """
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 
@@ -323,12 +333,25 @@ class MeterFeature(BaseFeature):
     @cached_property
     def feature_id(self) -> str:
         """Return slugify friendly name for unique feature id."""
-        return f"{slugify(self.base_friendly_name)}"
+        return f"{slugify(self._base_friendly_name)}_{self.definition.unit}"
 
     @cached_property
     def base_friendly_name(self) -> str:
         """Return friendly name."""
-        return f"{self._base_friendly_name} {self.definition.unit}"
+        return self._base_friendly_name
+
+    @cached_property
+    def friendly_name(self) -> str:
+        """Return friendly name for Home Assistant."""
+        _friendly_name: str = f"{self.definition.device_name}: {self.base_friendly_name}"
+
+        if self.suggested_area:
+            _friendly_name = f"{self.definition.device_name} - {self.suggested_area}: {self.base_friendly_name}"
+
+        if self.features_config and self.features_config.friendly_name:
+            _friendly_name = self.features_config.friendly_name
+
+        return _friendly_name
 
     @cached_property
     def topic(self) -> str:
@@ -336,14 +359,14 @@ class MeterFeature(BaseFeature):
         return f"{super().topic}/{self.feature_id}"
 
     @property
-    def payload(self) -> float:
+    def payload(self) -> Optional[float]:
         """Return meter payload."""
         return self.value
 
     @property
-    def value(self) -> float:
+    def value(self) -> Optional[float]:
         """Return meter value."""
-        return 0.0
+        return None
 
     @cached_property
     def icon(self) -> Optional[str]:
@@ -396,16 +419,22 @@ class EastronMeter(MeterFeature):
         self._sw_version: Optional[str] = sw_version
 
     @property
-    def value(self) -> float:
+    def value(self) -> Optional[float]:
         """Return Eastron meter value."""
-        return round(
-            float(
-                BinaryPayloadDecoder.fromRegisters(
-                    self._reg_value(), byteorder=Endian.Big, wordorder=Endian.Big
-                ).decode_32bit_float()
-            ),
-            2,
-        )
+        _value: Optional[float] = None
+        _reg_value: list = self._reg_value()
+
+        if _reg_value:
+            _value = round(
+                float(
+                    BinaryPayloadDecoder.fromRegisters(
+                        _reg_value, byteorder=Endian.Big, wordorder=Endian.Big
+                    ).decode_32bit_float()
+                ),
+                2,
+            )
+
+        return _value
 
     @cached_property
     def sw_version(self) -> Optional[str]:

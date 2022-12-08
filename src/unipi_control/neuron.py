@@ -1,6 +1,8 @@
 import importlib
 from typing import List
 
+from pymodbus.register_read_message import ReadInputRegistersResponse
+
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
 from unipi_control.config import HardwareDefinition
@@ -139,7 +141,9 @@ class Neuron:
         await self.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
         for index in (1, 2, 3):
-            response = await self.modbus_client.tcp.read_input_registers(address=1000, count=1, slave=index)
+            response: ReadInputRegistersResponse = await self.modbus_client.tcp.read_input_registers(
+                address=1000, count=1, slave=index
+            )
 
             if response.isError():
                 logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)

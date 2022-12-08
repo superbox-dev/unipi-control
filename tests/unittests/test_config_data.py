@@ -208,10 +208,10 @@ modbus:
   baud_rate: 2400
   units:
     - unit: 1
-      device_name: Eastron SDM120M
+      device_name: MOCKED Eastron SDM120M
       identifier: Eastron_SDM120M
     - unit: 1
-      device_name: Eastron SDM120M
+      device_name: MOCKED Eastron SDM120M
       identifier: Eastron_SDM120M
 logging:
   level: debug"""

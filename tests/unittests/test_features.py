@@ -6,6 +6,7 @@ from typing import Union
 from unittest.mock import MagicMock
 
 import pytest
+from pymodbus.bit_write_message import WriteSingleCoilResponse
 
 from unipi_control.config import ConfigException
 from unipi_control.features import DigitalInput
@@ -68,7 +69,7 @@ class TestHappyPathFeatures:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="active_power_1", feature_type="METER"),
-                FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active Power 1"),
+                FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active Power"),
             ),
         ],
         indirect=["_config_loader"],
@@ -100,7 +101,7 @@ class TestHappyPathFeatures:
         if isinstance(feature, (Relay, DigitalOutput, Led)):
             assert feature.val_coil == expected.coil
             assert feature.payload == ("ON" if expected.value == 1 else "OFF")
-            response = await feature.set_state(False)
+            response: WriteSingleCoilResponse = await feature.set_state(False)
             assert not response.isError()
         elif isinstance(feature, MeterFeature):
             assert feature.payload == expected.value

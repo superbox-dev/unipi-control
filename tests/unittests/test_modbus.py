@@ -6,7 +6,6 @@ import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from pytest_mock import MockerFixture
 
-from superbox_utils.core.exception import UnexpectedException
 from unipi_control.config import Config
 from unipi_control.config import HardwareType
 from unipi_control.modbus import ModbusClient
@@ -22,11 +21,16 @@ class TestUnhappyPathModbus:
     @pytest.mark.parametrize(
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    def test_modbus_exceptions(self, _config_loader: ConfigLoader, _neuron: Neuron):
-        with pytest.raises(UnexpectedException) as error:
-            _neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
+    def test_modbus_error(
+        self,
+        _config_loader: ConfigLoader,
+        _neuron: Neuron,
+        caplog: LogCaptureFixture,
+    ):
+        _neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
+        logs: list = [record.getMessage() for record in caplog.records]
 
-        assert str(error.value) == "[MODBUS] Error on address 2 (unit: 1)"
+        assert "[MODBUS] Error on address 0 (unit: 1)" in logs
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

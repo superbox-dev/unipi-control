@@ -33,7 +33,7 @@ class HassCoversDiscovery:
 
         if cover.suggested_area:
             via_device = device_name
-            device_name = f"{device_name}: {cover.suggested_area}"
+            device_name = f"{device_name} - {cover.suggested_area}"
 
         message: dict = {
             "name": cover.friendly_name,
