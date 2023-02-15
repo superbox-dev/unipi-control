@@ -56,15 +56,17 @@ class ModbusCacheData:
             if response:
                 if not isinstance(response, (ModbusIOException, ExceptionResponse)):
                     for index in range(data["count"]):
-                        self.data[definition.unit][data["address"] + index] = response.registers[index]
+                        self.data[definition.unit][data["address"] + index] = response.getRegister(index)
         except asyncio.exceptions.TimeoutError:
-            logger.error("%s Timeout on: %s", LogPrefix.MODBUS, data)
+            logger.error("%s [%s] Timeout on: %s", LogPrefix.MODBUS, scan_type, data)
 
     async def scan(self, scan_type: str, hardware_types: List[str]):
         """Read modbus register blocks and cache the response."""
         for definition in self.hardware.get_definition_by_hardware_types(hardware_types):
             if not self.data.get(definition.unit):
                 self.data[definition.unit] = {}
+
+            await asyncio.sleep(8e-3)
 
             for modbus_register_block in definition.modbus_register_blocks:
                 await self._save_response(scan_type, modbus_register_block, definition)

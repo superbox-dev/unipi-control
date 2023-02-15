@@ -14,7 +14,6 @@ from typing import Union
 from pymodbus.bit_write_message import WriteSingleCoilResponse
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.pdu import ModbusResponse
 
 from superbox_utils.text.text import slugify
 from unipi_control.config import Config
@@ -307,7 +306,7 @@ class DigitalInput(NeuronFeature):
 class Led(NeuronFeature):
     """Class for the LED feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool) -> ModbusResponse:
+    async def set_state(self, value: bool) -> WriteSingleCoilResponse:
         """Set state for LED feature.
 
         Parameters
@@ -316,7 +315,7 @@ class Led(NeuronFeature):
 
         Returns
         -------
-        ModbusResponse
+        WriteSingleCoilResponse
         """
         return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
 

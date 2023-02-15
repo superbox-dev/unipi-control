@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import argparse
 import asyncio
 import shutil
@@ -233,7 +232,3 @@ def main():
     finally:
         if unipi_control:
             logger.info("Successfully shutdown the Unipi Control service.")
-
-
-if __name__ == "__main__":
-    main()

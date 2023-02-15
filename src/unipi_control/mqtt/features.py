@@ -103,6 +103,7 @@ class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks: set
             A set of all MQTT tasks.
         """
+        # TODO create task by unit
         task: Task[Any] = asyncio.create_task(
             self._publish(
                 scan_type="serial",
