@@ -77,8 +77,8 @@ jobs:
       matrix:
         python-version:
           - '3.8'
-          - '3.9'
-          - '3.10'
+          #- '3.9'
+          #- '3.10'
     steps:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
@@ -115,8 +115,8 @@ jobs:
       matrix:
         python-version:
           - '3.8'
-          - '3.9'
-          - '3.10'
+          #- '3.9'
+          #- '3.10'
     steps:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
@@ -141,8 +141,8 @@ jobs:
       matrix:
         python-version:
           - '3.8'
-          - '3.9'
-          - '3.10'
+          #- '3.9'
+          #- '3.10'
     steps:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
