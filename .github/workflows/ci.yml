@@ -44,10 +44,10 @@ jobs:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
       - name: Cache virtualenv
         id: cache-virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.5
         with:
           path: |
             ${{ github.workspace }}/.cache
@@ -55,7 +55,7 @@ jobs:
           key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
       - name: Set up Python ${{ matrix.python-version }}
         if: steps.cache-virtualenv.outputs.cache-hit != 'true'
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v4.5.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install pipenv
@@ -83,10 +83,10 @@ jobs:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
       - name: Cache virtualenv
         id: cache-virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.5
         with:
           path: |
             ${{ github.workspace }}/.cache
@@ -95,12 +95,12 @@ jobs:
       - name: Run unit tests
         run: pipenv run pytest --cov=src --cov-report=term-missing --junitxml=junit/test-results.xml --cov-report=xml
       - name: Upload coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: python-${{ matrix.python-version }}-coverage
           path: .coverage
       - name: Upload pytest test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: pytest-results-${{ matrix.python-version }}
           path: junit/test-results.xml
@@ -121,10 +121,10 @@ jobs:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
       - name: Cache virtualenv
         id: cache-virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.5
         with:
           path: |
             ${{ github.workspace }}/.cache
@@ -147,10 +147,10 @@ jobs:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
       - name: Cache virtualenv
         id: cache-virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.5
         with:
           path: |
             ${{ github.workspace }}/.cache
@@ -183,23 +183,23 @@ jobs:
       - name: Update system path
         run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
       - name: Cache virtualenv
         id: cache-virtualenv
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.5
         with:
           path: |
             ${{ github.workspace }}/.cache
             ${{ github.workspace }}/.local
           key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
       - name: Download coverage
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3.1.2
         with:
           name: python-3.8-coverage
       - name: Create coverage badge
         uses: tj-actions/coverage-badge-py@v1.8
       - name: Verify coverage badge changed
-        uses: tj-actions/verify-changed-files@v9
+        uses: tj-actions/verify-changed-files@v13.1
         id: changed_files
         with:
           files: coverage.svg
@@ -226,25 +226,15 @@ jobs:
     if: needs.check-tag.outputs.release-type == 'release' || needs.check-tag.outputs.release-type == 'prerelease'
     runs-on: ubuntu-latest
     steps:
-      - name: Update system path
-        run: echo "${{ env.PYTHONUSERBASE }}/bin" >> $GITHUB_PATH
       - name: Check out repository
-        uses: actions/checkout@v3
-      - name: Cache virtualenv
-        id: cache-virtualenv
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ github.workspace }}/.cache
-            ${{ github.workspace }}/.local
-          key: python-${{ matrix.python-version }}-${{ hashFiles('Pipfile.lock') }}
+        uses: actions/checkout@v3.3.0
       - name: Build package
         run: |
-          python -m pip install build --user
+          python -m pip install build twine
           python -m build
       - name: Publish test package
         if: needs.check-tag.outputs.release-type == 'prerelease'
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@release/v1.6.4
         with:
           user: __token__
           password: ${{ secrets.PYPI_TEST_API_TOKEN }}
@@ -252,7 +242,7 @@ jobs:
           verbose: True
       - name: Publish package
         if: needs.check-tag.outputs.release-type == 'release'
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@release/v1.6.4
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
