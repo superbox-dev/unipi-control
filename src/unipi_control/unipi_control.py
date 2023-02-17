@@ -200,7 +200,7 @@ def main():
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
         config: Config = Config()
-        config.logging.update_level(LOG_NAME, verbose=args.verbose)
+        config.logging.init(LOG_NAME, log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
 
         if args.install:
             UnipiControl.install(config=config, assume_yes=args.yes)

@@ -22,7 +22,7 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
   * Or compile it
     * https://github.com/UniPiTechnology/unipi-kernel
     * https://github.com/UniPiTechnology/unipi-tools
-* Python 3.8x
+* Python 3.8
 
 ### From GIT
 

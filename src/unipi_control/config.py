@@ -21,14 +21,12 @@ from superbox_utils.config.exception import ConfigException
 from superbox_utils.config.loader import ConfigLoaderMixin
 from superbox_utils.config.loader import Validation
 from superbox_utils.hass.config import HomeAssistantConfig
-from superbox_utils.logging import init_logger
-from superbox_utils.logging import stream_handler
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
 from unipi_control.log import LOG_NAME
 
-logger: logging.Logger = init_logger(name=LOG_NAME, level="info", handlers=[stream_handler])
+logger: logging.Logger = logging.getLogger(LOG_NAME)
 
 DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
@@ -219,7 +217,6 @@ class Config(ConfigLoaderMixin):
     def __post_init__(self):
         self.temp_path.mkdir(exist_ok=True)
         self.update_from_yaml_file(config_path=self.config_base_path / "control.yaml")
-        self.logging.update_level(name=LOG_NAME)
 
         self.init()
         self.modbus.init()
