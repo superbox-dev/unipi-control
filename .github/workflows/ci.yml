@@ -131,7 +131,7 @@ jobs:
           python -m pip install --user pipenv
           pipenv install --deploy --dev
       - name: Download coverage
-        uses: actions/download-artifact@v3.1.2
+        uses: actions/download-artifact@v3.0.2
         with:
           name: python-3.8-coverage
       - name: Create coverage badge
