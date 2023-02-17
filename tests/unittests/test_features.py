@@ -1,77 +1,129 @@
-from typing import Type
-from unittest.mock import AsyncMock
+# pylint: disable=protected-access
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Optional
+from typing import Union
 from unittest.mock import MagicMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
+from pymodbus.bit_write_message import WriteSingleCoilResponse
 
-from conftest import ConfigLoader
-from conftest_data import CONFIG_CONTENT
-from conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import ConfigException
+from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
-from unipi_control.features import Feature
 from unipi_control.features import Led
+from unipi_control.features import MeterFeature
 from unipi_control.features import Relay
+from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
+from unittests.conftest import ConfigLoader
+from unittests.conftest_data import CONFIG_CONTENT
+from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from unittests.conftest_data import HARDWARE_DATA_CONTENT
+
+
+@dataclass
+class FeatureOptions:
+    feature_id: str = field(default_factory=str)
+    feature_type: str = field(default_factory=str)
+
+
+@dataclass
+class FeatureExpected:
+    topic_feature_name: Optional[str] = field(default=None)
+    value: Optional[Union[float, int]] = field(default=None)
+    repr: Optional[str] = field(default=None)
+    coil: Optional[int] = field(default=None)
 
 
 class TestHappyPathFeatures:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "config_loader, circuit, feature_type, expected_topic_feature_name, expected_value, expected_repr",
+        "_config_loader, options, expected",
         [
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "di_2_15", "DI", "input", 1, "Digital Input 2.15"),
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "do_1_01", "DO", "relay", 0, "Digital Output 1.01"),
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "ro_2_13", "RO", "relay", 1, "Relay 2.13"),
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "ro_2_14", "RO", "relay", 0, "Relay 2.14"),
-            ((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "led_1_01", "LED", "led", 0, "LED 1.01"),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                FeatureOptions(feature_id="di_2_15", feature_type="DI"),
+                FeatureExpected(topic_feature_name="input", value=1, repr="Digital Input 2.15", coil=None),
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                FeatureOptions(feature_id="do_1_01", feature_type="DO"),
+                FeatureExpected(topic_feature_name="relay", value=0, repr="Digital Output 1.01", coil=0),
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                FeatureOptions(feature_id="ro_2_13", feature_type="RO"),
+                FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13", coil=112),
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                FeatureOptions(feature_id="ro_2_14", feature_type="RO"),
+                FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14", coil=113),
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                FeatureOptions(feature_id="led_1_01", feature_type="LED"),
+                FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01", coil=8),
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                FeatureOptions(feature_id="active_power_1", feature_type="METER"),
+                FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active Power"),
+            ),
         ],
-        indirect=["config_loader"],
+        indirect=["_config_loader"],
     )
     async def test_output_features(
         self,
-        modbus_client: AsyncMock,
-        config_loader: ConfigLoader,
-        neuron: Neuron,
-        caplog: LogCaptureFixture,
-        circuit: str,
-        feature_type: str,
-        expected_topic_feature_name: str,
-        expected_value: int,
-        expected_repr: str,
-    ):
+        _modbus_client: ModbusClient,
+        _config_loader: ConfigLoader,
+        _neuron: Neuron,
+        options: FeatureOptions,
+        expected: FeatureExpected,
+    ) -> None:
         mock_response_is_error = MagicMock()
         mock_response_is_error.isError.return_value = False
 
-        modbus_client.write_coil.return_value = mock_response_is_error
+        _modbus_client.tcp.write_coil.return_value = mock_response_is_error
 
-        feature: Type[Feature] = neuron.features.by_circuit(circuit, feature_type=[feature_type])
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_feature_id(
+            options.feature_id, feature_types=[options.feature_type]
+        )
+
+        assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.feature_id}"
+        assert str(feature) == expected.repr
+
         feature._value = False
 
-        assert expected_value == feature.value
-        assert ("ON" if expected_value == 1 else "OFF") == feature.state
-
-        assert f"mocked_unipi/{expected_topic_feature_name}/{circuit}" == feature.topic
-        assert expected_repr == str(feature)
-        assert expected_repr == str(feature)
-        assert (True if expected_value == 1 else False) == feature.changed
+        assert feature.changed == bool(expected.value)
+        assert feature.value == expected.value
 
         if isinstance(feature, (Relay, DigitalOutput, Led)):
-            response = await feature.set_state(0)
-            assert False is response.isError()
+            assert feature.val_coil == expected.coil
+            assert feature.payload == ("ON" if expected.value == 1 else "OFF")
+            response: WriteSingleCoilResponse = await feature.set_state(False)
+            assert not response.isError()
+        elif isinstance(feature, MeterFeature):
+            assert feature.payload == expected.value
 
 
 class TestUnhappyPathFeatures:
     @pytest.mark.parametrize(
-        "config_loader, circuit, expected_log",
-        [((CONFIG_CONTENT, HARDWARE_DATA_CONTENT), "INVALID", "[CONFIG] 'INVALID' not found in FeatureMap!")],
-        indirect=["config_loader"],
+        "_config_loader, feature_id, expected",
+        [
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                "INVALID",
+                "[CONFIG] 'INVALID' not found in FeatureMap!",
+            )
+        ],
+        indirect=["_config_loader"],
     )
-    def test_invalid_feature_by_circuit(
-        self, config_loader: ConfigLoader, neuron: Neuron, circuit: str, expected_log: str
-    ):
+    def test_invalid_feature_by_feature_id(
+        self, _config_loader: ConfigLoader, _neuron: Neuron, feature_id: str, expected: str
+    ) -> None:
         with pytest.raises(ConfigException) as error:
-            neuron.features.by_circuit(circuit, feature_type=["DO", "RO"])
+            _neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
 
-        assert expected_log == str(error.value)
+        assert str(error.value) == expected

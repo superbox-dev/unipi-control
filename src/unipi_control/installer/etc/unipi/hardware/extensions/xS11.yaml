@@ -1,0 +1,24 @@
+manufacturer: Unipi
+model: xS11
+modbus_register_blocks:
+  # DI 1.x / RO 1.x
+  - start_reg: 0
+    count: 2
+  # LED 1.x
+  - start_reg: 31
+    count: 1
+modbus_features:
+  - feature_type: DI
+    count: 12
+    major_group: 1
+    val_reg: 0
+  - feature_type: RO
+    count: 13
+    major_group: 1
+    val_reg: 1
+    val_coil: 0
+  - feature_type: LED
+    major_group: 1
+    count: 3
+    val_coil: 25
+    val_reg: 31

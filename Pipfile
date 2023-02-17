@@ -4,21 +4,21 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pymodbus = "~=2.5.3"
-superbox-utils = "~=0.3.0"
+pymodbus = "~=3.1.3"
+superbox-utils = "~=2023.1"
 
 [dev-packages]
-black = "*"
-check-manifest = "*"
-flake8 = "*"
-flake8-docstrings = "*"
-mypy = "*"
-pre-commit = "*"
-pytest = "*"
-pytest-cov = "*"
-pytest-asyncio = "*"
-pytest-mock = "*"
-coverage-badge = "*"
-
-[requires]
-python_version = "3.8"
+black = "~=23.1.0"
+coverage-badge = "~=1.1.0"
+flake8 = "~=6.0.0"
+flake8-docstrings = "~=1.7.0"
+flake8-comprehensions = "~=3.10.1"
+flake8-noqa = "~=1.3.0"
+mypy = "~=1.0.0"
+pip-audit = "~=2.4.14"
+pylint = "~=2.16.2"
+pytest = "~=7.2.1"
+pytest-asyncio = "~=0.20.3"
+pytest-cov = "~=4.0.0"
+pytest-mock = "~=3.10.0"
+yamllint = "~=1.29.0"
