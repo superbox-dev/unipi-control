@@ -22,7 +22,9 @@ ignore_missing_imports = true
 # E0401: import-error
 # R0801: duplicate-code
 # R1732: consider-using-with
-disable = ["C0114", "C0115", "C0116", "C0301", "C0411", "E0401", "R0801", "R1732"]
+# R6003: consider-alternative-union-syntax (python 3.8 compatibility)
+# W6001: deprecated-typing-alias (python 3.8 compatibility)
+disable = ["C0114", "C0115", "C0116", "C0301", "C0411", "E0401", "R0801", "R1732", "R6003", "W6001"]
 notes = ["FIXME"]
 
 load-plugins = [
