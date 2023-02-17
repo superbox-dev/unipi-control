@@ -421,9 +421,8 @@ class EastronMeter(MeterFeature):
     def value(self) -> Optional[float]:
         """Return Eastron meter value."""
         _value: Optional[float] = None
-        _reg_value: list = self._reg_value()
 
-        if _reg_value:
+        if _reg_value := self._reg_value():
             _value = round(
                 float(
                     BinaryPayloadDecoder.fromRegisters(
