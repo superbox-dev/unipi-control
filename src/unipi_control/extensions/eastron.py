@@ -55,7 +55,7 @@ class EastronSDM120M:
             )
 
             if not response.isError():
-                meter_code: str = f"{format(response.getRegister(0), '0x')}{format(response.getRegister(1), '0x')}"
+                meter_code: str = f"{format(response.registers[0], '0x')}{format(response.registers[1], '0x')}"
                 sw_version = f"{meter_code[:3]}.{meter_code[3:]}"
         except asyncio.exceptions.TimeoutError:
             logger.error("%s Timeout on: %s", LogPrefix.MODBUS, data)

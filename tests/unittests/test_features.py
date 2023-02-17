@@ -95,6 +95,7 @@ class TestHappyPathFeatures:
         assert str(feature) == expected.repr
 
         feature._value = False
+
         assert feature.changed == bool(expected.value)
         assert feature.value == expected.value
 

@@ -332,7 +332,7 @@ modbus_features:
 MODBUS_FEATURE_ENABLED: Final[int] = 1
 
 NEURON_L203_MODBUS_REGISTER: Final[List] = [
-    PropertyMock(registers=[0, 12]),  # DI 1.x / DO 1.x
+    PropertyMock(registers=[0, 0]),  # DI 1.x / DO 1.x
     PropertyMock(registers=[0]),  # LED 1.x
     PropertyMock(registers=[16384, 10240]),  # DI 2.x / RO 2.x
     PropertyMock(registers=[24576, 8192]),  # DI 3.x / RO 3.x
