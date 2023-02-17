@@ -21,7 +21,7 @@ from unipi_control.modbus import ModbusClient
 class Board:
     """Class to parse board features and register it to the ``FeatureMap``."""
 
-    def __init__(self, neuron, versions: list, major_group: int):
+    def __init__(self, neuron, versions: list, major_group: int) -> None:
         """Initialize board.
 
         Parameters
@@ -38,7 +38,7 @@ class Board:
         self.major_group: int = major_group
         self.firmware = f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
 
-    def _parse_feature_ro(self, max_count: int, modbus_feature: dict):
+    def _parse_feature_ro(self, max_count: int, modbus_feature: dict) -> None:
         if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
                 ro: Relay = Relay(
@@ -50,7 +50,7 @@ class Board:
 
                 self.neuron.features.register(ro)
 
-    def _parse_feature_di(self, max_count: int, modbus_feature: dict):
+    def _parse_feature_di(self, max_count: int, modbus_feature: dict) -> None:
         if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
                 di: DigitalInput = DigitalInput(
@@ -62,7 +62,7 @@ class Board:
 
                 self.neuron.features.register(di)
 
-    def _parse_feature_do(self, max_count: int, modbus_feature: dict):
+    def _parse_feature_do(self, max_count: int, modbus_feature: dict) -> None:
         if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
                 do: DigitalOutput = DigitalOutput(
@@ -74,7 +74,7 @@ class Board:
 
                 self.neuron.features.register(do)
 
-    def _parse_feature_led(self, max_count: int, modbus_feature: dict):
+    def _parse_feature_led(self, max_count: int, modbus_feature: dict) -> None:
         if modbus_feature["major_group"] == self.major_group:
             for index in range(0, max_count):
                 led: Led = Led(
@@ -86,14 +86,14 @@ class Board:
 
                 self.neuron.features.register(led)
 
-    def _parse_feature(self, modbus_feature: dict):
+    def _parse_feature(self, modbus_feature: dict) -> None:
         max_count: int = modbus_feature["count"]
         feature_type: str = modbus_feature["feature_type"].lower()
 
         if func := getattr(self, f"_parse_feature_{feature_type}", None):
             func(max_count, modbus_feature)
 
-    def parse_features(self):
+    def parse_features(self) -> None:
         """Parse features from hardware definition."""
         for modbus_feature in self.definition.modbus_features:
             self._parse_feature(modbus_feature)
@@ -118,7 +118,7 @@ class Neuron:
         Unipi Neuron.
     """
 
-    def __init__(self, config: Config, modbus_client: ModbusClient):
+    def __init__(self, config: Config, modbus_client: ModbusClient) -> None:
         self.config: Config = config
         self.modbus_client: ModbusClient = modbus_client
         self.hardware: HardwareData = HardwareData(config=config)
@@ -130,12 +130,12 @@ class Neuron:
             hardware=self.hardware,
         )
 
-    async def init(self):
+    async def init(self) -> None:
         """Initialize internal and external hardware."""
         await self.read_boards()
         await self.read_extensions()
 
-    async def read_boards(self):
+    async def read_boards(self) -> None:
         """Scan Modbus TCP and initialize Unipi Neuron board."""
         logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
 
@@ -154,7 +154,7 @@ class Neuron:
 
         await self.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
-    async def read_extensions(self):
+    async def read_extensions(self) -> None:
         """Scan Modbus RTU and initialize extension classes."""
         logger.info("%s Reading extensions", LogPrefix.MODBUS)
 

@@ -10,7 +10,7 @@ from unipi_control.features import EastronMeter
 
 
 class EastronSDM120M:
-    def __init__(self, neuron, definition: HardwareDefinition):
+    def __init__(self, neuron, definition: HardwareDefinition) -> None:
         """Initialize Eastron SDM120M electricity meter.
 
         Attributes
@@ -22,7 +22,7 @@ class EastronSDM120M:
         self.definition: HardwareDefinition = definition
         self._sw_version: Optional[str] = None
 
-    def _parse_feature_meter(self, modbus_feature: dict):
+    def _parse_feature_meter(self, modbus_feature: dict) -> None:
         meter: EastronMeter = EastronMeter(
             neuron=self.neuron,
             definition=self.definition,
@@ -32,7 +32,7 @@ class EastronSDM120M:
 
         self.neuron.features.register(meter)
 
-    def _parse_feature(self, modbus_feature: dict):
+    def _parse_feature(self, modbus_feature: dict) -> None:
         feature_type: str = modbus_feature["feature_type"].lower()
 
         if func := getattr(self, f"_parse_feature_{feature_type}", None):
@@ -62,12 +62,12 @@ class EastronSDM120M:
 
         return sw_version
 
-    def parse_features(self):
+    def parse_features(self) -> None:
         """Parse features from hardware definition."""
         for modbus_feature in self.definition.modbus_features:
             self._parse_feature(modbus_feature)
 
-    async def init(self):
+    async def init(self) -> None:
         """Initialize Eastron SDM120M device class.
 
         Read software version from Modbus RTU and parse features.

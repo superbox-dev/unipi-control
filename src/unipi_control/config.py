@@ -8,8 +8,10 @@ from dataclasses import field
 from functools import cached_property
 from pathlib import Path
 from tempfile import gettempdir
+from typing import Any
 from typing import Final
 from typing import Generator
+from typing import Iterator
 from typing import List
 from typing import Literal
 from typing import Mapping
@@ -91,7 +93,7 @@ class CoverConfig(ConfigLoaderMixin):
     cover_up: str = field(default_factory=str)
     cover_down: str = field(default_factory=str)
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate cover configuration."""
         for _field in ("object_id", "friendly_name", "device_class", "cover_up", "cover_down"):
             if not getattr(self, _field):
@@ -140,7 +142,7 @@ class ModbusConfig(ConfigLoaderMixin):
     parity: str = field(default="N")
     units: list = field(init=False, default_factory=list)
 
-    def init(self):
+    def init(self) -> None:
         """Initialize Modbus configuration and start custom validation."""
         for index, unit in enumerate(self.units):
             unit_config: ModbusUnitConfig = ModbusUnitConfig()
@@ -164,7 +166,7 @@ class ModbusConfig(ConfigLoaderMixin):
         """
         return (modbus_unit for modbus_unit in self.units if modbus_unit.identifier == identifier)
 
-    def _validate_unique_units(self):
+    def _validate_unique_units(self) -> None:
         unique_units: List[int] = []
 
         for unit in self.units:
@@ -214,14 +216,14 @@ class Config(ConfigLoaderMixin):
         """Return hardware path to neuron devices and extensions."""
         return self.config_base_path / "hardware"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.temp_path.mkdir(exist_ok=True)
         self.update_from_yaml_file(config_path=self.config_base_path / "control.yaml")
 
         self.init()
         self.modbus.init()
 
-    def init(self):
+    def init(self) -> None:
         """Initialize configuration and start custom validation."""
         for feature_id, feature_data in self.features.items():
             feature_config: FeatureConfig = FeatureConfig()
@@ -237,7 +239,7 @@ class Config(ConfigLoaderMixin):
         self._validate_covers_circuits()
         self._validate_cover_ids()
 
-    def _validate_feature_object_ids(self):
+    def _validate_feature_object_ids(self) -> None:
         object_ids: List[str] = []
 
         for feature in self.features.values():
@@ -263,7 +265,7 @@ class Config(ConfigLoaderMixin):
 
         return circuits
 
-    def _validate_covers_circuits(self):
+    def _validate_covers_circuits(self) -> None:
         circuits: List[str] = self.get_cover_circuits()
 
         for circuit in circuits:
@@ -273,7 +275,7 @@ class Config(ConfigLoaderMixin):
                     f"Driving both signals up and down at the same time can damage the motor!"
                 )
 
-    def _validate_cover_ids(self):
+    def _validate_cover_ids(self) -> None:
         object_ids: List[str] = []
 
         for cover in self.covers:
@@ -291,14 +293,14 @@ class HardwareInfo:
     version: str = field(default="unknown", init=False)
     serial: str = field(default="unknown", init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         unipi_1: Path = self.sys_bus / "1-0050/eeprom"
         unipi_patron: Path = self.sys_bus / "2-0057/eeprom"
         unipi_neuron_1: Path = self.sys_bus / "1-0057/eeprom"
         unipi_neuron_0: Path = self.sys_bus / "0-0057/eeprom"
 
         if unipi_1.is_file():
-            with open(unipi_1, "rb") as _file:
+            with unipi_1.open("rb") as _file:
                 ee_bytes = _file.read(256)
 
                 if ee_bytes[226] == 1 and ee_bytes[227] == 1:
@@ -313,7 +315,7 @@ class HardwareInfo:
 
                 self.serial = struct.unpack("i", ee_bytes[228:232])[0]
         elif unipi_patron.is_file():
-            with open(unipi_patron, "rb") as _file:
+            with unipi_patron.open("rb") as _file:
                 ee_bytes = _file.read(128)
 
                 self.name = "Unipi Patron"
@@ -321,7 +323,7 @@ class HardwareInfo:
                 self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
                 self.serial = struct.unpack("i", ee_bytes[100:104])[0]
         elif unipi_neuron_1.is_file():
-            with open(unipi_neuron_1, "rb") as _file:
+            with unipi_neuron_1.open("rb") as _file:
                 ee_bytes = _file.read(128)
 
                 self.name = "Unipi Neuron"
@@ -329,7 +331,7 @@ class HardwareInfo:
                 self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
                 self.serial = struct.unpack("i", ee_bytes[100:104])[0]
         elif unipi_neuron_0.is_file():
-            with open(unipi_neuron_0, "rb") as _file:
+            with unipi_neuron_0.open("rb") as _file:
                 ee_bytes = _file.read(128)
 
                 self.name = "Unipi Neuron"
@@ -360,7 +362,7 @@ class HardwareDataDict(TypedDict):
 
 
 class HardwareData(Mapping):
-    def __init__(self, config: Config):
+    def __init__(self, config: Config) -> None:
         self.config = config
 
         self.data: HardwareDataDict = HardwareDataDict(
@@ -374,16 +376,16 @@ class HardwareData(Mapping):
         self._read_neuron_definition()
         self._read_extension_definitions()
 
-    def __getitem__(self, key: Literal["neuron", "definitions"]):
+    def __getitem__(self, key: Literal["neuron", "definitions"]) -> Any:
         return self.data[key]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.data)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def _read_neuron_definition(self):
+    def _read_neuron_definition(self) -> None:
         definition_file: Path = Path(f'{self.config.hardware_path}/neuron/{self.data["neuron"].model}.yaml')
 
         if definition_file.is_file():
@@ -411,7 +413,7 @@ class HardwareData(Mapping):
                 f'No valid YAML definition for active Neuron device! Device name is {self.data["neuron"].model}'
             )
 
-    def _read_extension_definitions(self):
+    def _read_extension_definitions(self) -> None:
         try:
             for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
                 yaml_content: dict = yaml_loader_safe(definition_file)

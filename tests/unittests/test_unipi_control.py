@@ -1,8 +1,8 @@
+import builtins
 import subprocess
 from argparse import Namespace
 from typing import List
 
-import builtins
 import pytest
 from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
@@ -21,7 +21,7 @@ from .test_unipi_control_data import UNIPI_CONTROL_INSTALLER_WITH_ENABLE_SYSTEMD
 
 
 class TestHappyPathUnipiControl:
-    def test_parse_args(self):
+    def test_parse_args(self) -> None:
         parser = parse_args(["-i", "-y", "-vv"])
 
         assert parser.install is True
@@ -48,7 +48,7 @@ class TestHappyPathUnipiControl:
         capsys: CaptureFixture,
         side_effect: List[str],
         expected: str,
-    ):
+    ) -> None:
         config: Config = _config_loader.get_config()
 
         mock_input = mocker.patch.object(builtins, "input")

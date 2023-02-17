@@ -31,8 +31,8 @@ class TestHappyPathHassCoversMqttPlugin:
         _neuron: Neuron,
         _covers: CoverMap,
         caplog: LogCaptureFixture,
-    ):
-        async def run():
+    ) -> None:
+        async def run() -> None:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
                 neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers
@@ -122,7 +122,7 @@ class TestHappyPathHassCoversMqttPlugin:
         _neuron: Neuron,
         _covers: CoverMap,
         expected: List[dict],
-    ):
+    ) -> None:
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
             neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers

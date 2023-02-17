@@ -10,7 +10,7 @@ from unipi_control.features import NeuronFeature
 
 
 class HassDiscoveryMixin:
-    def __init__(self, neuron, mqtt_client: Client):
+    def __init__(self, neuron, mqtt_client: Client) -> None:
         self.neuron = neuron
         self.mqtt_client: Client = mqtt_client
 

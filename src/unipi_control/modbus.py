@@ -32,13 +32,13 @@ class ModbusCacheData:
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, modbus_client: ModbusClient, hardware: HardwareData):
+    def __init__(self, modbus_client: ModbusClient, hardware: HardwareData) -> None:
         self.modbus_client: ModbusClient = modbus_client
         self.hardware: HardwareData = hardware
 
         self.data: Dict[int, Dict[int, int]] = {}
 
-    async def _save_response(self, scan_type: str, modbus_register_block: dict, definition: HardwareDefinition):
+    async def _save_response(self, scan_type: str, modbus_register_block: dict, definition: HardwareDefinition) -> None:
         data: dict = {
             "address": modbus_register_block["start_reg"],
             "count": modbus_register_block["count"],
@@ -60,7 +60,7 @@ class ModbusCacheData:
         except asyncio.exceptions.TimeoutError:
             logger.error("%s [%s] Timeout on: %s", LogPrefix.MODBUS, scan_type.upper(), data)
 
-    async def scan(self, scan_type: str, hardware_types: List[str]):
+    async def scan(self, scan_type: str, hardware_types: List[str]) -> None:
         """Read modbus register blocks and cache the response."""
         for definition in self.hardware.get_definition_by_hardware_types(hardware_types):
             if not self.data.get(definition.unit):

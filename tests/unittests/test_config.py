@@ -97,7 +97,7 @@ class TestUnhappyPathConfig:
         ],
         indirect=["_config_loader"],
     )
-    def test_validation(self, _config_loader: ConfigLoader, expected: str):
+    def test_validation(self, _config_loader: ConfigLoader, expected: str) -> None:
         with pytest.raises(ConfigException) as error:
             _config_loader.get_config()
 

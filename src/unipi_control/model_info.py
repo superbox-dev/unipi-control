@@ -3,7 +3,7 @@ import struct
 from pathlib import Path
 
 
-def main():
+def main() -> None:
     """Tiny script to detect the Unipi Neuron model."""
     unipi_1: Path = Path("/sys/bus/i2c/devices/1-0050/eeprom")
     unipi_patron: Path = Path("/sys/bus/i2c/devices/2-0057/eeprom")
@@ -16,7 +16,7 @@ def main():
     serial: str = "unknown"
 
     if unipi_1.is_file():
-        with open(unipi_1, "rb") as _file:
+        with unipi_1.open("rb") as _file:
             ee_bytes = _file.read(256)
 
             if ee_bytes[226] == 1 and ee_bytes[227] == 1:
@@ -31,7 +31,7 @@ def main():
 
             serial = struct.unpack("i", ee_bytes[228:232])[0]
     elif unipi_neuron_1.is_file():
-        with open(unipi_neuron_1, "rb") as _file:
+        with unipi_neuron_1.open("rb") as _file:
             ee_bytes = _file.read(128)
 
             name = "Unipi Neuron"
@@ -39,7 +39,7 @@ def main():
             version = f"{ee_bytes[99]}.{ee_bytes[98]}"
             serial = struct.unpack("i", ee_bytes[100:104])[0]
     elif unipi_patron.is_file():
-        with open(unipi_patron, "rb") as _file:
+        with unipi_patron.open("rb") as _file:
             ee_bytes = _file.read(128)
 
             name = "Unipi Patron"
@@ -47,7 +47,7 @@ def main():
             version = f"{ee_bytes[99]}.{ee_bytes[98]}"
             serial = struct.unpack("i", ee_bytes[100:104])[0]
     elif unipi_neuron_0.is_file():
-        with open(unipi_neuron_0, "rb") as _file:
+        with unipi_neuron_0.open("rb") as _file:
             ee_bytes = _file.read(128)
 
             name = "Unipi Neuron"

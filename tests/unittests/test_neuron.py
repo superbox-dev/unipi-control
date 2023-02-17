@@ -26,7 +26,7 @@ class TestUnhappyPathNeuron:
         mocker: MockerFixture,
         _config_loader: ConfigLoader,
         caplog: LogCaptureFixture,
-    ):
+    ) -> None:
         config: Config = _config_loader.get_config()
 
         mock_response_is_error: MagicMock = MagicMock()

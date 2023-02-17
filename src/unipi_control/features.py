@@ -36,7 +36,7 @@ class FeatureType(Enum):
     RO: Final[tuple] = ("RO", "relay", "Relay")
     METER: Final[tuple] = ("METER", "meter", "Meter")
 
-    def __init__(self, short_name: str, topic_name: str, long_name: str):
+    def __init__(self, short_name: str, topic_name: str, long_name: str) -> None:
         self.short_name: str = short_name
         self.topic_name: str = topic_name
         self.long_name: str = long_name
@@ -45,7 +45,7 @@ class FeatureType(Enum):
 class BaseFeature(ABC):
     """Base class from which all features inherit."""
 
-    def __init__(self, neuron, definition: HardwareDefinition, feature_type: str):
+    def __init__(self, neuron, definition: HardwareDefinition, feature_type: str) -> None:
         self.neuron = neuron
         self.definition: HardwareDefinition = definition
         self.feature_type: FeatureType = FeatureType[feature_type]
@@ -187,7 +187,7 @@ class BaseFeature(ABC):
 
 
 class NeuronFeature(BaseFeature):
-    def __init__(self, neuron, definition: HardwareDefinition, **kwargs):
+    def __init__(self, neuron, definition: HardwareDefinition, **kwargs) -> None:
         super().__init__(neuron, definition, kwargs["feature_type"])
 
         self.index: int = kwargs["index"]
@@ -321,7 +321,7 @@ class Led(NeuronFeature):
 
 
 class MeterFeature(BaseFeature):
-    def __init__(self, neuron, definition: HardwareDefinition, **kwargs):
+    def __init__(self, neuron, definition: HardwareDefinition, **kwargs) -> None:
         super().__init__(neuron, definition, kwargs["feature_type"])
 
         self._base_friendly_name: str = kwargs["friendly_name"]
@@ -409,7 +409,7 @@ class MeterFeature(BaseFeature):
 
 
 class EastronMeter(MeterFeature):
-    def __init__(self, neuron, definition: HardwareDefinition, sw_version: Optional[str], **kwargs):
+    def __init__(self, neuron, definition: HardwareDefinition, sw_version: Optional[str], **kwargs) -> None:
         super().__init__(neuron, definition, **kwargs)
 
         self._reg_value = lambda: neuron.modbus_cache_data.get_register(
@@ -441,10 +441,10 @@ class EastronMeter(MeterFeature):
 
 
 class FeatureMap:
-    def __init__(self):
+    def __init__(self) -> None:
         self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]]] = {}
 
-    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]):
+    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature]) -> None:
         """Add a feature to the data storage.
 
         Parameters

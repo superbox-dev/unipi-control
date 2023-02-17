@@ -31,8 +31,8 @@ class TestHappyPathHassSensorsMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ):
-        async def run():
+    ) -> None:
+        async def run() -> None:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             plugin: HassSensorsMqttPlugin = HassSensorsMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
 
@@ -156,7 +156,7 @@ class TestHappyPathHassSensorsMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         expected: List[dict],
-    ):
+    ) -> None:
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassSensorsMqttPlugin = HassSensorsMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
         features: Iterator = _neuron.features.by_feature_types(HassSensorsDiscovery.publish_feature_types)

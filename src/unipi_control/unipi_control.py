@@ -47,12 +47,12 @@ class UnipiControl:
 
     NAME: Final[str] = "unipi-control"
 
-    def __init__(self, config: Config, modbus_client: ModbusClient):
+    def __init__(self, config: Config, modbus_client: ModbusClient) -> None:
         self.config: Config = config
         self.modbus_client: ModbusClient = modbus_client
         self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
-    async def _init_tasks(self, stack: AsyncExitStack, mqtt_client: Client):
+    async def _init_tasks(self, stack: AsyncExitStack, mqtt_client: Client) -> None:
         tasks: Set[Task] = set()
         stack.push_async_callback(self._cancel_tasks, tasks)
 
@@ -72,7 +72,7 @@ class UnipiControl:
         await asyncio.gather(*tasks)
 
     @staticmethod
-    async def _cancel_tasks(tasks):
+    async def _cancel_tasks(tasks) -> None:
         for task in tasks:
             if task.done():
                 continue
@@ -83,7 +83,7 @@ class UnipiControl:
             except asyncio.CancelledError:
                 pass
 
-    async def _modbus_connect(self):
+    async def _modbus_connect(self) -> None:
         await self.modbus_client.tcp.connect()
 
         if self.modbus_client.tcp.connected:
@@ -109,7 +109,7 @@ class UnipiControl:
         else:
             raise UnexpectedException(f"Serial client can't connect to {self.modbus_client.serial.params.port}")
 
-    async def run(self):
+    async def run(self) -> None:
         """Connect to Modbus and initialize Unipi Neuron hardware."""
         await self._modbus_connect()
         await self.neuron.init()
@@ -122,7 +122,7 @@ class UnipiControl:
         )
 
     @classmethod
-    def install(cls, config: Config, assume_yes: bool):
+    def install(cls, config: Config, assume_yes: bool) -> None:
         """Interactive installer for Unipi Control.
 
         Parameters
@@ -192,7 +192,7 @@ def parse_args(args: list) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def main():
+def main() -> None:
     """Entrypoint for Unipi Control script."""
     unipi_control: Optional[UnipiControl] = None
 
@@ -205,7 +205,7 @@ def main():
         if args.install:
             UnipiControl.install(config=config, assume_yes=args.yes)
         else:
-            unipi_control: UnipiControl = UnipiControl(
+            unipi_control = UnipiControl(
                 config=config,
                 modbus_client=ModbusClient(
                     tcp=AsyncModbusTcpClient(host="localhost"),

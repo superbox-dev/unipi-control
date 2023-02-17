@@ -19,7 +19,7 @@ from unipi_control.log import LOG_MQTT_PUBLISH
 class HassCoversDiscovery:
     """Provide the covers as Home Assistant MQTT discovery."""
 
-    def __init__(self, covers: CoverMap, neuron, mqtt_client: Client):
+    def __init__(self, covers: CoverMap, neuron, mqtt_client: Client) -> None:
         self.mqtt_client: Client = mqtt_client
         self.covers: CoverMap = covers
 
@@ -69,7 +69,7 @@ class HassCoversDiscovery:
 
         return topic, message
 
-    async def publish(self):
+    async def publish(self) -> None:
         """Publish MQTT Home Assistant discovery topics for covers."""
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic, message = self._get_discovery(cover)
@@ -81,10 +81,10 @@ class HassCoversDiscovery:
 class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
-    def __init__(self, neuron, mqtt_client, covers: CoverMap):
+    def __init__(self, neuron, mqtt_client, covers: CoverMap) -> None:
         self._hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
-    async def init_tasks(self, tasks: Set[Task]):
+    async def init_tasks(self, tasks: Set[Task]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
 
         Parameters

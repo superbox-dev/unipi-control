@@ -66,7 +66,7 @@ class CoverTimer:
     task and run a callback function when it expired.
     """
 
-    def __init__(self, timeout: float, callback: Callable):
+    def __init__(self, timeout: float, callback: Callable) -> None:
         """Initialize timer.
 
         Parameters
@@ -80,15 +80,15 @@ class CoverTimer:
         self._callback: Callable = callback
         self._task: Optional[Task] = None
 
-    async def _job(self):
+    async def _job(self) -> None:
         await asyncio.sleep(self._timeout - ASYNCIO_SLEEP_DELAY_FIX)
         await self._callback()
 
-    def start(self):
+    def start(self) -> None:
         """Start cover run timer."""
         self._task = asyncio.create_task(self._job())
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Cancel cover run timer."""
         if self._task:
             self._task.cancel()
@@ -129,7 +129,7 @@ class Cover:
         The feature for closing the cover.
     """
 
-    def __init__(self, config, features, **kwargs):
+    def __init__(self, config, features, **kwargs) -> None:
         """Initialize cover.
 
         Parameters
@@ -307,25 +307,26 @@ class Cover:
 
         return False
 
-    def _stop_timer(self):
+    def _stop_timer(self) -> None:
         if self._timer is not None:
             self._timer.cancel()
             self._timer = None
 
         self._start_timer = None
 
-    def _update_state(self):
+    def _update_state(self) -> None:
         if self.settings.set_position is True:
-            if self.position <= 0:
-                self.state = CoverState.CLOSED
-            elif self.position >= 100:
-                self.state = CoverState.OPEN
-            else:
-                self.state = CoverState.STOPPED
+            if self.position is not None:
+                if self.position <= 0:
+                    self.state = CoverState.CLOSED
+                elif self.position >= 100:
+                    self.state = CoverState.OPEN
+                else:
+                    self.state = CoverState.STOPPED
         else:
             self.state = CoverState.STOPPED
 
-    def _update_position(self):
+    def _update_position(self) -> None:
         if not self.settings.set_position:
             return
 
@@ -347,16 +348,16 @@ class Cover:
             elif self.position >= 100:
                 self.position = 100
 
-    def _delete_position(self):
+    def _delete_position(self) -> None:
         if self.settings.set_position is True:
             self.position_file.unlink(missing_ok=True)
 
     @run_in_executor
-    def _write_position(self):
+    def _write_position(self) -> None:
         if self.settings.set_position is True:
             self.position_file.write_text(f"{self.position}/{self.tilt}")
 
-    def read_position(self):
+    def read_position(self) -> None:
         """Read the cover position and tilt from the temporary cover file."""
         if self.settings.set_position is True:
             try:
@@ -511,7 +512,7 @@ class Cover:
 
         return None
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop moving the cover.
 
         If the cover is already opening or closing then the position is
@@ -660,7 +661,7 @@ class Cover:
 
 
 class CoverMap:
-    def __init__(self, config: Config, features: FeatureMap):
+    def __init__(self, config: Config, features: FeatureMap) -> None:
         self.data: Dict[str, List[Cover]] = {}
 
         for cover in config.covers:

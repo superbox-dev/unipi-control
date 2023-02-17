@@ -22,14 +22,14 @@ from unittests.conftest_data import NEURON_L203_MODBUS_REGISTER
 
 
 @pytest.fixture(autouse=True, scope="session")
-def logger():
+def logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger(UnipiControl.NAME).handlers.clear()
     logging.info("Initialize logging")
 
 
 class ConfigLoader:
-    def __init__(self, temp: Path):
+    def __init__(self, temp: Path) -> None:
         self.temp: Path = temp
         self.config_file_path: Path = self.temp / "control.yaml"
 
@@ -47,16 +47,16 @@ class ConfigLoader:
         self.temp_path: Path = self.temp / "unipi"
         self.temp_path.mkdir(parents=True)
 
-    def write_config(self, content: str):
-        with open(self.config_file_path, "w", encoding="utf-8") as _file:
+    def write_config(self, content: str) -> None:
+        with self.config_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def write_hardware_data(self, content: str):
-        with open(self.hardware_data_file_path, "w", encoding="utf-8") as _file:
+    def write_hardware_data(self, content: str) -> None:
+        with self.hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def write_extension_hardware_data(self, content: str):
-        with open(self.extension_hardware_data_file_path, "w", encoding="utf-8") as _file:
+    def write_extension_hardware_data(self, content: str) -> None:
+        with self.extension_hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
     def get_config(self) -> Config:
@@ -136,13 +136,13 @@ class MockMQTTMessage(NamedTuple):
 
 
 class MockMQTTMessages:
-    def __init__(self, message):
+    def __init__(self, message) -> None:
         self.message = message
 
     def __aiter__(self):
         return self
 
-    async def __anext__(self):
+    async def __anext__(self) -> MockMQTTMessage:
         if self.message:
             return MockMQTTMessage(self.message.pop())
 

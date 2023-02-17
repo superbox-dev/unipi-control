@@ -34,8 +34,8 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ):
-        async def run():
+    ) -> None:
+        async def run() -> None:
             mock_mqtt_messages: AsyncMock = AsyncMock()
             mock_mqtt_messages.__aenter__.return_value = MockMQTTMessages([b"""ON""", b"""OFF"""])
 
@@ -88,8 +88,8 @@ class TestHappyPathMeterFeaturesMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ):
-        async def run():
+    ) -> None:
+        async def run() -> None:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             mock_modbus_cache_data_scan: MagicMock = mocker.patch("unipi_control.modbus.ModbusCacheData.scan")
 

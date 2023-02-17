@@ -20,11 +20,11 @@ class BaseFeaturesMqttPlugin:
     subscribe_feature_types: List[str] = []
     publish_feature_types: List[str] = []
 
-    def __init__(self, neuron, mqtt_client: Client):
+    def __init__(self, neuron, mqtt_client: Client) -> None:
         self.neuron = neuron
         self.mqtt_client: Client = mqtt_client
 
-    async def _publish(self, scan_type: str, hardware_types: List[str], feature_types: List[str], sleep: float):
+    async def _publish(self, scan_type: str, hardware_types: List[str], feature_types: List[str], sleep: float) -> None:
         while self.PUBLISH_RUNNING:
             await self.neuron.modbus_cache_data.scan(scan_type, hardware_types)
 
@@ -44,7 +44,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     publish_feature_types: List[str] = ["DI", "DO", "RO"]
     scan_interval: float = 25e-3
 
-    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]):
+    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         """Initialize MQTT tasks for subscribe and publish MQTT topics.
 
         Parameters
@@ -77,7 +77,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks.add(task)
 
     @staticmethod
-    async def _subscribe(feature, topic: str, messages: AsyncIterable):
+    async def _subscribe(feature, topic: str, messages: AsyncIterable) -> None:
         async for message in messages:
             value: str = message.payload.decode()
 
@@ -95,7 +95,7 @@ class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     publish_feature_types: List[str] = ["METER"]
     scan_interval: float = 50e-1
 
-    async def init_tasks(self, tasks: Set[Task]):
+    async def init_tasks(self, tasks: Set[Task]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
 
         Parameters

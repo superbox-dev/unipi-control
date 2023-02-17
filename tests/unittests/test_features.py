@@ -81,7 +81,7 @@ class TestHappyPathFeatures:
         _neuron: Neuron,
         options: FeatureOptions,
         expected: FeatureExpected,
-    ):
+    ) -> None:
         mock_response_is_error = MagicMock()
         mock_response_is_error.isError.return_value = False
 
@@ -122,7 +122,7 @@ class TestUnhappyPathFeatures:
     )
     def test_invalid_feature_by_feature_id(
         self, _config_loader: ConfigLoader, _neuron: Neuron, feature_id: str, expected: str
-    ):
+    ) -> None:
         with pytest.raises(ConfigException) as error:
             _neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
 
