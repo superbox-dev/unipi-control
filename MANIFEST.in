@@ -1,5 +1,4 @@
 graft src
 include LICENSE
 global-exclude *.pyc
-
-prune extras
+recursive-include config *

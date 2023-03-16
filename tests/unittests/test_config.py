@@ -4,22 +4,22 @@ from unipi_control.config import ConfigException
 from unittests.conftest import ConfigLoader
 from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from .test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
-from .test_config_data import CONFIG_DUPLICATE_COVER_ID
-from .test_config_data import CONFIG_DUPLICATE_MODBUS_UNIT
-from .test_config_data import CONFIG_DUPLICATE_OBJECT_ID
-from .test_config_data import CONFIG_INVALID
-from .test_config_data import CONFIG_INVALID_COVER_ID
-from .test_config_data import CONFIG_INVALID_DEVICE_CLASS
-from .test_config_data import CONFIG_INVALID_DEVICE_NAME
-from .test_config_data import CONFIG_INVALID_FEATURE_ID
-from .test_config_data import CONFIG_INVALID_FEATURE_TYPE
-from .test_config_data import CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX
-from .test_config_data import CONFIG_INVALID_LOG_LEVEL
-from .test_config_data import CONFIG_INVALID_MODBUS_BAUD_RATE
-from .test_config_data import CONFIG_INVALID_MODBUS_PARITY
-from .test_config_data import CONFIG_MISSING_COVER_KEY
-from .test_config_data import CONFIG_MISSING_DEVICE_NAME
+from unittests.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
+from unittests.test_config_data import CONFIG_DUPLICATE_COVER_ID
+from unittests.test_config_data import CONFIG_DUPLICATE_MODBUS_UNIT
+from unittests.test_config_data import CONFIG_DUPLICATE_OBJECT_ID
+from unittests.test_config_data import CONFIG_INVALID
+from unittests.test_config_data import CONFIG_INVALID_COVER_ID
+from unittests.test_config_data import CONFIG_INVALID_DEVICE_CLASS
+from unittests.test_config_data import CONFIG_INVALID_DEVICE_NAME
+from unittests.test_config_data import CONFIG_INVALID_FEATURE_ID
+from unittests.test_config_data import CONFIG_INVALID_FEATURE_TYPE
+from unittests.test_config_data import CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX
+from unittests.test_config_data import CONFIG_INVALID_LOG_LEVEL
+from unittests.test_config_data import CONFIG_INVALID_MODBUS_BAUD_RATE
+from unittests.test_config_data import CONFIG_INVALID_MODBUS_PARITY
+from unittests.test_config_data import CONFIG_MISSING_COVER_KEY
+from unittests.test_config_data import CONFIG_MISSING_DEVICE_NAME
 
 
 class TestUnhappyPathConfig:
