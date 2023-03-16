@@ -15,6 +15,14 @@ The necessary hardware is also required for this.
 
 Control Unipi I/O directly with MQTT commands and without [Evok](https://github.com/UniPiTechnology/evok). Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionally you can enable the Home Assistant MQTT discovery for binary sensors, sensors, switches and covers.
 
+## Supported hardware
+
+* Unipi Neuron L203
+* External Modbus RTU devices
+  * [Eastron SDM120M](https://www.eastroneurope.com/products/view/sdm120modbus)
+
+If you have an Unipi device, that is not supported, then contact me.
+
 ## Getting Started
 
 **Requirements:**
@@ -38,14 +46,6 @@ Copy the config files to your `/etc` directory and start the systemd service:
 $ systemctl enable unipi-control.service
 $ systemctl start unipi-control.service
 ```
-
-## Supported Devices
-
-* Unipi Neuron L203
-* External Modbus RTU devices
-  * [Eastron SDM120M](https://www.eastroneurope.com/products/view/sdm120modbus)
-
-If you have an Unipi device, that is not supported, then contact me.
 
 ## Configuration
 
