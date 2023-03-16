@@ -1,7 +1,5 @@
 import argparse
 import asyncio
-import shutil
-import subprocess
 import sys
 import uuid
 from asyncio import Task
@@ -14,12 +12,12 @@ from typing import Set
 from asyncio_mqtt import Client
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
-
 from superbox_utils.argparse import init_argparse
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
 from superbox_utils.text.text import slugify
+
 from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
