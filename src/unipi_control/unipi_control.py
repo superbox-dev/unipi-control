@@ -121,56 +121,6 @@ class UnipiControl:
             callback=self._init_tasks,
         )
 
-    @classmethod
-    def install(cls, config: Config, assume_yes: bool) -> None:
-        """Interactive installer for Unipi Control.
-
-        Parameters
-        ----------
-        config: Config
-            Unipi Control configuration
-        assume_yes: bool
-            Non-interactive mode. Accept all prompts with ``yes``.
-        """
-        src_config_path: Path = Path(__file__).parents[0] / "installer/etc/unipi"
-        src_systemd_path: Path = Path(__file__).parents[0] / f"installer/etc/systemd/system/{cls.NAME}.service"
-        dest_config_path: Path = config.config_base_path
-
-        dirs_exist_ok: bool = False
-        copy_config_files: bool = True
-
-        if dest_config_path.exists():
-            overwrite_config: str = "y"
-
-            if not assume_yes:
-                overwrite_config = input("\nOverwrite existing config files? [Y/n]")
-
-            if overwrite_config.lower() == "y":
-                dirs_exist_ok = True
-            else:
-                copy_config_files = False
-
-        if copy_config_files:
-            print(f"Copy config files to '{dest_config_path}'")
-            shutil.copytree(src_config_path, dest_config_path, dirs_exist_ok=dirs_exist_ok)
-
-        print(f"Copy systemd service '{cls.NAME}.service'")
-        shutil.copyfile(src_systemd_path, f"{config.systemd_path}/{cls.NAME}.service")
-
-        enable_and_start_systemd: str = "y"
-
-        if not assume_yes:
-            enable_and_start_systemd = input("\nEnable and start systemd service? [Y/n]")
-
-        if enable_and_start_systemd.lower() == "y":
-            print(f"Enable systemd service '{cls.NAME}.service'")
-
-            if status := subprocess.check_output(f"systemctl enable --now {cls.NAME}", shell=True):
-                logger.info(status)
-        else:
-            print("\nYou can enable the systemd service with the command:")
-            print(f"systemctl enable --now {cls.NAME}")
-
 
 def parse_args(args: list) -> argparse.Namespace:
     """Initialize argument parser options.
@@ -185,8 +135,6 @@ def parse_args(args: list) -> argparse.Namespace:
     Argparse namespace
     """
     parser: argparse.ArgumentParser = init_argparse(description="Control Unipi I/O with MQTT commands")
-    parser.add_argument("-i", "--install", action="store_true", help=f"install {UnipiControl.NAME}")
-    parser.add_argument("-y", "--yes", action="store_true", help="automatic yes to install prompts")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)
@@ -202,23 +150,20 @@ def main() -> None:
         config: Config = Config()
         config.logging.init(LOG_NAME, log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
 
-        if args.install:
-            UnipiControl.install(config=config, assume_yes=args.yes)
-        else:
-            unipi_control = UnipiControl(
-                config=config,
-                modbus_client=ModbusClient(
-                    tcp=AsyncModbusTcpClient(host="localhost"),
-                    serial=AsyncModbusSerialClient(
-                        port="/dev/extcomm/0/0",
-                        baudrate=config.modbus.baud_rate,
-                        parity=config.modbus.parity,
-                        timeout=30,
-                    ),
+        unipi_control = UnipiControl(
+            config=config,
+            modbus_client=ModbusClient(
+                tcp=AsyncModbusTcpClient(host="localhost"),
+                serial=AsyncModbusSerialClient(
+                    port="/dev/extcomm/0/0",
+                    baudrate=config.modbus.baud_rate,
+                    parity=config.modbus.parity,
+                    timeout=30,
                 ),
-            )
+            ),
+        )
 
-            asyncio.run(unipi_control.run())
+        asyncio.run(unipi_control.run())
     except ConfigException as error:
         logger.error("%s %s", LogPrefix.CONFIG, error)
         sys.exit(1)

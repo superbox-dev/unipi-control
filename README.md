@@ -15,7 +15,7 @@ The necessary hardware is also required for this.
 
 Control Unipi I/O directly with MQTT commands and without [Evok](https://github.com/UniPiTechnology/evok). Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionally you can enable the Home Assistant MQTT discovery for binary sensors, sensors, switches and covers.
 
-## Installation
+## Getting Started
 
 **Requirements:**
 
@@ -26,42 +26,26 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
     * https://github.com/UniPiTechnology/unipi-tools
 * Python 3.8
 
-### From GIT
+Install **Unipi Control** with `pip`.
 
 ```shell
-$ sudo -i
-$ cd /opt
-$ git clone https://github.com/mh-superbox/unipi-control.git
-$ pip install -e /opt/unipi-control
-$ unipi-control --install
-```
-
-### From PyPi
-
-```shell
-$ sudo -i
 $ pip install unipi-control
-$ unipi-control --install
 ```
 
-## Arguments
+Copy the config files to your `/etc` directory and start the systemd service:
 
-| Argument    | Description                                                           |
-|-------------|-----------------------------------------------------------------------|
-| `--install` | install unipi control                                                 |
-| `--yes`     | automatic yes to install prompts                                      |
-| `-v`        | verbose mode: multiple -v options increase the verbosity (maximum: 4) |
+```shell
+$ systemctl enable unipi-control.service
+$ systemctl start unipi-control.service
+```
 
 ## Supported Devices
 
 * Unipi Neuron L203
+* External Modbus RTU devices
+  * [Eastron SDM120M](https://www.eastroneurope.com/products/view/sdm120modbus)
 
 If you have an Unipi device, that is not supported, then contact me.
-
-### External Modbus RTU devices supported:
-
-* [Eastron SDM120M](https://www.eastroneurope.com/products/view/sdm120modbus)
-
 
 ## Configuration
 
@@ -272,6 +256,20 @@ Available MQTT topics:
 | `[device_name]/[object_id]/cover/[device_class]/position/set` | `0` to `100`                                 | Send an integer to set the cover position.                           |
 | `[device_name]/[object_id]/cover/[device_class]/tilt`         | `0` to `100`                                 | Get the tilt position. `100` is fully open and `0` is fully closed.  |
 | `[device_name]/[object_id]/cover/[device_class]/tilt/set`     | `0` to `100`                                 | Send an integer to set the cover position.                           |
+
+## Development
+
+For development, you must clone the git repository and install **Unipi Control** with `pipenv`.
+
+```shell
+$ git clone https://github.com/mh-superbox/unipi-control.git
+$ cd unipi-control
+~/unipi-control$ pipenv install --deploy --dev 
+~/unipi-control$ pipenv run pip install -e .
+```
+
+Copy the config files to your `/etc` directory.
+Now you can start unipi-control with `pipenv run unipi-control`.
 
 ## Extras
 
