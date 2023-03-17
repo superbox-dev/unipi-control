@@ -20,7 +20,7 @@ jobs:
         run: |
           if [[ ${{ github.event.ref }} =~ ^refs\/tags\/20[0-9][0-9]\.[1-9]{1}[0-9]{0,}$ ]]; then
             echo "run_jobs=release" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.event.ref }} =~ ^refs\/tags\/20[0-9][0-9]\.[1-9]{1}[0-9]{0,}b[1-9]{1}[0-9]{0,}$$ ]]; then
+          elif [[ ${{ github.event.ref }} =~ ^refs\/tags\/20[0-9][0-9]\.[1-9]{1}[0-9]{0,}b[1-9]{1}[0-9]{0,}$ ]]; then
             echo "run_jobs=prerelease" >> $GITHUB_OUTPUT
           fi
 
