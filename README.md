@@ -37,7 +37,8 @@ If you have an Unipi device, that is not supported, then contact me.
 Install **Unipi Control** with `pip`.
 
 ```shell
-$ pip install unipi-control
+$ python -m venv /opt/.venv
+$ /opt/.venv/bin/pip install unipi-control
 ```
 
 Copy the [config files](src/unipi_control/config/etc) to your `/etc` directory and start the systemd service:
