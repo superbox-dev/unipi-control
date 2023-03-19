@@ -25,13 +25,16 @@ If you have an Unipi device, that is not supported, then contact me.
 
 ## Getting Started
 
+### Recommended installation
+
+Use the [Unipi Control OS](https://github.com/mh-superbox/unipi-control-os) a ready to use image.
+
+### Alternative installation (Debian based systems)
+
 **Requirements:**
 
 * Unipi Neuron Kernel Module and Unipi tools
   * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-  * Or compile it
-    * https://github.com/UniPiTechnology/unipi-kernel
-    * https://github.com/UniPiTechnology/unipi-tools
 * Python 3.8
 
 Install **Unipi Control** with `pip`.
