@@ -25,22 +25,26 @@ If you have an Unipi device, that is not supported, then contact me.
 
 ## Getting Started
 
+### Recommended installation
+
+Use the [Unipi Control OS](https://github.com/mh-superbox/unipi-control-os).
+
+### Alternative installation (Debian based systems)
+
 **Requirements:**
 
 * Unipi Neuron Kernel Module and Unipi tools
   * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-  * Or compile it
-    * https://github.com/UniPiTechnology/unipi-kernel
-    * https://github.com/UniPiTechnology/unipi-tools
 * Python 3.8
 
 Install **Unipi Control** with `pip`.
 
 ```shell
-$ pip install unipi-control
+$ python -m venv /opt/.venv
+$ /opt/.venv/bin/pip install unipi-control
 ```
 
-Copy the config files to your `/etc` directory and start the systemd service:
+Copy the [config files](src/unipi_control/config/etc) to your `/etc` directory and start the systemd service:
 
 ```shell
 $ systemctl enable unipi-control.service
@@ -273,4 +277,4 @@ Now you can start unipi-control with `pipenv run unipi-control`.
 
 ## Extras
 
-I have written a Home Assistant blueprint automation to control covers with binary sensors. Take a look in the extra's folder.
+I have written a Home Assistant blueprint automation to control covers with binary sensors. Take a look in the [extras](extras) directory.
