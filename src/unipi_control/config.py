@@ -26,6 +26,7 @@ from superbox_utils.hass.config import HomeAssistantConfig
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
+
 from unipi_control.log import LOG_NAME
 
 logger: logging.Logger = logging.getLogger(LOG_NAME)
@@ -207,7 +208,6 @@ class Config(ConfigLoaderMixin):
     covers: list = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=Path("/etc/unipi"))
-    systemd_path: Path = field(default=Path("/etc/systemd/system"))
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
@@ -409,9 +409,7 @@ class HardwareData(Mapping):
 
             logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
-            raise ConfigException(
-                f'No valid YAML definition for active Neuron device! Device name is {self.data["neuron"].model}'
-            )
+            raise ConfigException(f"No valid YAML definition found for this device!")
 
     def _read_extension_definitions(self) -> None:
         try:
