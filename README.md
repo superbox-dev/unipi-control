@@ -33,9 +33,8 @@ Use the [Unipi Control OS](https://github.com/mh-superbox/unipi-control-os).
 
 **Requirements:**
 
-* Unipi Neuron Kernel Module and Unipi tools
-  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-* Python 3.8
+* Unipi Neuron Kernel Module and Unipi tools (Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology)
+* Python >= 3.8
 
 Install **Unipi Control** with `pip`.
 
