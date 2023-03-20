@@ -409,7 +409,7 @@ class HardwareData(Mapping):
 
             logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
-            raise ConfigException(f"No valid YAML definition found for this device!")
+            raise ConfigException("No valid YAML definition found for this device!")
 
     def _read_extension_definitions(self) -> None:
         try:
