@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import struct
 from pathlib import Path
 
@@ -59,7 +58,3 @@ def main() -> None:
     print(f"Model: {model}")
     print(f"Version: {version}")
     print(f"Serial: {serial}")
-
-
-if __name__ == "__main__":
-    main()
