@@ -42,12 +42,13 @@ class ModbusCacheData:
         data: dict = {
             "address": modbus_register_block["start_reg"],
             "count": modbus_register_block["count"],
-            "slave": definition.unit,
+            "slave": modbus_register_block.get("slave", definition.unit),
         }
 
         response: Optional[ReadInputRegistersResponse] = None
 
         try:
+            # TODO: Class 'ModbusResponse' does not define '__await__', so the 'await' operator cannot be used on its instances
             if scan_type == "tcp":
                 response = await self.modbus_client.tcp.read_input_registers(**data)
             elif scan_type == "serial":
