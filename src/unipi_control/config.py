@@ -26,6 +26,7 @@ from superbox_utils.hass.config import HomeAssistantConfig
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
+
 from unipi_control.log import LOG_NAME
 
 logger: logging.Logger = logging.getLogger(LOG_NAME)
