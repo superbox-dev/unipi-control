@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 pymodbus = {version = "~=3.2.0", extras = ["serial"]}
-superbox-utils = {version = "~=2023.3", extras = ["mqtt"]}
+superbox-utils = {version = "~=2023.4", extras = ["mqtt"]}
 
 [dev-packages]
 black = "~=23.1.0"
