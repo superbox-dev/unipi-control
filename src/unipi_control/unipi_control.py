@@ -139,7 +139,7 @@ def parse_args(args: list) -> argparse.Namespace:
 
 
 def main() -> None:
-    """Entrypoint for Unipi Control script."""
+    """Entrypoint for Unipi Control."""
     unipi_control: Optional[UnipiControl] = None
 
     try:
