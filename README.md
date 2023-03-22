@@ -18,15 +18,28 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
 ## Supported hardware
 
 * Tested:
-  * Unipi Neuron L203
+  * Unipi Neuron
+    * L203
 * Untested:
-  * Unipi Neuron S103
-  * Unipi Neuron S103-G
-  * Unipi Neuron M103
-  * Unipi Neuron M203
-  * Unipi Neuron M523
-  * Unipi Neuron L523
-  * Unipi Neuron L533
+  * Unipi Neuron
+    * S103
+    * S103-G
+    * M103
+    * M203
+    * M523
+    * L523
+    * L533
+  * Unipi Patron
+    * Patron S107
+    * Patron S117
+    * Patron S167
+    * Patron M207
+    * Patron M267
+    * Patron M527
+    * Patron M567
+    * Patron S207
+    * Patron L207
+    * Patron L527
 * External Modbus RTU devices
   * [Eastron SDM120M](https://www.eastroneurope.com/products/view/sdm120modbus)
 
