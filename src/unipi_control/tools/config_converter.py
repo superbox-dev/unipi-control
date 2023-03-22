@@ -1,24 +1,29 @@
 #!/usr/bin/env python3
 import argparse
+import json
+import sys
 from pathlib import Path
 from typing import Union
 
-import sys
+import yaml  # type: ignore
 from superbox_utils.argparse import init_argparse
 from superbox_utils.core.exception import UnexpectedException
+from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
-
 from unipi_control.config import Config
 from unipi_control.config import logger
 from unipi_control.log import LOG_NAME
 from unipi_control.version import __version__
+from yaml import Loader
 
 
 class UnipiConfigConverter:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, force: bool) -> None:
         self.config: Config = config
+        self.force: bool = force
 
-    def _read_source_yaml(self, source: Path) -> dict:
+    @staticmethod
+    def _read_source_yaml(source: Path) -> dict:
         source_yaml: Union[dict, list] = yaml_loader_safe(source)
 
         if isinstance(source_yaml, dict):
@@ -26,10 +31,51 @@ class UnipiConfigConverter:
 
         raise UnexpectedException("INPUT is not a valid YAML file!")
 
-    def _parse_modbus_register_blocks(self, modbus_register_blocks):
-        _modbus_register_blocks = []
+    def _write_target_yaml(self, target: Path, content: dict) -> None:
+        if target.exists() and not self.force:
+            raise UnexpectedException("OUTPUT YAML file already exists!")
 
-        # for modbus_register_block in modbus_register_blocks:
+        target.write_text(
+            yaml.dump(yaml.load(json.dumps(content), Loader=Loader), default_flow_style=False),
+            encoding="utf-8",
+        )
+
+        logger.info("YAML file written to: %s", target.as_posix())
+
+    @staticmethod
+    def _parse_modbus_register_blocks(source_yaml: dict):
+        _modbus_register_blocks: list = []
+
+        for modbus_register_block in source_yaml["modbus_register_blocks"]:
+            _modbus_register_blocks.append(
+                {
+                    "slave": modbus_register_block["board_index"],
+                    "start_reg": modbus_register_block["start_reg"],
+                    "count": modbus_register_block["count"],
+                }
+            )
+
+        return _modbus_register_blocks
+
+    @staticmethod
+    def _parse_modbus_features(source_yaml: dict):
+        _modbus_features: list = []
+
+        for modbus_feature in source_yaml["modbus_features"]:
+            if modbus_feature["type"] in ["DI", "DO", "LED", "RO"]:
+                _modbus_feature: dict = {
+                    "feature_type": modbus_feature["type"],
+                    "count": modbus_feature["count"],
+                    "major_group": modbus_feature["major_group"],
+                    "val_reg": modbus_feature["val_reg"],
+                }
+
+                if val_coil := modbus_feature.get("val_coil"):
+                    _modbus_feature["val_coil"] = val_coil
+
+                _modbus_features.append(_modbus_feature)
+
+        return _modbus_features
 
     def convert(self, source: Path, target: Path):
         """Convert Evok to Unipi Control YAML file format."""
@@ -43,8 +89,12 @@ class UnipiConfigConverter:
             raise UnexpectedException("OUTPUT directory not exists!")
 
         source_yaml: dict = self._read_source_yaml(source)
+        target_yaml: dict = {
+            "modbus_register_blocks": self._parse_modbus_register_blocks(source_yaml),
+            "modbus_features": self._parse_modbus_features(source_yaml),
+        }
 
-        self._parse_modbus_register_blocks(source_yaml)
+        self._write_target_yaml(target=target / source.name, content=target_yaml)
 
 
 def parse_args(args: list) -> argparse.Namespace:
@@ -62,6 +112,7 @@ def parse_args(args: list) -> argparse.Namespace:
     parser: argparse.ArgumentParser = init_argparse(description="Convert Evok to Unipi Control YAML file format")
     parser.add_argument("input", help="Path to the evok YAML file")
     parser.add_argument("output", help="Path to save the converted YAML file")
+    parser.add_argument("-f", "--force", action="store_true", help="Overwrite output YAML file if already exists")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)
@@ -72,13 +123,10 @@ def main() -> None:
     try:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
-        config: Config = Config()
+        config: Config = Config(logging=LoggingConfig(level="info"))
         config.logging.init(LOG_NAME, log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
 
-        UnipiConfigConverter(config=config).convert(
-            source=Path(args.input),
-            target=Path(args.output),
-        )
+        UnipiConfigConverter(config=config, force=args.force).convert(source=Path(args.input), target=Path(args.output))
     except UnexpectedException as error:
         logger.error(error)
         sys.exit(1)
