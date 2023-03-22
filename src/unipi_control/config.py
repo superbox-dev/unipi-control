@@ -208,7 +208,6 @@ class Config(ConfigLoaderMixin):
     covers: list = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=Path("/etc/unipi"))
-    systemd_path: Path = field(default=Path("/etc/systemd/system"))
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
@@ -410,9 +409,7 @@ class HardwareData(Mapping):
 
             logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
-            raise ConfigException(
-                f'No valid YAML definition for active Neuron device! Device name is {self.data["neuron"].model}'
-            )
+            raise ConfigException("No valid YAML definition found for this device!")
 
     def _read_extension_definitions(self) -> None:
         try:

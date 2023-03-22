@@ -41,9 +41,6 @@ class ConfigLoader:
         extension_hardware_data_path.mkdir(parents=True)
         self.extension_hardware_data_file_path = extension_hardware_data_path / "MOCKED_EASTRON.yaml"
 
-        self.systemd_path: Path = self.temp / "systemd/system"
-        self.systemd_path.mkdir(parents=True)
-
         self.temp_path: Path = self.temp / "unipi"
         self.temp_path.mkdir(parents=True)
 
@@ -60,7 +57,7 @@ class ConfigLoader:
             _file.write(content)
 
     def get_config(self) -> Config:
-        return Config(config_base_path=self.temp, systemd_path=self.systemd_path, temp_path=self.temp_path)
+        return Config(config_base_path=self.temp, temp_path=self.temp_path)
 
 
 @pytest.fixture()
