@@ -9,7 +9,6 @@ from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusIOException
 from pymodbus.pdu import ExceptionResponse
 from pymodbus.register_read_message import ReadInputRegistersResponse
-
 from unipi_control.config import HardwareData
 from unipi_control.config import HardwareDefinition
 from unipi_control.config import LogPrefix
@@ -48,7 +47,6 @@ class ModbusCacheData:
         response: Optional[ReadInputRegistersResponse] = None
 
         try:
-            # TODO: Class 'ModbusResponse' does not define '__await__', so the 'await' operator cannot be used on its instances
             if scan_type == "tcp":
                 response = await self.modbus_client.tcp.read_input_registers(**data)
             elif scan_type == "serial":
