@@ -49,7 +49,7 @@ If you have an Unipi device, that is not supported, then contact me.
 
 ## Getting Started
 
-### Recommended installation
+### Recommended installation (Only for Unipi Neuron)
 
 Use the [Unipi Control OS](https://github.com/mh-superbox/unipi-control-os).
 
