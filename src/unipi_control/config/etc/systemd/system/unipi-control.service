@@ -7,6 +7,7 @@ Requires=unipitcp.service
 Type=simple
 ExecStart=/opt/.venv/bin/unipi-control --log systemd
 Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
