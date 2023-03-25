@@ -10,6 +10,7 @@ from unittest.mock import PropertyMock
 import pytest
 import pytest_asyncio
 from _pytest.fixtures import SubRequest  # pylint: disable=import-private-name
+from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
 from unipi_control.config import Config
@@ -82,7 +83,7 @@ class MockHardwareInfo:
 
 @pytest.fixture()
 def _modbus_client(mocker: MockerFixture) -> ModbusClient:
-    mock_bord_response: MagicMock = MagicMock(registers=[0])
+    mock_bord_response: MagicMock = MagicMock(spec=ModbusResponse, registers=[0])
     mock_bord_response.isError.return_value = False
 
     for mock_response in NEURON_L203_MODBUS_REGISTER:
@@ -104,7 +105,7 @@ def _modbus_client(mocker: MockerFixture) -> ModbusClient:
     mock_modbus_serial_client: AsyncMock = AsyncMock()
     mock_modbus_serial_client.read_input_registers.side_effect = EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 
-    mock_response_sw_version: MagicMock = MagicMock(registers=[32, 516])
+    mock_response_sw_version: MagicMock = MagicMock(spec=ModbusResponse, registers=[32, 516])
     mock_response_sw_version.isError.return_value = False
 
     mock_modbus_serial_client.read_holding_registers.side_effect = [

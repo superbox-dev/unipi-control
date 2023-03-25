@@ -15,6 +15,7 @@ from unittests.conftest import ModbusClient
 from unittests.conftest_data import CONFIG_CONTENT
 from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
+from pymodbus.pdu import ModbusResponse
 
 
 @dataclass
@@ -48,7 +49,7 @@ class CoverExpected:
 class TestCovers:
     @pytest.fixture(autouse=True)
     def pre(self, _modbus_client: ModbusClient, mocker: MockerFixture) -> None:
-        mock_response_is_error = MagicMock()
+        mock_response_is_error = MagicMock(spec=ModbusResponse)
         mock_response_is_error.isError.return_value = False
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error
