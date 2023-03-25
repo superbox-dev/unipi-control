@@ -22,7 +22,7 @@ async def check_modbus_call(callback: Callable, data: dict) -> Optional[ModbusRe
     try:
         response = await callback(**data)
 
-        if response.isError():
+        if response and response.isError():
             response = None
     except ModbusException as error:
         logger.error("%s %s", LogPrefix.MODBUS, error)

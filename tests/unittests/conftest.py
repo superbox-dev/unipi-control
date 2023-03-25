@@ -81,8 +81,13 @@ class MockHardwareInfo:
     serial: str = "MOCKED_SERIAL"
 
 
+class MockModbusClient(NamedTuple):
+    tcp: AsyncMock
+    serial: AsyncMock
+
+
 @pytest.fixture()
-def _modbus_client(mocker: MockerFixture) -> ModbusClient:
+def _modbus_client(mocker: MockerFixture) -> MockModbusClient:
     mock_bord_response: MagicMock = MagicMock(spec=ModbusResponse, registers=[0])
     mock_bord_response.isError.return_value = False
 
@@ -116,7 +121,7 @@ def _modbus_client(mocker: MockerFixture) -> ModbusClient:
     mock_hardware_info: PropertyMock = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
     mock_hardware_info.return_value = MockHardwareInfo()
 
-    return ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_serial_client)
+    return MockModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_serial_client)
 
 
 @pytest_asyncio.fixture()

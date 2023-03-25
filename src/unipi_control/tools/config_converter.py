@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import sys
 from pathlib import Path
 from typing import Union
 
+import sys
 import yaml  # type: ignore
 from superbox_utils.argparse import init_argparse
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
+from yaml import Loader
+
 from unipi_control.config import Config
 from unipi_control.config import logger
 from unipi_control.log import LOG_NAME
 from unipi_control.version import __version__
-from yaml import Loader
 
 
 class UnipiConfigConverter:
@@ -62,7 +63,7 @@ class UnipiConfigConverter:
         _modbus_features: list = []
 
         for modbus_feature in source_yaml["modbus_features"]:
-            if modbus_feature["type"] in ["DI", "DO", "LED", "RO"]:
+            if modbus_feature["type"] in {"DI", "DO", "LED", "RO"}:
                 _modbus_feature: dict = {
                     "feature_type": modbus_feature["type"],
                     "count": modbus_feature["count"],

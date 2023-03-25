@@ -16,7 +16,7 @@ from unipi_control.features import MeterFeature
 from unipi_control.features import Relay
 from unipi_control.neuron import Neuron
 from unittests.conftest import ConfigLoader
-from unittests.conftest import ModbusClient
+from unittests.conftest import MockModbusClient
 from unittests.conftest_data import CONFIG_CONTENT
 from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
@@ -76,7 +76,7 @@ class TestHappyPathFeatures:
     )
     async def test_output_features(
         self,
-        _modbus_client: ModbusClient,
+        _modbus_client: MockModbusClient,
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         options: FeatureOptions,
