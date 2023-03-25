@@ -11,9 +11,9 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from pymodbus.bit_write_message import WriteSingleCoilResponse
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.pdu import ModbusResponse
 
 from superbox_utils.text.text import slugify
 from unipi_control.config import Config
@@ -22,6 +22,7 @@ from unipi_control.config import FeatureConfig
 from unipi_control.config import HardwareDefinition
 from unipi_control.config import LogPrefix
 from unipi_control.modbus import ModbusClient
+from unipi_control.modbus import check_modbus_call
 
 
 class FeatureState:
@@ -266,7 +267,7 @@ class NeuronFeature(BaseFeature):
 class Relay(NeuronFeature):
     """Class for the relay feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool) -> WriteSingleCoilResponse:
+    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for relay feature.
 
         Parameters
@@ -275,15 +276,22 @@ class Relay(NeuronFeature):
 
         Returns
         -------
-        WriteSingleCoilResponse
+        ModbusResponse
         """
-        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
+        return await check_modbus_call(
+            self.modbus_client.tcp.write_coil,
+            data={
+                "address": self.val_coil,
+                "value": value,
+                "slave": 0,
+            },
+        )
 
 
 class DigitalOutput(NeuronFeature):
     """Class for the digital output feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool) -> WriteSingleCoilResponse:
+    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for digital output feature.
 
         Parameters
@@ -292,9 +300,16 @@ class DigitalOutput(NeuronFeature):
 
         Returns
         -------
-        WriteSingleCoilResponse
+        ModbusResponse
         """
-        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
+        return await check_modbus_call(
+            self.modbus_client.tcp.write_coil,
+            data={
+                "address": self.val_coil,
+                "value": value,
+                "slave": 0,
+            },
+        )
 
 
 class DigitalInput(NeuronFeature):
@@ -306,7 +321,7 @@ class DigitalInput(NeuronFeature):
 class Led(NeuronFeature):
     """Class for the LED feature from the Unipi Neuron."""
 
-    async def set_state(self, value: bool) -> WriteSingleCoilResponse:
+    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for LED feature.
 
         Parameters
@@ -315,9 +330,16 @@ class Led(NeuronFeature):
 
         Returns
         -------
-        WriteSingleCoilResponse
+        ModbusResponse
         """
-        return await self.modbus_client.tcp.write_coil(address=self.val_coil, value=value, slave=0)
+        return await check_modbus_call(
+            self.modbus_client.tcp.write_coil,
+            data={
+                "address": self.val_coil,
+                "value": value,
+                "slave": 0,
+            },
+        )
 
 
 class MeterFeature(BaseFeature):

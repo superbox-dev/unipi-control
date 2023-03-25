@@ -1,7 +1,8 @@
 import importlib
 from typing import List
+from typing import Optional
 
-from pymodbus.register_read_message import ReadInputRegistersResponse
+from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
@@ -16,6 +17,7 @@ from unipi_control.features import Led
 from unipi_control.features import Relay
 from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import ModbusClient
+from unipi_control.modbus import check_modbus_call
 
 
 class Board:
@@ -140,17 +142,22 @@ class Neuron:
         logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
 
         for index in (1, 2, 3):
-            response: ReadInputRegistersResponse = await self.modbus_client.tcp.read_input_registers(
-                address=1000, count=1, slave=index
+            response: Optional[ModbusResponse] = await check_modbus_call(
+                self.modbus_client.tcp.read_input_registers,
+                data={
+                    "address": 1000,
+                    "count": 1,
+                    "slave": index,
+                },
             )
 
-            if response.isError():
-                logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
-            else:
-                board = Board(neuron=self, versions=response.registers, major_group=index)
+            if response:
+                board = Board(neuron=self, versions=getattr(response, "registers"), major_group=index)
                 board.parse_features()
 
                 self.boards.append(board)
+            else:
+                logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
 
         await self.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 

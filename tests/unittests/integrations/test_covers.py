@@ -10,8 +10,8 @@ from pytest_mock import MockerFixture
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.integrations.covers import CoverState
-from unipi_control.modbus import ModbusClient
 from unittests.conftest import ConfigLoader
+from unittests.conftest import ModbusClient
 from unittests.conftest_data import CONFIG_CONTENT
 from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT

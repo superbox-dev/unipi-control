@@ -53,6 +53,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks: set
             A set of all MQTT tasks.
         """
+
         for feature in self.neuron.features.by_feature_types(self.subscribe_feature_types):
             topic: str = f"{feature.topic}/set"
 
@@ -103,7 +104,6 @@ class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks: set
             A set of all MQTT tasks.
         """
-        # TODO create task by unit
         task: Task[Any] = asyncio.create_task(
             self._publish(
                 scan_type="serial",

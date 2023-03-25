@@ -417,10 +417,10 @@ class Cover:
             return None
 
         self._update_position()
-        response: ModbusResponse = await self.cover_down_feature.set_state(False)
+        response: Optional[ModbusResponse] = await self.cover_down_feature.set_state(False)
         self._stop_timer()
 
-        if not response.isError():
+        if response:
             await self.cover_up_feature.set_state(True)
 
             self._device_state = CoverDeviceState.OPEN
@@ -482,10 +482,10 @@ class Cover:
             return None
 
         self._update_position()
-        response: ModbusResponse = await self.cover_up_feature.set_state(False)
+        response: Optional[ModbusResponse] = await self.cover_up_feature.set_state(False)
         self._stop_timer()
 
-        if not response.isError():
+        if response:
             await self.cover_down_feature.set_state(True)
 
             self._device_state = CoverDeviceState.CLOSE
@@ -554,10 +554,10 @@ class Cover:
 
         if self.tilt_change_time:
             self._update_position()
-            response: ModbusResponse = await self.cover_down_feature.set_state(False)
+            response: Optional[ModbusResponse] = await self.cover_down_feature.set_state(False)
             self._stop_timer()
 
-            if not response.isError():
+            if response:
                 await self.cover_up_feature.set_state(True)
 
                 self._device_state = CoverDeviceState.OPEN
@@ -581,10 +581,10 @@ class Cover:
 
         if self.tilt_change_time:
             self._update_position()
-            response: ModbusResponse = await self.cover_up_feature.set_state(False)
+            response: Optional[ModbusResponse] = await self.cover_up_feature.set_state(False)
             self._stop_timer()
 
-            if not response.isError():
+            if response:
                 await self.cover_down_feature.set_state(True)
 
                 self._device_state = CoverDeviceState.CLOSE
