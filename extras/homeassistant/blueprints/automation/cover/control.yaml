@@ -26,7 +26,7 @@ blueprint:
     has_tilt:
       name: Tilt
       description: Enable Tilt Position Control
-      default: false
+      default: False
       selector:
         boolean:
     tilt_position:
@@ -67,7 +67,7 @@ action:
         sequence:
           - wait_template: '{{ is_state(binary_sensor_down_id, "off") }}'
             timeout: '0.5'
-            continue_on_timeout: true
+            continue_on_timeout: True
           - choose:
               - conditions:
                   - condition: template
@@ -124,7 +124,7 @@ action:
         sequence:
           - wait_template: '{{ is_state(binary_sensor_up_id, "off") }}'
             timeout: '0.5'
-            continue_on_timeout: true
+            continue_on_timeout: True
           - choose:
               - conditions:
                   - condition: template

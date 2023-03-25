@@ -30,7 +30,7 @@ modbus_features:
     major_group: 3
     val_coil: 200
     val_reg: 201
-  modbus_register_blocks:
+modbus_register_blocks:
   - count: 2
     slave: 1
     start_reg: 0
