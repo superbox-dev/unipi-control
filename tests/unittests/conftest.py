@@ -82,18 +82,24 @@ class MockHardwareInfo:
 
 @pytest.fixture()
 def _modbus_client(mocker: MockerFixture) -> ModbusClient:
-    mock_response_is_error: MagicMock = MagicMock(registers=[0])
-    mock_response_is_error.isError.return_value = False
+    mock_bord_response: MagicMock = MagicMock(registers=[0])
+    mock_bord_response.isError.return_value = False
+
+    for mock_response in NEURON_L203_MODBUS_REGISTER:
+        mock_response.isError.return_value = False
 
     mock_modbus_tcp_client: AsyncMock = AsyncMock()
     mock_modbus_tcp_client.read_input_registers.side_effect = [
         # Board 1
-        mock_response_is_error,
+        mock_bord_response,
         # Board 2
-        mock_response_is_error,
+        mock_bord_response,
         # Board 3
-        mock_response_is_error,
+        mock_bord_response,
     ] + NEURON_L203_MODBUS_REGISTER
+
+    for mock_response in EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER:
+        mock_response.isError.return_value = False
 
     mock_modbus_serial_client: AsyncMock = AsyncMock()
     mock_modbus_serial_client.read_input_registers.side_effect = EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
