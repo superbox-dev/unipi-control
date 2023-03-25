@@ -53,7 +53,6 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks: set
             A set of all MQTT tasks.
         """
-
         for feature in self.neuron.features.by_feature_types(self.subscribe_feature_types):
             topic: str = f"{feature.topic}/set"
 
