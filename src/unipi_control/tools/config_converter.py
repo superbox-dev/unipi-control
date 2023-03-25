@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import json
 from pathlib import Path
 from typing import Union
 
@@ -9,8 +8,8 @@ import yaml  # type: ignore
 from superbox_utils.argparse import init_argparse
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.logging.config import LoggingConfig
+from superbox_utils.yaml.dumper import yaml_dumper
 from superbox_utils.yaml.loader import yaml_loader_safe
-from yaml import Loader
 
 from unipi_control.config import Config
 from unipi_control.config import logger
@@ -36,11 +35,7 @@ class UnipiConfigConverter:
         if target.exists() and not self.force:
             raise UnexpectedException("OUTPUT YAML file already exists!")
 
-        target.write_text(
-            yaml.dump(yaml.load(json.dumps(content), Loader=Loader), default_flow_style=False),
-            encoding="utf-8",
-        )
-
+        target.write_text(yaml_dumper(content), encoding="utf-8")
         logger.info("YAML file written to: %s", target.as_posix())
 
     @staticmethod
