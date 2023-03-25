@@ -17,6 +17,20 @@ from unipi_control.config import logger
 
 
 async def check_modbus_call(callback: Callable, data: dict) -> Optional[ModbusResponse]:
+    """Check modbus read/write call has errors and log the errors.
+
+    Parameters
+    ----------
+    callback: Callable
+        modbus callback function e.g. read_input_registers()
+    data: dict
+        Arguments pass to the callback function
+
+    Returns
+    -------
+    ModbusResponse: optional
+        Return modbus response if no errors found else None.
+    """
     response: Optional[ModbusResponse] = None
 
     try:
