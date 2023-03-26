@@ -22,16 +22,19 @@ class TestHappyPathUnipiConfigConverter:
         assert not parser.force
         assert isinstance(parser, Namespace)
 
-    @pytest.mark.parametrize("_config_loader", [(CONFIG_CONTENT)], indirect=True)
-    def test_config_converter(self, _config_loader: ConfigLoader) -> None:
-        _config_loader.hardware_data_file_path.unlink()
+    @pytest.mark.parametrize(
+        "_config_loader, force", [(CONFIG_CONTENT, False), (CONFIG_CONTENT, True)], indirect=["_config_loader"]
+    )
+    def test_config_converter(self, _config_loader: ConfigLoader, force: bool) -> None:
+        if not force:
+            _config_loader.hardware_data_file_path.unlink()
 
         evok_hardware_path: Path = _config_loader.hardware_data_file_path.parent / "evok"
         evok_hardware_path.mkdir()
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"
         evok_hardware_yaml.write_text(EVOK_MODEL_CONTENT)
 
-        UnipiConfigConverter(config=_config_loader.get_config(), force=False).convert(
+        UnipiConfigConverter(config=_config_loader.get_config(), force=force).convert(
             source=evok_hardware_yaml, target=Path(_config_loader.hardware_data_file_path.parent)
         )
 
