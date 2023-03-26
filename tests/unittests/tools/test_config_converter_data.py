@@ -177,7 +177,6 @@ INVALID_EVOK_MODEL_CONTENT: Final[
   start_reg   : 0
 """
 
-
 CONVERTED_MODEL_CONTENT: Final[
     str
 ] = """modbus_features:
