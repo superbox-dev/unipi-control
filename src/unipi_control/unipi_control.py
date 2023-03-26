@@ -1,6 +1,5 @@
 import argparse
 import asyncio
-import sys
 import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
@@ -9,6 +8,7 @@ from typing import Final
 from typing import Optional
 from typing import Set
 
+import sys
 from asyncio_mqtt import Client
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
@@ -22,7 +22,6 @@ from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.log import LOG_NAME
 from unipi_control.modbus import ModbusClient
 from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
@@ -146,7 +145,7 @@ def main() -> None:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
         config: Config = Config()
-        config.logging.init(LOG_NAME, log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
+        config.logging.init(log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
 
         unipi_control = UnipiControl(
             config=config,
