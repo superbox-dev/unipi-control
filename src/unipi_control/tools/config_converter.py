@@ -124,7 +124,7 @@ def main() -> None:
 
         UnipiConfigConverter(config=config, force=args.force).convert(source=Path(args.input), target=Path(args.output))
     except UnexpectedException as error:
-        logger.error(error)
+        logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
         pass

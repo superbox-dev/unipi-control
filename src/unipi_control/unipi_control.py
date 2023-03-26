@@ -159,10 +159,10 @@ def main() -> None:
 
         asyncio.run(unipi_control.run())
     except ConfigException as error:
-        logger.error("%s %s", LogPrefix.CONFIG, error)
+        logger.critical("%s %s", LogPrefix.CONFIG, error)
         sys.exit(1)
     except UnexpectedException as error:
-        logger.error(error)
+        logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
         pass
