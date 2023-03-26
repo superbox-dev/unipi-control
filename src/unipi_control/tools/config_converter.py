@@ -13,7 +13,6 @@ from superbox_utils.yaml.dumper import yaml_dumper
 from superbox_utils.yaml.loader import yaml_loader_safe
 from unipi_control.config import Config
 from unipi_control.config import logger
-from unipi_control.log import LOG_NAME
 from unipi_control.version import __version__
 
 
@@ -120,7 +119,7 @@ def main() -> None:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
         config: Config = Config(logging=LoggingConfig(level="info"))
-        config.logging.init(LOG_NAME, log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
+        config.logging.init(log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
 
         UnipiConfigConverter(config=config, force=args.force).convert(source=Path(args.input), target=Path(args.output))
     except UnexpectedException as error:
