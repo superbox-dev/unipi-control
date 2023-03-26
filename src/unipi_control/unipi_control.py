@@ -4,7 +4,6 @@ import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
-from typing import Final
 from typing import Optional
 from typing import Set
 
@@ -41,8 +40,6 @@ class UnipiControl:
     topics for reading and writing the circuits. Optionally you can enable
     the Home Assistant MQTT discovery for binary sensors, sensors, switches and covers.
     """
-
-    NAME: Final[str] = "unipi-control"
 
     def __init__(self, config: Config, modbus_client: ModbusClient) -> None:
         self.config: Config = config
