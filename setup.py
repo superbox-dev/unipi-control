@@ -6,7 +6,8 @@ from setuptools import setup
 dependencies: dict = {}
 
 with Path("requirements.txt").open(encoding="utf-8") as reqs:
-    group: Optional[str] = None  # pylint: disable=invalid-name
+    # pylint: disable=invalid-name
+    group: Optional[str] = None
 
     for line in reqs.read().split("\n"):
         if not line:
@@ -16,6 +17,7 @@ with Path("requirements.txt").open(encoding="utf-8") as reqs:
             dependencies[group] = []
         elif not line.startswith("#") and group:
             dependencies[group].append(line)
+    # pylint: enable=invalid-name
 
 install_req = dependencies["required"]
 del dependencies["required"]
