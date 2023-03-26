@@ -1,3 +1,4 @@
 graft src
+include requirements.txt
 include LICENSE
 global-exclude *.pyc
