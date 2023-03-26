@@ -17,7 +17,6 @@ from unipi_control.config import Config
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
-from unipi_control.unipi_control import UnipiControl
 from unittests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 from unittests.conftest_data import NEURON_L203_MODBUS_REGISTER
 
@@ -25,7 +24,7 @@ from unittests.conftest_data import NEURON_L203_MODBUS_REGISTER
 @pytest.fixture(autouse=True, scope="session")
 def logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
-    logging.getLogger(UnipiControl.NAME).handlers.clear()
+    logging.getLogger().handlers.clear()
     logging.info("Initialize logging")
 
 
