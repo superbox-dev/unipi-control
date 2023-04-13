@@ -49,7 +49,6 @@ jobs:
           source .venv/bin/activate
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          echo $GITHUB_PATH
           echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
       - name: Run unit tests
         run: pytest --cov=src --cov-report=term-missing --junitxml=junit/test-results.xml --cov-report=xml
@@ -79,7 +78,6 @@ jobs:
           source .venv/bin/activate
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          echo $GITHUB_PATH
           echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
       - name: Audit packages
         run: pip-audit
@@ -110,7 +108,6 @@ jobs:
           source .venv/bin/activate
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          echo $GITHUB_PATH
           echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
       - name: Check code format with black
         run: |
