@@ -50,7 +50,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
       - name: Run unit tests
-        run: pipenv run pytest --cov=src --cov-report=term-missing --junitxml=junit/test-results.xml --cov-report=xml
+        run: pytest --cov=src --cov-report=term-missing --junitxml=junit/test-results.xml --cov-report=xml
       - name: Upload coverage
         uses: actions/upload-artifact@v3.1.2
         with:
@@ -78,7 +78,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
       - name: Audit packages
-        run: pipenv run pip-audit
+        run: pip-audit
   check:
     name: Code Analyse - Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
@@ -108,22 +108,22 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Check code format with black
         run: |
-          pipenv run black --version
-          pipenv run black --diff --check $(git ls-files '*.py')
+          black --version
+          black --diff --check $(git ls-files '*.py')
       - name: Lint with flake8
         run: |
-          pipenv run flake8 --version
-          pipenv run flake8 --show-source --statistics $(git ls-files '*.py')
+          flake8 --version
+          flake8 --show-source --statistics $(git ls-files '*.py')
       - name: Lint with mypy
-        run: pipenv run mypy $(git ls-files '*.py')
+        run: mypy $(git ls-files '*.py')
       - name: Lint with pylint
         run: |
-          pipenv run pylint --version
-          pipenv run pylint $(git ls-files '*.py')
+          pylint --version
+          pylint $(git ls-files '*.py')
       - name: Lint with yamllint
         run: |
-          pipenv run yamllint --version
-          pipenv run yamllint $(git ls-files '*.yaml') $(git ls-files '*.yml')
+          yamllint --version
+          yamllint $(git ls-files '*.yaml') $(git ls-files '*.yml')
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
