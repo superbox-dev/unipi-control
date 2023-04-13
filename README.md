@@ -300,12 +300,14 @@ For development, you must clone the git repository and install **Unipi Control**
 ```shell
 $ git clone https://github.com/mh-superbox/unipi-control.git
 $ cd unipi-control
-~/unipi-control$ pipenv install --deploy --dev 
-~/unipi-control$ pipenv run pip install -e .
+~/unipi-control$ python -m venv .venv 
+~/unipi-control$ source .venv/bin/activate
+~/unipi-control$ pip install -r requirements.txt
+~/unipi-control$ pip install -r requirements-dev.txt
 ```
 
 Copy the config files to your `/etc` directory.
-Now you can start unipi-control with `pipenv run unipi-control`.
+Now you can start unipi-control with `unipi-control`.
 
 ## Extras
 
