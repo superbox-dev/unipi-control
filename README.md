@@ -74,6 +74,14 @@ $ systemctl enable unipi-control.service
 $ systemctl start unipi-control.service
 ```
 
+## Arguments
+
+| Argument   | Description                                                           |
+|------------|-----------------------------------------------------------------------|
+| `--config` | path to the configuration (default: /etc/unipi)                       |
+| `-v`       | verbose mode: multiple -v options increase the verbosity (maximum: 4) |
+
+
 ## Configuration
 
 You can set the client settings in the `/etc/unipi/control.yaml`.

@@ -18,6 +18,7 @@ from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
 from superbox_utils.text.text import slugify
 from unipi_control.config import Config
+from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
@@ -129,6 +130,13 @@ def parse_args(args: list) -> argparse.Namespace:
     Argparse namespace
     """
     parser: argparse.ArgumentParser = init_argparse(description="Control Unipi I/O with MQTT commands")
+    parser.add_argument(
+        "-c",
+        "--config",
+        action="store",
+        default=DEFAULT_CONFIG_PATH,
+        help=f"path to the configuration (default: {DEFAULT_CONFIG_PATH})",
+    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)
@@ -142,6 +150,7 @@ def main() -> None:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
         config: Config = Config()
+        config.update({"config_base_path": Path(args.config)})
         config.logging.init(log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
 
         unipi_control = UnipiControl(

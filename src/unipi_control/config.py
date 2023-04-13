@@ -29,6 +29,7 @@ from superbox_utils.yaml.loader import yaml_loader_safe
 
 logger: logging.Logger = logging.getLogger()
 
+DEFAULT_CONFIG_PATH: Final[Path] = Path("/etc/unipi")
 DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
 MODBUS_BAUD_RATES: Final[List[int]] = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
@@ -205,7 +206,7 @@ class Config(ConfigLoaderMixin):
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
-    config_base_path: Path = field(default=Path("/etc/unipi"))
+    config_base_path: Path = field(default=DEFAULT_CONFIG_PATH)
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
@@ -281,6 +282,13 @@ class Config(ConfigLoaderMixin):
                 raise ConfigException(f"{LogPrefix.COVER} Duplicate ID '{cover.object_id}' found in 'covers'!")
 
             object_ids.append(cover.object_id)
+
+    @staticmethod
+    def _validate_config_base_path(value: Path, _field: dataclasses.Field) -> Path:
+        if not value.is_dir() or not value.exists():
+            raise ConfigException(f"{LogPrefix.DEVICEINFO} Config path '{value}' is invalid!")
+
+        return value
 
 
 @dataclass
