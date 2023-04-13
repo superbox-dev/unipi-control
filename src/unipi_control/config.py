@@ -199,7 +199,7 @@ class ModbusConfig(ConfigLoaderMixin):
 
 @dataclass
 class Config(ConfigLoaderMixin):
-    device_info: DeviceInfo = field(default=DeviceInfo())
+    device_info: DeviceInfo = field(default_factory=DeviceInfo)
     mqtt: MqttConfig = field(default_factory=MqttConfig)
     modbus: ModbusConfig = field(default_factory=ModbusConfig)
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
