@@ -156,12 +156,19 @@ def main() -> None:
         unipi_control = UnipiControl(
             config=config,
             modbus_client=ModbusClient(
-                tcp=AsyncModbusTcpClient(host="localhost"),
+                tcp=AsyncModbusTcpClient(
+                    host="localhost",
+                    timeout=0.5,
+                    retries=3,
+                    retry_on_empty=True,
+                ),
                 serial=AsyncModbusSerialClient(
                     port="/dev/extcomm/0/0",
                     baudrate=config.modbus.baud_rate,
                     parity=config.modbus.parity,
-                    timeout=30,
+                    timeout=1,
+                    retries=3,
+                    retry_on_empty=True,
                 ),
             ),
         )

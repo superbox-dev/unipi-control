@@ -96,7 +96,8 @@ class ModbusCacheData:
             if not self.data.get(definition.unit):
                 self.data[definition.unit] = {}
 
-            await asyncio.sleep(8e-3)
+            if scan_type == "serial":
+                await asyncio.sleep(1)
 
             for modbus_register_block in definition.modbus_register_blocks:
                 await self._save_response(scan_type, modbus_register_block, definition)
