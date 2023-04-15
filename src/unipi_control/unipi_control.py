@@ -149,9 +149,8 @@ def main() -> None:
     try:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
-        config: Config = Config()
-        config.update({"config_base_path": Path(args.config)})
-        config.logging.init(log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
+        config: Config = Config(config_base_path=Path(args.config))
+        config.logging.init(log=args.log, verbose=args.verbose)
 
         unipi_control = UnipiControl(
             config=config,
