@@ -24,6 +24,8 @@ jobs:
         run: |
           echo "package_name=$(python setup.py --name)" >> $GITHUB_OUTPUT
           echo "package_version=$(python setup.py --version)" >> $GITHUB_OUTPUT
+          echo $(python setup.py --name)
+          echo $(python setup.py --version)
       - name: Check tag ${{ github.ref_name }}
         id: check-tag
         run: |
