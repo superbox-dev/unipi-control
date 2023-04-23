@@ -107,8 +107,8 @@ jobs:
     uses: superbox-dev/python-package-workflows/.github/workflows/release.yml@main
     needs:
       - parameters
-      - tests
-      - build
+      - build-python-package
+      - build-opkg-package
     with:
       package-name: ${{ needs.parameters.outputs.package-name }}
       package-version: ${{ needs.parameters.outputs.package-version }}
