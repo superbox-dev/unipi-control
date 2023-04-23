@@ -1,4 +1,5 @@
 {
     "python-versions": ["3.8", "3.9", "3.10", "3.11"],
-    "binary-files": ["unipi-control", "unipi-model-info", "unipi-config-converter"]
+    "binary-files": ["unipi-control", "unipi-model-info", "unipi-config-converter"],
+    "opkg-package": "extras/config/"
 }

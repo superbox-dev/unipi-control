@@ -38,6 +38,7 @@ jobs:
       package-name: ${{ needs.parameters.outputs.package-name }}
       package-version: ${{ needs.parameters.outputs.package-version }}
       binary-files: ${{ needs.parameters.outputs.binary-files }}
+      opkg-package: ${{ needs.parameters.outputs.opkg-package }}
 
   release:
     name: Release
