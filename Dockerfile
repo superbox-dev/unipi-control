@@ -1,8 +1,14 @@
-FROM python:3.10-alpine
+FROM python:3.10-slim
 
 # Update packages
-RUN apk update && apk upgrade
-RUN apk add --no-cache gcc ccache musl-dev patchelf linux-headers shadow sudo
+RUN apt update \
+    && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+      gcc \
+      ccache \
+      sudo \
+      libc6-dev \
+      patchelf \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install dev packages
 RUN pip install --no-cache-dir nuitka

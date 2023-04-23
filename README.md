@@ -68,7 +68,7 @@ $ python -m venv /opt/.venv
 $ /opt/.venv/bin/pip install unipi-control
 ```
 
-Copy the [config files](src/unipi_control/config/etc) to your `/etc` directory and start the systemd service:
+Copy the [config files](extras/config/etc) to your `/etc` directory and start the systemd service:
 
 ```shell
 $ systemctl enable unipi-control.service
@@ -300,13 +300,10 @@ For development, you must clone the git repository and install **Unipi Control**
 ```shell
 $ git clone https://github.com/mh-superbox/unipi-control.git
 $ cd unipi-control
-~/unipi-control$ python -m venv .venv 
-~/unipi-control$ source .venv/bin/activate
-~/unipi-control$ pip install -r requirements.txt
-~/unipi-control$ pip install -r requirements-dev.txt
+~/unipi-control$ make install-dev
 ```
 
-Copy the config files to your `/etc` directory.
+Copy the [config](extras/config/etc) files to your `/etc` directory.
 Now you can start unipi-control with `unipi-control`.
 
 ## Extras

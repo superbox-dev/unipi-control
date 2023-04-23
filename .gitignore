@@ -1,17 +1,36 @@
-*.egg
-*.egg-info
-*.pyc
-.coverage
-.DS_Store
-.mypy_cache
-.pytest_cache
+# PyCharm
 .idea
-.venv
+
+# macOS
+.DS_Store
 ._*
 *.swp
-build/*
-dist/*
-tmp
+
+# cache
+*.pyc
+
+# virtuelenv
+.venv
+
+# GitHub Action
+/output/
+
+# checks
+.mypy_cache
+.pytest_cache
+
+# coverage
+.coverage
 /coverage.xml
 /junit/test-results.xml
-/src/unipi_control/config/etc/unipi/hardware/neuron/evok/
+
+# build package
+*.egg
+*.egg-info
+/build/
+/dist/
+
+# nuitka
+/*.build/
+/*.dist/
+/*.onefile-build/
