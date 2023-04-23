@@ -24,7 +24,7 @@ jobs:
     needs:
       - parameters
     with:
-      latest-python-version: ${{ needs.parameters.latest-python-version }}
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
 
   unit-testing:
     name: Unit testing
@@ -32,7 +32,7 @@ jobs:
     needs:
       - parameters
     with:
-      python-versions: ${{ needs.parameters.python-versions }}
+      python-versions: ${{ needs.parameters.outputs.python-versions }}
 
   coverage:
     name: Coverage
@@ -41,7 +41,7 @@ jobs:
       - parameters
       - unit-testing
     with:
-      latest-python-version: ${{ needs.parameters.latest-python-version }}
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
 
   code-analyse:
     name: Code analyse
@@ -49,7 +49,7 @@ jobs:
     needs:
       - parameters
     with:
-      python-versions: ${{ needs.parameters.python-versions }}
+      python-versions: ${{ needs.parameters.outputs.python-versions }}
 
   security:
     name: Security
@@ -57,7 +57,7 @@ jobs:
     needs:
       - parameters
     with:
-      latest-python-version: ${{ needs.parameters.latest-python-version }}
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
 
   build-python-package:
     name: Build python package
@@ -72,8 +72,8 @@ jobs:
       - unit-testing
       - code-analyse
     with:
-      latest-python-version: ${{ needs.parameters.latest-python-version }}
-      package-version: ${{ needs.parameters.package-version }}
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
+      package-version: ${{ needs.parameters.outputs.package-version }}
 
   build-binary-files:
     name: Build binary files
@@ -88,8 +88,8 @@ jobs:
       - unit-testing
       - code-analyse
     with:
-      package-version: ${{ needs.parameters.package-version }}
-      binary-files: ${{ needs.parameters.binary-files }}
+      package-version: ${{ needs.parameters.outputs.package-version }}
+      binary-files: ${{ needs.parameters.outputs.binary-files }}
 
   build-opkg-package:
     name: Build OPKG package
@@ -98,10 +98,10 @@ jobs:
       - build-binary-files
     uses: superbox-dev/python-package-workflows/.github/workflows/build-opkg-package.yml@main
     with:
-      latest-python-version: ${{ needs.parameters.latest-python-version }}
-      package-name: ${{ needs.parameters.package-name }}
-      package-version: ${{ needs.parameters.package-version }}
-      opkg-package: ${{ needs.parameters.opkg-package }}
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
+      package-name: ${{ needs.parameters.outputs.package-name }}
+      package-version: ${{ needs.parameters.outputs.package-version }}
+      opkg-package: ${{ needs.parameters.outputs.opkg-package }}
 
   release:
     name: Release
