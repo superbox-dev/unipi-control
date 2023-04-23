@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  parameters:
+    name: Parameters
+    uses: superbox-dev/python-package-workflows/.github/workflows/parameters.yml@main
+    with:
+      json: ./.github/workflows/parameters.json
+
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+    needs:
+      - parameters
+    with:
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
+      python-versions: ${{ needs.parameters.outputs.python-versions }}
+
+  build:
+    name: Build
+    if: |
+      contains(fromJSON('["tag", "branch"]'), github.ref_type)
+      && github.ref_name != 'main'
+      && !endsWith(github.ref_name, '/merge')
+    uses: ./.github/workflows/build.yml
+    needs:
+      - parameters
+      - tests
+    with:
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
+      package-name: ${{ needs.parameters.outputs.package-name }}
+      package-version: ${{ needs.parameters.outputs.package-version }}
+      binary-files: ${{ needs.parameters.outputs.binary-files }}
+
+  release:
+    name: Release
+    if: github.ref_type == 'tag'
+    uses: superbox-dev/python-package-workflows/.github/workflows/release.yml@main
+    needs:
+      - parameters
+      - tests
+      - build
+    with:
+      package-name: ${{ needs.parameters.outputs.package-name }}
+      package-version: ${{ needs.parameters.outputs.package-version }}
+
+  # publish:
+  #   name: Publish
+  #   needs:
+  #    - release
+  #  uses: superbox-dev/python-package-workflows/.github/workflows/publish.yml@main
+  #  secrets:
+  #    PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
