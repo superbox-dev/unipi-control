@@ -11,4 +11,5 @@ pytest~=7.3.1
 pytest-asyncio~=0.21.0
 pytest-cov~=4.0.0
 pytest-mock~=3.10.0
+setuptools~=67.7.1
 yamllint~=1.31.0
