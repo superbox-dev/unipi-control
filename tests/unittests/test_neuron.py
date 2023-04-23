@@ -4,6 +4,7 @@ from unittest.mock import PropertyMock
 
 import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
 from unipi_control.config import Config
@@ -29,11 +30,11 @@ class TestUnhappyPathNeuron:
     ) -> None:
         config: Config = _config_loader.get_config()
 
-        mock_response_is_error: MagicMock = MagicMock()
-        mock_response_is_error.isError.return_value = True
+        mock_response: MagicMock = MagicMock(spec=ModbusResponse)
+        mock_response.isError.return_value = True
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()
-        mock_modbus_tcp_client.read_input_registers.side_effect = mock_response_is_error
+        mock_modbus_tcp_client.read_input_registers.side_effect = mock_response
 
         mock_hardware_info: PropertyMock = mocker.patch(
             "unipi_control.config.HardwareInfo", new_callable=PropertyMock()

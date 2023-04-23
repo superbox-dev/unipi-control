@@ -1,8 +1,9 @@
-[![license-url](https://img.shields.io/npm/l/make-coverage-badge.svg)](https://opensource.org/licenses/MIT)
-![coverage-badge](https://raw.githubusercontent.com/mh-superbox/unipi-control/main/coverage.svg)
+[![license-url](https://img.shields.io/badge/license-Apache%202-yellowgreen)](https://opensource.org/license/apache-2-0/)
+![coverage-badge](https://raw.githubusercontent.com/superbox-dev/unipi-control/main/coverage.svg)
 ![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)
 ![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
+![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
 
 ### Support me if you like this project 😀
 
@@ -17,15 +18,39 @@ Control Unipi I/O directly with MQTT commands and without [Evok](https://github.
 
 ## Supported hardware
 
-* Unipi Neuron L203
+* Tested:
+  * Unipi Neuron
+    * L203
+* Untested:
+  * Unipi Neuron
+    * S103
+    * S103-G
+    * M103
+    * M203
+    * M523
+    * L523
+    * L533
+  * Unipi Patron
+    * Patron S107
+    * Patron S117
+    * Patron S167
+    * Patron M207
+    * Patron M267
+    * Patron M527
+    * Patron M567
+    * Patron S207
+    * Patron L207
+    * Patron L527
 * External Modbus RTU devices
   * [Eastron SDM120M](https://www.eastroneurope.com/products/view/sdm120modbus)
+
+If you tried an untested Unipi device then please let me know the result to update this page.
 
 If you have an Unipi device, that is not supported, then contact me.
 
 ## Getting Started
 
-### Recommended installation
+### Recommended installation (Only for Unipi Neuron)
 
 Use the [Unipi Control OS](https://github.com/mh-superbox/unipi-control-os).
 
@@ -33,9 +58,8 @@ Use the [Unipi Control OS](https://github.com/mh-superbox/unipi-control-os).
 
 **Requirements:**
 
-* Unipi Neuron Kernel Module and Unipi tools
-  * Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology
-* Python 3.8
+* Unipi Neuron Kernel Module and Unipi tools (Use the officially APT mirror (https://repo.unipi.technology/debian/) from Unipi Technology)
+* Python >= 3.8
 
 Install **Unipi Control** with `pip`.
 
@@ -44,12 +68,20 @@ $ python -m venv /opt/.venv
 $ /opt/.venv/bin/pip install unipi-control
 ```
 
-Copy the [config files](src/unipi_control/config/etc) to your `/etc` directory and start the systemd service:
+Copy the [config files](extras/config/etc) to your `/etc` directory and start the systemd service:
 
 ```shell
 $ systemctl enable unipi-control.service
 $ systemctl start unipi-control.service
 ```
+
+## Arguments
+
+| Argument   | Description                                                           |
+|------------|-----------------------------------------------------------------------|
+| `--config` | path to the configuration (default: /etc/unipi)                       |
+| `-v`       | verbose mode: multiple -v options increase the verbosity (maximum: 4) |
+
 
 ## Configuration
 
@@ -268,12 +300,11 @@ For development, you must clone the git repository and install **Unipi Control**
 ```shell
 $ git clone https://github.com/mh-superbox/unipi-control.git
 $ cd unipi-control
-~/unipi-control$ pipenv install --deploy --dev 
-~/unipi-control$ pipenv run pip install -e .
+~/unipi-control$ make install-dev
 ```
 
-Copy the config files to your `/etc` directory.
-Now you can start unipi-control with `pipenv run unipi-control`.
+Copy the [config](extras/config/etc) files to your `/etc` directory.
+Now you can start unipi-control with `unipi-control`.
 
 ## Extras
 

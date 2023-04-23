@@ -1,6 +1,8 @@
 from typing import Final
 from typing import List
-from unittest.mock import PropertyMock
+from unittest.mock import MagicMock
+
+from pymodbus.pdu import ModbusResponse
 
 CONFIG_CONTENT: Final[
     str
@@ -332,28 +334,30 @@ modbus_features:
 MODBUS_FEATURE_ENABLED: Final[int] = 1
 
 NEURON_L203_MODBUS_REGISTER: Final[List] = [
-    PropertyMock(registers=[0, 0]),  # DI 1.x / DO 1.x
-    PropertyMock(registers=[0]),  # LED 1.x
-    PropertyMock(registers=[16384, 10240]),  # DI 2.x / RO 2.x
-    PropertyMock(registers=[24576, 8192]),  # DI 3.x / RO 3.x
+    MagicMock(spec=ModbusResponse, registers=[0, 0]),  # DI 1.x / DO 1.x
+    MagicMock(spec=ModbusResponse, registers=[0]),  # LED 1.x
+    MagicMock(spec=ModbusResponse, registers=[16384, 10240]),  # DI 2.x / RO 2.x
+    MagicMock(spec=ModbusResponse, registers=[24576, 8192]),  # DI 3.x / RO 3.x
 ]
 
 EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER: Final[List] = [
-    PropertyMock(registers=[17259, 13107]),  # Voltage
-    PropertyMock(registers=[16018, 28312]),  # Current
-    PropertyMock(registers=[16918, 52429]),  # Active power
-    PropertyMock(registers=[16932, 32072]),  # Apparent power
-    PropertyMock(registers=[49538, 26214]),  # Reactive power
-    PropertyMock(registers=[16234, 55535]),  # Power factor
-    PropertyMock(registers=[0, 0]),  # Phase Angle
-    PropertyMock(
-        registers=[16968, 10486, 16525, 20447, 0, 0, 16023, 36176, 16431, 11010]
+    MagicMock(spec=ModbusResponse, registers=[17259, 13107]),  # Voltage
+    MagicMock(spec=ModbusResponse, registers=[16018, 28312]),  # Current
+    MagicMock(spec=ModbusResponse, registers=[16918, 52429]),  # Active power
+    MagicMock(spec=ModbusResponse, registers=[16932, 32072]),  # Apparent power
+    MagicMock(spec=ModbusResponse, registers=[49538, 26214]),  # Reactive power
+    MagicMock(spec=ModbusResponse, registers=[16234, 55535]),  # Power factor
+    MagicMock(spec=ModbusResponse, registers=[0, 0]),  # Phase Angle
+    MagicMock(
+        spec=ModbusResponse, registers=[16968, 10486, 16525, 20447, 0, 0, 16023, 36176, 16431, 11010]
     ),  # Frequency, Import active energy, Export active energy, Imported reactive energy, Exported reactive energy
-    PropertyMock(
-        registers=[16917, 5097, 17058, 5854, 16917, 5097, 17058, 5854]
+    MagicMock(
+        spec=ModbusResponse, registers=[16917, 5097, 17058, 5854, 16917, 5097, 17058, 5854]
     ),  # Total system power demand, Maximum total system power demand, Import system power demand, Maximum import system power demand
-    PropertyMock(registers=[0, 0, 15609, 56093]),  # Export system power demand, Maximum export system power demand
-    PropertyMock(registers=[16020, 2247]),  # Current demand
-    PropertyMock(registers=[16182, 44756]),  # Maximum current demand
-    PropertyMock(registers=[16525, 20447, 16450, 7340]),  # Total active energy, Total reactive energy
+    MagicMock(
+        spec=ModbusResponse, registers=[0, 0, 15609, 56093]
+    ),  # Export system power demand, Maximum export system power demand
+    MagicMock(spec=ModbusResponse, registers=[16020, 2247]),  # Current demand
+    MagicMock(spec=ModbusResponse, registers=[16182, 44756]),  # Maximum current demand
+    MagicMock(spec=ModbusResponse, registers=[16525, 20447, 16450, 7340]),  # Total active energy, Total reactive energy
 ]

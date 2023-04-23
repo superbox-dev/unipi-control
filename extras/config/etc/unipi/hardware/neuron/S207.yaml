@@ -1,0 +1,16 @@
+modbus_features:
+  - count: 8
+    feature_type: DI
+    major_group: 1
+    val_reg: 0
+  - count: 8
+    feature_type: RO
+    major_group: 1
+    val_reg: 1
+modbus_register_blocks:
+  - count: 19
+    slave: 1
+    start_reg: 0
+  - count: 21
+    slave: 1
+    start_reg: 1000

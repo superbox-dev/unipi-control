@@ -5,13 +5,14 @@ from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
+from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.integrations.covers import CoverState
-from unipi_control.modbus import ModbusClient
 from unittests.conftest import ConfigLoader
+from unittests.conftest import MockModbusClient
 from unittests.conftest_data import CONFIG_CONTENT
 from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
@@ -47,8 +48,8 @@ class CoverExpected:
 
 class TestCovers:
     @pytest.fixture(autouse=True)
-    def pre(self, _modbus_client: ModbusClient, mocker: MockerFixture) -> None:
-        mock_response_is_error = MagicMock()
+    def pre(self, _modbus_client: MockModbusClient, mocker: MockerFixture) -> None:
+        mock_response_is_error = MagicMock(spec=ModbusResponse)
         mock_response_is_error.isError.return_value = False
 
         _modbus_client.tcp.write_coil.return_value = mock_response_is_error

@@ -3,7 +3,7 @@ extends: default
 rules:
   document-start: disable
   truthy:
-    allowed-values: ['True', 'False', 'yes', 'no']  # yamllint disable rule:brackets
+    allowed-values: ['True', 'False', 'yes', 'no', 'on', 'off']  # yamllint disable rule:brackets
   line-length:
     max: 140
     allow-non-breakable-words: True

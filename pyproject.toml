@@ -18,7 +18,7 @@ ignore_missing_imports = true
 # C0115: missing-class-docstring
 # C0116: missing-function-docstring
 # C0301: line-too-long
-# C0411: rong-import-order
+# C0411: wrong-import-order
 # E0401: import-error
 # R0801: duplicate-code
 # R1732: consider-using-with

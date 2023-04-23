@@ -1,186 +1,60 @@
 name: CI
 
 on:
+  workflow_dispatch:
+  pull_request:
   push:
-    branches:
-      - develop
-      - main
     tags:
       - '*'
 
 jobs:
-  check-tag:
-    name: Check Git Tag
-    runs-on: ubuntu-latest
-    outputs:
-      release-type: ${{ steps.check-tag.outputs.run_jobs }}
-    steps:
-      - name: check tag ${{ github.ref }}
-        id: check-tag
-        run: |
-          if [[ ${{ github.event.ref }} =~ ^refs\/tags\/20[0-9][0-9]\.[1-9]{1}[0-9]{0,}$ ]]; then
-            echo "run_jobs=release" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.event.ref }} =~ ^refs\/tags\/20[0-9][0-9]\.[1-9]{1}[0-9]{0,}b[1-9]{1}[0-9]{0,}$ ]]; then
-            echo "run_jobs=prerelease" >> $GITHUB_OUTPUT
-          fi
+  parameters:
+    name: Parameters
+    uses: superbox-dev/python-package-workflows/.github/workflows/parameters.yml@main
+    with:
+      json: ./.github/workflows/parameters.json
 
   tests:
-    name: Tests - Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3.3.0
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4.5.0
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python --version
-          python -m pip install --user --upgrade pip
-          python -m pip install --user pipenv
-          pipenv install --deploy --dev
-      - name: Run unit tests
-        run: pipenv run pytest --cov=src --cov-report=term-missing --junitxml=junit/test-results.xml --cov-report=xml
-      - name: Upload coverage
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: python-${{ matrix.python-version }}-coverage
-          path: .coverage
-      - name: Upload pytest test results
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: pytest-results-${{ matrix.python-version }}
-          path: junit/test-results.xml
-        if: ${{ always() }}
-  security:
-    name: Security
-    continue-on-error: True
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3.3.0
-      - name: Install dependencies
-        run: |
-          python --version
-          python -m pip install --user --upgrade pip
-          python -m pip install --user pipenv
-          pipenv install --deploy --dev
-      - name: Audit packages
-        run: pipenv run pip-audit
-  check:
-    name: Code Analyse - Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    name: Tests
+    uses: ./.github/workflows/tests.yml
     needs:
-      - tests
-    strategy:
-      matrix:
-        python-version:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3.3.0
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4.5.0
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python --version
-          python -m pip install --user --upgrade pip
-          python -m pip install --user pipenv
-          pipenv install --deploy --dev
-      - name: Check code format with black
-        run: |
-          pipenv run black --version
-          pipenv run black --diff --check $(git ls-files '*.py')
-      - name: Lint with flake8
-        run: |
-          pipenv run flake8 --version
-          pipenv run flake8 --show-source --statistics $(git ls-files '*.py')
-      - name: Lint with mypy
-        run: pipenv run mypy $(git ls-files '*.py')
-      - name: Lint with pylint
-        run: |
-          pipenv run pylint --version
-          pipenv run pylint $(git ls-files '*.py')
-      - name: Lint with yamllint
-        run: |
-          pipenv run yamllint --version
-          pipenv run yamllint $(git ls-files '*.yaml') $(git ls-files '*.yml')
-  coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
+      - parameters
+    with:
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
+      python-versions: ${{ needs.parameters.outputs.python-versions }}
+
+  build:
+    name: Build
+    if: |
+      contains(fromJSON('["tag", "branch"]'), github.ref_type)
+      && github.ref_name != 'main'
+      && !endsWith(github.ref_name, '/merge')
+    uses: ./.github/workflows/build.yml
     needs:
+      - parameters
       - tests
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3.3.0
-      - name: Install dependencies
-        run: |
-          python --version
-          python -m pip install --user --upgrade pip
-          python -m pip install --user pipenv
-          pipenv install --deploy --dev
-      - name: Download coverage
-        uses: actions/download-artifact@v3.0.2
-        with:
-          name: python-3.8-coverage
-      - name: Create coverage badge
-        uses: tj-actions/coverage-badge-py@v1.8
-      - name: Verify coverage badge changed
-        uses: tj-actions/verify-changed-files@v13.1
-        id: changed_files
-        with:
-          files: coverage.svg
-      - name: Commit coverage badge
-        if: steps.changed_files.outputs.files_changed == 'true'
-        run: |
-          git config --local user.email "noreply@superbox.one"
-          git config --local user.name "Github Workflow"
-          git add coverage.svg
-          git commit -m "Updated coverage.svg"
-      - name: Push changes
-        if: steps.changed_files.outputs.files_changed == 'true'
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-  deploy:
-    name: Upload Package to PyPi
+    with:
+      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
+      package-name: ${{ needs.parameters.outputs.package-name }}
+      package-version: ${{ needs.parameters.outputs.package-version }}
+      binary-files: ${{ needs.parameters.outputs.binary-files }}
+
+  release:
+    name: Release
+    if: github.ref_type == 'tag'
+    uses: superbox-dev/python-package-workflows/.github/workflows/release.yml@main
     needs:
-      - check-tag
+      - parameters
       - tests
-      - check
-      - coverage
-    if: needs.check-tag.outputs.release-type == 'release' || needs.check-tag.outputs.release-type == 'prerelease'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3.3.0
-      - name: Build package
-        run: |
-          python -m pip install build twine
-          python -m build
-      - name: Publish test package
-        if: needs.check-tag.outputs.release-type == 'prerelease'
-        uses: pypa/gh-action-pypi-publish@release/v1.6
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TEST_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
-          verbose: True
-      - name: Publish package
-        if: needs.check-tag.outputs.release-type == 'release'
-        uses: pypa/gh-action-pypi-publish@release/v1.6
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+      - build
+    with:
+      package-name: ${{ needs.parameters.outputs.package-name }}
+      package-version: ${{ needs.parameters.outputs.package-version }}
+
+  # publish:
+  #   name: Publish
+  #   needs:
+  #    - release
+  #  uses: superbox-dev/python-package-workflows/.github/workflows/publish.yml@main
+  #  secrets:
+  #    PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}

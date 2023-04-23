@@ -2,6 +2,7 @@
 Description=Unipi Control
 After=multi-user.target
 Requires=unipitcp.service
+ConditionPathExists=/etc/control.yaml
 
 [Service]
 Type=simple

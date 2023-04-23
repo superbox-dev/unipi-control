@@ -1,0 +1,42 @@
+modbus_features:
+  - count: 4
+    feature_type: DO
+    major_group: 1
+    val_reg: 1
+  - count: 4
+    feature_type: DI
+    major_group: 1
+    val_reg: 0
+  - count: 4
+    feature_type: LED
+    major_group: 1
+    val_coil: 8
+    val_reg: 20
+  - count: 8
+    feature_type: DI
+    major_group: 2
+    val_reg: 100
+  - count: 8
+    feature_type: RO
+    major_group: 2
+    val_coil: 100
+    val_reg: 101
+modbus_register_blocks:
+  - count: 2
+    slave: 1
+    start_reg: 0
+  - count: 3
+    slave: 1
+    start_reg: 2
+  - count: 16
+    slave: 1
+    start_reg: 5
+  - count: 32
+    slave: 1
+    start_reg: 1000
+  - count: 19
+    slave: 2
+    start_reg: 100
+  - count: 21
+    slave: 2
+    start_reg: 1100

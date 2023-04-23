@@ -56,7 +56,7 @@ class TestUnhappyPathModbus:
 
         logs: list = [record.getMessage() for record in caplog.records]
 
-        assert "[MODBUS] [TCP] Timeout on: {'address': 0, 'count': 2, 'slave': 0}" in logs
-        assert "[MODBUS] [TCP] Timeout on: {'address': 20, 'count': 1, 'slave': 0}" in logs
-        assert "[MODBUS] [TCP] Timeout on: {'address': 100, 'count': 2, 'slave': 0}" in logs
-        assert "[MODBUS] [TCP] Timeout on: {'address': 200, 'count': 2, 'slave': 0}" in logs
+        assert "[MODBUS] Timeout on: {'address': 0, 'count': 2, 'slave': 0}" in logs
+        assert "[MODBUS] Timeout on: {'address': 20, 'count': 1, 'slave': 0}" in logs
+        assert "[MODBUS] Timeout on: {'address': 100, 'count': 2, 'slave': 0}" in logs
+        assert "[MODBUS] Timeout on: {'address': 200, 'count': 2, 'slave': 0}" in logs

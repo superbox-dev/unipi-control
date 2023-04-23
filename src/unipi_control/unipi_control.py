@@ -1,28 +1,27 @@
 import argparse
 import asyncio
-import sys
 import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
-from typing import Final
 from typing import Optional
 from typing import Set
 
+import sys
 from asyncio_mqtt import Client
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
+
 from superbox_utils.argparse import init_argparse
 from superbox_utils.config.exception import ConfigException
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.mqtt.connect import mqtt_connect
 from superbox_utils.text.text import slugify
-
 from unipi_control.config import Config
+from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.log import LOG_NAME
 from unipi_control.modbus import ModbusClient
 from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
@@ -42,8 +41,6 @@ class UnipiControl:
     topics for reading and writing the circuits. Optionally you can enable
     the Home Assistant MQTT discovery for binary sensors, sensors, switches and covers.
     """
-
-    NAME: Final[str] = "unipi-control"
 
     def __init__(self, config: Config, modbus_client: ModbusClient) -> None:
         self.config: Config = config
@@ -133,40 +130,54 @@ def parse_args(args: list) -> argparse.Namespace:
     Argparse namespace
     """
     parser: argparse.ArgumentParser = init_argparse(description="Control Unipi I/O with MQTT commands")
+    parser.add_argument(
+        "-c",
+        "--config",
+        action="store",
+        default=DEFAULT_CONFIG_PATH,
+        help=f"path to the configuration (default: {DEFAULT_CONFIG_PATH})",
+    )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)
 
 
 def main() -> None:
-    """Entrypoint for Unipi Control script."""
+    """Entrypoint for Unipi Control."""
     unipi_control: Optional[UnipiControl] = None
 
     try:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
-        config: Config = Config()
-        config.logging.init(LOG_NAME, log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
+        config: Config = Config(config_base_path=Path(args.config))
+        config.logging.init(log=args.log, verbose=args.verbose)
 
         unipi_control = UnipiControl(
             config=config,
             modbus_client=ModbusClient(
-                tcp=AsyncModbusTcpClient(host="localhost"),
+                tcp=AsyncModbusTcpClient(
+                    host="localhost",
+                    timeout=0.5,
+                    retries=3,
+                    retry_on_empty=True,
+                ),
                 serial=AsyncModbusSerialClient(
                     port="/dev/extcomm/0/0",
                     baudrate=config.modbus.baud_rate,
                     parity=config.modbus.parity,
-                    timeout=30,
+                    timeout=1,
+                    retries=3,
+                    retry_on_empty=True,
                 ),
             ),
         )
 
         asyncio.run(unipi_control.run())
     except ConfigException as error:
-        logger.error("%s %s", LogPrefix.CONFIG, error)
+        logger.critical("%s %s", LogPrefix.CONFIG, error)
         sys.exit(1)
     except UnexpectedException as error:
-        logger.error(error)
+        logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
         pass

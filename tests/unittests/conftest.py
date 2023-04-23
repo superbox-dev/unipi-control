@@ -10,13 +10,13 @@ from unittest.mock import PropertyMock
 import pytest
 import pytest_asyncio
 from _pytest.fixtures import SubRequest  # pylint: disable=import-private-name
+from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
 from unipi_control.config import Config
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
-from unipi_control.unipi_control import UnipiControl
 from unittests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 from unittests.conftest_data import NEURON_L203_MODBUS_REGISTER
 
@@ -24,7 +24,7 @@ from unittests.conftest_data import NEURON_L203_MODBUS_REGISTER
 @pytest.fixture(autouse=True, scope="session")
 def logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
-    logging.getLogger(UnipiControl.NAME).handlers.clear()
+    logging.getLogger().handlers.clear()
     logging.info("Initialize logging")
 
 
@@ -40,9 +40,6 @@ class ConfigLoader:
         extension_hardware_data_path: Path = self.temp / "hardware/extensions"
         extension_hardware_data_path.mkdir(parents=True)
         self.extension_hardware_data_file_path = extension_hardware_data_path / "MOCKED_EASTRON.yaml"
-
-        self.systemd_path: Path = self.temp / "systemd/system"
-        self.systemd_path.mkdir(parents=True)
 
         self.temp_path: Path = self.temp / "unipi"
         self.temp_path.mkdir(parents=True)
@@ -60,7 +57,7 @@ class ConfigLoader:
             _file.write(content)
 
     def get_config(self) -> Config:
-        return Config(config_base_path=self.temp, systemd_path=self.systemd_path, temp_path=self.temp_path)
+        return Config(config_base_path=self.temp, temp_path=self.temp_path)
 
 
 @pytest.fixture()
@@ -83,25 +80,36 @@ class MockHardwareInfo:
     serial: str = "MOCKED_SERIAL"
 
 
+class MockModbusClient(NamedTuple):
+    tcp: AsyncMock
+    serial: AsyncMock
+
+
 @pytest.fixture()
-def _modbus_client(mocker: MockerFixture) -> ModbusClient:
-    mock_response_is_error: MagicMock = MagicMock(registers=[0])
-    mock_response_is_error.isError.return_value = False
+def _modbus_client(mocker: MockerFixture) -> MockModbusClient:
+    mock_bord_response: MagicMock = MagicMock(spec=ModbusResponse, registers=[0])
+    mock_bord_response.isError.return_value = False
+
+    for mock_response in NEURON_L203_MODBUS_REGISTER:
+        mock_response.isError.return_value = False
 
     mock_modbus_tcp_client: AsyncMock = AsyncMock()
     mock_modbus_tcp_client.read_input_registers.side_effect = [
         # Board 1
-        mock_response_is_error,
+        mock_bord_response,
         # Board 2
-        mock_response_is_error,
+        mock_bord_response,
         # Board 3
-        mock_response_is_error,
+        mock_bord_response,
     ] + NEURON_L203_MODBUS_REGISTER
+
+    for mock_response in EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER:
+        mock_response.isError.return_value = False
 
     mock_modbus_serial_client: AsyncMock = AsyncMock()
     mock_modbus_serial_client.read_input_registers.side_effect = EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 
-    mock_response_sw_version: MagicMock = MagicMock(registers=[32, 516])
+    mock_response_sw_version: MagicMock = MagicMock(spec=ModbusResponse, registers=[32, 516])
     mock_response_sw_version.isError.return_value = False
 
     mock_modbus_serial_client.read_holding_registers.side_effect = [
@@ -112,7 +120,7 @@ def _modbus_client(mocker: MockerFixture) -> ModbusClient:
     mock_hardware_info: PropertyMock = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
     mock_hardware_info.return_value = MockHardwareInfo()
 
-    return ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_serial_client)
+    return MockModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_serial_client)
 
 
 @pytest_asyncio.fixture()

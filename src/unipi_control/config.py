@@ -26,10 +26,10 @@ from superbox_utils.hass.config import HomeAssistantConfig
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.mqtt.config import MqttConfig
 from superbox_utils.yaml.loader import yaml_loader_safe
-from unipi_control.log import LOG_NAME
 
-logger: logging.Logger = logging.getLogger(LOG_NAME)
+logger: logging.Logger = logging.getLogger()
 
+DEFAULT_CONFIG_PATH: Final[Path] = Path("/etc/unipi")
 DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
 MODBUS_BAUD_RATES: Final[List[int]] = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
@@ -199,15 +199,14 @@ class ModbusConfig(ConfigLoaderMixin):
 
 @dataclass
 class Config(ConfigLoaderMixin):
-    device_info: DeviceInfo = field(default=DeviceInfo())
+    device_info: DeviceInfo = field(default_factory=DeviceInfo)
     mqtt: MqttConfig = field(default_factory=MqttConfig)
     modbus: ModbusConfig = field(default_factory=ModbusConfig)
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: dict = field(init=False, default_factory=dict)
     covers: list = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
-    config_base_path: Path = field(default=Path("/etc/unipi"))
-    systemd_path: Path = field(default=Path("/etc/systemd/system"))
+    config_base_path: Path = field(default=DEFAULT_CONFIG_PATH)
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
@@ -283,6 +282,13 @@ class Config(ConfigLoaderMixin):
                 raise ConfigException(f"{LogPrefix.COVER} Duplicate ID '{cover.object_id}' found in 'covers'!")
 
             object_ids.append(cover.object_id)
+
+    @staticmethod
+    def _validate_config_base_path(value: Path, _field: dataclasses.Field) -> Path:
+        if not value.is_dir() or not value.exists():
+            raise ConfigException(f"{LogPrefix.DEVICEINFO} Config path '{value}' is invalid!")
+
+        return value
 
 
 @dataclass
@@ -409,9 +415,7 @@ class HardwareData(Mapping):
 
             logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
-            raise ConfigException(
-                f'No valid YAML definition for active Neuron device! Device name is {self.data["neuron"].model}'
-            )
+            raise ConfigException("No valid YAML definition found for this device!")
 
     def _read_extension_definitions(self) -> None:
         try:

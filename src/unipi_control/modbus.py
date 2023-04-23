@@ -1,4 +1,5 @@
 import asyncio
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import NamedTuple
@@ -6,14 +7,43 @@ from typing import Optional
 
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
-from pymodbus.exceptions import ModbusIOException
-from pymodbus.pdu import ExceptionResponse
-from pymodbus.register_read_message import ReadInputRegistersResponse
+from pymodbus.exceptions import ModbusException
+from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import HardwareData
 from unipi_control.config import HardwareDefinition
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
+
+
+async def check_modbus_call(callback: Callable, data: dict) -> Optional[ModbusResponse]:
+    """Check modbus read/write call has errors and log the errors.
+
+    Parameters
+    ----------
+    callback: Callable
+        modbus callback function e.g. read_input_registers()
+    data: dict
+        Arguments pass to the callback function
+
+    Returns
+    -------
+    ModbusResponse: optional
+        Return modbus response if no errors found else None.
+    """
+    response: Optional[ModbusResponse] = None
+
+    try:
+        response = await callback(**data)
+
+        if response and response.isError():
+            response = None
+    except ModbusException as error:
+        logger.error("%s %s", LogPrefix.MODBUS, error)
+    except asyncio.exceptions.TimeoutError:
+        logger.error("%s Timeout on: %s", LogPrefix.MODBUS, data)
+
+    return response
 
 
 class ModbusClient(NamedTuple):
@@ -42,23 +72,23 @@ class ModbusCacheData:
         data: dict = {
             "address": modbus_register_block["start_reg"],
             "count": modbus_register_block["count"],
-            "slave": definition.unit,
+            "slave": modbus_register_block.get("slave", definition.unit),
         }
 
-        response: Optional[ReadInputRegistersResponse] = None
+        response: Optional[ModbusResponse] = None
 
-        try:
-            if scan_type == "tcp":
-                response = await self.modbus_client.tcp.read_input_registers(**data)
-            elif scan_type == "serial":
-                response = await self.modbus_client.serial.read_input_registers(**data)
+        if scan_type == "tcp":
+            response = await check_modbus_call(self.modbus_client.tcp.read_input_registers, data)
+        elif scan_type == "serial":
+            response = await check_modbus_call(self.modbus_client.serial.read_input_registers, data)
 
-            if response:
-                if not isinstance(response, (ModbusIOException, ExceptionResponse)):
-                    for index in range(data["count"]):
-                        self.data[definition.unit][data["address"] + index] = response.registers[index]
-        except asyncio.exceptions.TimeoutError:
-            logger.error("%s [%s] Timeout on: %s", LogPrefix.MODBUS, scan_type.upper(), data)
+        if registers := getattr(response, "registers", None):
+            for index in range(data["count"]):
+                self.data[definition.unit][
+                    data["address"] + index
+                ] = registers[  # pylint: disable=unsubscriptable-object
+                    index
+                ]
 
     async def scan(self, scan_type: str, hardware_types: List[str]) -> None:
         """Read modbus register blocks and cache the response."""
@@ -66,7 +96,8 @@ class ModbusCacheData:
             if not self.data.get(definition.unit):
                 self.data[definition.unit] = {}
 
-            await asyncio.sleep(8e-3)
+            if scan_type == "serial":
+                await asyncio.sleep(1)
 
             for modbus_register_block in definition.modbus_register_blocks:
                 await self._save_response(scan_type, modbus_register_block, definition)

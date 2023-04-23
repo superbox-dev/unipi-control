@@ -6,7 +6,7 @@ from typing import Union
 from unittest.mock import MagicMock
 
 import pytest
-from pymodbus.bit_write_message import WriteSingleCoilResponse
+from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import ConfigException
 from unipi_control.features import DigitalInput
@@ -14,9 +14,9 @@ from unipi_control.features import DigitalOutput
 from unipi_control.features import Led
 from unipi_control.features import MeterFeature
 from unipi_control.features import Relay
-from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
 from unittests.conftest import ConfigLoader
+from unittests.conftest import MockModbusClient
 from unittests.conftest_data import CONFIG_CONTENT
 from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from unittests.conftest_data import HARDWARE_DATA_CONTENT
@@ -76,16 +76,16 @@ class TestHappyPathFeatures:
     )
     async def test_output_features(
         self,
-        _modbus_client: ModbusClient,
+        _modbus_client: MockModbusClient,
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         options: FeatureOptions,
         expected: FeatureExpected,
     ) -> None:
-        mock_response_is_error = MagicMock()
-        mock_response_is_error.isError.return_value = False
+        mock_response = MagicMock(spec=ModbusResponse)
+        mock_response.isError.return_value = False
 
-        _modbus_client.tcp.write_coil.return_value = mock_response_is_error
+        _modbus_client.tcp.write_coil.return_value = mock_response
 
         feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_feature_id(
             options.feature_id, feature_types=[options.feature_type]
@@ -102,8 +102,7 @@ class TestHappyPathFeatures:
         if isinstance(feature, (Relay, DigitalOutput, Led)):
             assert feature.val_coil == expected.coil
             assert feature.payload == ("ON" if expected.value == 1 else "OFF")
-            response: WriteSingleCoilResponse = await feature.set_state(False)
-            assert not response.isError()
+            assert await feature.set_state(False)
         elif isinstance(feature, MeterFeature):
             assert feature.payload == expected.value
 
