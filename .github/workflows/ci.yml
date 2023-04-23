@@ -68,6 +68,7 @@ jobs:
     uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
     needs:
       - parameters
+      - validate
       - unit-testing
       - code-analyse
     with:
@@ -83,6 +84,7 @@ jobs:
     uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
     needs:
       - parameters
+      - validate
       - unit-testing
       - code-analyse
     with:
