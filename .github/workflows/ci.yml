@@ -14,31 +14,92 @@ jobs:
     with:
       json: ./.github/workflows/parameters.json
 
-  tests:
-    name: Tests
-    uses: ./.github/workflows/tests.yml
-    needs:
-      - parameters
-    with:
-      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
-      python-versions: ${{ needs.parameters.outputs.python-versions }}
-
-  build:
-    name: Build
+  validate:
+    name: Validate
     if: |
       contains(fromJSON('["tag", "branch"]'), github.ref_type)
       && github.ref_name != 'main'
       && !endsWith(github.ref_name, '/merge')
-    uses: ./.github/workflows/build.yml
+    uses: superbox-dev/python-package-workflows/.github/workflows/validate-version.yml@main
     needs:
       - parameters
-      - tests
     with:
-      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
-      package-name: ${{ needs.parameters.outputs.package-name }}
-      package-version: ${{ needs.parameters.outputs.package-version }}
-      binary-files: ${{ needs.parameters.outputs.binary-files }}
-      opkg-package: ${{ needs.parameters.outputs.opkg-package }}
+      latest-python-version: ${{ needs.parameters.latest-python-version }}
+
+  unit-testing:
+    name: Unit testing
+    uses: superbox-dev/python-package-workflows/.github/workflows/unit-testing.yml@main
+    needs:
+      - parameters
+    with:
+      python-versions: ${{ needs.parameters.python-versions }}
+
+  coverage:
+    name: Coverage
+    uses: superbox-dev/python-package-workflows/.github/workflows/coverage.yml@main
+    needs:
+      - parameters
+      - unit-testing
+    with:
+      latest-python-version: ${{ needs.parameters.latest-python-version }}
+
+  code-analyse:
+    name: Code analyse
+    uses: superbox-dev/python-package-workflows/.github/workflows/code-analyse.yml@main
+    needs:
+      - parameters
+    with:
+      python-versions: ${{ needs.parameters.python-versions }}
+
+  security:
+    name: Security
+    uses: superbox-dev/python-package-workflows/.github/workflows/security.yml@main
+    needs:
+      - parameters
+    with:
+      latest-python-version: ${{ needs.parameters.latest-python-version }}
+
+  build-python-package:
+    name: Build python package
+    if: |
+      contains(fromJSON('["tag", "branch"]'), github.ref_type)
+      && github.ref_name != 'main'
+      && !endsWith(github.ref_name, '/merge')
+    uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
+    needs:
+      - parameters
+      - unit-testing
+      - code-analyse
+    with:
+      latest-python-version: ${{ needs.parameters.latest-python-version }}
+      package-version: ${{ needs.parameters.package-version }}
+
+  build-binary-files:
+    name: Build binary files
+    if: |
+      contains(fromJSON('["tag", "branch"]'), github.ref_type)
+      && github.ref_name != 'main'
+      && !endsWith(github.ref_name, '/merge')
+    uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
+    needs:
+      - parameters
+      - unit-testing
+      - code-analyse
+    with:
+      package-version: ${{ needs.parameters.package-version }}
+      binary-files: ${{ needs.parameters.binary-files }}
+
+  build-opkg-package:
+    name: Build OPKG package
+    needs:
+      - parameters
+      - build-binary-files
+    uses: superbox-dev/python-package-workflows/.github/workflows/build-opkg-package.yml@main
+    with:
+      latest-python-version: ${{ needs.parameters.latest-python-version }}
+      package-name: ${{ needs.parameters.package-name }}
+      package-version: ${{ needs.parameters.package-version }}
+      opkg-package: ${{ needs.parameters.opkg-package }}
 
   release:
     name: Release
