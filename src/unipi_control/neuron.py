@@ -1,8 +1,5 @@
-import importlib
 from typing import List
 from typing import Optional
-
-from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
@@ -18,6 +15,9 @@ from unipi_control.features import Relay
 from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import ModbusClient
 from unipi_control.modbus import check_modbus_call
+from unipi_control.extensions.eastron import EastronSDM120M
+
+from pymodbus.pdu import ModbusResponse
 
 
 class Board:
@@ -166,9 +166,8 @@ class Neuron:
         logger.info("%s Reading extensions", LogPrefix.MODBUS)
 
         for definition in self.hardware["definitions"][1:]:
-            await getattr(
-                importlib.import_module(f"unipi_control.extensions.{definition.manufacturer.lower()}"),
-                f"{definition.manufacturer}{definition.model}",
-            )(neuron=self, definition=definition).init()
+            if definition.manufacturer.lower() == "eastron":
+                if definition.model == "SDM120M":
+                    await EastronSDM120M(neuron=self, definition=definition).init()
 
         await self.modbus_cache_data.scan("serial", hardware_types=[HardwareType.EXTENSION])
