@@ -121,10 +121,10 @@ jobs:
       - build-opkg-package
     uses: superbox-dev/python-package-workflows/.github/workflows/publish-on-ftp.yml@main
     with:
-      ftp-hostname: server101.xortex.at
-      ftp-port: 21101
-      ftp-username: filessuperboxone
-      ftp-publish-path: htdocs/unipi-control-os/neuron/aarch64/main/
+      ftp-hostname: ${{ vars.FTP_HOSTNAME }}
+      ftp-port: ${{ vars.FTP_PORT }}
+      ftp-username: ${{ vars.FTP_USERNAME }}
+      ftp-publish-path: ${{ vars.FTP_PACKAGE_MAIN }}
     secrets:
       FTP_PASSWORD: ${{ secrets.FILES_SUPERBOX_ONE_FTP_PASSWORD }}
 
