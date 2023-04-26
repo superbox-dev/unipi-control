@@ -101,7 +101,6 @@ jobs:
       latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
       package-name: ${{ needs.parameters.outputs.package-name }}
       package-version: ${{ needs.parameters.outputs.package-version }}
-      opkg-package: ${{ needs.parameters.outputs.opkg-package }}
 
   release:
     name: Release
