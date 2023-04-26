@@ -118,13 +118,15 @@ jobs:
   publish-on-ftp:
     name: Publish on FTP
     needs:
+      - parameters
       - build-opkg-package
     uses: superbox-dev/python-package-workflows/.github/workflows/publish-on-ftp.yml@main
     with:
       ftp-hostname: ${{ vars.FTP_HOSTNAME }}
       ftp-port: ${{ vars.FTP_PORT }}
       ftp-username: ${{ vars.FTP_USERNAME }}
-      ftp-publish-path: ${{ vars.FTP_PACKAGE_MAIN }}
+      ftp-publish-path: ${{ vars.FTP_PUBLISH_PATH }}
+      version-dev: ${{ needs.parameters.outputs.version-dev }}
     secrets:
       FTP_PASSWORD: ${{ secrets.FILES_SUPERBOX_ONE_FTP_PASSWORD }}
 
