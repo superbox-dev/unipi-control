@@ -1,0 +1,52 @@
+device_info:
+  name: Unipi
+mqtt:
+  host: localhost
+  port: 1883
+  connection:
+    keepalive: 15
+    retry_limit: 30
+    reconnect_interval: 10
+modbus:
+  baud_rate: 2400
+  parity: N
+  units:
+    - unit: 1
+      device_name: Eastron SDM120M
+      identifier: Eastron_SDM120M
+      suggested_area: Workspace
+homeassistant:
+  enabled: True
+  discovery_prefix: homeassistant
+features:
+  di_3_01:
+    object_id: workspace_blind_up
+    friendly_name: Workspace - Blind up
+    suggested_area: Workspace
+  di_3_02:
+    object_id: workspace_blind_down
+    friendly_name: Workspace - Blind down
+    suggested_area: Workspace
+  di_2_07:
+    friendly_name: Bedroom - Rolling shutter down
+    suggested_area: Bedroom
+  di_2_08:
+    friendly_name: Bedroom - Rolling shutter up
+    suggested_area: Bedroom
+covers:
+  - object_id: workspace
+    friendly_name: Workspace
+    suggested_area: Workspace
+    device_class: blind
+    cover_run_time: 35.5
+    tilt_change_time: 1.6
+    cover_up: ro_3_07
+    cover_down: ro_3_06
+  - object_id: bedroom
+    friendly_name: Bedroom
+    suggested_area: Bedroom
+    device_class: roller_shutter
+    cover_up: ro_2_11
+    cover_down: ro_2_12
+logging:
+  level: info
