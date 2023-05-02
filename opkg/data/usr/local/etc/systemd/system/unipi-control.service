@@ -1,0 +1,15 @@
+[Unit]
+Description=Unipi Control
+After=multi-user.target
+Requires=unipitcp.service
+ConditionPathExists=/usr/local/bin/unipi-control
+ConditionPathExists=/usr/local/etc/unipi/control.yaml
+Conflicts=unipi-control-dev.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/unipi-control --config /usr/local/etc/unipi --log systemd
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
