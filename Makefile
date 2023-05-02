@@ -14,9 +14,11 @@ venv:
 	. $(BUILDDIR)/.venv/bin/activate
 
 install: venv
+	. $(BUILDDIR)/.venv/bin/activate
 	pip install -r requirements.txt
 
 install-dev: install
+	. $(BUILDDIR)/.venv/bin/activate
 	pip install -r requirements-dev.txt
 
 uninstall:
