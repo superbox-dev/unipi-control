@@ -20,7 +20,7 @@
 .pytest_cache
 
 # coverage
-.coverage
+.coverage*
 /coverage.xml
 /junit/test-results.xml
 
