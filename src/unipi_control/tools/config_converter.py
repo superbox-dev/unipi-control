@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import Union
 
 import sys
-
 from superbox_utils.argparse import init_argparse
 from superbox_utils.core.exception import UnexpectedException
 from superbox_utils.logging.config import LoggingConfig
 from superbox_utils.yaml.dumper import yaml_dumper
 from superbox_utils.yaml.loader import yaml_loader_safe
+
 from unipi_control.config import Config
 from unipi_control.config import logger
 from unipi_control.version import __version__
@@ -38,7 +38,7 @@ class UnipiConfigConverter:
         logger.info("YAML file written to: %s", target.as_posix())
 
     @staticmethod
-    def _parse_modbus_register_blocks(source_yaml: dict):
+    def _parse_modbus_register_blocks(source_yaml: dict) -> list:
         _modbus_register_blocks: list = []
 
         for modbus_register_block in source_yaml["modbus_register_blocks"]:
@@ -53,7 +53,7 @@ class UnipiConfigConverter:
         return _modbus_register_blocks
 
     @staticmethod
-    def _parse_modbus_features(source_yaml: dict):
+    def _parse_modbus_features(source_yaml: dict) -> list:
         _modbus_features: list = []
 
         for modbus_feature in source_yaml["modbus_features"]:
@@ -72,7 +72,7 @@ class UnipiConfigConverter:
 
         return _modbus_features
 
-    def convert(self, source: Path, target: Path):
+    def convert(self, source: Path, target: Path) -> None:
         """Convert Evok to Unipi Control YAML file format."""
         if not source.is_file():
             raise UnexpectedException("INPUT is not a file!")
@@ -119,7 +119,7 @@ def main() -> None:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
         config: Config = Config(logging=LoggingConfig(level="info"))
-        config.logging.init(log=args.log, log_path=Path("/var/log"), verbose=args.verbose)
+        config.logging.init(log=args.log, verbose=args.verbose)
 
         UnipiConfigConverter(config=config, force=args.force).convert(source=Path(args.input), target=Path(args.output))
     except UnexpectedException as error:
