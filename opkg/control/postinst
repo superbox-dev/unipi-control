@@ -1,0 +1,5 @@
+#!/bin/sh
+
+systemctl --system daemon-reload
+systemctl enable unipi-control.service
+systemctl start unipi-control.service
