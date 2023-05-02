@@ -68,9 +68,27 @@ $ python -m venv /opt/.venv
 $ /opt/.venv/bin/pip install unipi-control
 ```
 
-Copy the [config files](extras/config/etc) to your `/etc` directory and start the systemd service:
+Copy the [config files](opkg/data/local/etc/unipi) to your `/etc/unipi` directory and
+create the systemd service `/etc/systemd/system/unipi-control.service` with following content:
+
+```
+[Unit]
+Description=Unipi Control
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/opt/.venv/bin/unipi-control --log systemd
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the systemd service:
 
 ```shell
+$ systemctl --system daemon-reload
 $ systemctl enable unipi-control.service
 $ systemctl start unipi-control.service
 ```
@@ -303,7 +321,13 @@ $ cd unipi-control
 ~/unipi-control$ make install-dev
 ```
 
-Copy the [config](extras/config/etc) files to your `/etc` directory.
+Copy the [config files](opkg/data/local/etc/unipi) to your `/etc/unipi` directory
+and activate your virtualenv with:
+
+```shell
+~/unipi-control$ source .venv/bin/activate
+```
+
 Now you can start unipi-control with `unipi-control`.
 
 ## Extras
