@@ -129,10 +129,10 @@ jobs:
     secrets:
       FTP_PASSWORD: ${{ secrets.FILES_SUPERBOX_ONE_FTP_PASSWORD }}
 
-  # publish-on-pypi:
-  #   name: Publish
-  #   needs:
-  #    - release
-  #  uses: superbox-dev/python-package-workflows/.github/workflows/publish.yml@main
-  #  secrets:
-  #    PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+  publish-on-pypi:
+    name: Publish
+    needs:
+      - release
+    uses: superbox-dev/python-package-workflows/.github/workflows/publish.yml@main
+    secrets:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
