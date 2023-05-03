@@ -133,6 +133,6 @@ jobs:
     name: Publish
     needs:
       - release
-    uses: superbox-dev/python-package-workflows/.github/workflows/publish.yml@main
+    uses: superbox-dev/python-package-workflows/.github/workflows/publish-on-pypi.yml@main
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
