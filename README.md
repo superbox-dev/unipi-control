@@ -7,7 +7,7 @@
 
 # Unipi Control
 
-Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionally you can enable the Home Assistant MQTT discovery for binary sensors, sensors, switches and covers.
+Control Unipi I/O directly with MQTT commands and without [Evok](https://github.com/UniPiTechnology/evok). Unipi Control use Modbus for fast access to the I/O and provide MQTT topics for reading and writing the circuits. Optionally you can enable the Home Assistant MQTT discovery for binary sensors, sensors, switches and covers.
 
 ### Support me if you like this project 😀
 
@@ -54,7 +54,7 @@ If you have an Unipi device, that is not supported, then contact me.
 
 ### Recommended installation (Only for Unipi Neuron)
 
-Use the [Unipi Control OS](https://github.com/mh-superbox/unipi-control-os).
+Use the [Unipi Control OS](https://github.com/superbox-dev/unipi-control-os).
 
 ### Alternative installation (Debian based systems)
 
