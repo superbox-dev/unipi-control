@@ -103,7 +103,7 @@ jobs:
       package-version: ${{ needs.parameters.outputs.package-version }}
 
   release:
-    name: Release
+    name: Release on GitHub
     if: github.ref_type == 'tag'
     uses: superbox-dev/python-package-workflows/.github/workflows/release.yml@main
     needs:
