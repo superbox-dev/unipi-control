@@ -1,7 +1,7 @@
 # PyCharm
 .idea
 
-# macOS
+# OS generated files
 .DS_Store
 ._*
 *.swp
@@ -9,7 +9,7 @@
 # cache
 *.pyc
 
-# virtuelenv
+# virtualenv
 .venv
 
 # GitHub Action
