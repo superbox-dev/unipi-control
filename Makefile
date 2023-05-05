@@ -7,7 +7,7 @@ SHELL = /bin/bash
 .SHELLFLAGS = -e
 
 .NOTPARALLEL:
-.PHONY: .NOTPARALLEL
+.PHONY: build
 
 build:
 	python -m pip install --user build twine
