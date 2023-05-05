@@ -2,7 +2,11 @@ BUILDDIR := $(shell pwd)
 
 O := $(BUILDDIR)/output
 
-.NOTPARALLEL: build venv install install-dev uninstall clean
+.ONESHELL:
+SHELL = /bin/bash
+.SHELLFLAGS = -e
+
+.NOTPARALLEL:
 .PHONY: .NOTPARALLEL
 
 build:
@@ -14,11 +18,9 @@ venv:
 	. $(BUILDDIR)/.venv/bin/activate
 
 install: venv
-	. $(BUILDDIR)/.venv/bin/activate
 	pip install -r requirements.txt
 
 install-dev: install
-	. $(BUILDDIR)/.venv/bin/activate
 	pip install -r requirements-dev.txt
 
 uninstall:
