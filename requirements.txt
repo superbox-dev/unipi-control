@@ -1,3 +1,0 @@
-# install:required
-pymodbus[serial]==3.2.2
-superbox-utils[mqtt]==2023.6

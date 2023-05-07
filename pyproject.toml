@@ -1,6 +1,75 @@
 [build-system]
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools >= 65"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "unipi-control"
+description = "Control Unipi I/O directly with MQTT commands."
+readme = "README.md"
+authors = [
+    { name = "Michael Hacker", email = "mh@superbox.one" },
+]
+license = {text = "Apache-2.0 license"}
+keywords = ["mqtt", "modbus", "unipi"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: System :: Networking",
+    "Topic :: Utilities",
+]
+requires-python = ">= 3.8"
+dependencies = [
+    "pymodbus[serial]==3.2.2",
+    "superbox-utils[mqtt]==2023.6",
+]
+dynamic = ["version"]
+
+[project.scripts]
+unipi-control = "unipi_control.unipi_control:main"
+unipi-config-backup = "unipi_control.tools.config_backup:main"
+unipi-config-converter = "unipi_control.tools.config_converter:main"
+unipi-model-info = "unipi_control.tools.model_info:main"
+
+[project.urls]
+"Source code" = "https://github.com/superbox-dev/unipi-control"
+"Issue tracker" = "https://github.com/superbox-dev/unipi-control/issues"
+
+[project.optional-dependencies]
+audit = ["pip-audit"]
+format = ["black"]
+lint = [
+    "mypy",
+    "pylint",
+    "flake8",
+    "flake8-comprehensions",
+    "flake8-docstrings",
+    "flake8-noqa",
+    "yamllint",
+]
+tests = [
+    "coverage-badge",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-xdist[psutil]",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "unipi_control.__version__"}
 
 [tool.check-manifest]
 ignore = [".editorconfig", "Pipfile", "Pipfile.lock"]
@@ -11,7 +80,12 @@ target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.mypy]
 python_version = "3.8"
-ignore_missing_imports = true
+strict = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+junit_xml = "reports/mypy.xml"
+pretty = true
 
 [tool.pylint.master]
 # C0114: missing-module-docstring
@@ -72,5 +146,21 @@ min-public-methods = 0
 log_cli = true
 log_cli_level = "DEBUG"
 log_cli_format = "%(levelname)-8s | %(asctime)s: %(message)s"
-testpaths = ["tests"]
+# https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
+addopts = "--color=yes --strict-config --strict-markers --junitxml=reports/pytest.xml"
+testpaths = [
+    "tests",
+]
 pythonpath = ["src", "tests"]
+
+[tool.coverage.run] # https://coverage.readthedocs.io/en/latest/config.html#run
+branch = true
+data_file = "reports/.coverage"
+
+[tool.coverage.report] # https://coverage.readthedocs.io/en/latest/config.html#report
+fail_under = 85
+show_missing = true
+skip_covered = true
+
+[tool.coverage.xml] # https://coverage.readthedocs.io/en/latest/config.html#xml
+output = "reports/coverage.xml"
