@@ -105,9 +105,9 @@ def parse_args(args: list) -> argparse.Namespace:
     Argparse namespace
     """
     parser: argparse.ArgumentParser = init_argparse(description="Convert Evok to Unipi Control YAML file format")
-    parser.add_argument("input", help="Path to the evok YAML file")
-    parser.add_argument("output", help="Path to save the converted YAML file")
-    parser.add_argument("-f", "--force", action="store_true", help="Overwrite output YAML file if already exists")
+    parser.add_argument("input", help="path to the evok YAML file")
+    parser.add_argument("output", help="path to save the converted YAML file")
+    parser.add_argument("-f", "--force", action="store_true", help="overwrite output YAML file if already exists")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)
