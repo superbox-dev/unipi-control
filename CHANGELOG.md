@@ -9,12 +9,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added
 
 - This CHANGELOG.md
+- Added the developer guide to [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ### Changed
 
 - Moved from legacy python package installer configuration file (setup.cfg) to [pyproject.toml](pyproject.toml)
 - Updated pytest/coverage configuration
   - Save all output files e.g. `pytest.xml` in the reports folder 
+- Split README.md content in separate files under [docs](docs) (Prepare for [docs.superbox.one](https://docs.superbox.one))
 
 ## [2023.7] - 2023-07-04
 
