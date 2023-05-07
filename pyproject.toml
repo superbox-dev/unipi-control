@@ -163,4 +163,4 @@ show_missing = true
 skip_covered = true
 
 [tool.coverage.xml] # https://coverage.readthedocs.io/en/latest/config.html#xml
-output = "reports/coverage.xml"
+output = "reports/test-results.xml"
