@@ -10,18 +10,18 @@ SHELL = /bin/bash
 .PHONY: build
 
 build:
-	python -m pip install --user build twine
-	python -m build --outdir $(O)
+	python3 -m pip install --user build twine
+	python3 -m build --outdir $(O)
 
 venv:
-	python -m venv $(BUILDDIR)/.venv
+	python3 -m venv $(BUILDDIR)/.venv
 	. $(BUILDDIR)/.venv/bin/activate
 
 install: venv
-	pip install -r requirements.txt
+	pip install -e .
 
 install-dev: install
-	pip install -r requirements-dev.txt
+	pip install .[lint,format,audit,tests]
 
 uninstall:
 	rm -rfv $(BUILDDIR)/.venv
