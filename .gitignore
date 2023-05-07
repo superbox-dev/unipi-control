@@ -13,24 +13,22 @@
 .venv
 
 # GitHub Action
-/output/
+output/
 
 # checks
 .mypy_cache
 .pytest_cache
 
-# coverage
-.coverage*
-/coverage.xml
-/junit/test-results.xml
+# reports
+reports/
 
 # build package
 *.egg
 *.egg-info
-/build/
-/dist/
+build/
+dist/
 
 # nuitka
-/*.build/
-/*.dist/
-/*.onefile-build/
+*.build/
+*.dist/
+*.onefile-build/
