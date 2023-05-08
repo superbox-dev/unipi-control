@@ -10,16 +10,16 @@ on:
 jobs:
   parameters:
     name: Parameters
-    uses: superbox-dev/python-package-workflows/.github/workflows/parameters.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/parameters.yml@main
     with:
-      json: ./workflows/parameters.json
+      json: ./.github/workflows/parameters.json
 
   validate:
     name: Validate
     if: |
       contains(fromJSON('["tag", "branch"]'), github.ref_type)
       && !endsWith(github.ref_name, '/merge')
-    uses: superbox-dev/python-package-workflows/.github/workflows/validate-version.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/validate-version.yml@main
     needs:
       - parameters
     with:
@@ -27,7 +27,7 @@ jobs:
 
   unit-testing:
     name: Unit testing
-    uses: superbox-dev/python-package-workflows/.github/workflows/unit-testing.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/unit-testing.yml@main
     needs:
       - parameters
     with:
@@ -35,7 +35,7 @@ jobs:
 
   coverage:
     name: Coverage
-    uses: superbox-dev/python-package-workflows/.github/workflows/coverage.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/coverage.yml@main
     needs:
       - parameters
       - unit-testing
@@ -44,7 +44,7 @@ jobs:
 
   code-analyse:
     name: Code analyse
-    uses: superbox-dev/python-package-workflows/.github/workflows/code-analyse.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/code-analyse.yml@main
     needs:
       - parameters
     with:
@@ -52,7 +52,7 @@ jobs:
 
   security:
     name: Security
-    uses: superbox-dev/python-package-workflows/.github/workflows/security.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/security.yml@main
     needs:
       - parameters
     with:
@@ -64,7 +64,7 @@ jobs:
       contains(fromJSON('["tag", "branch"]'), github.ref_type)
       && github.ref_name != 'main'
       && !endsWith(github.ref_name, '/merge')
-    uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/build-python-package.yml@main
     needs:
       - parameters
       - validate
@@ -80,7 +80,7 @@ jobs:
       contains(fromJSON('["tag", "branch"]'), github.ref_type)
       && github.ref_name != 'main'
       && !endsWith(github.ref_name, '/merge')
-    uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/build-binary-files.yml@main
     needs:
       - parameters
       - validate
@@ -95,7 +95,7 @@ jobs:
     needs:
       - parameters
       - build-binary-files
-    uses: superbox-dev/python-package-workflows/.github/workflows/build-opkg-package.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/build-opkg-package.yml@main
     with:
       latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
       package-name: ${{ needs.parameters.outputs.package-name }}
@@ -104,7 +104,7 @@ jobs:
   release:
     name: Release on GitHub
     if: github.ref_type == 'tag'
-    uses: superbox-dev/python-package-workflows/.github/workflows/release.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/release.yml@main
     needs:
       - parameters
       - build-python-package
@@ -118,7 +118,7 @@ jobs:
     needs:
       - parameters
       - build-opkg-package
-    uses: superbox-dev/python-package-workflows/.github/workflows/publish-on-ftp.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/publish-on-ftp.yml@main
     with:
       ftp-hostname: ${{ vars.FTP_HOSTNAME }}
       ftp-port: ${{ vars.FTP_PORT }}
@@ -132,6 +132,6 @@ jobs:
     name: Publish
     needs:
       - release
-    uses: superbox-dev/python-package-workflows/.github/workflows/publish-on-pypi.yml@main
+    uses: superbox-dev/python-package-workflows/workflows/publish-on-pypi.yml@main
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
