@@ -12,7 +12,7 @@ jobs:
     name: Parameters
     uses: superbox-dev/python-package-workflows/.github/workflows/parameters.yml@main
     with:
-      json: ./.github/workflows/parameters.json
+      json: ./workflows/parameters.json
 
   validate:
     name: Validate

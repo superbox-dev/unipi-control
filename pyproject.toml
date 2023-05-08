@@ -72,7 +72,7 @@ where = ["src"]
 version = {attr = "unipi_control.__version__"}
 
 [tool.check-manifest]
-ignore = [".editorconfig", "Pipfile", "Pipfile.lock"]
+ignore = [".editorconfig"]  # TODO Add check-manifest
 
 [tool.black]
 line-length = 120
