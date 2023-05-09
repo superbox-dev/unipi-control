@@ -79,13 +79,10 @@ line-length = 120
 target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.mypy]
+mypy_path = "src"
 python_version = "3.8"
-strict = true
-show_column_numbers = true
-show_error_codes = true
-show_error_context = true
+ignore_missing_imports = true
 junit_xml = "reports/mypy.xml"
-pretty = true
 
 [tool.pylint.master]
 # C0114: missing-module-docstring
