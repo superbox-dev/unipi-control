@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Updated pytest/coverage configuration
   - Save all output files e.g. `pytest.xml` in the reports folder 
 - Split README.md content in separate files under [docs](docs) (Prepare for [docs.superbox.one](https://docs.superbox.one))
+- Removed superbox-utils dependencies
 
 ## [2023.7] - 2023-07-04
 
