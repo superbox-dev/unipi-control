@@ -47,10 +47,7 @@ format = ["black"]
 lint = [
     "mypy",
     "pylint",
-    "flake8",
-    "flake8-comprehensions",
-    "flake8-docstrings",
-    "flake8-noqa",
+    "ruff",
     "types-PyYAML",
     "types-requests",
     "yamllint",
@@ -135,16 +132,16 @@ max-line-length = 120
 [tool.pylint.design]
 min-public-methods = 0
 
+[tool.ruff]
+target-version = "py38"
+select = ["ALL"]
+
 [tool.pytest.ini_options]
 log_cli = true
 log_cli_level = "DEBUG"
 log_cli_format = "%(levelname)-8s | %(asctime)s: %(message)s"
 # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
 addopts = "--color=yes --exitfirst --failed-first --strict-config --strict-markers --import-mode=importlib --junitxml=reports/pytest.xml"
-#testpaths = [
-#    "tests",
-#]
-#pythonpath = ["src", "tests"]
 
 [tool.coverage.run] # https://coverage.readthedocs.io/en/latest/config.html#run
 # branch = true
