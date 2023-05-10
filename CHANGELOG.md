@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - This CHANGELOG.md
 - Added the developer guide to [CONTRIBUTING.md](CONTRIBUTING.md)
+- Added `setuptools_scm` for automatic versioning.
 
 ### Changed
 
@@ -18,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
   - Save all output files e.g. `pytest.xml` in the reports folder 
 - Split README.md content in separate files under [docs](docs) (Prepare for [docs.superbox.one](https://docs.superbox.one))
 - Removed superbox-utils dependencies
+- Removed `src` folder and changed project structure to `unipi_control`, `data`, `scripts` and `tests` folder.
 
 ## [2023.7] - 2023-07-04
 
