@@ -10,15 +10,15 @@ import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from asyncio_mqtt import Client
 
+from tests.unit.conftest import ConfigLoader
+from tests.unit.conftest import ModbusClient
+from tests.unit.conftest_data import CONFIG_CONTENT
+from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
+from tests.unit.mqtt.discovery.test_switches_data import discovery_message_expected
 from unipi_control.mqtt.discovery.switches import HassSwitchesDiscoveryMixin
 from unipi_control.mqtt.discovery.switches import HassSwitchesMqttPlugin
 from unipi_control.neuron import Neuron
-from unittests.conftest import ConfigLoader
-from unittests.conftest import ModbusClient
-from unittests.conftest_data import CONFIG_CONTENT
-from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
-from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from unittests.mqtt.discovery.test_switches_data import discovery_message_expected
 
 
 class TestHappyPathHassSwitchesMqttPlugin:

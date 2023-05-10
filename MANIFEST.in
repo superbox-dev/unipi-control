@@ -1,4 +1,0 @@
-graft src
-graft extras
-include LICENSE
-global-exclude *.pyc

@@ -1,8 +1,7 @@
 from pathlib import Path
 from typing import Union
 
-import yaml  # type: ignore
-import yaml  # type: ignore
+import yaml
 from yaml import Loader
 
 from unipi_control.exception import ConfigException

@@ -27,6 +27,7 @@ reports/
 *.egg-info
 build/
 dist/
+unipi_control/version.py
 
 # nuitka
 *.build/

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 65"]
+requires = ["setuptools >= 65", "setuptools-scm >= 7"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -51,6 +51,8 @@ lint = [
     "flake8-comprehensions",
     "flake8-docstrings",
     "flake8-noqa",
+    "types-PyYAML",
+    "types-requests",
     "yamllint",
 ]
 tests = [
@@ -63,20 +65,17 @@ tests = [
 ]
 
 [tool.setuptools]
-include-package-data = true
+packages = ["unipi_control"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.dynamic]
-version = {attr = "unipi_control.__version__"}
+[tool.setuptools_scm]
+write_to = "unipi_control/version.py"
 
 [tool.black]
 line-length = 120
 target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.mypy]
-mypy_path = "src"
+# strict = true
 python_version = "3.8"
 ignore_missing_imports = true
 junit_xml = "reports/mypy.xml"
@@ -141,11 +140,11 @@ log_cli = true
 log_cli_level = "DEBUG"
 log_cli_format = "%(levelname)-8s | %(asctime)s: %(message)s"
 # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
-addopts = "--color=yes --strict-config --strict-markers --junitxml=reports/pytest.xml"
-testpaths = [
-    "tests",
-]
-pythonpath = ["src", "tests"]
+addopts = "--color=yes --exitfirst --failed-first --strict-config --strict-markers --import-mode=importlib --junitxml=reports/pytest.xml"
+#testpaths = [
+#    "tests",
+#]
+#pythonpath = ["src", "tests"]
 
 [tool.coverage.run] # https://coverage.readthedocs.io/en/latest/config.html#run
 # branch = true

@@ -13,8 +13,8 @@ from asyncio_mqtt import Client
 from asyncio_mqtt import MqttError
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
+from requests import __version__
 
-from unipi_control import __version__
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LogPrefix
@@ -106,7 +106,8 @@ class UnipiControl:
         else:
             raise UnexpectedException(f"Serial client can't connect to {self.modbus_client.serial.params.port}")
 
-    async def mqtt_connect(self, mqtt_config: MqttConfig, mqtt_client_id: str, callback: Callable) -> None:
+    @staticmethod
+    async def mqtt_connect(mqtt_config: MqttConfig, mqtt_client_id: str, callback: Callable) -> None:
         """Connect to MQTT broker and automatically retry on disconnect.
 
         Parameters

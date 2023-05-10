@@ -1,25 +1,25 @@
 import pytest
 
-from unipi_control.config import ConfigException
-from unittests.conftest import ConfigLoader
-from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
-from unittests.conftest_data import HARDWARE_DATA_CONTENT
-from unittests.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
-from unittests.test_config_data import CONFIG_DUPLICATE_COVER_ID
-from unittests.test_config_data import CONFIG_DUPLICATE_MODBUS_UNIT
-from unittests.test_config_data import CONFIG_DUPLICATE_OBJECT_ID
-from unittests.test_config_data import CONFIG_INVALID
-from unittests.test_config_data import CONFIG_INVALID_COVER_ID
-from unittests.test_config_data import CONFIG_INVALID_DEVICE_CLASS
-from unittests.test_config_data import CONFIG_INVALID_DEVICE_NAME
-from unittests.test_config_data import CONFIG_INVALID_FEATURE_ID
-from unittests.test_config_data import CONFIG_INVALID_FEATURE_TYPE
-from unittests.test_config_data import CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX
-from unittests.test_config_data import CONFIG_INVALID_LOG_LEVEL
-from unittests.test_config_data import CONFIG_INVALID_MODBUS_BAUD_RATE
-from unittests.test_config_data import CONFIG_INVALID_MODBUS_PARITY
-from unittests.test_config_data import CONFIG_MISSING_COVER_KEY
-from unittests.test_config_data import CONFIG_MISSING_DEVICE_NAME
+from tests.unit.conftest import ConfigLoader
+from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
+from tests.unit.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
+from tests.unit.test_config_data import CONFIG_DUPLICATE_COVER_ID
+from tests.unit.test_config_data import CONFIG_DUPLICATE_MODBUS_UNIT
+from tests.unit.test_config_data import CONFIG_DUPLICATE_OBJECT_ID
+from tests.unit.test_config_data import CONFIG_INVALID
+from tests.unit.test_config_data import CONFIG_INVALID_COVER_ID
+from tests.unit.test_config_data import CONFIG_INVALID_DEVICE_CLASS
+from tests.unit.test_config_data import CONFIG_INVALID_DEVICE_NAME
+from tests.unit.test_config_data import CONFIG_INVALID_FEATURE_ID
+from tests.unit.test_config_data import CONFIG_INVALID_FEATURE_TYPE
+from tests.unit.test_config_data import CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX
+from tests.unit.test_config_data import CONFIG_INVALID_LOG_LEVEL
+from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_BAUD_RATE
+from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_PARITY
+from tests.unit.test_config_data import CONFIG_MISSING_COVER_KEY
+from tests.unit.test_config_data import CONFIG_MISSING_DEVICE_NAME
+from unipi_control.exception import ConfigException
 
 
 class TestUnhappyPathConfig:

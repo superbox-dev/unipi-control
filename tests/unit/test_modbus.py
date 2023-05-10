@@ -6,15 +6,15 @@ import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from pytest_mock import MockerFixture
 
+from tests.unit.conftest import ConfigLoader
+from tests.unit.conftest import MockHardwareInfo
+from tests.unit.conftest_data import CONFIG_CONTENT
+from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import Config
 from unipi_control.config import HardwareType
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
-from unittests.conftest import ConfigLoader
-from unittests.conftest import MockHardwareInfo
-from unittests.conftest_data import CONFIG_CONTENT
-from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
-from unittests.conftest_data import HARDWARE_DATA_CONTENT
 
 
 class TestUnhappyPathModbus:

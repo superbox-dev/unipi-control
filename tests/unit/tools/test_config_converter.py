@@ -3,14 +3,14 @@ from pathlib import Path
 
 import pytest
 
+from tests.unit.conftest import ConfigLoader
+from tests.unit.conftest_data import CONFIG_CONTENT
+from tests.unit.tools.test_config_converter_data import CONVERTED_MODEL_CONTENT
+from tests.unit.tools.test_config_converter_data import EVOK_MODEL_CONTENT
+from tests.unit.tools.test_config_converter_data import INVALID_EVOK_MODEL_CONTENT
 from unipi_control.exception import UnexpectedException
 from unipi_control.tools.config_converter import UnipiConfigConverter
 from unipi_control.tools.config_converter import parse_args
-from unittests.conftest import ConfigLoader
-from unittests.conftest_data import CONFIG_CONTENT
-from unittests.tools.test_config_converter_data import CONVERTED_MODEL_CONTENT
-from unittests.tools.test_config_converter_data import EVOK_MODEL_CONTENT
-from unittests.tools.test_config_converter_data import INVALID_EVOK_MODEL_CONTENT
 
 
 class TestHappyPathUnipiConfigConverter:

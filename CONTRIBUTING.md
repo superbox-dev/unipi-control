@@ -4,7 +4,7 @@ Thank you for investing your time in contributing to **Unipi Control**.
 
 ## Setting up an environment
 
-Clone the `unipi-control` repository. Copy the [config files](opkg/data/local/etc/unipi) to your `/etc/unipi` directory and configurate the `/etc/unipi/control.yaml`.
+Clone the `unipi-control` repository. Copy the [config files](data/opkg/data/local/etc/unipi) to your `/etc/unipi` directory and configurate the `/etc/unipi/control.yaml`.
 
 Inside the repository, create a virtual environment:
 

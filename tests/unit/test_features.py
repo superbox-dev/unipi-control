@@ -8,6 +8,11 @@ from unittest.mock import MagicMock
 import pytest
 from pymodbus.pdu import ModbusResponse
 
+from tests.unit.conftest import ConfigLoader
+from tests.unit.conftest import MockModbusClient
+from tests.unit.conftest_data import CONFIG_CONTENT
+from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import ConfigException
 from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
@@ -15,11 +20,6 @@ from unipi_control.features import Led
 from unipi_control.features import MeterFeature
 from unipi_control.features import Relay
 from unipi_control.neuron import Neuron
-from unittests.conftest import ConfigLoader
-from unittests.conftest import MockModbusClient
-from unittests.conftest_data import CONFIG_CONTENT
-from unittests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
-from unittests.conftest_data import HARDWARE_DATA_CONTENT
 
 
 @dataclass

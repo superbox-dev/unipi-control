@@ -13,12 +13,12 @@ from _pytest.fixtures import SubRequest  # pylint: disable=import-private-name
 from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
+from tests.unit.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
+from tests.unit.conftest_data import NEURON_L203_MODBUS_REGISTER
 from unipi_control.config import Config
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
-from unittests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
-from unittests.conftest_data import NEURON_L203_MODBUS_REGISTER
 
 
 @pytest.fixture(autouse=True, scope="session")

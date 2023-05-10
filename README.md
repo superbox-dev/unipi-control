@@ -43,7 +43,7 @@ Install `unipi-control` with pip:
 pip install unipi-control
 ```
 
-Copy the [config files](opkg/data/local/etc/unipi) to `/etc/unipi` and configurate the `/etc/unipi/control.yaml`.
+Copy the [config files](data/opkg/data/local/etc/unipi) to `/etc/unipi` and configurate the `/etc/unipi/control.yaml`.
 
 Create the systemd service `/etc/systemd/system/unipi-control.service` with following content:
 
@@ -90,7 +90,7 @@ We put a lot of time into this project. If you like it, you can support us with 
 
 ## Extras
 
-We have a Home Assistant blueprint automation to control covers with binary sensors. Take a look in the [extras](extras) directory.
+We have a Home Assistant blueprint automation to control covers with binary sensors. Take a look in the [extras](data/extras) directory.
 
 <!-- additional_info start -->
 ## Additional information
