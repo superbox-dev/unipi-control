@@ -5,6 +5,7 @@ import socket
 import struct
 from dataclasses import dataclass
 from dataclasses import field
+from dataclasses import is_dataclass
 from functools import cached_property
 from pathlib import Path
 from tempfile import gettempdir
@@ -18,14 +19,14 @@ from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
 from typing import TypedDict
+from typing import Union
 
-from superbox_utils.config.exception import ConfigException
-from superbox_utils.config.loader import ConfigLoaderMixin
-from superbox_utils.config.loader import Validation
-from superbox_utils.hass.config import HomeAssistantConfig
-from superbox_utils.logging.config import LoggingConfig
-from superbox_utils.mqtt.config import MqttConfig
-from superbox_utils.yaml.loader import yaml_loader_safe
+from unipi_control.exception import ConfigException
+from unipi_control.helpers.log import LOG_LEVEL
+from unipi_control.helpers.log import STDOUT_LOG_FORMAT
+from unipi_control.helpers.log import SYSTEMD_LOG_FORMAT
+from unipi_control.helpers.log import SystemdHandler
+from unipi_control.helpers.yaml import yaml_loader_safe
 
 logger: logging.Logger = logging.getLogger()
 
@@ -40,8 +41,74 @@ class LogPrefix:
     CONFIG: Final[str] = "[CONFIG]"
     COVER: Final[str] = "[COVER]"
     DEVICEINFO: Final[str] = "[DEVICEINFO]"
+    MQTT: Final[str] = "[MQTT]"
     FEATURE: Final[str] = "[FEATURE]"
     MODBUS: Final[str] = "[MODBUS]"
+
+
+class RegexValidation(NamedTuple):
+    regex: str
+    error: str
+
+
+class Validation:
+    NAME: RegexValidation = RegexValidation(
+        regex=r"^[A-Za-z\d\s_-]*$", error="The following characters are prohibited: a-z 0-9 -_ space"
+    )
+
+    ID: RegexValidation = RegexValidation(
+        regex=r"^[A-Za-z\d_-]*$", error="The following characters are prohibited: a-z 0-9 -_"
+    )
+
+
+@dataclass
+class ConfigLoaderMixin:
+    def update(self, new) -> None:
+        """Update and validate config data class with settings from a dictionary.
+
+        Parameters
+        ----------
+        new: dict
+            Overwrite settings as dictionary.
+        """
+        for key, value in new.items():
+            if hasattr(self, key):
+                item = getattr(self, key)
+
+                if is_dataclass(item):
+                    item.update(value)
+                else:
+                    setattr(self, key, value)
+
+        self.validate()
+
+    def update_from_yaml_file(self, config_path: Path) -> None:
+        """Update and validate config data class with settings from a YAML file.
+
+        Parameters
+        ----------
+        config_path: Path
+            Path to the YAML file.
+        """
+        if config_path.exists():
+            yaml_data: Union[dict, list] = yaml_loader_safe(config_path)
+
+            if isinstance(yaml_data, dict):
+                self.update(yaml_data)
+
+    def validate(self) -> None:
+        """Validate config data class arguments."""
+        for _field in dataclasses.fields(self):
+            value: Any = getattr(self, _field.name)
+
+            if is_dataclass(value):
+                value.validate()
+            else:
+                if method := getattr(self, f"_validate_{_field.name}", None):
+                    setattr(self, _field.name, method(getattr(self, _field.name), _field=_field))
+
+                if not isinstance(value, _field.type) and not is_dataclass(value):
+                    raise ConfigException(f"Expected {_field.name} to be {_field.type}, got {repr(value)}")
 
 
 @dataclass
@@ -57,6 +124,15 @@ class DeviceInfo(ConfigLoaderMixin):
             )
 
         return value
+
+
+@dataclass
+class MqttConfig(ConfigLoaderMixin):
+    host: str = field(default="localhost")
+    port: int = field(default=1883)
+    keepalive: int = field(default=15)
+    retry_limit: int = field(default=30)
+    reconnect_interval: int = field(default=10)
 
 
 @dataclass
@@ -192,6 +268,76 @@ class ModbusConfig(ConfigLoaderMixin):
             raise ConfigException(
                 f"{LogPrefix.MODBUS} Invalid value '{value}' in '{_field.name}'. "
                 f"The following parity options are allowed: {' '.join(MODBUS_PARITY)}."
+            )
+
+        return value
+
+
+@dataclass
+class HomeAssistantConfig(ConfigLoaderMixin):
+    enabled: bool = field(default=True)
+    discovery_prefix: str = field(default="homeassistant")
+
+    def _validate_discovery_prefix(self, value: str, _field: dataclasses.Field) -> str:
+        value = value.lower()
+
+        if re.search(Validation.ID.regex, value) is None:
+            raise ConfigException(
+                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
+            )
+
+        return value
+
+
+@dataclass
+class LoggingConfig(ConfigLoaderMixin):
+    level: str = field(default="error")
+
+    @property
+    def verbose(self) -> int:
+        """Get logging verbose level as integer."""
+        return list(LOG_LEVEL).index(self.level)
+
+    def init(self, log: Optional[str], verbose: int = 0) -> None:
+        """Initialize logger handler and formatter.
+
+        Parameters
+        ----------
+        log: str
+            set log handler to systemd, stdout or file.
+        verbose: int
+            Logging verbose level as integer.
+        """
+        logger.setLevel(LOG_LEVEL["info"])
+
+        if log == "systemd":
+            systemd_handler = SystemdHandler()
+            systemd_handler.setFormatter(logging.Formatter(SYSTEMD_LOG_FORMAT))
+            logger.addHandler(systemd_handler)
+        else:
+            stdout_handler: logging.Handler = logging.StreamHandler()
+            stdout_handler.setFormatter(logging.Formatter(STDOUT_LOG_FORMAT))
+            logger.addHandler(stdout_handler)
+
+        self.update_level(verbose)
+
+    def update_level(self, verbose: int) -> None:
+        """Update the logging level in config data class.
+
+        Parameters
+        ----------
+        verbose: int
+            Logging verbose level as integer.
+        """
+        levels: List[int] = list(LOG_LEVEL.values())
+        level: int = levels[min(max(verbose, self.verbose), len(levels) - 1)]
+
+        logger.setLevel(level)
+
+    def _validate_level(self, value: str, _field: dataclasses.Field) -> str:
+        if (value := value.lower()) not in LOG_LEVEL.keys():
+            raise ConfigException(
+                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid log level '{self.level}'. The following log levels are allowed: {' '.join(LOG_LEVEL.keys())}."
             )
 
         return value
@@ -396,20 +542,21 @@ class HardwareData(Mapping):
 
         if definition_file.is_file():
             try:
-                yaml_content: dict = yaml_loader_safe(definition_file)
+                yaml_content: Union[dict, list] = yaml_loader_safe(definition_file)
 
-                self.data["definitions"].append(
-                    HardwareDefinition(
-                        unit=0,
-                        hardware_type=HardwareType.NEURON,
-                        device_name=None,
-                        suggested_area=None,
-                        manufacturer=None,
-                        model=f'{self.data["neuron"].name} {self.data["neuron"].model}',
-                        modbus_register_blocks=yaml_content["modbus_register_blocks"],
-                        modbus_features=yaml_content["modbus_features"],
+                if isinstance(yaml_content, dict):
+                    self.data["definitions"].append(
+                        HardwareDefinition(
+                            unit=0,
+                            hardware_type=HardwareType.NEURON,
+                            device_name=None,
+                            suggested_area=None,
+                            manufacturer=None,
+                            model=f'{self.data["neuron"].name} {self.data["neuron"].model}',
+                            modbus_register_blocks=yaml_content["modbus_register_blocks"],
+                            modbus_features=yaml_content["modbus_features"],
+                        )
                     )
-                )
             except TypeError as error:
                 raise ConfigException(f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}") from error
 
@@ -420,25 +567,26 @@ class HardwareData(Mapping):
     def _read_extension_definitions(self) -> None:
         try:
             for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
-                yaml_content: dict = yaml_loader_safe(definition_file)
+                yaml_content: Union[dict, list] = yaml_loader_safe(definition_file)
 
-                try:
-                    units: Generator = self.config.modbus.get_units_by_identifier(identifier=definition_file.stem)
+                if isinstance(yaml_content, dict):
+                    try:
+                        units: Generator = self.config.modbus.get_units_by_identifier(identifier=definition_file.stem)
 
-                    for unit in units:
-                        self.data["definitions"].append(
-                            HardwareDefinition(
-                                unit=unit.unit,
-                                hardware_type=HardwareType.EXTENSION,
-                                device_name=unit.device_name,
-                                suggested_area=unit.suggested_area,
-                                **yaml_content,
+                        for unit in units:
+                            self.data["definitions"].append(
+                                HardwareDefinition(
+                                    unit=unit.unit,
+                                    hardware_type=HardwareType.EXTENSION,
+                                    device_name=unit.device_name,
+                                    suggested_area=unit.suggested_area,
+                                    **yaml_content,
+                                )
                             )
-                        )
-                except TypeError as error:
-                    raise ConfigException(f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}") from error
+                    except TypeError as error:
+                        raise ConfigException(f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}") from error
 
-                logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+                    logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         except FileNotFoundError as error:
             logger.info("%s %s", LogPrefix.CONFIG, str(error))
 

@@ -1,26 +1,29 @@
 import argparse
 import asyncio
+import sys
 import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
+from typing import Callable
 from typing import Optional
 from typing import Set
 
-import sys
 from asyncio_mqtt import Client
+from asyncio_mqtt import MqttError
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
 
-from superbox_utils.argparse import init_argparse
-from superbox_utils.config.exception import ConfigException
-from superbox_utils.core.exception import UnexpectedException
-from superbox_utils.mqtt.connect import mqtt_connect
-from superbox_utils.text.text import slugify
+from unipi_control import __version__
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LogPrefix
+from unipi_control.config import MqttConfig
 from unipi_control.config import logger
+from unipi_control.exception import ConfigException
+from unipi_control.exception import UnexpectedException
+from unipi_control.helpers.argparse import init_argparse
+from unipi_control.helpers.text import slugify
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.modbus import ModbusClient
 from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
@@ -31,7 +34,6 @@ from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
 from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
 from unipi_control.mqtt.integrations.covers import CoversMqttPlugin
 from unipi_control.neuron import Neuron
-from unipi_control.version import __version__
 
 
 class UnipiControl:
@@ -104,14 +106,65 @@ class UnipiControl:
         else:
             raise UnexpectedException(f"Serial client can't connect to {self.modbus_client.serial.params.port}")
 
+    async def mqtt_connect(self, mqtt_config: MqttConfig, mqtt_client_id: str, callback: Callable) -> None:
+        """Connect to MQTT broker and automatically retry on disconnect.
+
+        Parameters
+        ----------
+        mqtt_config: MqttConfig
+            MQTT config class with hostname, port, keepalive, retry limit and reconnect interval.
+        mqtt_client_id: str
+            A unique MQTT client ID.
+        callback: Callback
+            A callback function that executed after successful MQTT connect.
+        """
+        logger.info("%s Client ID: %s", LogPrefix.MQTT, mqtt_client_id)
+
+        reconnect_interval: int = mqtt_config.reconnect_interval
+        retry_limit: Optional[int] = mqtt_config.retry_limit
+        retry_reconnect: int = 0
+
+        while True:
+            try:
+                logger.info("%s Connecting to broker ...", LogPrefix.MQTT)
+
+                async with AsyncExitStack() as stack:
+                    mqtt_client: Client = Client(
+                        mqtt_config.host,
+                        mqtt_config.port,
+                        client_id=mqtt_client_id,
+                        keepalive=mqtt_config.keepalive,
+                    )
+
+                    await stack.enter_async_context(mqtt_client)
+                    retry_reconnect = 0
+
+                    logger.info("%s Connected to broker at '%s:%s'", LogPrefix.MQTT, mqtt_config.host, mqtt_config.port)
+
+                    await callback(stack=stack, mqtt_client=mqtt_client)
+            except MqttError as error:
+                logger.error(
+                    "%s Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
+                    LogPrefix.MQTT,
+                    error,
+                    retry_reconnect + 1,
+                    reconnect_interval,
+                )
+            finally:
+                if retry_limit and retry_reconnect > retry_limit:
+                    sys.exit(1)
+
+                retry_reconnect += 1
+
+                await asyncio.sleep(reconnect_interval)
+
     async def run(self) -> None:
         """Connect to Modbus and initialize Unipi Neuron hardware."""
         await self._modbus_connect()
         await self.neuron.init()
 
-        await mqtt_connect(
+        await self.mqtt_connect(
             mqtt_config=self.config.mqtt,
-            logger=logger,
             mqtt_client_id=f"{slugify(self.config.device_info.name)}-{uuid.uuid4()}",
             callback=self._init_tasks,
         )

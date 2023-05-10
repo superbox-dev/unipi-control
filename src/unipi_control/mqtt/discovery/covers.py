@@ -12,8 +12,8 @@ from unipi_control.config import Config
 from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import HardwareData
 from unipi_control.config import logger
+from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.log import LOG_MQTT_PUBLISH
 
 
 class HassCoversDiscovery:
@@ -48,10 +48,8 @@ class HassCoversDiscovery:
                 "model": f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}',
                 "manufacturer": self.config.device_info.manufacturer,
             },
+            "object_id": cover.object_id,
         }
-
-        if cover.object_id:
-            message["object_id"] = cover.object_id
 
         if cover.suggested_area:
             message["device"]["suggested_area"] = cover.suggested_area

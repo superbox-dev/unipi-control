@@ -94,14 +94,20 @@ def _modbus_client(mocker: MockerFixture) -> MockModbusClient:
         mock_response.isError.return_value = False
 
     mock_modbus_tcp_client: AsyncMock = AsyncMock()
-    mock_modbus_tcp_client.read_input_registers.side_effect = [
-        # Board 1
-        mock_bord_response,
-        # Board 2
-        mock_bord_response,
-        # Board 3
-        mock_bord_response,
-    ] + NEURON_L203_MODBUS_REGISTER
+    mock_modbus_tcp_client.read_input_registers.side_effect = (
+        [
+            # Board 1
+            mock_bord_response,
+            # Board 2
+            mock_bord_response,
+            # Board 3
+            mock_bord_response,
+        ]
+        # Add the modbus register twice to test if feature changed.
+        # In the first scan() features changed and in the second scan() features not changed.
+        + NEURON_L203_MODBUS_REGISTER
+        + NEURON_L203_MODBUS_REGISTER
+    )
 
     for mock_response in EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER:
         mock_response.isError.return_value = False

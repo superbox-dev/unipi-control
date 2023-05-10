@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from superbox_utils.core.exception import UnexpectedException
+from unipi_control.exception import UnexpectedException
 from unipi_control.tools.config_converter import UnipiConfigConverter
 from unipi_control.tools.config_converter import parse_args
 from unittests.conftest import ConfigLoader

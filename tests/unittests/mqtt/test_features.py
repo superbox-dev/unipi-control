@@ -44,7 +44,7 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
 
             mock_modbus_cache_data_scan: MagicMock = mocker.patch("unipi_control.modbus.ModbusCacheData.scan")
 
-            NeuronFeaturesMqttPlugin.PUBLISH_RUNNING = PropertyMock(side_effect=[True, False])
+            NeuronFeaturesMqttPlugin.PUBLISH_RUNNING = PropertyMock(side_effect=[True, True, False])
             NeuronFeaturesMqttPlugin.scan_interval = 25e-3
 
             async with AsyncExitStack() as stack:
@@ -59,7 +59,14 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
 
             logs: list = [record.getMessage() for record in caplog.records]
 
-            assert mock_modbus_cache_data_scan.mock_calls == [call("tcp", ["Neuron"])]
+            assert len(logs) == 102
+
+            assert mock_modbus_cache_data_scan.mock_calls == [
+                # In the first run features changed.
+                call("tcp", ["Neuron"]),
+                # In the second run features not changed.
+                call("tcp", ["Neuron"]),
+            ]
 
             for feature_do in range(1, 4):
                 assert f"[MQTT] Subscribe topic mocked_unipi/relay/do_1_{feature_do:02d}/set" in logs

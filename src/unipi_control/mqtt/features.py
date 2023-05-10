@@ -10,9 +10,9 @@ from asyncio_mqtt import Client
 
 from unipi_control.config import HardwareType
 from unipi_control.config import logger
-from unipi_control.log import LOG_MQTT_PUBLISH
-from unipi_control.log import LOG_MQTT_SUBSCRIBE
-from unipi_control.log import LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.helpers.log import LOG_MQTT_PUBLISH
+from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE
+from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
 
 
 class BaseFeaturesMqttPlugin:
@@ -83,10 +83,10 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
 
             if value == "ON":
                 await feature.set_state(True)
+                logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
             elif value == "OFF":
                 await feature.set_state(False)
-
-            logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
+                logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
 
 class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):

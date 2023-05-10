@@ -15,12 +15,12 @@ from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusResponse
 
-from superbox_utils.text.text import slugify
 from unipi_control.config import Config
 from unipi_control.config import ConfigException
 from unipi_control.config import FeatureConfig
 from unipi_control.config import HardwareDefinition
 from unipi_control.config import LogPrefix
+from unipi_control.helpers.text import slugify
 from unipi_control.modbus import ModbusClient
 from unipi_control.modbus import check_modbus_call
 

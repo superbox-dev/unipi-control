@@ -8,7 +8,7 @@ from typing import Tuple
 
 from unipi_control.config import logger
 from unipi_control.features import FeatureState
-from unipi_control.log import LOG_MQTT_PUBLISH
+from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 
@@ -63,10 +63,9 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
             if feature.feature_id not in self.config.get_cover_circuits():
                 topic, message = self._get_discovery(feature)
 
-                if message:
-                    json_data: str = json.dumps(message)
-                    await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
-                    logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+                json_data: str = json.dumps(message)
+                await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
+                logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassSwitchesMqttPlugin:

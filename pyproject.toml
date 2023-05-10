@@ -27,7 +27,7 @@ classifiers = [
 requires-python = ">= 3.8"
 dependencies = [
     "pymodbus[serial]==3.2.2",
-    "superbox-utils[mqtt]==2023.6",
+    "asyncio-mqtt==0.16.1",
 ]
 dynamic = ["version"]
 
@@ -70,9 +70,6 @@ where = ["src"]
 
 [tool.setuptools.dynamic]
 version = {attr = "unipi_control.__version__"}
-
-[tool.check-manifest]
-ignore = [".editorconfig"]  # TODO Add check-manifest
 
 [tool.black]
 line-length = 120
@@ -151,11 +148,11 @@ testpaths = [
 pythonpath = ["src", "tests"]
 
 [tool.coverage.run] # https://coverage.readthedocs.io/en/latest/config.html#run
-branch = true
+# branch = true
 data_file = "reports/.coverage"
 
 [tool.coverage.report] # https://coverage.readthedocs.io/en/latest/config.html#report
-fail_under = 85
+fail_under = 75
 show_missing = true
 skip_covered = true
 

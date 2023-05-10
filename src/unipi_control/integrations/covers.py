@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import itertools
 import time
 from asyncio import Task
@@ -17,14 +18,25 @@ from typing import Union
 
 from pymodbus.pdu import ModbusResponse
 
-from superbox_utils.asyncio import run_in_executor
-from superbox_utils.text.text import slugify
 from unipi_control.config import Config
 from unipi_control.features import DigitalOutput
 from unipi_control.features import FeatureMap
 from unipi_control.features import Relay
+from unipi_control.helpers.text import slugify
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
+
+
+def run_in_executor(_func) -> Callable:
+    """Run blocking code async."""
+
+    @functools.wraps(_func)
+    def wrapped(*args, **kwargs):
+        loop = asyncio.get_running_loop()
+        func = functools.partial(_func, *args, **kwargs)
+        return loop.run_in_executor(executor=None, func=func)
+
+    return wrapped
 
 
 @dataclass(eq=False)
