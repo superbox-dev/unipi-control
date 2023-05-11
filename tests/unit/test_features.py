@@ -13,7 +13,7 @@ from tests.unit.conftest import MockModbusClient
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.config import ConfigException
+from unipi_control.config import ConfigError
 from unipi_control.features import DigitalInput
 from unipi_control.features import DigitalOutput
 from unipi_control.features import Led
@@ -122,7 +122,7 @@ class TestUnhappyPathFeatures:
     def test_invalid_feature_by_feature_id(
         self, _config_loader: ConfigLoader, _neuron: Neuron, feature_id: str, expected: str
     ) -> None:
-        with pytest.raises(ConfigException) as error:
+        with pytest.raises(ConfigError) as error:
             _neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
 
         assert str(error.value) == expected

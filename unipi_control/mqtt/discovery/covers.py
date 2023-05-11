@@ -13,20 +13,22 @@ from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import HardwareData
 from unipi_control.config import logger
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
+from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
+from unipi_control.neuron import Neuron
 
 
 class HassCoversDiscovery:
     """Provide the covers as Home Assistant MQTT discovery."""
 
-    def __init__(self, covers: CoverMap, neuron, mqtt_client: Client) -> None:
+    def __init__(self, covers: CoverMap, neuron: Neuron, mqtt_client: Client) -> None:
         self.mqtt_client: Client = mqtt_client
         self.covers: CoverMap = covers
 
         self.config: Config = neuron.config
         self.hardware: HardwareData = neuron.hardware
 
-    def _get_discovery(self, cover) -> Tuple[str, dict]:
+    def _get_discovery(self, cover: Cover) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.unique_id}/config"
         device_name: str = self.config.device_info.name
         via_device: Optional[str] = None
@@ -79,7 +81,7 @@ class HassCoversDiscovery:
 class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
-    def __init__(self, neuron, mqtt_client, covers: CoverMap) -> None:
+    def __init__(self, neuron: Neuron, mqtt_client: Client, covers: CoverMap) -> None:
         self._hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]) -> None:

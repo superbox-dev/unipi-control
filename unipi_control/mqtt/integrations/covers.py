@@ -47,7 +47,7 @@ class CoversMqttPlugin:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             self._queues[cover.topic] = Queue()
 
-    async def _clear_queue(self, cover) -> None:
+    async def _clear_queue(self, cover: Cover) -> None:
         queue: Queue = self._queues[cover.topic]
 
         if (size := queue.qsize()) > 0:
@@ -77,7 +77,7 @@ class CoversMqttPlugin:
             task = asyncio.create_task(self._subscribe_command_worker(cover))
             tasks.add(task)
 
-    async def _subscribe_command_worker(self, cover) -> None:
+    async def _subscribe_command_worker(self, cover: Cover) -> None:
         while self.SUBSCRIBE_COMMAND_WORKER_RUNNING:
             queue: Queue = self._queues[cover.topic]
 
@@ -92,7 +92,10 @@ class CoversMqttPlugin:
 
             if cover_run_time:
                 logger.debug(
-                    "%s [%s] [Worker] Cover runtime: %s seconds.", LogPrefix.COVER, cover.topic, cover_run_time
+                    "%s [%s] [Worker] Cover runtime: %s seconds.",
+                    LogPrefix.COVER,
+                    cover.topic,
+                    cover_run_time,
                 )
 
                 while cover.is_closing or cover.is_opening:
@@ -149,11 +152,11 @@ class CoversMqttPlugin:
             await self._clear_queue(cover)
 
             if value == CoverDeviceState.OPEN:
-                await cover.open()
+                await cover.open_cover()
             elif value == CoverDeviceState.CLOSE:
-                await cover.close()
+                await cover.close_cover()
             elif value == CoverDeviceState.STOP:
-                await cover.stop()
+                await cover.stop_cover()
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
@@ -168,7 +171,7 @@ class CoversMqttPlugin:
                         command="set_position",
                         value=position,
                         log=[LOG_MQTT_SUBSCRIBE, topic, position],
-                    )
+                    ),
                 )
             except ValueError as error:
                 logger.error(error)
@@ -184,7 +187,7 @@ class CoversMqttPlugin:
                         command="set_tilt",
                         value=tilt,
                         log=[LOG_MQTT_SUBSCRIBE, topic, tilt],
-                    )
+                    ),
                 )
             except ValueError as error:
                 logger.error(error)

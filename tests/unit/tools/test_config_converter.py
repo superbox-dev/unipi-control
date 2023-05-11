@@ -8,7 +8,7 @@ from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.tools.test_config_converter_data import CONVERTED_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import EVOK_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import INVALID_EVOK_MODEL_CONTENT
-from unipi_control.exception import UnexpectedException
+from unipi_control.exception import UnexpectedError
 from unipi_control.tools.config_converter import UnipiConfigConverter
 from unipi_control.tools.config_converter import parse_args
 
@@ -51,7 +51,7 @@ class TestUnhappyPathUnipiConfigConverter:
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"
         evok_hardware_yaml.write_text(INVALID_EVOK_MODEL_CONTENT)
 
-        with pytest.raises(UnexpectedException) as error:
+        with pytest.raises(UnexpectedError) as error:
             UnipiConfigConverter(config=_config_loader.get_config(), force=False).convert(
                 source=evok_hardware_yaml, target=Path(_config_loader.hardware_data_file_path.parent)
             )
@@ -65,7 +65,7 @@ class TestUnhappyPathUnipiConfigConverter:
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"
         evok_hardware_yaml.write_text(EVOK_MODEL_CONTENT)
 
-        with pytest.raises(UnexpectedException) as error:
+        with pytest.raises(UnexpectedError) as error:
             UnipiConfigConverter(config=_config_loader.get_config(), force=False).convert(
                 source=evok_hardware_yaml, target=Path(_config_loader.hardware_data_file_path.parent)
             )
@@ -77,7 +77,7 @@ class TestUnhappyPathUnipiConfigConverter:
         evok_hardware_path: Path = _config_loader.hardware_data_file_path.parent / "evok"
         evok_hardware_path.mkdir()
 
-        with pytest.raises(UnexpectedException) as error:
+        with pytest.raises(UnexpectedError) as error:
             UnipiConfigConverter(config=_config_loader.get_config(), force=False).convert(
                 source=evok_hardware_path, target=Path(_config_loader.hardware_data_file_path.parent)
             )
@@ -91,7 +91,7 @@ class TestUnhappyPathUnipiConfigConverter:
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"
         evok_hardware_yaml.write_text(EVOK_MODEL_CONTENT)
 
-        with pytest.raises(UnexpectedException) as error:
+        with pytest.raises(UnexpectedError) as error:
             UnipiConfigConverter(config=_config_loader.get_config(), force=False).convert(
                 source=evok_hardware_yaml, target=Path(_config_loader.hardware_data_file_path)
             )
@@ -105,7 +105,7 @@ class TestUnhappyPathUnipiConfigConverter:
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"
         evok_hardware_yaml.write_text(EVOK_MODEL_CONTENT)
 
-        with pytest.raises(UnexpectedException) as error:
+        with pytest.raises(UnexpectedError) as error:
             UnipiConfigConverter(config=_config_loader.get_config(), force=False).convert(
                 source=evok_hardware_yaml, target=_config_loader.temp / "NOT_EXISTS"
             )

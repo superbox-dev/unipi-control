@@ -6,9 +6,12 @@ from typing import List
 from typing import Set
 from typing import Tuple
 
+from asyncio_mqtt import Client
+
 from unipi_control.config import logger
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
+from unipi_control.neuron import Neuron
 
 
 class HassSensorsDiscovery(HassDiscoveryMixin):
@@ -70,7 +73,7 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
 class HassSensorsMqttPlugin:
     """Provide Home Assistant MQTT commands for sensors."""
 
-    def __init__(self, neuron, mqtt_client) -> None:
+    def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
         self._hass = HassSensorsDiscovery(neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]) -> None:

@@ -21,7 +21,7 @@ from typing import Optional
 from typing import TypedDict
 from typing import Union
 
-from unipi_control.exception import ConfigException
+from unipi_control.exception import ConfigError
 from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import STDOUT_LOG_FORMAT
 from unipi_control.helpers.log import SYSTEMD_LOG_FORMAT
@@ -63,7 +63,7 @@ class Validation:
 
 @dataclass
 class ConfigLoaderMixin:
-    def update(self, new) -> None:
+    def update(self, new: dict) -> None:
         """Update and validate config data class with settings from a dictionary.
 
         Parameters
@@ -108,7 +108,8 @@ class ConfigLoaderMixin:
                     setattr(self, _field.name, method(getattr(self, _field.name), _field=_field))
 
                 if not isinstance(value, _field.type) and not is_dataclass(value):
-                    raise ConfigException(f"Expected {_field.name} to be {_field.type}, got {repr(value)}")
+                    msg = f"Expected {_field.name} to be {_field.type}, got {repr(value)}"
+                    raise ConfigError(msg)
 
 
 @dataclass
@@ -119,9 +120,8 @@ class DeviceInfo(ConfigLoaderMixin):
     @staticmethod
     def _validate_name(value: str, _field: dataclasses.Field) -> str:
         if re.search(Validation.NAME.regex, value) is None:
-            raise ConfigException(
-                f"{LogPrefix.DEVICEINFO} Invalid value '{value}' in '{_field.name}'. {Validation.NAME.error}"
-            )
+            msg = f"{LogPrefix.DEVICEINFO} Invalid value '{value}' in '{_field.name}'. {Validation.NAME.error}"
+            raise ConfigError(msg)
 
         return value
 
@@ -151,9 +151,8 @@ class FeatureConfig(ConfigLoaderMixin):
         value = value.lower()
 
         if re.search(Validation.ID.regex, value) is None:
-            raise ConfigException(
-                f"{LogPrefix.FEATURE} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
-            )
+            msg = f"{LogPrefix.FEATURE} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
+            raise ConfigError(msg)
 
         return value
 
@@ -173,7 +172,8 @@ class CoverConfig(ConfigLoaderMixin):
         """Validate cover configuration."""
         for _field in ("object_id", "friendly_name", "device_class", "cover_up", "cover_down"):
             if not getattr(self, _field):
-                raise ConfigException(f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}")
+                msg = f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}"
+                raise ConfigError(msg)
 
         super().validate()
 
@@ -182,18 +182,18 @@ class CoverConfig(ConfigLoaderMixin):
         value = value.lower()
 
         if re.search(Validation.ID.regex, value) is None:
-            raise ConfigException(
-                f"{LogPrefix.COVER} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
-            )
+            msg = f"{LogPrefix.COVER} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
+            raise ConfigError(msg)
 
         return value
 
     def _validate_device_class(self, value: str, _field: dataclasses.Field) -> str:
         if (value := value.lower()) not in DEVICE_CLASSES:
-            raise ConfigException(
+            exception_message: str = (
                 f"{LogPrefix.COVER} Invalid value '{self.device_class}' in '{_field.name}'. "
                 f"The following values are allowed: {' '.join(DEVICE_CLASSES)}."
             )
+            raise ConfigError(exception_message)
 
         return value
 
@@ -207,7 +207,8 @@ class ModbusUnitConfig(ConfigLoaderMixin):
 
     def _validate_device_name(self, value: str, _field: dataclasses.Field) -> str:
         if not value:
-            raise ConfigException(f"{LogPrefix.MODBUS} Device name for unit '{self.unit}' is missing!")
+            msg = f"{LogPrefix.MODBUS} Device name for unit '{self.unit}' is missing!"
+            raise ConfigError(msg)
 
         return value
 
@@ -247,28 +248,30 @@ class ModbusConfig(ConfigLoaderMixin):
 
         for unit in self.units:
             if unit.unit in unique_units:
-                raise ConfigException(f"{LogPrefix.MODBUS} Duplicate modbus unit '{unit.unit}' found in 'units'!")
+                msg = f"{LogPrefix.MODBUS} Duplicate modbus unit '{unit.unit}' found in 'units'!"
+                raise ConfigError(msg)
 
             unique_units.append(unit.unit)
 
     @staticmethod
     def _validate_baud_rate(value: str, _field: dataclasses.Field) -> str:
         if value not in MODBUS_BAUD_RATES:
-            raise ConfigException(
+            exception_message: str = (
                 f"{LogPrefix.MODBUS} Invalid baud rate '{value}. "
-                f"The following baud rates are allowed: "
-                f"{' '.join((str(baud_rate) for baud_rate in MODBUS_BAUD_RATES))}."
+                f"The following baud rates are allowed: {' '.join(str(baud_rate) for baud_rate in MODBUS_BAUD_RATES)}."
             )
+            raise ConfigError(exception_message)
 
         return value
 
     @staticmethod
     def _validate_parity(value: str, _field: dataclasses.Field) -> str:
         if (value := value.upper()) not in MODBUS_PARITY:
-            raise ConfigException(
+            exception_message: str = (
                 f"{LogPrefix.MODBUS} Invalid value '{value}' in '{_field.name}'. "
                 f"The following parity options are allowed: {' '.join(MODBUS_PARITY)}."
             )
+            raise ConfigError(exception_message)
 
         return value
 
@@ -282,9 +285,11 @@ class HomeAssistantConfig(ConfigLoaderMixin):
         value = value.lower()
 
         if re.search(Validation.ID.regex, value) is None:
-            raise ConfigException(
-                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
+            exception_message: str = (
+                f"[{self.__class__.__name__.replace('Config', '').upper()}] "
+                f"Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
             )
+            raise ConfigError(exception_message)
 
         return value
 
@@ -336,9 +341,11 @@ class LoggingConfig(ConfigLoaderMixin):
 
     def _validate_level(self, value: str, _field: dataclasses.Field) -> str:
         if (value := value.lower()) not in LOG_LEVEL.keys():
-            raise ConfigException(
-                f"[{self.__class__.__name__.replace('Config', '').upper()}] Invalid log level '{self.level}'. The following log levels are allowed: {' '.join(LOG_LEVEL.keys())}."
+            exception_message: str = (
+                f"[{self.__class__.__name__.replace('Config', '').upper()}] "
+                f"Invalid log level '{self.level}'. The following log levels are allowed: {' '.join(LOG_LEVEL.keys())}."
             )
+            raise ConfigError(exception_message)
 
         return value
 
@@ -389,7 +396,8 @@ class Config(ConfigLoaderMixin):
 
         for feature in self.features.values():
             if feature.object_id in object_ids:
-                raise ConfigException(f"{LogPrefix.FEATURE} Duplicate ID '{feature.object_id}' found in 'features'!")
+                msg = f"{LogPrefix.FEATURE} Duplicate ID '{feature.object_id}' found in 'features'!"
+                raise ConfigError(msg)
 
             if feature.object_id:
                 object_ids.append(feature.object_id)
@@ -415,24 +423,27 @@ class Config(ConfigLoaderMixin):
 
         for circuit in circuits:
             if circuits.count(circuit) > 1:
-                raise ConfigException(
+                exception_message: str = (
                     f"{LogPrefix.COVER} Duplicate circuits found in 'covers'. "
                     f"Driving both signals up and down at the same time can damage the motor!"
                 )
+                raise ConfigError(exception_message)
 
     def _validate_cover_ids(self) -> None:
         object_ids: List[str] = []
 
         for cover in self.covers:
             if cover.object_id in object_ids:
-                raise ConfigException(f"{LogPrefix.COVER} Duplicate ID '{cover.object_id}' found in 'covers'!")
+                msg = f"{LogPrefix.COVER} Duplicate ID '{cover.object_id}' found in 'covers'!"
+                raise ConfigError(msg)
 
             object_ids.append(cover.object_id)
 
     @staticmethod
     def _validate_config_base_path(value: Path, _field: dataclasses.Field) -> Path:
         if not value.is_dir() or not value.exists():
-            raise ConfigException(f"{LogPrefix.DEVICEINFO} Config path '{value}' is invalid!")
+            msg = f"{LogPrefix.DEVICEINFO} Config path '{value}' is invalid!"
+            raise ConfigError(msg)
 
         return value
 
@@ -523,7 +534,8 @@ class HardwareData(Mapping):
         )
 
         if self.data["neuron"].model is None:
-            raise ConfigException("Hardware is not supported!")
+            msg = "Hardware is not supported!"
+            raise ConfigError(msg)
 
         self._read_neuron_definition()
         self._read_extension_definitions()
@@ -558,11 +570,13 @@ class HardwareData(Mapping):
                         )
                     )
             except TypeError as error:
-                raise ConfigException(f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}") from error
+                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
+                raise ConfigError(msg) from error
 
             logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
-            raise ConfigException("No valid YAML definition found for this device!")
+            msg = "No valid YAML definition found for this device!"
+            raise ConfigError(msg)
 
     def _read_extension_definitions(self) -> None:
         try:
@@ -584,7 +598,8 @@ class HardwareData(Mapping):
                                 )
                             )
                     except TypeError as error:
-                        raise ConfigException(f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}") from error
+                        msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
+                        raise ConfigError(msg) from error
 
                     logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         except FileNotFoundError as error:

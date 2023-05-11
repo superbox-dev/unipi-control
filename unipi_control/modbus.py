@@ -1,19 +1,11 @@
 import asyncio
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import NamedTuple
-from typing import Optional
+from typing import Callable, Dict, List, NamedTuple, Optional
 
-from pymodbus.client import AsyncModbusSerialClient
-from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import HardwareData
-from unipi_control.config import HardwareDefinition
-from unipi_control.config import LogPrefix
-from unipi_control.config import logger
+from unipi_control.config import HardwareData, HardwareDefinition, LogPrefix, logger
 
 
 async def check_modbus_call(callback: Callable, data: dict) -> Optional[ModbusResponse]:

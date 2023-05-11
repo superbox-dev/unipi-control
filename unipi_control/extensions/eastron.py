@@ -58,7 +58,10 @@ class EastronSDM120M:
             )
 
             if response:
-                meter_code: str = f"{format(getattr(response, 'registers')[0], '0x')}{format(getattr(response, 'registers')[1], '0x')}"
+                meter_code: str = (
+                    f"{format(getattr(response, 'registers',[0])[0], '0x')}"
+                    f"{format(getattr(response, 'registers',[0])[1], '0x')}"
+                )
                 sw_version = f"{meter_code[:3]}.{meter_code[3:]}"
                 retry = False
 

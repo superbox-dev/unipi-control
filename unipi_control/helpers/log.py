@@ -44,5 +44,5 @@ class SystemdHandler(StreamHandler):
             self.flush()
         except RecursionError:
             raise
-        except Exception:  # pylint: disable=broad-exception-caught
+        except Exception:  # noqa: BLE001 pylint: disable=broad-exception-caught
             self.handleError(record)

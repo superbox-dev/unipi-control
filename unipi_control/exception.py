@@ -1,6 +1,6 @@
-class UnexpectedException(Exception):
+class UnexpectedError(Exception):
     pass
 
 
-class ConfigException(Exception):
+class ConfigError(Exception):
     pass

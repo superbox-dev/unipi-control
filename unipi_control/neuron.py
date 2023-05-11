@@ -1,23 +1,14 @@
 from typing import List
 from typing import Optional
+from typing import TYPE_CHECKING
 
-from pymodbus.pdu import ModbusResponse
+if TYPE_CHECKING:
+    from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import Config
-from unipi_control.config import HardwareData
-from unipi_control.config import HardwareDefinition
-from unipi_control.config import HardwareType
-from unipi_control.config import LogPrefix
-from unipi_control.config import logger
+from unipi_control.config import Config, HardwareData, HardwareDefinition, HardwareType, LogPrefix, logger
 from unipi_control.extensions.eastron import EastronSDM120M
-from unipi_control.features import DigitalInput
-from unipi_control.features import DigitalOutput
-from unipi_control.features import FeatureMap
-from unipi_control.features import Led
-from unipi_control.features import Relay
-from unipi_control.modbus import ModbusCacheData
-from unipi_control.modbus import ModbusClient
-from unipi_control.modbus import check_modbus_call
+from unipi_control.features import DigitalInput, DigitalOutput, FeatureMap, Led, Relay
+from unipi_control.modbus import ModbusCacheData, ModbusClient, check_modbus_call
 
 
 class Board:
@@ -152,7 +143,7 @@ class Neuron:
             )
 
             if response:
-                board = Board(neuron=self, versions=getattr(response, "registers"), major_group=index)
+                board = Board(neuron=self, versions=getattr(response, "registers", [0, 0]), major_group=index)
                 board.parse_features()
 
                 self.boards.append(board)
@@ -166,8 +157,7 @@ class Neuron:
         logger.info("%s Reading extensions", LogPrefix.MODBUS)
 
         for definition in self.hardware["definitions"][1:]:
-            if definition.manufacturer.lower() == "eastron":
-                if definition.model == "SDM120M":
-                    await EastronSDM120M(neuron=self, definition=definition).init()
+            if definition.manufacturer.lower() == "eastron" and definition.model == "SDM120M":
+                await EastronSDM120M(neuron=self, definition=definition).init()
 
         await self.modbus_cache_data.scan("serial", hardware_types=[HardwareType.EXTENSION])

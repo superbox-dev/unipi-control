@@ -13,15 +13,14 @@ from asyncio_mqtt import Client
 from asyncio_mqtt import MqttError
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
-from requests import __version__
 
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LogPrefix
 from unipi_control.config import MqttConfig
 from unipi_control.config import logger
-from unipi_control.exception import ConfigException
-from unipi_control.exception import UnexpectedException
+from unipi_control.exception import ConfigError
+from unipi_control.exception import UnexpectedError
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.text import slugify
 from unipi_control.integrations.covers import CoverMap
@@ -34,6 +33,7 @@ from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
 from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
 from unipi_control.mqtt.integrations.covers import CoversMqttPlugin
 from unipi_control.neuron import Neuron
+from unipi_control.version import __version__
 
 
 class UnipiControl:
@@ -69,7 +69,7 @@ class UnipiControl:
         await asyncio.gather(*tasks)
 
     @staticmethod
-    async def _cancel_tasks(tasks) -> None:
+    async def _cancel_tasks(tasks: Set[Task]) -> None:
         for task in tasks:
             if task.done():
                 continue
@@ -91,9 +91,10 @@ class UnipiControl:
                 self.modbus_client.tcp.params.port,
             )
         else:
-            raise UnexpectedException(
+            exception_message_tcp: str = (
                 f"TCP client can't connect to {self.modbus_client.tcp.params.host}:{self.modbus_client.tcp.params.port}"
             )
+            raise UnexpectedError(exception_message_tcp)
 
         await self.modbus_client.serial.connect()
 
@@ -104,7 +105,8 @@ class UnipiControl:
                 self.modbus_client.serial.params.port,
             )
         else:
-            raise UnexpectedException(f"Serial client can't connect to {self.modbus_client.serial.params.port}")
+            exception_message_serial: str = f"Serial client can't connect to {self.modbus_client.serial.params.port}"
+            raise UnexpectedError(exception_message_serial)
 
     @staticmethod
     async def mqtt_connect(mqtt_config: MqttConfig, mqtt_client_id: str, callback: Callable) -> None:
@@ -227,10 +229,10 @@ def main() -> None:
         )
 
         asyncio.run(unipi_control.run())
-    except ConfigException as error:
+    except ConfigError as error:
         logger.critical("%s %s", LogPrefix.CONFIG, error)
         sys.exit(1)
-    except UnexpectedException as error:
+    except UnexpectedError as error:
         logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:

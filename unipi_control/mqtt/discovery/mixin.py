@@ -7,10 +7,11 @@ from unipi_control.config import Config
 from unipi_control.config import HardwareData
 from unipi_control.features import BaseFeature
 from unipi_control.features import NeuronFeature
+from unipi_control.neuron import Neuron
 
 
 class HassDiscoveryMixin:
-    def __init__(self, neuron, mqtt_client: Client) -> None:
+    def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
         self.neuron = neuron
         self.mqtt_client: Client = mqtt_client
 
@@ -36,20 +37,16 @@ class HassDiscoveryMixin:
         return device_name
 
     def _get_device_model(self, feature: Optional[Union[BaseFeature]] = None) -> str:
-        device_model: str = f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}'
-
         if feature and feature.definition.model:
-            device_model = f"{feature.definition.model}"
+            return f"{feature.definition.model}"
 
-        return device_model
+        return f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}'
 
     def _get_device_manufacturer(self, feature: Optional[BaseFeature] = None) -> str:
-        device_manufacturer: str = self.config.device_info.manufacturer
-
         if feature and feature.definition.manufacturer:
-            device_manufacturer = f"{feature.definition.manufacturer}"
+            return f"{feature.definition.manufacturer}"
 
-        return device_manufacturer
+        return self.config.device_info.manufacturer
 
     @staticmethod
     def _get_invert_state(feature: NeuronFeature) -> bool:

@@ -3,13 +3,14 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Optional
 from typing import Union
 
 from unipi_control import __version__
 from unipi_control.config import Config
 from unipi_control.config import LoggingConfig
 from unipi_control.config import logger
-from unipi_control.exception import UnexpectedException
+from unipi_control.exception import UnexpectedError
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.yaml import yaml_dumper
 from unipi_control.helpers.yaml import yaml_loader_safe
@@ -27,11 +28,13 @@ class UnipiConfigConverter:
         if isinstance(source_yaml, dict):
             return source_yaml
 
-        raise UnexpectedException("INPUT is not a valid YAML file!")
+        exception_message: str = "INPUT is not a valid YAML file!"
+        raise UnexpectedError(exception_message)
 
     def _write_target_yaml(self, target: Path, content: dict) -> None:
         if target.exists() and not self.force:
-            raise UnexpectedException("OUTPUT YAML file already exists!")
+            exception_message: str = "OUTPUT YAML file already exists!"
+            raise UnexpectedError(exception_message)
 
         target.write_text(yaml_dumper(json.dumps(content)), encoding="utf-8")
         logger.info("YAML file written to: %s", target.as_posix())
@@ -46,7 +49,7 @@ class UnipiConfigConverter:
                     "slave": modbus_register_block["board_index"],
                     "start_reg": modbus_register_block["start_reg"],
                     "count": modbus_register_block["count"],
-                }
+                },
             )
 
         return _modbus_register_blocks
@@ -73,14 +76,17 @@ class UnipiConfigConverter:
 
     def convert(self, source: Path, target: Path) -> None:
         """Convert Evok to Unipi Control YAML file format."""
+        exception_message: Optional[str] = None
+
         if not source.is_file():
-            raise UnexpectedException("INPUT is not a file!")
+            exception_message = "INPUT is not a file!"
+        elif target.is_file():
+            exception_message = "OUTPUT is a file not a directory!"
+        elif not target.is_dir():
+            exception_message = "OUTPUT directory not exists!"
 
-        if target.is_file():
-            raise UnexpectedException("OUTPUT is a file not a directory!")
-
-        if not target.is_dir():
-            raise UnexpectedException("OUTPUT directory not exists!")
+        if exception_message:
+            raise UnexpectedError(exception_message)
 
         source_yaml: dict = self._read_source_yaml(source)
         target_yaml: dict = {
@@ -121,7 +127,7 @@ def main() -> None:
         config.logging.init(log=args.log, verbose=args.verbose)
 
         UnipiConfigConverter(config=config, force=args.force).convert(source=Path(args.input), target=Path(args.output))
-    except UnexpectedException as error:
+    except UnexpectedError as error:
         logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:

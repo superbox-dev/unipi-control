@@ -2,16 +2,17 @@
 import argparse
 import sys
 import tarfile
-from datetime import date
 from datetime import datetime
+from datetime import timezone
 from pathlib import Path
+from typing import Optional
 
 from unipi_control import __version__
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LoggingConfig
 from unipi_control.config import logger
-from unipi_control.exception import UnexpectedException
+from unipi_control.exception import UnexpectedError
 from unipi_control.helpers.argparse import init_argparse
 
 
@@ -21,23 +22,30 @@ class UnipiConfigBackup:
 
     def backup(self, target: Path) -> None:
         """Backup configuration file."""
+        exception_message: Optional[str] = None
+
         if target.is_file():
-            raise UnexpectedException("OUTPUT is a file not a directory!")
+            exception_message = "OUTPUT is a file not a directory!"
+        elif not target.is_dir():
+            exception_message = "OUTPUT directory not exists!"
 
-        if not target.is_dir():
-            raise UnexpectedException("OUTPUT directory not exists!")
+        if exception_message:
+            raise UnexpectedError(exception_message)
 
-        tar_filename: str = f"config-{date.today()}-{datetime.now().strftime('%H%M%S')}.tar.gz"
+        datetime_now = datetime.now(tz=timezone.utc)
+        tar_filename: str = f"config-{datetime_now.date()}-{datetime_now.strftime('%H%M%S')}.tar.gz"
         tar_file: Path = target / tar_filename
 
         if tar_file.exists():
-            raise UnexpectedException(f"{tar_file.as_posix()} already exists!")
+            exception_message = f"{tar_file.as_posix()} already exists!"
+            raise UnexpectedError(exception_message)
 
         try:
             with tarfile.open(tar_file, "x:gz") as tar:
                 tar.add(self.config.config_base_path / "control.yaml", arcname=self.config.config_base_path)
-        except IOError as error:
-            raise UnexpectedException(f"{error.strerror}: '{error.filename}") from error
+        except OSError as error:
+            exception_message = f"{error.strerror}: '{error.filename}"
+            raise UnexpectedError(exception_message) from error
 
         logger.info("%s created!", tar_file.as_posix())
 
@@ -77,7 +85,7 @@ def main() -> None:
         config.logging.init(log=args.log, verbose=args.verbose)
 
         UnipiConfigBackup(config=config).backup(target=Path(args.output))
-    except UnexpectedException as error:
+    except UnexpectedError as error:
         logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:

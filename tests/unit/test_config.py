@@ -19,7 +19,7 @@ from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_BAUD_RATE
 from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_PARITY
 from tests.unit.test_config_data import CONFIG_MISSING_COVER_KEY
 from tests.unit.test_config_data import CONFIG_MISSING_DEVICE_NAME
-from unipi_control.exception import ConfigException
+from unipi_control.exception import ConfigError
 
 
 class TestUnhappyPathConfig:
@@ -98,7 +98,7 @@ class TestUnhappyPathConfig:
         indirect=["_config_loader"],
     )
     def test_validation(self, _config_loader: ConfigLoader, expected: str) -> None:
-        with pytest.raises(ConfigException) as error:
+        with pytest.raises(ConfigError) as error:
             _config_loader.get_config()
 
         assert str(error.value) == expected

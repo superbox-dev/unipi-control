@@ -95,7 +95,7 @@ class TestHappyPathCovers(TestCovers):
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
-        await cover.stop()
+        await cover.stop_cover()
 
         assert cover.calibrate_mode == expected.calibrate_mode
 
@@ -160,12 +160,12 @@ class TestHappyPathCovers(TestCovers):
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
 
-        if (cover_run_time := await cover.open()) is not None:
+        if (cover_run_time := await cover.open_cover()) is not None:
             mock_monotonic.return_value = cover_run_time
 
         assert cover.state == expected.open_cover_state
 
-        await cover.stop()
+        await cover.stop_cover()
         cover.read_position()
 
         assert cover.position == expected.position
@@ -235,14 +235,14 @@ class TestHappyPathCovers(TestCovers):
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
 
         mock_monotonic.return_value = 0
-        cover_run_time: Optional[float] = await cover.close()
+        cover_run_time: Optional[float] = await cover.close_cover()
 
         assert cover.state == expected.close_cover_state
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
-        await cover.stop()
+        await cover.stop_cover()
         cover.read_position()
 
         assert cover.position == expected.position
@@ -279,7 +279,7 @@ class TestHappyPathCovers(TestCovers):
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
 
-        await cover.stop()
+        await cover.stop_cover()
         assert cover.state == expected
 
     @pytest.mark.asyncio
@@ -351,7 +351,7 @@ class TestHappyPathCovers(TestCovers):
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
-        await cover.stop()
+        await cover.stop_cover()
         cover.read_position()
 
         assert cover.tilt == expected.tilt
@@ -428,7 +428,7 @@ class TestHappyPathCovers(TestCovers):
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
-        await cover.stop()
+        await cover.stop_cover()
         cover.read_position()
 
         assert cover.position == expected.position
@@ -511,7 +511,7 @@ class TestUnhappyPathCovers(TestCovers):
         cover._current_position = expected
         cover.position = expected
 
-        cover_run_time: Optional[float] = await cover.open()
+        cover_run_time: Optional[float] = await cover.open_cover()
 
         assert cover_run_time is None
 
@@ -528,7 +528,7 @@ class TestUnhappyPathCovers(TestCovers):
         cover._current_position = expected
         cover.position = expected
 
-        cover_run_time: Optional[float] = await cover.open()
+        cover_run_time: Optional[float] = await cover.open_cover()
 
         assert cover_run_time is None
 
@@ -545,7 +545,7 @@ class TestUnhappyPathCovers(TestCovers):
         cover._current_position = expected
         cover.position = expected
 
-        cover_run_time: Optional[float] = await cover.close()
+        cover_run_time: Optional[float] = await cover.close_cover()
 
         assert cover_run_time is None
 
@@ -586,6 +586,6 @@ class TestUnhappyPathCovers(TestCovers):
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time / 2
 
-        await cover.stop()
+        await cover.stop_cover()
 
         assert cover.calibrate_mode == expected.calibrate_mode
