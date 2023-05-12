@@ -116,9 +116,6 @@ class NeuronFeature:
         """Return suggested area for Home Assistant from hardware definition or custom feature configuration."""
         _suggested_area: Optional[str] = None
 
-        if self.hardware.definition.suggested_area:
-            _suggested_area = self.hardware.definition.suggested_area
-
         if self.features_config and self.features_config.suggested_area:
             _suggested_area = self.features_config.suggested_area
 
@@ -149,16 +146,6 @@ class NeuronFeature:
     def device_class(self) -> Optional[str]:
         """Return unit of device class from custom feature configuration."""
         return self.features_config.device_class if self.features_config else None
-
-    @cached_property
-    def state_class(self) -> None:
-        """Return dummy placeholder for state class."""
-        return
-
-    @cached_property
-    def unit_of_measurement(self) -> None:
-        """Return dummy placeholder for unit of measurement."""
-        return
 
     @cached_property
     def sw_version(self) -> Optional[str]:

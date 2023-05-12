@@ -462,7 +462,7 @@ class HardwareInfo:
     version: str = field(default="unknown", init=False)
     serial: str = field(default="unknown", init=False)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self) -> None:  # pragma: no cover
         unipi_1: Path = self.sys_bus / "1-0050/eeprom"
         unipi_patron: Path = self.sys_bus / "2-0057/eeprom"
         unipi_neuron_1: Path = self.sys_bus / "1-0057/eeprom"

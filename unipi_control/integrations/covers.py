@@ -24,6 +24,7 @@ from unipi_control.features.map import DigitalOutput
 from unipi_control.features.map import FeatureMap
 from unipi_control.features.map import Relay
 from unipi_control.helpers.text import slugify
+from unipi_control.typing import Number
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
 
@@ -152,8 +153,8 @@ class Cover:
         friendly_name: str,
         suggested_area: str,
         device_class: str,
-        cover_run_time: Union[float, int],
-        tilt_change_time: Union[float, int],
+        cover_run_time: Number,
+        tilt_change_time: Number,
         cover_up: str,
         cover_down: str,
     ) -> None:
@@ -172,8 +173,8 @@ class Cover:
         self.friendly_name: str = friendly_name
         self.suggested_area: str = suggested_area
         self.device_class: str = device_class
-        self.cover_run_time: Union[float, int] = cover_run_time
-        self.tilt_change_time: Union[float, int] = tilt_change_time
+        self.cover_run_time: Number = cover_run_time
+        self.tilt_change_time: Number = tilt_change_time
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None

@@ -59,6 +59,10 @@ features:
     friendly_name: MOCKED_FRIENDLY_NAME - APPARENT_POWER
     suggested_area: MOCKED AREA 3
     icon: mdi:power-standby
+  reactive_power_1:
+    device_class: power
+    state_class: total
+    unit_of_measurement: W
 covers:
   - object_id: MOCKED_BLIND_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - BLIND

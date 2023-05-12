@@ -47,7 +47,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                     assert task.done() is True
 
             logs: list = [record.getMessage() for record in caplog.records]
-            print(logs)
+
             assert (
                 '[MQTT] [homeassistant/sensor/mocked_unipi_voltage_1/config] Publishing message: {"name": "MOCKED Eastron SDM120M - Workspace: Voltage", "unique_id": "mocked_unipi_voltage_1", "state_topic": "mocked_unipi/meter/voltage_1/get", "qos": 2, "force_update": true, "device": {"name": "MOCKED Eastron SDM120M - Workspace", "identifiers": "MOCKED Eastron SDM120M - Workspace", "model": "SDM120M", "sw_version": "202.04", "manufacturer": "Eastron", "suggested_area": "Workspace", "via_device": "MOCKED UNIPI"}, "device_class": "voltage", "state_class": "measurement", "unit_of_measurement": "V"}'
                 in logs
@@ -65,7 +65,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                 in logs
             )
             assert (
-                '[MQTT] [homeassistant/sensor/mocked_unipi_reactive_power_1/config] Publishing message: {"name": "MOCKED Eastron SDM120M - Workspace: Reactive Power", "unique_id": "mocked_unipi_reactive_power_1", "state_topic": "mocked_unipi/meter/reactive_power_1/get", "qos": 2, "force_update": true, "device": {"name": "MOCKED Eastron SDM120M - Workspace", "identifiers": "MOCKED Eastron SDM120M - Workspace", "model": "SDM120M", "sw_version": "202.04", "manufacturer": "Eastron", "suggested_area": "Workspace", "via_device": "MOCKED UNIPI"}, "device_class": "reactive_power", "state_class": "measurement", "unit_of_measurement": "var"}'
+                '[MQTT] [homeassistant/sensor/mocked_unipi_reactive_power_1/config] Publishing message: {"name": "MOCKED Eastron SDM120M - Workspace: Reactive Power", "unique_id": "mocked_unipi_reactive_power_1", "state_topic": "mocked_unipi/meter/reactive_power_1/get", "qos": 2, "force_update": true, "device": {"name": "MOCKED Eastron SDM120M - Workspace", "identifiers": "MOCKED Eastron SDM120M - Workspace", "model": "SDM120M", "sw_version": "202.04", "manufacturer": "Eastron", "suggested_area": "Workspace", "via_device": "MOCKED UNIPI"}, "device_class": "power", "state_class": "total", "unit_of_measurement": "W"}'
                 in logs
             )
             assert (
