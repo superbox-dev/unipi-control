@@ -14,11 +14,11 @@ from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import ConfigError
-from unipi_control.features import DigitalInput
-from unipi_control.features import DigitalOutput
-from unipi_control.features import Led
-from unipi_control.features import MeterFeature
-from unipi_control.features import Relay
+from unipi_control.features.extensions import EastronMeter
+from unipi_control.features.map import DigitalInput
+from unipi_control.features.map import DigitalOutput
+from unipi_control.features.map import Led
+from unipi_control.features.map import Relay
 from unipi_control.neuron import Neuron
 
 
@@ -87,7 +87,7 @@ class TestHappyPathFeatures:
 
         _modbus_client.tcp.write_coil.return_value = mock_response
 
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay, MeterFeature] = _neuron.features.by_feature_id(
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = _neuron.features.by_feature_id(
             options.feature_id, feature_types=[options.feature_type]
         )
 
@@ -103,7 +103,7 @@ class TestHappyPathFeatures:
             assert feature.val_coil == expected.coil
             assert feature.payload == ("ON" if expected.value == 1 else "OFF")
             assert await feature.set_state(False)
-        elif isinstance(feature, MeterFeature):
+        elif isinstance(feature, EastronMeter):
             assert feature.payload == expected.value
 
 

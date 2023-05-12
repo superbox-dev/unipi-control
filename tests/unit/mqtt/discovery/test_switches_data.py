@@ -3,6 +3,74 @@ from typing import List
 discovery_message_expected: List[dict] = [
     {
         "message": {
+            "name": "MOCKED UNIPI: Digital Output 1.01",
+            "unique_id": "mocked_unipi_do_1_01",
+            "command_topic": "mocked_unipi/relay/do_1_01/set",
+            "state_topic": "mocked_unipi/relay/do_1_01/get",
+            "qos": 2,
+            "device": {
+                "name": "MOCKED UNIPI",
+                "identifiers": "MOCKED UNIPI",
+                "model": "MOCKED_NAME MOCKED_MODEL",
+                "sw_version": "0.0",
+                "manufacturer": "Unipi technology",
+            },
+        },
+        "topic": "homeassistant/switch/mocked_unipi_do_1_01/config",
+    },
+    {
+        "message": {
+            "name": "MOCKED UNIPI: Digital Output 1.02",
+            "unique_id": "mocked_unipi_do_1_02",
+            "command_topic": "mocked_unipi/relay/do_1_02/set",
+            "state_topic": "mocked_unipi/relay/do_1_02/get",
+            "qos": 2,
+            "device": {
+                "name": "MOCKED UNIPI",
+                "identifiers": "MOCKED UNIPI",
+                "model": "MOCKED_NAME MOCKED_MODEL",
+                "sw_version": "0.0",
+                "manufacturer": "Unipi technology",
+            },
+        },
+        "topic": "homeassistant/switch/mocked_unipi_do_1_02/config",
+    },
+    {
+        "message": {
+            "name": "MOCKED UNIPI: Digital Output 1.03",
+            "unique_id": "mocked_unipi_do_1_03",
+            "command_topic": "mocked_unipi/relay/do_1_03/set",
+            "state_topic": "mocked_unipi/relay/do_1_03/get",
+            "qos": 2,
+            "device": {
+                "name": "MOCKED UNIPI",
+                "identifiers": "MOCKED UNIPI",
+                "model": "MOCKED_NAME MOCKED_MODEL",
+                "sw_version": "0.0",
+                "manufacturer": "Unipi technology",
+            },
+        },
+        "topic": "homeassistant/switch/mocked_unipi_do_1_03/config",
+    },
+    {
+        "message": {
+            "name": "MOCKED UNIPI: Digital Output 1.04",
+            "unique_id": "mocked_unipi_do_1_04",
+            "command_topic": "mocked_unipi/relay/do_1_04/set",
+            "state_topic": "mocked_unipi/relay/do_1_04/get",
+            "qos": 2,
+            "device": {
+                "name": "MOCKED UNIPI",
+                "identifiers": "MOCKED UNIPI",
+                "model": "MOCKED_NAME MOCKED_MODEL",
+                "sw_version": "0.0",
+                "manufacturer": "Unipi technology",
+            },
+        },
+        "topic": "homeassistant/switch/mocked_unipi_do_1_04/config",
+    },
+    {
+        "message": {
             "name": "MOCKED_FRIENDLY_NAME - RO_2_01",
             "unique_id": "mocked_unipi_mocked_id_ro_2_01",
             "command_topic": "mocked_unipi/relay/ro_2_01/set",
@@ -486,73 +554,5 @@ discovery_message_expected: List[dict] = [
             },
         },
         "topic": "homeassistant/switch/mocked_unipi_ro_3_14/config",
-    },
-    {
-        "message": {
-            "name": "MOCKED UNIPI: Digital Output 1.01",
-            "unique_id": "mocked_unipi_do_1_01",
-            "command_topic": "mocked_unipi/relay/do_1_01/set",
-            "state_topic": "mocked_unipi/relay/do_1_01/get",
-            "qos": 2,
-            "device": {
-                "name": "MOCKED UNIPI",
-                "identifiers": "MOCKED UNIPI",
-                "model": "MOCKED_NAME MOCKED_MODEL",
-                "sw_version": "0.0",
-                "manufacturer": "Unipi technology",
-            },
-        },
-        "topic": "homeassistant/switch/mocked_unipi_do_1_01/config",
-    },
-    {
-        "message": {
-            "name": "MOCKED UNIPI: Digital Output 1.02",
-            "unique_id": "mocked_unipi_do_1_02",
-            "command_topic": "mocked_unipi/relay/do_1_02/set",
-            "state_topic": "mocked_unipi/relay/do_1_02/get",
-            "qos": 2,
-            "device": {
-                "name": "MOCKED UNIPI",
-                "identifiers": "MOCKED UNIPI",
-                "model": "MOCKED_NAME MOCKED_MODEL",
-                "sw_version": "0.0",
-                "manufacturer": "Unipi technology",
-            },
-        },
-        "topic": "homeassistant/switch/mocked_unipi_do_1_02/config",
-    },
-    {
-        "message": {
-            "name": "MOCKED UNIPI: Digital Output 1.03",
-            "unique_id": "mocked_unipi_do_1_03",
-            "command_topic": "mocked_unipi/relay/do_1_03/set",
-            "state_topic": "mocked_unipi/relay/do_1_03/get",
-            "qos": 2,
-            "device": {
-                "name": "MOCKED UNIPI",
-                "identifiers": "MOCKED UNIPI",
-                "model": "MOCKED_NAME MOCKED_MODEL",
-                "sw_version": "0.0",
-                "manufacturer": "Unipi technology",
-            },
-        },
-        "topic": "homeassistant/switch/mocked_unipi_do_1_03/config",
-    },
-    {
-        "message": {
-            "name": "MOCKED UNIPI: Digital Output 1.04",
-            "unique_id": "mocked_unipi_do_1_04",
-            "command_topic": "mocked_unipi/relay/do_1_04/set",
-            "state_topic": "mocked_unipi/relay/do_1_04/get",
-            "qos": 2,
-            "device": {
-                "name": "MOCKED UNIPI",
-                "identifiers": "MOCKED UNIPI",
-                "model": "MOCKED_NAME MOCKED_MODEL",
-                "sw_version": "0.0",
-                "manufacturer": "Unipi technology",
-            },
-        },
-        "topic": "homeassistant/switch/mocked_unipi_do_1_04/config",
     },
 ]

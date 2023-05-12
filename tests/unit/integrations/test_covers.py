@@ -141,7 +141,7 @@ class TestHappyPathCovers(TestCovers):
             ),
         ],
     )
-    async def test_open(
+    async def test_open_cover(
         self,
         _config_loader: ConfigLoader,
         _covers: CoverMap,
@@ -216,7 +216,7 @@ class TestHappyPathCovers(TestCovers):
             ),
         ],
     )
-    async def test_close(
+    async def test_close_cover(
         self,
         _config_loader: ConfigLoader,
         _covers: CoverMap,
@@ -263,7 +263,7 @@ class TestHappyPathCovers(TestCovers):
             (CoverOptions(device_class="blind", position=100, cover_state=CoverState.OPENING), "open"),
         ],
     )
-    async def test_stop(
+    async def test_stop_cover(
         self,
         _config_loader: ConfigLoader,
         _covers: CoverMap,

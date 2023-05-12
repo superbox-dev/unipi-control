@@ -82,14 +82,12 @@ junit_xml = "reports/mypy.xml"
 # C0114: missing-module-docstring
 # C0115: missing-class-docstring
 # C0116: missing-function-docstring
-# C0301: line-too-long
 # C0411: wrong-import-order
 # E0401: import-error
 # R0801: duplicate-code
-# R1732: consider-using-with
 # R6003: consider-alternative-union-syntax (python 3.8 compatibility)
 # W6001: deprecated-typing-alias (python 3.8 compatibility)
-disable = ["C0114", "C0115", "C0116", "C0301", "C0411", "E0401", "R0801", "R1732", "R6003", "W6001"]
+disable = ["C0114", "C0115", "C0116", "C0411", "E0401", "R0801", "R6003", "W6001"]
 notes = ["FIXME"]
 
 load-plugins = [
@@ -118,20 +116,9 @@ load-plugins = [
 output-format = "colorized"
 reports = false
 score = true
-argument-rgx = "_?[a-z]{1,}[a-z_0-9]{0,30}(?<!_)$"
-class-attribute-rgx = "_?[A-Za-z]{1,}[A-Za-z_0-9]{0,30}(?<!_)$"
-variable-rgx = "_?[a-z]{1,}[a-z_0-9]{0,30}(?<!_)$"
-max-args = 10
-max-attributes = 30  # TODO: Refactor code
-
-[tool.pylint.variables]
-init-import = true
 
 [tool.pylint.format]
 max-line-length = 120
-
-[tool.pylint.design]
-min-public-methods = 0
 
 [tool.ruff]
 target-version = "py38"
@@ -145,6 +132,8 @@ ignore = [
     "D104", # undocumented-public-package
     "D105", # undocumented-magic-method
     "D107", # undocumented-public-init
+    "D211", # no-blank-line-before-class
+    "D212", # multi-line-summary-first-line
     "D417", # undocumented-param
     "FBT", # boolean-trap
     "TCH", # type-checking
@@ -158,14 +147,14 @@ log_cli = true
 log_cli_level = "DEBUG"
 log_cli_format = "%(levelname)-8s | %(asctime)s: %(message)s"
 # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
-addopts = "--color=yes --exitfirst --failed-first --strict-config --strict-markers --import-mode=importlib --junitxml=reports/pytest.xml"
+addopts = "--color=yes --exitfirst --failed-first --strict-config --strict-markers --junitxml=reports/pytest.xml"
 
 [tool.coverage.run] # https://coverage.readthedocs.io/en/latest/config.html#run
 # branch = true
 data_file = "reports/.coverage"
 
 [tool.coverage.report] # https://coverage.readthedocs.io/en/latest/config.html#report
-fail_under = 75
+fail_under = 80
 show_missing = true
 skip_covered = true
 

@@ -10,15 +10,15 @@ import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from asyncio_mqtt import Client
 
-from unipi_control.mqtt.discovery.sensors import HassSensorsDiscovery
-from unipi_control.mqtt.discovery.sensors import HassSensorsMqttPlugin
-from unipi_control.neuron import Neuron
 from tests.unit.conftest import ConfigLoader
 from tests.unit.conftest import ModbusClient
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from tests.unit.mqtt.discovery.test_sensors_data import discovery_message_expected
+from unipi_control.mqtt.discovery.sensors import HassSensorsDiscovery
+from unipi_control.mqtt.discovery.sensors import HassSensorsMqttPlugin
+from unipi_control.neuron import Neuron
 
 
 class TestHappyPathHassSensorsMqttPlugin:
@@ -47,7 +47,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                     assert task.done() is True
 
             logs: list = [record.getMessage() for record in caplog.records]
-
+            print(logs)
             assert (
                 '[MQTT] [homeassistant/sensor/mocked_unipi_voltage_1/config] Publishing message: {"name": "MOCKED Eastron SDM120M - Workspace: Voltage", "unique_id": "mocked_unipi_voltage_1", "state_topic": "mocked_unipi/meter/voltage_1/get", "qos": 2, "force_update": true, "device": {"name": "MOCKED Eastron SDM120M - Workspace", "identifiers": "MOCKED Eastron SDM120M - Workspace", "model": "SDM120M", "sw_version": "202.04", "manufacturer": "Eastron", "suggested_area": "Workspace", "via_device": "MOCKED UNIPI"}, "device_class": "voltage", "state_class": "measurement", "unit_of_measurement": "V"}'
                 in logs

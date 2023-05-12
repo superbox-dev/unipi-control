@@ -20,9 +20,9 @@ from typing import Union
 from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
-from unipi_control.features import DigitalOutput
-from unipi_control.features import FeatureMap
-from unipi_control.features import Relay
+from unipi_control.features.map import DigitalOutput
+from unipi_control.features.map import FeatureMap
+from unipi_control.features.map import Relay
 from unipi_control.helpers.text import slugify
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
@@ -144,7 +144,19 @@ class Cover:
         The feature for closing the cover.
     """
 
-    def __init__(self, config: Config, features: FeatureMap, **kwargs) -> None:
+    def __init__(
+        self,
+        config: Config,
+        features: FeatureMap,
+        object_id: str,
+        friendly_name: str,
+        suggested_area: str,
+        device_class: str,
+        cover_run_time: Union[float, int],
+        tilt_change_time: Union[float, int],
+        cover_up: str,
+        cover_down: str,
+    ) -> None:
         """Initialize cover.
 
         Parameters
@@ -156,23 +168,21 @@ class Cover:
         self.config: Config = config
 
         self.calibrate_mode: bool = False
-        self.object_id: str = kwargs["object_id"]
-        self.friendly_name: str = kwargs["friendly_name"]
-        self.suggested_area: str = kwargs["suggested_area"]
-        self.device_class: str = kwargs["device_class"]
-        self.cover_run_time: Union[float, int] = kwargs["cover_run_time"]
-        self.tilt_change_time: Union[float, int] = kwargs["tilt_change_time"]
-        self.cover_up: str = kwargs["cover_up"]
-        self.cover_down: str = kwargs["cover_down"]
+        self.object_id: str = object_id
+        self.friendly_name: str = friendly_name
+        self.suggested_area: str = suggested_area
+        self.device_class: str = device_class
+        self.cover_run_time: Union[float, int] = cover_run_time
+        self.tilt_change_time: Union[float, int] = tilt_change_time
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
 
         self.cover_up_feature: Union[DigitalOutput, Relay] = features.by_feature_id(
-            self.cover_up, feature_types=["DO", "RO"]
+            cover_up, feature_types=["DO", "RO"]
         )
         self.cover_down_feature: Union[DigitalOutput, Relay] = features.by_feature_id(
-            self.cover_down, feature_types=["DO", "RO"]
+            cover_down, feature_types=["DO", "RO"]
         )
 
         self.settings: CoverFeatures = getattr(CoverSettings, self.device_class)

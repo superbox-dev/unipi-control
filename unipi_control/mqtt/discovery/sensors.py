@@ -5,10 +5,12 @@ from typing import Any
 from typing import List
 from typing import Set
 from typing import Tuple
+from typing import Union
 
 from asyncio_mqtt import Client
 
 from unipi_control.config import logger
+from unipi_control.features.extensions import EastronMeter
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
@@ -19,7 +21,7 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
 
     publish_feature_types: List[str] = ["METER"]
 
-    def _get_discovery(self, feature) -> Tuple[str, dict]:
+    def _get_discovery(self, feature: Union[EastronMeter]) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/sensor/{feature.unique_id}/config"
         device_name: str = self._get_device_name(feature)
 

@@ -1,12 +1,22 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
-from typing import Any, AsyncIterable, List, Set
+from typing import Any
+from typing import AsyncIterable
+from typing import List
+from typing import Set
+from typing import Union
 
 from asyncio_mqtt import Client
 
-from unipi_control.config import HardwareType, logger
-from unipi_control.helpers.log import LOG_MQTT_PUBLISH, LOG_MQTT_SUBSCRIBE, LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.config import HardwareType
+from unipi_control.config import logger
+from unipi_control.features.map import DigitalOutput
+from unipi_control.features.map import Relay
+from unipi_control.helpers.log import LOG_MQTT_PUBLISH
+from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE
+from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
+from unipi_control.neuron import Neuron
 
 
 class BaseFeaturesMqttPlugin:
@@ -14,8 +24,8 @@ class BaseFeaturesMqttPlugin:
     subscribe_feature_types: List[str] = []
     publish_feature_types: List[str] = []
 
-    def __init__(self, neuron, mqtt_client: Client) -> None:
-        self.neuron = neuron
+    def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
+        self.neuron: Neuron = neuron
         self.mqtt_client: Client = mqtt_client
 
     async def _publish(self, scan_type: str, hardware_types: List[str], feature_types: List[str], sleep: float) -> None:
@@ -71,7 +81,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks.add(task)
 
     @staticmethod
-    async def _subscribe(feature, topic: str, messages: AsyncIterable) -> None:
+    async def _subscribe(feature: Union[DigitalOutput, Relay], topic: str, messages: AsyncIterable) -> None:
         async for message in messages:
             value: str = message.payload.decode()
 

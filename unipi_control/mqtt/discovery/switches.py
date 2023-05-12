@@ -5,11 +5,14 @@ from typing import Any
 from typing import List
 from typing import Set
 from typing import Tuple
+from typing import Union
 
 from asyncio_mqtt import Client
 
 from unipi_control.config import logger
-from unipi_control.features import FeatureState
+from unipi_control.features.map import DigitalOutput
+from unipi_control.features.map import Relay
+from unipi_control.features.utils import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
@@ -18,9 +21,9 @@ from unipi_control.neuron import Neuron
 class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
     """Provide the switches (e.g. relay) as Home Assistant MQTT discovery."""
 
-    publish_feature_types: List[str] = ["RO", "DO"]
+    publish_feature_types: List[str] = ["DO", "RO"]
 
-    def _get_discovery(self, feature) -> Tuple[str, dict]:
+    def _get_discovery(self, feature: Union[DigitalOutput, Relay]) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/switch/{feature.unique_id}/config"
         device_name: str = self._get_device_name(feature)
 

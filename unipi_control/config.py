@@ -18,6 +18,7 @@ from typing import Literal
 from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
+from typing import TYPE_CHECKING
 from typing import TypedDict
 from typing import Union
 
@@ -27,6 +28,11 @@ from unipi_control.helpers.log import STDOUT_LOG_FORMAT
 from unipi_control.helpers.log import SYSTEMD_LOG_FORMAT
 from unipi_control.helpers.log import SystemdHandler
 from unipi_control.helpers.yaml import yaml_loader_safe
+
+if TYPE_CHECKING:
+    from unipi_control.features.map import FeatureMap
+    from unipi_control.modbus import ModbusCacheData
+    from unipi_control.modbus import ModbusClient
 
 logger: logging.Logger = logging.getLogger()
 
@@ -619,3 +625,15 @@ class HardwareData(Mapping):
             Filtered hardware definitions.
         """
         return (definition for definition in self.data["definitions"] if definition.hardware_type in hardware_types)
+
+
+class BoardConfig(NamedTuple):
+    modbus_client: "ModbusClient"
+    major_group: Optional[int]
+    firmware: Optional[str] = None
+
+
+class NeuronHardware(NamedTuple):
+    definition: HardwareDefinition
+    modbus_cache_data: "ModbusCacheData"
+    features: "FeatureMap"

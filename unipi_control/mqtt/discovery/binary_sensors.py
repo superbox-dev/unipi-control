@@ -9,7 +9,8 @@ from typing import Tuple
 from asyncio_mqtt import Client
 
 from unipi_control.config import logger
-from unipi_control.features import FeatureState
+from unipi_control.features.map import DigitalInput
+from unipi_control.features.utils import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
@@ -20,7 +21,7 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
 
     publish_feature_types: List[str] = ["DI"]
 
-    def _get_discovery(self, feature) -> Tuple[str, dict]:
+    def _get_discovery(self, feature: DigitalInput) -> Tuple[str, dict]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/binary_sensor/{feature.unique_id}/config"
         device_name: str = self._get_device_name(feature)
 
