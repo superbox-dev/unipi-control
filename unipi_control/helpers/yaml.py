@@ -1,5 +1,6 @@
 from pathlib import Path
-from typing import Union
+from typing import Any
+from typing import Dict
 
 import yaml
 
@@ -11,7 +12,7 @@ class Dumper(yaml.Dumper):  # pylint: disable=too-many-ancestors
 
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         """Disable indentless."""
-        return super().increase_indent(flow, False)
+        super().increase_indent(flow, indentless=False)  # type: ignore[no-untyped-call]
 
 
 def yaml_dumper(content: str) -> str:
@@ -27,14 +28,16 @@ def yaml_dumper(content: str) -> str:
     str:
         YAML content as string
     """
-    return yaml.dump(
+    data: str = yaml.dump(
         yaml.safe_load(content),
         Dumper=Dumper,
         default_flow_style=False,
     )
 
+    return data
 
-def yaml_loader_safe(yaml_file: Path) -> Union[dict, list]:
+
+def yaml_loader_safe(yaml_file: Path) -> Dict[str, Any]:
     """Read a YAML file.
 
     Parameters
@@ -52,7 +55,8 @@ def yaml_loader_safe(yaml_file: Path) -> Union[dict, list]:
         Raise if the YAML file can't be read.
     """
     try:
-        return yaml.safe_load(yaml_file.read_text())
+        data: Dict[str, Any] = yaml.safe_load(yaml_file.read_text())
+        return data
     except yaml.MarkedYAMLError as error:
         msg = f"Can't read YAML file!\n{str(error.problem_mark)}"
         raise ConfigError(msg) from error

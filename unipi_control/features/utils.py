@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Final
+from typing import Tuple
 
 
 class FeatureState:
@@ -8,11 +9,11 @@ class FeatureState:
 
 
 class FeatureType(Enum):
-    DI: Final[tuple] = ("DI", "input", "Digital Input")
-    DO: Final[tuple] = ("DO", "relay", "Digital Output")
-    LED: Final[tuple] = ("LED", "led", "LED")
-    RO: Final[tuple] = ("RO", "relay", "Relay")
-    METER: Final[tuple] = ("METER", "meter", "Meter")
+    DI: Final[Tuple[str, ...]] = ("DI", "input", "Digital Input")
+    DO: Final[Tuple[str, ...]] = ("DO", "relay", "Digital Output")
+    LED: Final[Tuple[str, ...]] = ("LED", "led", "LED")
+    RO: Final[Tuple[str, ...]] = ("RO", "relay", "Relay")
+    METER: Final[Tuple[str, ...]] = ("METER", "meter", "Meter")
 
     def __init__(self, short_name: str, topic_name: str, long_name: str) -> None:
         self.short_name: str = short_name

@@ -5,7 +5,9 @@ import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
+from typing import Awaitable
 from typing import Callable
+from typing import List
 from typing import Optional
 from typing import Set
 
@@ -33,6 +35,7 @@ from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
 from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
 from unipi_control.mqtt.integrations.covers import CoversMqttPlugin
 from unipi_control.neuron import Neuron
+from unipi_control.typing import _T
 from unipi_control.version import __version__
 
 
@@ -69,7 +72,7 @@ class UnipiControl:
         await asyncio.gather(*tasks)
 
     @staticmethod
-    async def _cancel_tasks(tasks: Set[Task]) -> None:
+    async def _cancel_tasks(tasks: Set[Task[_T]]) -> None:
         for task in tasks:
             if task.done():
                 continue
@@ -109,7 +112,11 @@ class UnipiControl:
             raise UnexpectedError(exception_message_serial)
 
     @staticmethod
-    async def mqtt_connect(mqtt_config: MqttConfig, mqtt_client_id: str, callback: Callable) -> None:
+    async def mqtt_connect(
+        mqtt_config: MqttConfig,
+        mqtt_client_id: str,
+        callback: Callable[[AsyncExitStack, Client], Awaitable[None]],
+    ) -> None:
         """Connect to MQTT broker and automatically retry on disconnect.
 
         Parameters
@@ -144,7 +151,7 @@ class UnipiControl:
 
                     logger.info("%s Connected to broker at '%s:%s'", LogPrefix.MQTT, mqtt_config.host, mqtt_config.port)
 
-                    await callback(stack=stack, mqtt_client=mqtt_client)
+                    await callback(stack, mqtt_client)
             except MqttError as error:
                 logger.error(
                     "%s Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
@@ -173,7 +180,7 @@ class UnipiControl:
         )
 
 
-def parse_args(args: list) -> argparse.Namespace:
+def parse_args(args: List[str]) -> argparse.Namespace:
     """Initialize argument parser options.
 
     Parameters

@@ -2,6 +2,7 @@ import asyncio
 import json
 from asyncio import Task
 from typing import Any
+from typing import Dict
 from typing import Optional
 from typing import Set
 from typing import Tuple
@@ -16,6 +17,7 @@ from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.neuron import Neuron
+from unipi_control.typing import _T
 
 
 class HassCoversDiscovery:
@@ -28,7 +30,7 @@ class HassCoversDiscovery:
         self.config: Config = neuron.config
         self.hardware: HardwareData = neuron.hardware
 
-    def _get_discovery(self, cover: Cover) -> Tuple[str, dict]:
+    def _get_discovery(self, cover: Cover) -> Tuple[str, Dict[str, Any]]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.unique_id}/config"
         device_name: str = self.config.device_info.name
         via_device: Optional[str] = None
@@ -37,7 +39,7 @@ class HassCoversDiscovery:
             via_device = device_name
             device_name = f"{device_name} - {cover.suggested_area}"
 
-        message: dict = {
+        message: Dict[str, Any] = {
             "name": cover.friendly_name,
             "unique_id": f"{cover.unique_id}",
             "command_topic": f"{cover.topic}/set",
@@ -84,7 +86,7 @@ class HassCoversMqttPlugin:
     def __init__(self, neuron: Neuron, mqtt_client: Client, covers: CoverMap) -> None:
         self._hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
-    async def init_tasks(self, tasks: Set[Task]) -> None:
+    async def init_tasks(self, tasks: Set[Task[_T]]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
 
         Parameters
@@ -92,5 +94,5 @@ class HassCoversMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[Any] = asyncio.create_task(self._hass.publish())
+        task: Task[_T] = asyncio.create_task(self._hass.publish())
         tasks.add(task)

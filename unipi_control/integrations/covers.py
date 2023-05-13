@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from dataclasses import field
 from functools import cached_property
 from pathlib import Path
+from typing import Any
+from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import Final
@@ -24,16 +26,16 @@ from unipi_control.features.map import DigitalOutput
 from unipi_control.features.map import FeatureMap
 from unipi_control.features.map import Relay
 from unipi_control.helpers.text import slugify
-from unipi_control.typing import Number
+from unipi_control.typing import _T
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
 
 
-def run_in_executor(_func: Callable) -> Callable:
+def run_in_executor(_func: Callable[..., Any]) -> Callable[..., Any]:
     """Run blocking code async."""
 
     @functools.wraps(_func)
-    def wrapped(*args, **kwargs) -> Future:
+    def wrapped(*args, **kwargs) -> Future[_T]:
         loop = asyncio.get_running_loop()
         func = functools.partial(_func, *args, **kwargs)
         return loop.run_in_executor(executor=None, func=func)
@@ -82,7 +84,7 @@ class CoverTimer:
     task and run a callback function when it expired.
     """
 
-    def __init__(self, timeout: float, callback: Callable) -> None:
+    def __init__(self, timeout: float, callback: Callable[[], Awaitable[None]]) -> None:
         """Initialize timer.
 
         Parameters
@@ -93,7 +95,7 @@ class CoverTimer:
             The callback function that is executed at the end of the timer.
         """
         self._timeout: float = timeout
-        self._callback: Callable = callback
+        self._callback: Callable[[], Awaitable[None]] = callback
         self._task: Optional[Task] = None
 
     async def _job(self) -> None:
@@ -153,8 +155,8 @@ class Cover:
         friendly_name: str,
         suggested_area: str,
         device_class: str,
-        cover_run_time: Number,
-        tilt_change_time: Number,
+        cover_run_time: Union[float, int],
+        tilt_change_time: Union[float, int],
         cover_up: str,
         cover_down: str,
     ) -> None:
@@ -173,8 +175,8 @@ class Cover:
         self.friendly_name: str = friendly_name
         self.suggested_area: str = suggested_area
         self.device_class: str = device_class
-        self.cover_run_time: Number = cover_run_time
-        self.tilt_change_time: Number = tilt_change_time
+        self.cover_run_time: Union[float, int] = cover_run_time
+        self.tilt_change_time: Union[float, int] = tilt_change_time
         self.state: Optional[str] = None
         self.position: Optional[int] = None
         self.tilt: Optional[int] = None
@@ -386,7 +388,7 @@ class Cover:
         """Read the cover position and tilt from the temporary cover file."""
         if self.settings.set_position is True:
             try:
-                data: list = self.position_file.read_text().split("/")
+                data: List[str] = self.position_file.read_text().split("/")
                 self.position = int(data[0])
                 self.tilt = int(data[1])
             except (FileNotFoundError, IndexError, ValueError):
@@ -524,7 +526,7 @@ class Cover:
 
                 if self.position is not None and self.cover_run_time:
                     position = position if position else -5
-                    cover_run_time = (self.position - position) * self.cover_run_time / 100
+                    cover_run_time: float = (self.position - position) * self.cover_run_time / 100
 
                     if self.tilt_change_time and cover_run_time < self.tilt_change_time:
                         cover_run_time = self.tilt_change_time
@@ -699,7 +701,7 @@ class CoverMap:
 
             self.data[device_class].append(c)
 
-    def by_device_classes(self, device_classes: List[str]) -> Iterator:
+    def by_device_classes(self, device_classes: List[str]) -> Iterator[Cover]:
         """Filter covers by device classes.
 
         Parameters

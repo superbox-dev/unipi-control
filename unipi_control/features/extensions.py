@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from functools import cached_property
+from typing import Callable
+from typing import Iterable
 from typing import Optional
+from typing import Union
 
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
@@ -11,7 +14,6 @@ from unipi_control.config import HardwareDefinition
 from unipi_control.features.utils import FeatureType
 from unipi_control.helpers.text import slugify
 from unipi_control.modbus import ModbusCacheData
-from unipi_control.typing import Number
 
 
 @dataclass
@@ -49,10 +51,10 @@ class EastronMeter:
 
         self.features_config: Optional[FeatureConfig] = config.features.get(self.feature_id)
 
-        self._reg_value = lambda: modbus.cache.get_register(
+        self._reg_value: Callable[..., Iterable[int]] = lambda: modbus.cache.get_register(
             address=modbus.val_reg, index=2, unit=hardware.definition.unit
         )
-        self._value: Optional[Number] = None
+        self._value: Optional[Union[float, int]] = None
 
     def __repr__(self) -> str:
         return self.props.friendly_name
@@ -70,7 +72,7 @@ class EastronMeter:
         if _reg_value := self._reg_value():
             _value = round(
                 float(
-                    BinaryPayloadDecoder.fromRegisters(
+                    BinaryPayloadDecoder.fromRegisters(  # type: ignore[no-untyped-call]
                         _reg_value, byteorder=Endian.Big, wordorder=Endian.Big
                     ).decode_32bit_float()
                 ),

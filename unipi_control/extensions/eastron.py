@@ -1,16 +1,21 @@
 import asyncio
+from typing import Dict
 from typing import Optional
+from typing import Union
 
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import BoardConfig
 from unipi_control.config import Config
-from unipi_control.config import NeuronHardware
+from unipi_control.config import HardwareDefinition
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.extensions import Hardware
 from unipi_control.features.extensions import MeterProps
 from unipi_control.features.extensions import Modbus
+from unipi_control.features.map import FeatureMap
 from unipi_control.features.map import FeatureType
+from unipi_control.modbus import ModbusCacheData
+from unipi_control.modbus import ModbusClient
+from unipi_control.modbus import ModbusFeature
 from unipi_control.modbus import check_modbus_call
 
 
@@ -18,38 +23,42 @@ class EastronSDM120M:
     def __init__(
         self,
         config: Config,
-        board_config: BoardConfig,
-        neuron_hardware: NeuronHardware,
+        modbus_client: ModbusClient,
+        modbus_cache_data: ModbusCacheData,
+        definition: HardwareDefinition,
+        features: FeatureMap,
     ) -> None:
         """Initialize Eastron SDM120M electricity meter."""
         self.config: Config = config
-        self.board_config: BoardConfig = board_config
-        self.neuron_hardware: NeuronHardware = neuron_hardware
+        self.modbus_client: ModbusClient = modbus_client
+        self.modbus_cache_data: ModbusCacheData = modbus_cache_data
+        self.definition: HardwareDefinition = definition
+        self.features: FeatureMap = features
         self._sw_version: Optional[str] = None
 
-    def _parse_feature_meter(self, modbus_feature: dict) -> None:
+    def _parse_feature_meter(self, modbus_feature: ModbusFeature) -> None:
         meter: EastronMeter = EastronMeter(
             config=self.config,
             modbus=Modbus(
-                cache=self.neuron_hardware.modbus_cache_data,
+                cache=self.modbus_cache_data,
                 val_reg=modbus_feature["val_reg"],
             ),
             hardware=Hardware(
                 feature_type=FeatureType[modbus_feature["feature_type"]],
-                definition=self.neuron_hardware.definition,
+                definition=self.definition,
                 version=self._sw_version,
             ),
             props=MeterProps(
                 friendly_name=modbus_feature["friendly_name"],
-                device_class=modbus_feature.get("device_class"),
-                state_class=modbus_feature.get("state_class"),
-                unit_of_measurement=modbus_feature.get("unit_of_measurement"),
+                device_class=modbus_feature.get("device_class", None),
+                state_class=modbus_feature.get("state_class", None),
+                unit_of_measurement=modbus_feature.get("unit_of_measurement", None),
             ),
         )
 
-        self.neuron_hardware.features.register(meter)
+        self.features.register(meter)
 
-    def _parse_feature(self, modbus_feature: dict) -> None:
+    def _parse_feature(self, modbus_feature: Dict[str, Union[int, str]]) -> None:
         feature_type: str = modbus_feature["feature_type"].lower()
 
         if func := getattr(self, f"_parse_feature_{feature_type}", None):
@@ -58,10 +67,10 @@ class EastronSDM120M:
     async def _get_sw_version(self) -> Optional[str]:
         sw_version: str = "Unknown"
 
-        data: dict = {
+        data: Dict[str, int] = {
             "address": 64514,
             "count": 2,
-            "slave": self.neuron_hardware.definition.unit,
+            "slave": self.definition.unit,
         }
 
         retry: bool = True
@@ -72,7 +81,7 @@ class EastronSDM120M:
             retry_reconnect += 1
 
             response: Optional[ModbusResponse] = await check_modbus_call(
-                self.board_config.modbus_client.serial.read_holding_registers, data
+                self.modbus_client.serial.read_holding_registers, data
             )
 
             if response:
@@ -92,7 +101,7 @@ class EastronSDM120M:
 
     def parse_features(self) -> None:
         """Parse features from hardware definition."""
-        for modbus_feature in self.neuron_hardware.definition.modbus_features:
+        for modbus_feature in self.definition.modbus_features:
             self._parse_feature(modbus_feature)
 
     async def init(self) -> None:

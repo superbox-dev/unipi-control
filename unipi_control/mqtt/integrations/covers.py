@@ -4,6 +4,7 @@ from asyncio import Task
 from contextlib import AsyncExitStack
 from typing import Any
 from typing import AsyncIterable
+from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import NamedTuple
@@ -21,11 +22,12 @@ from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverDeviceState
 from unipi_control.integrations.covers import CoverMap
+from unipi_control.typing import _T
 
 
 class SubscribeCommand(NamedTuple):
     command: str
-    value: float
+    value: int
     log: list
 
 
@@ -39,7 +41,7 @@ class CoversMqttPlugin:
         self.mqtt_client: Client = mqtt_client
         self.covers: CoverMap = covers
 
-        self._queues: Dict[str, Queue] = {}
+        self._queues: Dict[str, Queue[SubscribeCommand]] = {}
 
         self._init_queues()
 
@@ -48,7 +50,7 @@ class CoversMqttPlugin:
             self._queues[cover.topic] = Queue()
 
     async def _clear_queue(self, cover: Cover) -> None:
-        queue: Queue = self._queues[cover.topic]
+        queue: Queue[SubscribeCommand] = self._queues[cover.topic]
 
         if (size := queue.qsize()) > 0:
             for _ in range(size):
@@ -57,7 +59,7 @@ class CoversMqttPlugin:
 
             logger.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
 
-    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
+    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task[_T]]) -> None:
         """Initialize MQTT tasks for subscribe and publish MQTT topics.
 
         Parameters
@@ -70,7 +72,7 @@ class CoversMqttPlugin:
         await self._set_position_topic(stack, tasks)
         await self._tilt_command_topic(stack, tasks)
 
-        task = asyncio.create_task(self._publish())
+        task: Task[_T] = asyncio.create_task(self._publish())
         tasks.add(task)
 
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
@@ -79,13 +81,13 @@ class CoversMqttPlugin:
 
     async def _subscribe_command_worker(self, cover: Cover) -> None:
         while self.SUBSCRIBE_COMMAND_WORKER_RUNNING:
-            queue: Queue = self._queues[cover.topic]
+            queue: Queue[SubscribeCommand] = self._queues[cover.topic]
 
             if queue.qsize() > 0:
                 logger.info("%s [%s] [Worker] %s task(s) in queue.", LogPrefix.COVER, cover.topic, queue.qsize())
 
             subscribe_queue: SubscribeCommand = await queue.get()
-            command: Callable = getattr(cover, subscribe_queue.command)
+            command: Callable[[int], Awaitable[Optional[float]]] = getattr(cover, subscribe_queue.command)
             cover_run_time: Optional[float] = await command(subscribe_queue.value)
 
             logger.info(*subscribe_queue.log)
@@ -131,7 +133,7 @@ class CoversMqttPlugin:
             await self.mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
+    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task[_T]]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             if cover.tilt_change_time:
                 topic: str = f"{cover.topic}/tilt/set"
@@ -164,7 +166,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
-                queue: Queue = self._queues[cover.topic]
+                queue: Queue[SubscribeCommand] = self._queues[cover.topic]
 
                 await queue.put(
                     SubscribeCommand(
@@ -180,7 +182,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
-                queue: Queue = self._queues[cover.topic]
+                queue: Queue[SubscribeCommand] = self._queues[cover.topic]
 
                 await queue.put(
                     SubscribeCommand(

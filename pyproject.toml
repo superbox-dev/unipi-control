@@ -73,7 +73,7 @@ line-length = 120
 target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.mypy]
-# strict = true
+strict = true
 python_version = "3.8"
 ignore_missing_imports = true
 junit_xml = "reports/mypy.xml"

@@ -3,6 +3,7 @@ import logging
 import re
 import socket
 import struct
+import typing
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import is_dataclass
@@ -10,17 +11,15 @@ from functools import cached_property
 from pathlib import Path
 from tempfile import gettempdir
 from typing import Any
+from typing import Dict
 from typing import Final
-from typing import Generator
 from typing import Iterator
 from typing import List
 from typing import Literal
 from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
-from typing import TYPE_CHECKING
 from typing import TypedDict
-from typing import Union
 
 from unipi_control.exception import ConfigError
 from unipi_control.helpers.log import LOG_LEVEL
@@ -28,11 +27,6 @@ from unipi_control.helpers.log import STDOUT_LOG_FORMAT
 from unipi_control.helpers.log import SYSTEMD_LOG_FORMAT
 from unipi_control.helpers.log import SystemdHandler
 from unipi_control.helpers.yaml import yaml_loader_safe
-
-if TYPE_CHECKING:
-    from unipi_control.features.map import FeatureMap
-    from unipi_control.modbus import ModbusCacheData
-    from unipi_control.modbus import ModbusClient
 
 logger: logging.Logger = logging.getLogger()
 
@@ -69,7 +63,7 @@ class Validation:
 
 @dataclass
 class ConfigLoaderMixin:
-    def update(self, new: dict) -> None:
+    def update(self, new: Dict[str, Any]) -> None:
         """Update and validate config data class with settings from a dictionary.
 
         Parameters
@@ -84,6 +78,15 @@ class ConfigLoaderMixin:
                 if is_dataclass(item):
                     item.update(value)
                 else:
+                    # if key == "units":
+                    #     units: List[ModbusUnitConfig] = []
+                    #     for index, unit in enumerate(self.units):
+                    #         unit_config: ModbusUnitConfig = ModbusUnitConfig()
+                    #         unit_config.update(unit)
+                    #         units[index] = unit_config
+                    #
+                    #     setattr(self, key, units)
+                    # else:
                     setattr(self, key, value)
 
         self.validate()
@@ -97,7 +100,7 @@ class ConfigLoaderMixin:
             Path to the YAML file.
         """
         if config_path.exists():
-            yaml_data: Union[dict, list] = yaml_loader_safe(config_path)
+            yaml_data: Dict[str, Any] = yaml_loader_safe(config_path)
 
             if isinstance(yaml_data, dict):
                 self.update(yaml_data)
@@ -106,6 +109,7 @@ class ConfigLoaderMixin:
         """Validate config data class arguments."""
         for _field in dataclasses.fields(self):
             value: Any = getattr(self, _field.name)
+            field_type = typing.get_origin(_field.type) or _field.type
 
             if is_dataclass(value):
                 value.validate()
@@ -113,8 +117,8 @@ class ConfigLoaderMixin:
                 if method := getattr(self, f"_validate_{_field.name}", None):
                     setattr(self, _field.name, method(getattr(self, _field.name), _field=_field))
 
-                if not isinstance(value, _field.type) and not is_dataclass(value):
-                    msg = f"Expected {_field.name} to be {_field.type}, got {repr(value)}"
+                if not isinstance(value, field_type) and not is_dataclass(value):
+                    msg = f"Expected {_field.name} to be {field_type}, got {repr(value)}"
                     raise ConfigError(msg)
 
 
@@ -223,7 +227,7 @@ class ModbusUnitConfig(ConfigLoaderMixin):
 class ModbusConfig(ConfigLoaderMixin):
     baud_rate: int = field(default=2400)
     parity: str = field(default="N")
-    units: list = field(init=False, default_factory=list)
+    units: List[ModbusUnitConfig] = field(init=False, default_factory=list)
 
     def init(self) -> None:
         """Initialize Modbus configuration and start custom validation."""
@@ -234,7 +238,7 @@ class ModbusConfig(ConfigLoaderMixin):
 
         self._validate_unique_units()
 
-    def get_units_by_identifier(self, identifier: str) -> Generator:
+    def get_units_by_identifier(self, identifier: str) -> Iterator[ModbusUnitConfig]:
         """Filter units by identifier.
 
         Parameters
@@ -260,10 +264,10 @@ class ModbusConfig(ConfigLoaderMixin):
             unique_units.append(unit.unit)
 
     @staticmethod
-    def _validate_baud_rate(value: str, _field: dataclasses.Field) -> str:
+    def _validate_baud_rate(value: int, _field: dataclasses.Field) -> int:
         if value not in MODBUS_BAUD_RATES:
             exception_message: str = (
-                f"{LogPrefix.MODBUS} Invalid baud rate '{value}. "
+                f"{LogPrefix.MODBUS} Invalid baud rate '{value}'. "
                 f"The following baud rates are allowed: {' '.join(str(baud_rate) for baud_rate in MODBUS_BAUD_RATES)}."
             )
             raise ConfigError(exception_message)
@@ -362,8 +366,8 @@ class Config(ConfigLoaderMixin):
     mqtt: MqttConfig = field(default_factory=MqttConfig)
     modbus: ModbusConfig = field(default_factory=ModbusConfig)
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
-    features: dict = field(init=False, default_factory=dict)
-    covers: list = field(init=False, default_factory=list)
+    features: Dict[str, FeatureConfig] = field(init=False, default_factory=dict)
+    covers: List[CoverConfig] = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_path: Path = field(default=DEFAULT_CONFIG_PATH)
     temp_path: Path = field(default=Path(gettempdir()) / "unipi")
@@ -521,8 +525,8 @@ class HardwareDefinition(NamedTuple):
     suggested_area: Optional[str]
     manufacturer: Optional[str]
     model: Optional[str]
-    modbus_register_blocks: List[dict]
-    modbus_features: List[dict]
+    modbus_register_blocks: List["ModbusRegisterBlock"]
+    modbus_features: List["ModbusFeature"]
 
 
 class HardwareDataDict(TypedDict):
@@ -549,7 +553,7 @@ class HardwareData(Mapping):
     def __getitem__(self, key: Literal["neuron", "definitions"]) -> Any:
         return self.data[key]
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[str]:
         return iter(self.data)
 
     def __len__(self) -> int:
@@ -560,7 +564,7 @@ class HardwareData(Mapping):
 
         if definition_file.is_file():
             try:
-                yaml_content: Union[dict, list] = yaml_loader_safe(definition_file)
+                yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
                 if isinstance(yaml_content, dict):
                     self.data["definitions"].append(
@@ -587,11 +591,13 @@ class HardwareData(Mapping):
     def _read_extension_definitions(self) -> None:
         try:
             for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
-                yaml_content: Union[dict, list] = yaml_loader_safe(definition_file)
+                yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
                 if isinstance(yaml_content, dict):
                     try:
-                        units: Generator = self.config.modbus.get_units_by_identifier(identifier=definition_file.stem)
+                        units: Iterator[ModbusUnitConfig] = self.config.modbus.get_units_by_identifier(
+                            identifier=definition_file.stem
+                        )
 
                         for unit in units:
                             self.data["definitions"].append(
@@ -611,7 +617,7 @@ class HardwareData(Mapping):
         except FileNotFoundError as error:
             logger.info("%s %s", LogPrefix.CONFIG, str(error))
 
-    def get_definition_by_hardware_types(self, hardware_types: List[str]) -> Generator:
+    def get_definition_by_hardware_types(self, hardware_types: List[str]) -> Iterator[HardwareDefinition]:
         """Filter hardware definitions by hardware types.
 
         Parameters
@@ -621,19 +627,7 @@ class HardwareData(Mapping):
 
         Returns
         -------
-        Generator:
+        Iterator:
             Filtered hardware definitions.
         """
         return (definition for definition in self.data["definitions"] if definition.hardware_type in hardware_types)
-
-
-class BoardConfig(NamedTuple):
-    modbus_client: "ModbusClient"
-    major_group: Optional[int]
-    firmware: Optional[str] = None
-
-
-class NeuronHardware(NamedTuple):
-    definition: HardwareDefinition
-    modbus_cache_data: "ModbusCacheData"
-    features: "FeatureMap"

@@ -1,14 +1,15 @@
+import typing
 from typing import List
+from typing import NamedTuple
 from typing import Optional
 
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import BoardConfig
 from unipi_control.config import Config
 from unipi_control.config import HardwareData
+from unipi_control.config import HardwareDefinition
 from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
-from unipi_control.config import NeuronHardware
 from unipi_control.config import logger
 from unipi_control.extensions.eastron import EastronSDM120M
 from unipi_control.features.map import DigitalInput
@@ -21,13 +22,34 @@ from unipi_control.features.neuron import Modbus
 from unipi_control.features.utils import FeatureType
 from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import ModbusClient
+from unipi_control.modbus import ModbusFeature
+from unipi_control.modbus import ModbusReadData
 from unipi_control.modbus import check_modbus_call
+
+
+class BoardConfig(NamedTuple):
+    major_group: Optional[int]
+    firmware: Optional[str] = None
+
+
+class NeuronHardware(NamedTuple):
+    definition: HardwareDefinition
+    modbus_cache_data: ModbusCacheData
+    features: FeatureMap
 
 
 class Board:
     """Class to parse board features and register it to the ``FeatureMap``."""
 
-    def __init__(self, config: Config, board_config: BoardConfig, neuron_hardware: NeuronHardware) -> None:
+    def __init__(
+        self,
+        config: Config,
+        modbus_client: ModbusClient,
+        modbus_cache_data: ModbusCacheData,
+        definition: HardwareDefinition,
+        features: FeatureMap,
+        board_config: BoardConfig,
+    ) -> None:
         """Initialize board.
 
         Parameters
@@ -38,17 +60,20 @@ class Board:
             The board group number.
         """
         self.config: Config = config
+        self.modbus_client: ModbusClient = modbus_client
+        self.modbus_cache_data: ModbusCacheData = modbus_cache_data
+        self.definition: HardwareDefinition = definition
+        self.features: FeatureMap = features
         self.board_config: BoardConfig = board_config
-        self.neuron_hardware: NeuronHardware = neuron_hardware
 
-    def _parse_feature_ro(self, max_count: int, modbus_feature: dict) -> None:
+    def _parse_feature_ro(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
             for index in range(0, max_count):
                 ro: Relay = Relay(
                     config=self.config,
                     modbus=Modbus(
-                        client=self.board_config.modbus_client,
-                        cache=self.neuron_hardware.modbus_cache_data,
+                        client=self.modbus_client,
+                        cache=self.modbus_cache_data,
                         val_reg=modbus_feature["val_reg"],
                         val_coil=modbus_feature["val_coil"],
                     ),
@@ -56,42 +81,42 @@ class Board:
                         major_group=self.board_config.major_group,
                         feature_type=FeatureType[modbus_feature["feature_type"]],
                         feature_index=index,
-                        definition=self.neuron_hardware.definition,
+                        definition=self.definition,
                         firmware=self.board_config.firmware,
                     ),
                 )
 
-                self.neuron_hardware.features.register(ro)
+                self.features.register(ro)
 
-    def _parse_feature_di(self, max_count: int, modbus_feature: dict) -> None:
+    def _parse_feature_di(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
             for index in range(0, max_count):
                 di: DigitalInput = DigitalInput(
                     config=self.config,
                     modbus=Modbus(
-                        client=self.board_config.modbus_client,
-                        cache=self.neuron_hardware.modbus_cache_data,
+                        client=self.modbus_client,
+                        cache=self.modbus_cache_data,
                         val_reg=modbus_feature["val_reg"],
                     ),
                     hardware=Hardware(
                         major_group=self.board_config.major_group,
                         feature_type=FeatureType[modbus_feature["feature_type"]],
                         feature_index=index,
-                        definition=self.neuron_hardware.definition,
+                        definition=self.definition,
                         firmware=self.board_config.firmware,
                     ),
                 )
 
-                self.neuron_hardware.features.register(di)
+                self.features.register(di)
 
-    def _parse_feature_do(self, max_count: int, modbus_feature: dict) -> None:
+    def _parse_feature_do(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
             for index in range(0, max_count):
                 do: DigitalOutput = DigitalOutput(
                     config=self.config,
                     modbus=Modbus(
-                        client=self.board_config.modbus_client,
-                        cache=self.neuron_hardware.modbus_cache_data,
+                        client=self.modbus_client,
+                        cache=self.modbus_cache_data,
                         val_reg=modbus_feature["val_reg"],
                         val_coil=modbus_feature["val_coil"],
                     ),
@@ -99,21 +124,21 @@ class Board:
                         major_group=self.board_config.major_group,
                         feature_type=FeatureType[modbus_feature["feature_type"]],
                         feature_index=index,
-                        definition=self.neuron_hardware.definition,
+                        definition=self.definition,
                         firmware=self.board_config.firmware,
                     ),
                 )
 
-                self.neuron_hardware.features.register(do)
+                self.features.register(do)
 
-    def _parse_feature_led(self, max_count: int, modbus_feature: dict) -> None:
+    def _parse_feature_led(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
             for index in range(0, max_count):
                 led: Led = Led(
                     config=self.config,
                     modbus=Modbus(
-                        client=self.board_config.modbus_client,
-                        cache=self.neuron_hardware.modbus_cache_data,
+                        client=self.modbus_client,
+                        cache=self.modbus_cache_data,
                         val_reg=modbus_feature["val_reg"],
                         val_coil=modbus_feature["val_coil"],
                     ),
@@ -121,14 +146,14 @@ class Board:
                         major_group=self.board_config.major_group,
                         feature_type=FeatureType[modbus_feature["feature_type"]],
                         feature_index=index,
-                        definition=self.neuron_hardware.definition,
+                        definition=self.definition,
                         firmware=self.board_config.firmware,
                     ),
                 )
 
-                self.neuron_hardware.features.register(led)
+                self.features.register(led)
 
-    def _parse_feature(self, modbus_feature: dict) -> None:
+    def _parse_feature(self, modbus_feature: ModbusFeature) -> None:
         max_count: int = modbus_feature["count"]
         feature_type: str = modbus_feature["feature_type"].lower()
 
@@ -137,8 +162,8 @@ class Board:
 
     def parse_features(self) -> None:
         """Parse features from hardware definition."""
-        for modbus_feature in self.neuron_hardware.definition.modbus_features:
-            self._parse_feature(modbus_feature)
+        for modbus_feature in self.definition.modbus_features:
+            self._parse_feature(typing.cast(ModbusFeature, modbus_feature))
 
 
 class Neuron:
@@ -187,27 +212,26 @@ class Neuron:
         logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
 
         for index in (1, 2, 3):
+            data: ModbusReadData = {
+                "address": 1000,
+                "count": 1,
+                "slave": index,
+            }
+
             response: Optional[ModbusResponse] = await check_modbus_call(
-                self.modbus_client.tcp.read_input_registers,
-                data={
-                    "address": 1000,
-                    "count": 1,
-                    "slave": index,
-                },
+                self.modbus_client.tcp.read_input_registers, data
             )
 
             if response:
                 board = Board(
                     config=self.config,
+                    modbus_client=self.modbus_client,
+                    definition=self.hardware["definitions"][0],
+                    modbus_cache_data=self.modbus_cache_data,
+                    features=self.features,
                     board_config=BoardConfig(
-                        modbus_client=self.modbus_client,
                         firmware=self.get_firmware(response),
                         major_group=index,
-                    ),
-                    neuron_hardware=NeuronHardware(
-                        definition=self.hardware["definitions"][0],
-                        modbus_cache_data=self.modbus_cache_data,
-                        features=self.features,
                     ),
                 )
                 board.parse_features()
@@ -226,15 +250,10 @@ class Neuron:
             if definition.manufacturer.lower() == "eastron" and definition.model == "SDM120M":
                 await EastronSDM120M(
                     config=self.config,
-                    board_config=BoardConfig(
-                        modbus_client=self.modbus_client,
-                        major_group=0,
-                    ),
-                    neuron_hardware=NeuronHardware(
-                        definition=definition,
-                        modbus_cache_data=self.modbus_cache_data,
-                        features=self.features,
-                    ),
+                    modbus_client=self.modbus_client,
+                    modbus_cache_data=self.modbus_cache_data,
+                    definition=definition,
+                    features=self.features,
                 ).init()
 
         await self.modbus_cache_data.scan("serial", hardware_types=[HardwareType.EXTENSION])

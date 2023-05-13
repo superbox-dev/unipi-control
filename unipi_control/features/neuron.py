@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from functools import cached_property
+from typing import Callable
 from typing import Optional
+from typing import Union
 
 from pymodbus.pdu import ModbusResponse
 
@@ -12,8 +14,8 @@ from unipi_control.features.utils import FeatureType
 from unipi_control.helpers.text import slugify
 from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import ModbusClient
+from unipi_control.modbus import ModbusWriteData
 from unipi_control.modbus import check_modbus_call
-from unipi_control.typing import Number
 
 
 @dataclass
@@ -49,8 +51,10 @@ class NeuronFeature:
         self.val_coil: Optional[int] = (
             None if modbus.val_coil is None else modbus.val_coil + self.hardware.feature_index
         )
-        self._reg_value = lambda: modbus.cache.get_register(address=modbus.val_reg, index=1, unit=0)[0]
-        self._value: Optional[Number] = None
+        self._reg_value: Callable[..., int] = lambda: modbus.cache.get_register(
+            address=modbus.val_reg, index=1, unit=0
+        )[0]
+        self._value: Optional[Union[float, int]] = None
 
     def __repr__(self) -> str:
         return self.base_friendly_name
@@ -167,14 +171,13 @@ class Relay(NeuronFeature):
         -------
         ModbusResponse
         """
-        return await check_modbus_call(
-            self.modbus.client.tcp.write_coil,
-            data={
-                "address": self.val_coil,
-                "value": value,
-                "slave": 0,
-            },
-        )
+        data: ModbusWriteData = {
+            "address": self.val_coil,
+            "value": value,
+            "slave": 0,
+        }
+
+        return await check_modbus_call(self.modbus.client.tcp.write_coil, data)
 
 
 class DigitalOutput(NeuronFeature):
@@ -191,14 +194,13 @@ class DigitalOutput(NeuronFeature):
         -------
         ModbusResponse
         """
-        return await check_modbus_call(
-            self.modbus.client.tcp.write_coil,
-            data={
-                "address": self.val_coil,
-                "value": value,
-                "slave": 0,
-            },
-        )
+        data: ModbusWriteData = {
+            "address": self.val_coil,
+            "value": value,
+            "slave": 0,
+        }
+
+        return await check_modbus_call(self.modbus.client.tcp.write_coil, data)
 
 
 class DigitalInput(NeuronFeature):
@@ -221,11 +223,10 @@ class Led(NeuronFeature):
         -------
         ModbusResponse
         """
-        return await check_modbus_call(
-            self.modbus.client.tcp.write_coil,
-            data={
-                "address": self.val_coil,
-                "value": value,
-                "slave": 0,
-            },
-        )
+        data: ModbusWriteData = {
+            "address": self.val_coil,
+            "value": value,
+            "slave": 0,
+        }
+
+        return await check_modbus_call(self.modbus.client.tcp.write_coil, data)

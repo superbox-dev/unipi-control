@@ -80,7 +80,7 @@ class TestUnhappyPathConfig:
             ),
             (
                 (CONFIG_INVALID_MODBUS_BAUD_RATE, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[MODBUS] Invalid baud rate '2401. The following baud rates are allowed: 2400 4800 9600 19200 38400 57600 115200.",
+                "[MODBUS] Invalid baud rate '2401'. The following baud rates are allowed: 2400 4800 9600 19200 38400 57600 115200.",
             ),
             (
                 (CONFIG_INVALID_MODBUS_PARITY, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),

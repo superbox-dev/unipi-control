@@ -1,21 +1,60 @@
 import asyncio
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import NamedTuple
+from typing import Optional
+from typing import TypedDict
+from typing import Union
 
-from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
+from pymodbus.client import AsyncModbusSerialClient
+from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import HardwareData, HardwareDefinition, LogPrefix, logger
+from unipi_control.config import HardwareData
+from unipi_control.config import HardwareDefinition
+from unipi_control.config import LogPrefix
+from unipi_control.config import logger
 
 
-async def check_modbus_call(callback: Callable, data: dict) -> Optional[ModbusResponse]:
+class ModbusWriteData(TypedDict):
+    address: Optional[int]
+    value: bool
+    slave: int
+
+
+class ModbusReadData(TypedDict):
+    address: int
+    count: int
+    slave: Optional[int]
+
+
+class ModbusRegisterBlock(TypedDict):
+    start_reg: int
+    count: int
+    slave: Optional[int]
+
+
+class ModbusFeature(TypedDict):
+    feature_type: str
+    major_group: int
+    count: int
+    val_reg: int
+    val_coil: Optional[int]
+
+
+async def check_modbus_call(
+    callback: Callable[..., Any], data: Union[ModbusReadData, ModbusWriteData]
+) -> Optional[ModbusResponse]:
     """Check modbus read/write call has errors and log the errors.
 
     Parameters
     ----------
     callback: Callable
         modbus callback function e.g. read_input_registers()
-    data: dict
+    data: ModbusReadData
         Arguments pass to the callback function
 
     Returns
@@ -28,7 +67,7 @@ async def check_modbus_call(callback: Callable, data: dict) -> Optional[ModbusRe
     try:
         response = await callback(**data)
 
-        if response and response.isError():
+        if response and response.isError():  # type: ignore[no-untyped-call]
             response = None
     except ModbusException as error:
         logger.error("%s %s", LogPrefix.MODBUS, error)
@@ -54,14 +93,16 @@ class ModbusCacheData:
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, modbus_client: ModbusClient, hardware: HardwareData) -> None:
+    def __init__(self, modbus_client: ModbusClient, hardware: "HardwareData") -> None:
         self.modbus_client: ModbusClient = modbus_client
-        self.hardware: HardwareData = hardware
+        self.hardware: "HardwareData" = hardware
 
         self.data: Dict[int, Dict[int, int]] = {}
 
-    async def _save_response(self, scan_type: str, modbus_register_block: dict, definition: HardwareDefinition) -> None:
-        data: dict = {
+    async def _save_response(
+        self, scan_type: str, modbus_register_block: ModbusRegisterBlock, definition: "HardwareDefinition"
+    ) -> None:
+        data: ModbusReadData = {
             "address": modbus_register_block["start_reg"],
             "count": modbus_register_block["count"],
             "slave": modbus_register_block.get("slave", definition.unit),
@@ -74,13 +115,10 @@ class ModbusCacheData:
         elif scan_type == "serial":
             response = await check_modbus_call(self.modbus_client.serial.read_input_registers, data)
 
-        if registers := getattr(response, "registers", None):
+        if response:
+            register = response.registers  # type: ignore[attr-defined]
             for index in range(data["count"]):
-                self.data[definition.unit][
-                    data["address"] + index
-                ] = registers[  # pylint: disable=unsubscriptable-object
-                    index
-                ]
+                self.data[definition.unit][data["address"] + index] = register[index]
 
     async def scan(self, scan_type: str, hardware_types: List[str]) -> None:
         """Read modbus register blocks and cache the response."""
@@ -94,7 +132,7 @@ class ModbusCacheData:
             for modbus_register_block in definition.modbus_register_blocks:
                 await self._save_response(scan_type, modbus_register_block, definition)
 
-    def get_register(self, address: int, index: int, unit: int) -> list:
+    def get_register(self, address: int, index: int, unit: int) -> List[int]:
         """Get the responses from the cached modbus register blocks.
 
         Parameters
@@ -111,7 +149,7 @@ class ModbusCacheData:
         list
             A list of cached modbus register blocks.
         """
-        ret: list = []
+        ret: List[int] = []
 
         for _address in range(address, address + index):
             if _address not in self.data[unit] or self.data[unit][_address] is None:
