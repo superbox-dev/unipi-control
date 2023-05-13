@@ -83,7 +83,7 @@ class ConfigLoaderMixin:
                 msg = f"Expected {_field.name} to be {field_origin}, got {repr(value)}"
                 raise ConfigError(msg)
 
-            value = _list
+            value = _list.copy()
         elif field_origin == dict:
             _dict: Dict[str, Any] = {}
 
@@ -116,7 +116,7 @@ class ConfigLoaderMixin:
                 item = getattr(self, key)
 
                 if is_dataclass(item):
-                    item.update(new=value)
+                    _dataclass = item.update(new=value)
                 else:
                     for _field in dataclasses.fields(self):
                         if _field.name == key:
