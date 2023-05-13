@@ -19,6 +19,7 @@ from typing import Literal
 from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
+from typing import Tuple
 from typing import TypedDict
 
 from unipi_control.exception import ConfigError
@@ -63,6 +64,44 @@ class Validation:
 
 @dataclass
 class ConfigLoaderMixin:
+    @staticmethod
+    def _update_field_with_dataclass(value: Any, _field: dataclasses.Field) -> Any:
+        field_origin: Any = typing.get_origin(_field.type)
+        field_args: Tuple[Any, ...] = typing.get_args(_field.type)
+
+        if field_origin == list and len(field_args) == 1:
+            _list: List[Any] = []
+
+            if isinstance(value, list):
+                for index, list_item in enumerate(value):
+                    _dataclass = field_args[0](**list_item)
+                    _list.append(_dataclass)
+                    # _dataclass = field_args[0]()
+                    # _dataclass.update(list_item)
+                    # _list.append(_dataclass)
+            else:
+                msg = f"Expected {_field.name} to be {field_origin}, got {repr(value)}"
+                raise ConfigError(msg)
+
+            value = _list
+        elif field_origin == dict:
+            _dict: Dict[str, Any] = {}
+
+            if isinstance(value, dict):
+                for key, dict_value in value.items():
+                    _dataclass = field_args[1](**dict_value)
+                    _dict[key] = _dataclass
+                    # _dataclass = field_args[1]()
+                    # _dataclass.update(dict_value)
+                    # _dict[key] = _dataclass
+            else:
+                msg = f"Expected {_field.name} to be {field_origin}, got {repr(value)}"
+                raise ConfigError(msg)
+
+            value = _dict
+
+        return value
+
     def update(self, new: Dict[str, Any]) -> None:
         """Update and validate config data class with settings from a dictionary.
 
@@ -71,22 +110,18 @@ class ConfigLoaderMixin:
         new: dict
             Overwrite settings as dictionary.
         """
+
         for key, value in new.items():
             if hasattr(self, key):
                 item = getattr(self, key)
 
                 if is_dataclass(item):
-                    item.update(value)
+                    item.update(new=value)
                 else:
-                    # if key == "units":
-                    #     units: List[ModbusUnitConfig] = []
-                    #     for index, unit in enumerate(self.units):
-                    #         unit_config: ModbusUnitConfig = ModbusUnitConfig()
-                    #         unit_config.update(unit)
-                    #         units[index] = unit_config
-                    #
-                    #     setattr(self, key, units)
-                    # else:
+                    for _field in dataclasses.fields(self):
+                        if _field.name == key:
+                            value = self._update_field_with_dataclass(value, _field)
+                            break
                     setattr(self, key, value)
 
         self.validate()
@@ -229,15 +264,6 @@ class ModbusConfig(ConfigLoaderMixin):
     parity: str = field(default="N")
     units: List[ModbusUnitConfig] = field(init=False, default_factory=list)
 
-    def init(self) -> None:
-        """Initialize Modbus configuration and start custom validation."""
-        for index, unit in enumerate(self.units):
-            unit_config: ModbusUnitConfig = ModbusUnitConfig()
-            unit_config.update(unit)
-            self.units[index] = unit_config
-
-        self._validate_unique_units()
-
     def get_units_by_identifier(self, identifier: str) -> Iterator[ModbusUnitConfig]:
         """Filter units by identifier.
 
@@ -253,10 +279,11 @@ class ModbusConfig(ConfigLoaderMixin):
         """
         return (modbus_unit for modbus_unit in self.units if modbus_unit.identifier == identifier)
 
-    def _validate_unique_units(self) -> None:
+    @staticmethod
+    def _validate_units(value: List[ModbusUnitConfig], _field: dataclasses.Field) -> None:
         unique_units: List[int] = []
 
-        for unit in self.units:
+        for unit in value:
             if unit.unit in unique_units:
                 msg = f"{LogPrefix.MODBUS} Duplicate modbus unit '{unit.unit}' found in 'units'!"
                 raise ConfigError(msg)
@@ -381,21 +408,6 @@ class Config(ConfigLoaderMixin):
     def __post_init__(self) -> None:
         self.temp_path.mkdir(exist_ok=True)
         self.update_from_yaml_file(config_path=self.config_base_path / "control.yaml")
-
-        self.init()
-        self.modbus.init()
-
-    def init(self) -> None:
-        """Initialize configuration and start custom validation."""
-        for feature_id, feature_data in self.features.items():
-            feature_config: FeatureConfig = FeatureConfig()
-            feature_config.update(feature_data)
-            self.features[feature_id] = feature_config
-
-        for index, cover_data in enumerate(self.covers):
-            cover_config: CoverConfig = CoverConfig()
-            cover_config.update(cover_data)
-            self.covers[index] = cover_config
 
         self._validate_feature_object_ids()
         self._validate_covers_circuits()
