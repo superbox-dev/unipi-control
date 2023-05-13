@@ -74,26 +74,22 @@ class ConfigLoaderMixin:
 
             if isinstance(value, list):
                 for index, list_item in enumerate(value):
-                    _dataclass = field_args[0](**list_item)
+                    _dataclass = field_args[0]()
+                    _dataclass.update(list_item)
                     _list.append(_dataclass)
-                    # _dataclass = field_args[0]()
-                    # _dataclass.update(list_item)
-                    # _list.append(_dataclass)
             else:
                 msg = f"Expected {_field.name} to be {field_origin}, got {repr(value)}"
                 raise ConfigError(msg)
 
-            value = _list.copy()
+            value = _list
         elif field_origin == dict:
             _dict: Dict[str, Any] = {}
 
             if isinstance(value, dict):
                 for key, dict_value in value.items():
-                    _dataclass = field_args[1](**dict_value)
+                    _dataclass = field_args[1]()
+                    _dataclass.update(dict_value)
                     _dict[key] = _dataclass
-                    # _dataclass = field_args[1]()
-                    # _dataclass.update(dict_value)
-                    # _dict[key] = _dataclass
             else:
                 msg = f"Expected {_field.name} to be {field_origin}, got {repr(value)}"
                 raise ConfigError(msg)
@@ -102,7 +98,7 @@ class ConfigLoaderMixin:
 
         return value
 
-    def update(self, new: Dict[str, Any]) -> None:
+    def update(self, new: Dict[str, Any]):
         """Update and validate config data class with settings from a dictionary.
 
         Parameters
@@ -117,14 +113,23 @@ class ConfigLoaderMixin:
 
                 if is_dataclass(item):
                     _dataclass = item.update(new=value)
+                    print("_dataclass", _dataclass)
+                    setattr(self, key, _dataclass)
                 else:
                     for _field in dataclasses.fields(self):
                         if _field.name == key:
                             value = self._update_field_with_dataclass(value, _field)
                             break
-                    setattr(self, key, value)
+                    if key == "units":
+                        print(key, value)
+                        setattr(self, key, [item for item in value])
+                    else:
+                        setattr(self, key, value)
 
+        # print("TEST", self)
         self.validate()
+
+        return self
 
     def update_from_yaml_file(self, config_path: Path) -> None:
         """Update and validate config data class with settings from a YAML file.
