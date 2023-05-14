@@ -5,15 +5,16 @@ import tarfile
 from datetime import datetime
 from datetime import timezone
 from pathlib import Path
+from typing import List
 from typing import Optional
 
-from unipi_control import __version__
+from unipi_control import __version__  # type: ignore[attr-defined]
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LoggingConfig
 from unipi_control.config import logger
-from unipi_control.exception import UnexpectedError
 from unipi_control.helpers.argparse import init_argparse
+from unipi_control.helpers.exception import UnexpectedError
 
 
 class UnipiConfigBackup:
@@ -50,7 +51,7 @@ class UnipiConfigBackup:
         logger.info("%s created!", tar_file.as_posix())
 
 
-def parse_args(args: list) -> argparse.Namespace:
+def parse_args(args: List[str]) -> argparse.Namespace:
     """Initialize argument parser options.
 
     Parameters
@@ -89,4 +90,4 @@ def main() -> None:
         logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
-        pass
+        ...

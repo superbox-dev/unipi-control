@@ -1,4 +1,5 @@
 import asyncio
+from typing import NoReturn
 from unittest.mock import AsyncMock
 from unittest.mock import PropertyMock
 
@@ -26,7 +27,7 @@ class TestUnhappyPathModbus:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ) -> None:
+    ) -> NoReturn:
         _neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
         logs: list = [record.getMessage() for record in caplog.records]
 
@@ -38,7 +39,7 @@ class TestUnhappyPathModbus:
     )
     async def test_timeout_exceptions(
         self, mocker: MockerFixture, _config_loader: ConfigLoader, caplog: LogCaptureFixture
-    ) -> None:
+    ) -> NoReturn:
         config: Config = _config_loader.get_config()
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()

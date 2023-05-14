@@ -7,9 +7,11 @@ from typing import AsyncIterable
 from typing import Awaitable
 from typing import Callable
 from typing import Dict
+from typing import List
 from typing import NamedTuple
 from typing import Optional
 from typing import Set
+from typing import Union
 
 from asyncio_mqtt import Client
 
@@ -22,13 +24,12 @@ from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverDeviceState
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.typing import _T
 
 
 class SubscribeCommand(NamedTuple):
     command: str
     value: int
-    log: list
+    log: List[Union[str, int]]
 
 
 class CoversMqttPlugin:
@@ -59,7 +60,7 @@ class CoversMqttPlugin:
 
             logger.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
 
-    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task[_T]]) -> None:
+    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for subscribe and publish MQTT topics.
 
         Parameters
@@ -72,7 +73,7 @@ class CoversMqttPlugin:
         await self._set_position_topic(stack, tasks)
         await self._tilt_command_topic(stack, tasks)
 
-        task: Task[_T] = asyncio.create_task(self._publish())
+        task: Task[Any] = asyncio.create_task(self._publish())
         tasks.add(task)
 
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
@@ -107,7 +108,7 @@ class CoversMqttPlugin:
             else:
                 queue.task_done()
 
-    async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
+    async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic: str = f"{cover.topic}/set"
 
@@ -120,7 +121,7 @@ class CoversMqttPlugin:
             await self.mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-    async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
+    async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic: str = f"{cover.topic}/position/set"
 
@@ -133,9 +134,9 @@ class CoversMqttPlugin:
             await self.mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task[_T]]) -> None:
+    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
-            if cover.tilt_change_time:
+            if cover.settings.tilt_change_time:
                 topic: str = f"{cover.topic}/tilt/set"
 
                 manager = self.mqtt_client.filtered_messages(topic)
@@ -147,7 +148,7 @@ class CoversMqttPlugin:
                 await self.mqtt_client.subscribe(topic, qos=0)
                 logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-    async def _subscribe_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable) -> None:
+    async def _subscribe_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
             value: str = message.payload.decode()
 
@@ -162,7 +163,7 @@ class CoversMqttPlugin:
 
             logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
-    async def _subscribe_set_position_topic(self, cover: Cover, topic: str, messages: AsyncIterable) -> None:
+    async def _subscribe_set_position_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
@@ -178,7 +179,7 @@ class CoversMqttPlugin:
             except ValueError as error:
                 logger.error(error)
 
-    async def _subscribe_tilt_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable) -> None:
+    async def _subscribe_tilt_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
@@ -199,18 +200,18 @@ class CoversMqttPlugin:
             for cover in self.covers.by_device_classes(DEVICE_CLASSES):
                 if cover.position_changed:
                     position_topic: str = f"{cover.topic}/position"
-                    await self.mqtt_client.publish(position_topic, cover.position, qos=1, retain=True)
-                    logger.info(LOG_MQTT_PUBLISH, position_topic, cover.position)
+                    await self.mqtt_client.publish(position_topic, cover.status.position, qos=1, retain=True)
+                    logger.info(LOG_MQTT_PUBLISH, position_topic, cover.status.position)
 
                 if cover.tilt_changed:
                     tilt_topic: str = f"{cover.topic}/tilt"
-                    await self.mqtt_client.publish(tilt_topic, cover.tilt, qos=1, retain=True)
-                    logger.info(LOG_MQTT_PUBLISH, tilt_topic, cover.tilt)
+                    await self.mqtt_client.publish(tilt_topic, cover.status.tilt, qos=1, retain=True)
+                    logger.info(LOG_MQTT_PUBLISH, tilt_topic, cover.status.tilt)
 
                 if cover.state_changed:
                     state_topic: str = f"{cover.topic}/state"
-                    await self.mqtt_client.publish(state_topic, cover.state, qos=1, retain=True)
-                    logger.info(LOG_MQTT_PUBLISH, state_topic, cover.state)
+                    await self.mqtt_client.publish(state_topic, cover.status.state, qos=1, retain=True)
+                    logger.info(LOG_MQTT_PUBLISH, state_topic, cover.status.state)
 
                 await cover.calibrate()
             await asyncio.sleep(25e-3)

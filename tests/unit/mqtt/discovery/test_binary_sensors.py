@@ -3,6 +3,7 @@ from asyncio import Task
 from contextlib import AsyncExitStack
 from typing import Iterator
 from typing import List
+from typing import NoReturn
 from typing import Set
 from unittest.mock import AsyncMock
 
@@ -31,8 +32,8 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ) -> None:
-        async def run() -> None:
+    ) -> NoReturn:
+        async def run() -> NoReturn:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             plugin: HassBinarySensorsMqttPlugin = HassBinarySensorsMqttPlugin(
                 neuron=_neuron, mqtt_client=mock_mqtt_client
@@ -214,7 +215,7 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         expected: List[dict],
-    ) -> None:
+    ) -> NoReturn:
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassBinarySensorsMqttPlugin = HassBinarySensorsMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
         features: Iterator = _neuron.features.by_feature_types(HassBinarySensorsDiscovery.publish_feature_types)

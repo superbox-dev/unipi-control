@@ -1,3 +1,4 @@
+from typing import NoReturn
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
@@ -27,7 +28,7 @@ class TestUnhappyPathNeuron:
         mocker: MockerFixture,
         _config_loader: ConfigLoader,
         caplog: LogCaptureFixture,
-    ) -> None:
+    ) -> NoReturn:
         config: Config = _config_loader.get_config()
 
         mock_response: MagicMock = MagicMock(spec=ModbusResponse)

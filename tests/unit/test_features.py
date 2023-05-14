@@ -1,6 +1,7 @@
 # pylint: disable=protected-access
 from dataclasses import dataclass
 from dataclasses import field
+from typing import NoReturn
 from typing import Optional
 from typing import Union
 from unittest.mock import MagicMock
@@ -81,7 +82,7 @@ class TestHappyPathFeatures:
         _neuron: Neuron,
         options: FeatureOptions,
         expected: FeatureExpected,
-    ) -> None:
+    ) -> NoReturn:
         mock_response = MagicMock(spec=ModbusResponse)
         mock_response.isError.return_value = False
 
@@ -121,7 +122,7 @@ class TestUnhappyPathFeatures:
     )
     def test_invalid_feature_by_feature_id(
         self, _config_loader: ConfigLoader, _neuron: Neuron, feature_id: str, expected: str
-    ) -> None:
+    ) -> NoReturn:
         with pytest.raises(ConfigError) as error:
             _neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
 

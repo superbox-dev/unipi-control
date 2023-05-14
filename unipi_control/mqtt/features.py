@@ -11,13 +11,12 @@ from asyncio_mqtt import Client
 
 from unipi_control.config import HardwareType
 from unipi_control.config import logger
-from unipi_control.features.map import DigitalOutput
-from unipi_control.features.map import Relay
+from unipi_control.features.neuron import DigitalOutput
+from unipi_control.features.neuron import Relay
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
 from unipi_control.neuron import Neuron
-from unipi_control.typing import _T
 
 
 class BaseFeaturesMqttPlugin:
@@ -49,7 +48,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     publish_feature_types: List[str] = ["DI", "DO", "RO"]
     scan_interval: float = 25e-3
 
-    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task[_T]]) -> None:
+    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for subscribe and publish MQTT topics.
 
         Parameters
@@ -64,7 +63,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
             manager = self.mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            subscribe_task: Task[_T] = asyncio.create_task(self._subscribe(feature, topic, messages))
+            subscribe_task: Task[Any] = asyncio.create_task(self._subscribe(feature, topic, messages))
             tasks.add(subscribe_task)
 
             await self.mqtt_client.subscribe(topic)
@@ -82,7 +81,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks.add(task)
 
     @staticmethod
-    async def _subscribe(feature: Union[DigitalOutput, Relay], topic: str, messages: AsyncIterable) -> None:
+    async def _subscribe(feature: Union[DigitalOutput, Relay], topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
             value: str = message.payload.decode()
 
@@ -100,7 +99,7 @@ class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     publish_feature_types: List[str] = ["METER"]
     scan_interval: float = 25e-3
 
-    async def init_tasks(self, tasks: Set[Task[_T]]) -> None:
+    async def init_tasks(self, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
 
         Parameters
@@ -108,7 +107,7 @@ class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[_T] = asyncio.create_task(
+        task: Task[Any] = asyncio.create_task(
             self._publish(
                 scan_type="serial",
                 hardware_types=[HardwareType.EXTENSION],

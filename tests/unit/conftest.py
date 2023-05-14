@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import AsyncGenerator
 from typing import NamedTuple
+from typing import NoReturn
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
@@ -22,7 +23,7 @@ from unipi_control.neuron import Neuron
 
 
 @pytest.fixture(autouse=True, scope="session")
-def logger() -> None:
+def logger() -> NoReturn:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger().handlers.clear()
     logging.info("Initialize logging")
@@ -44,15 +45,15 @@ class ConfigLoader:
         self.temp_path: Path = self.temp / "unipi"
         self.temp_path.mkdir(parents=True)
 
-    def write_config(self, content: str) -> None:
+    def write_config(self, content: str) -> NoReturn:
         with self.config_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def write_hardware_data(self, content: str) -> None:
+    def write_hardware_data(self, content: str) -> NoReturn:
         with self.hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def write_extension_hardware_data(self, content: str) -> None:
+    def write_extension_hardware_data(self, content: str) -> NoReturn:
         with self.extension_hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
@@ -142,7 +143,10 @@ async def _neuron(_config_loader: ConfigLoader, _modbus_client: ModbusClient) ->
 @pytest_asyncio.fixture()
 async def _covers(_config_loader: ConfigLoader, _neuron: Neuron) -> AsyncGenerator:
     config: Config = _config_loader.get_config()
-    yield CoverMap(config=config, features=_neuron.features)
+    covers: CoverMap = CoverMap(config=config, features=_neuron.features)
+    covers.init()
+
+    yield covers
 
 
 class MockMQTTMessage(NamedTuple):

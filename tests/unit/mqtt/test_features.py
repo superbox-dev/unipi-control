@@ -1,6 +1,7 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
+from typing import NoReturn
 from typing import Set
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -34,8 +35,8 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ) -> None:
-        async def run() -> None:
+    ) -> NoReturn:
+        async def run() -> NoReturn:
             mock_mqtt_messages: AsyncMock = AsyncMock()
             mock_mqtt_messages.__aenter__.return_value = MockMQTTMessages([b"""ON""", b"""OFF"""])
 
@@ -95,8 +96,8 @@ class TestHappyPathMeterFeaturesMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ) -> None:
-        async def run() -> None:
+    ) -> NoReturn:
+        async def run() -> NoReturn:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             mock_modbus_cache_data_scan: MagicMock = mocker.patch("unipi_control.modbus.ModbusCacheData.scan")
 

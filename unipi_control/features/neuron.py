@@ -8,13 +8,13 @@ from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
 from unipi_control.config import FeatureConfig
-from unipi_control.config import HardwareDefinition
 from unipi_control.features.utils import FeatureState
 from unipi_control.features.utils import FeatureType
 from unipi_control.helpers.text import slugify
+from unipi_control.helpers.typing import HardwareDefinition
+from unipi_control.helpers.typing import ModbusClient
+from unipi_control.helpers.typing import ModbusWriteData
 from unipi_control.modbus import ModbusCacheData
-from unipi_control.modbus import ModbusClient
-from unipi_control.modbus import ModbusWriteData
 from unipi_control.modbus import check_modbus_call
 
 
@@ -28,7 +28,7 @@ class Modbus:
 
 @dataclass
 class Hardware:
-    major_group: int  # TODO: Rename to board_index
+    major_group: int
     feature_type: FeatureType
     feature_index: int
     definition: HardwareDefinition
@@ -118,12 +118,10 @@ class NeuronFeature:
     @cached_property
     def suggested_area(self) -> Optional[str]:
         """Return suggested area for Home Assistant from hardware definition or custom feature configuration."""
-        _suggested_area: Optional[str] = None
-
         if self.features_config and self.features_config.suggested_area:
-            _suggested_area = self.features_config.suggested_area
+            return self.features_config.suggested_area
 
-        return _suggested_area
+        return None
 
     @cached_property
     def topic(self) -> str:
@@ -205,8 +203,6 @@ class DigitalOutput(NeuronFeature):
 
 class DigitalInput(NeuronFeature):
     """Class for the digital input feature from the Unipi Neuron."""
-
-    # pylint: disable=unnecessary-pass
 
 
 class Led(NeuronFeature):

@@ -1,23 +1,35 @@
 import itertools
 from typing import Dict
+from typing import Iterable
 from typing import Iterator
 from typing import List
+from typing import Mapping
 from typing import Optional
 from typing import Union
 
 from unipi_control.config import LogPrefix
-from unipi_control.exception import ConfigError
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.neuron import DigitalInput
 from unipi_control.features.neuron import DigitalOutput
 from unipi_control.features.neuron import Led
 from unipi_control.features.neuron import Relay
 from unipi_control.features.utils import FeatureType
+from unipi_control.helpers.exception import ConfigError
 
 
-class FeatureMap:
+class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]]):
     def __init__(self) -> None:
         self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]] = {}
+
+    def __getitem__(self, key: str) -> List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]:
+        data: List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]] = self.data[key]
+        return data
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.data)
+
+    def __len__(self) -> int:
+        return len(self.data)
 
     def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]) -> None:
         """Add a feature to the data storage.
@@ -50,25 +62,29 @@ class FeatureMap:
 
         Raises
         ------
-        ConfigException
+        ConfigError
             Get an exception if feature type not found.
         """
-        data: Iterator = itertools.chain.from_iterable(self.data.values())
+        data: Iterable[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]] = itertools.chain.from_iterable(
+            self.data.values()
+        )
 
         if feature_types:
             data = self.by_feature_types(feature_types)
 
         try:
-            feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = next(
+            features: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = next(
                 d for d in data if d.feature_id == feature_id
             )
         except StopIteration as error:
             msg = f"{LogPrefix.CONFIG} '{feature_id}' not found in {self.__class__.__name__}!"
             raise ConfigError(msg) from error
 
-        return feature
+        return features
 
-    def by_feature_types(self, feature_types: List[str]) -> Iterator:
+    def by_feature_types(
+        self, feature_types: List[str]
+    ) -> Iterator[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]:
         """Filter features by feature type.
 
         Parameters

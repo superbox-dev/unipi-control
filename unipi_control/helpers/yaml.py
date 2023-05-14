@@ -4,13 +4,13 @@ from typing import Dict
 
 import yaml
 
-from unipi_control.exception import ConfigError
+from unipi_control.helpers.exception import ConfigError
 
 
 class Dumper(yaml.Dumper):  # pylint: disable=too-many-ancestors
     """Custom dumper for correct indentation."""
 
-    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
+    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # ruff: noqa: ARG002
         """Disable indentless."""
         super().increase_indent(flow, indentless=False)  # type: ignore[no-untyped-call]
 
@@ -51,12 +51,13 @@ def yaml_loader_safe(yaml_file: Path) -> Dict[str, Any]:
 
     Raises
     ------
-    ConfigException
+    ConfigError
         Raise if the YAML file can't be read.
     """
     try:
         data: Dict[str, Any] = yaml.safe_load(yaml_file.read_text())
-        return data
     except yaml.MarkedYAMLError as error:
-        msg = f"Can't read YAML file!\n{str(error.problem_mark)}"
+        msg = f"Can't read YAML file!\n{error.problem_mark}"
         raise ConfigError(msg) from error
+
+    return data

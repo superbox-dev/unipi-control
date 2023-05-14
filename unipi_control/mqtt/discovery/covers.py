@@ -11,13 +11,12 @@ from asyncio_mqtt import Client
 
 from unipi_control.config import Config
 from unipi_control.config import DEVICE_CLASSES
-from unipi_control.config import HardwareData
+from unipi_control.config import HardwareMap
 from unipi_control.config import logger
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.neuron import Neuron
-from unipi_control.typing import _T
 
 
 class HassCoversDiscovery:
@@ -28,19 +27,19 @@ class HassCoversDiscovery:
         self.covers: CoverMap = covers
 
         self.config: Config = neuron.config
-        self.hardware: HardwareData = neuron.hardware
+        self.hardware: HardwareMap = neuron.hardware
 
     def _get_discovery(self, cover: Cover) -> Tuple[str, Dict[str, Any]]:
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.unique_id}/config"
         device_name: str = self.config.device_info.name
         via_device: Optional[str] = None
 
-        if cover.suggested_area:
+        if cover.settings.suggested_area:
             via_device = device_name
-            device_name = f"{device_name} - {cover.suggested_area}"
+            device_name = f"{device_name} - {cover.settings.suggested_area}"
 
         message: Dict[str, Any] = {
-            "name": cover.friendly_name,
+            "name": cover.settings.friendly_name,
             "unique_id": f"{cover.unique_id}",
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
@@ -49,23 +48,23 @@ class HassCoversDiscovery:
             "device": {
                 "name": device_name,
                 "identifiers": device_name,
-                "model": f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}',
+                "model": f"{self.hardware.info.name} {self.hardware.info.model}",
                 "manufacturer": self.config.device_info.manufacturer,
             },
-            "object_id": cover.object_id,
+            "object_id": cover.settings.object_id,
         }
 
-        if cover.suggested_area:
-            message["device"]["suggested_area"] = cover.suggested_area
+        if cover.settings.suggested_area:
+            message["device"]["suggested_area"] = cover.settings.suggested_area
 
         if via_device:
             message["device"]["via_device"] = via_device
 
-        if cover.settings.set_position:
+        if cover.properties.set_position:
             message["position_topic"] = f"{cover.topic}/position"
             message["set_position_topic"] = f"{cover.topic}/position/set"
 
-        if cover.settings.set_tilt:
+        if cover.properties.set_tilt:
             message["tilt_status_topic"] = f"{cover.topic}/tilt"
             message["tilt_command_topic"] = f"{cover.topic}/tilt/set"
 
@@ -86,7 +85,7 @@ class HassCoversMqttPlugin:
     def __init__(self, neuron: Neuron, mqtt_client: Client, covers: CoverMap) -> None:
         self._hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
-    async def init_tasks(self, tasks: Set[Task[_T]]) -> None:
+    async def init_tasks(self, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
 
         Parameters
@@ -94,5 +93,5 @@ class HassCoversMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[_T] = asyncio.create_task(self._hass.publish())
+        task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)

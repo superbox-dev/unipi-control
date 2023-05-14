@@ -1,6 +1,7 @@
 # pylint: disable=protected-access
 from dataclasses import dataclass
 from dataclasses import field
+from typing import NoReturn
 from typing import Optional
 from unittest.mock import MagicMock
 
@@ -21,7 +22,7 @@ from unipi_control.integrations.covers import CoverState
 @dataclass
 class CoverOptions:
     device_class: str
-    calibrate_mode: bool = field(default_factory=bool)
+    calibration_mode: bool = field(default_factory=bool)
     position: Optional[int] = field(default=None)
     current_position: Optional[int] = field(default=None)
     tilt: Optional[int] = field(default=None)
@@ -33,7 +34,7 @@ class CoverOptions:
 @dataclass
 class CoverExpected:
     calibration_started: Optional[bool] = field(default=None)
-    calibrate_mode: Optional[bool] = field(default=None)
+    calibration_mode: Optional[bool] = field(default=None)
     position: Optional[int] = field(default=None)
     tilt: Optional[int] = field(default=None)
     current_cover_state: Optional[str] = field(default=None)
@@ -48,7 +49,7 @@ class CoverExpected:
 
 class TestCovers:
     @pytest.fixture(autouse=True)
-    def pre(self, _modbus_client: MockModbusClient, mocker: MockerFixture) -> None:
+    def pre(self, _modbus_client: MockModbusClient, mocker: MockerFixture) -> NoReturn:
         mock_response_is_error = MagicMock(spec=ModbusResponse)
         mock_response_is_error.isError.return_value = False
 
@@ -66,12 +67,12 @@ class TestHappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(device_class="blind", calibrate_mode=True),
-                CoverExpected(calibration_started=True, calibrate_mode=False),
+                CoverOptions(device_class="blind", calibration_mode=True),
+                CoverExpected(calibration_started=True, calibration_mode=False),
             ),
             (
-                CoverOptions(device_class="roller_shutter", calibrate_mode=False),
-                CoverExpected(calibration_started=False, calibrate_mode=False),
+                CoverOptions(device_class="roller_shutter", calibration_mode=False),
+                CoverExpected(calibration_started=False, calibration_mode=False),
             ),
         ],
     )
@@ -82,22 +83,22 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = options.calibrate_mode
+        cover._calibration.mode = options.calibration_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.calibrate()
 
-        assert cover._calibration_started is expected.calibration_started
+        assert cover._calibration.started is expected.calibration_started
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
         await cover.stop_cover()
 
-        assert cover.calibrate_mode == expected.calibrate_mode
+        assert cover._calibration.mode == expected.calibration_mode
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -148,14 +149,14 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = False
-        cover._current_position = options.position
-        cover.position = options.position
+        cover._calibration.mode = False
+        cover._current.position = options.position
+        cover.status.position = options.position
         cover._update_state()
 
-        assert cover.state == expected.current_cover_state
+        assert cover.status.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
@@ -163,14 +164,14 @@ class TestHappyPathCovers(TestCovers):
         if (cover_run_time := await cover.open_cover()) is not None:
             mock_monotonic.return_value = cover_run_time
 
-        assert cover.state == expected.open_cover_state
+        assert cover.status.state == expected.open_cover_state
 
         await cover.stop_cover()
         cover.read_position()
 
-        assert cover.position == expected.position
-        assert cover.tilt == expected.tilt
-        assert cover.state == expected.stop_cover_state
+        assert cover.status.position == expected.position
+        assert cover.status.tilt == expected.tilt
+        assert cover.status.state == expected.stop_cover_state
         assert cover.state_changed is True
         assert cover.position_changed == expected.position_changed
 
@@ -223,21 +224,21 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = False
-        cover._current_position = options.position
-        cover.position = options.position
+        cover._calibration.mode = False
+        cover._current.position = options.position
+        cover.status.position = options.position
         cover._update_state()
 
-        assert cover.state == expected.current_cover_state
+        assert cover.status.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
 
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.close_cover()
 
-        assert cover.state == expected.close_cover_state
+        assert cover.status.state == expected.close_cover_state
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
@@ -245,9 +246,9 @@ class TestHappyPathCovers(TestCovers):
         await cover.stop_cover()
         cover.read_position()
 
-        assert cover.position == expected.position
-        assert cover.tilt == expected.tilt
-        assert cover.state == expected.stop_cover_state
+        assert cover.status.position == expected.position
+        assert cover.status.tilt == expected.tilt
+        assert cover.status.state == expected.stop_cover_state
         assert cover.state_changed is True
         assert cover.position_changed == expected.position_changed
 
@@ -270,17 +271,17 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: str,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = False
-        cover.position = options.position
-        cover.state = options.cover_state
+        cover._calibration.mode = False
+        cover.status.position = options.position
+        cover.status.state = options.cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
 
         await cover.stop_cover()
-        assert cover.state == expected
+        assert cover.status.state == expected
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -328,16 +329,16 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = False
-        cover._current_tilt = options.current_tilt
-        cover.tilt = options.current_tilt
-        cover._current_position = options.position
-        cover.position = options.position
+        cover._calibration.mode = False
+        cover._current.tilt = options.current_tilt
+        cover.status.tilt = options.current_tilt
+        cover._current.position = options.position
+        cover.status.position = options.position
         cover._update_state()
 
-        assert cover.state == expected.current_cover_state
+        assert cover.status.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
@@ -346,7 +347,7 @@ class TestHappyPathCovers(TestCovers):
 
         cover_run_time: Optional[float] = await cover.set_tilt(options.tilt)
 
-        assert cover.state == expected.tilt_cover_state
+        assert cover.status.state == expected.tilt_cover_state
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
@@ -354,8 +355,8 @@ class TestHappyPathCovers(TestCovers):
         await cover.stop_cover()
         cover.read_position()
 
-        assert cover.tilt == expected.tilt
-        assert cover.state == expected.stop_cover_state
+        assert cover.status.tilt == expected.tilt
+        assert cover.status.state == expected.stop_cover_state
         assert cover.state_changed is True
         assert cover.tilt_changed == expected.tilt_changed
 
@@ -405,16 +406,16 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = False
-        cover._current_tilt = options.tilt
+        cover._calibration.mode = False
+        cover._current.tilt = options.tilt
         cover.tilt = options.tilt
-        cover._current_position = options.current_position
-        cover.position = options.current_position
+        cover._current.position = options.current_position
+        cover.status.position = options.current_position
         cover._update_state()
 
-        assert cover.state == expected.current_cover_state
+        assert cover.status.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
@@ -423,7 +424,7 @@ class TestHappyPathCovers(TestCovers):
 
         cover_run_time: Optional[float] = await cover.set_position(options.position)
 
-        assert cover.state == expected.position_cover_state
+        assert cover.status.state == expected.position_cover_state
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
@@ -431,8 +432,8 @@ class TestHappyPathCovers(TestCovers):
         await cover.stop_cover()
         cover.read_position()
 
-        assert cover.position == expected.position
-        assert cover.state == expected.stop_cover_state
+        assert cover.status.position == expected.position
+        assert cover.status.state == expected.stop_cover_state
         assert cover.state_changed is True
         assert cover.position_changed == expected.position_changed
 
@@ -448,7 +449,7 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_friendly_name(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: str
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
 
         assert str(cover) == expected
@@ -465,10 +466,10 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_state_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._current_state = options.current_cover_state
-        cover.state = options.cover_state
+        cover._current.state = options.current_cover_state
+        cover.status.state = options.cover_state
 
         assert cover.state_changed == expected
 
@@ -485,10 +486,10 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_position_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._current_position = options.current_position
-        cover.position = options.position
+        cover._current.position = options.current_position
+        cover.status.position = options.position
 
         assert cover.position_changed == expected
 
@@ -505,11 +506,11 @@ class TestUnhappyPathCovers(TestCovers):
         _covers: CoverMap,
         options: CoverOptions,
         expected: int,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = False
-        cover._current_position = expected
-        cover.position = expected
+        cover._calibration.mode = False
+        cover._current.position = expected
+        cover.status.position = expected
 
         cover_run_time: Optional[float] = await cover.open_cover()
 
@@ -520,13 +521,13 @@ class TestUnhappyPathCovers(TestCovers):
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
-    async def test_open_with_calibrate_mode(
+    async def test_open_with_calibration_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = True
-        cover._current_position = expected
-        cover.position = expected
+        cover._calibration.mode = True
+        cover._current.position = expected
+        cover.status.position = expected
 
         cover_run_time: Optional[float] = await cover.open_cover()
 
@@ -537,13 +538,13 @@ class TestUnhappyPathCovers(TestCovers):
         "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
-    async def test_close_with_calibrate_mode(
+    async def test_close_with_calibration_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = True
-        cover._current_position = expected
-        cover.position = expected
+        cover._calibration.mode = True
+        cover._current.position = expected
+        cover.status.position = expected
 
         cover_run_time: Optional[float] = await cover.close_cover()
 
@@ -557,12 +558,12 @@ class TestUnhappyPathCovers(TestCovers):
         "options, expected",
         [
             (
-                CoverOptions(device_class="blind", calibrate_mode=True),
-                CoverExpected(calibration_started=True, calibrate_mode=True),
+                CoverOptions(device_class="blind", calibration_mode=True),
+                CoverExpected(calibration_started=True, calibration_mode=True),
             ),
             (
-                CoverOptions(device_class="roller_shutter", calibrate_mode=False),
-                CoverExpected(calibration_started=False, calibrate_mode=False),
+                CoverOptions(device_class="roller_shutter", calibration_mode=False),
+                CoverExpected(calibration_started=False, calibration_mode=False),
             ),
         ],
     )
@@ -573,19 +574,19 @@ class TestUnhappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> None:
+    ) -> NoReturn:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover.calibrate_mode = options.calibrate_mode
+        cover._calibration.mode = options.calibration_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.calibrate()
 
-        assert cover._calibration_started is expected.calibration_started
+        assert cover._calibration.started is expected.calibration_started
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time / 2
 
         await cover.stop_cover()
 
-        assert cover.calibrate_mode == expected.calibrate_mode
+        assert cover._calibration.mode == expected.calibration_mode

@@ -1,5 +1,6 @@
 from argparse import Namespace
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 
@@ -8,13 +9,13 @@ from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.tools.test_config_converter_data import CONVERTED_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import EVOK_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import INVALID_EVOK_MODEL_CONTENT
-from unipi_control.exception import UnexpectedError
+from unipi_control.helpers.exception import UnexpectedError
 from unipi_control.tools.config_converter import UnipiConfigConverter
 from unipi_control.tools.config_converter import parse_args
 
 
 class TestHappyPathUnipiConfigConverter:
-    def test_parse_args(self) -> None:
+    def test_parse_args(self) -> NoReturn:
         parser = parse_args(["input", "output"])
 
         assert parser.input == "input"
@@ -25,7 +26,7 @@ class TestHappyPathUnipiConfigConverter:
     @pytest.mark.parametrize(
         "_config_loader, force", [(CONFIG_CONTENT, False), (CONFIG_CONTENT, True)], indirect=["_config_loader"]
     )
-    def test_config_converter(self, _config_loader: ConfigLoader, force: bool) -> None:
+    def test_config_converter(self, _config_loader: ConfigLoader, force: bool) -> NoReturn:
         if not force:
             _config_loader.hardware_data_file_path.unlink()
 
@@ -43,7 +44,7 @@ class TestHappyPathUnipiConfigConverter:
 
 class TestUnhappyPathUnipiConfigConverter:
     @pytest.mark.parametrize("_config_loader", [(CONFIG_CONTENT)], indirect=True)
-    def test_invalid_input_yaml_file(self, _config_loader: ConfigLoader) -> None:
+    def test_invalid_input_yaml_file(self, _config_loader: ConfigLoader) -> NoReturn:
         _config_loader.hardware_data_file_path.unlink()
 
         evok_hardware_path: Path = _config_loader.hardware_data_file_path.parent / "evok"
@@ -59,7 +60,7 @@ class TestUnhappyPathUnipiConfigConverter:
         assert str(error.value) == "INPUT is not a valid YAML file!"
 
     @pytest.mark.parametrize("_config_loader", [(CONFIG_CONTENT)], indirect=True)
-    def test_output_yaml_file_already_exists(self, _config_loader: ConfigLoader) -> None:
+    def test_output_yaml_file_already_exists(self, _config_loader: ConfigLoader) -> NoReturn:
         evok_hardware_path: Path = _config_loader.hardware_data_file_path.parent / "evok"
         evok_hardware_path.mkdir()
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"
@@ -73,7 +74,7 @@ class TestUnhappyPathUnipiConfigConverter:
         assert str(error.value) == "OUTPUT YAML file already exists!"
 
     @pytest.mark.parametrize("_config_loader", [(CONFIG_CONTENT)], indirect=True)
-    def test_input_is_not_a_file(self, _config_loader: ConfigLoader) -> None:
+    def test_input_is_not_a_file(self, _config_loader: ConfigLoader) -> NoReturn:
         evok_hardware_path: Path = _config_loader.hardware_data_file_path.parent / "evok"
         evok_hardware_path.mkdir()
 
@@ -85,7 +86,7 @@ class TestUnhappyPathUnipiConfigConverter:
         assert str(error.value) == "INPUT is not a file!"
 
     @pytest.mark.parametrize("_config_loader", [(CONFIG_CONTENT)], indirect=True)
-    def test_output_is_a_file(self, _config_loader: ConfigLoader) -> None:
+    def test_output_is_a_file(self, _config_loader: ConfigLoader) -> NoReturn:
         evok_hardware_path: Path = _config_loader.hardware_data_file_path.parent / "evok"
         evok_hardware_path.mkdir()
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"
@@ -99,7 +100,7 @@ class TestUnhappyPathUnipiConfigConverter:
         assert str(error.value) == "OUTPUT is a file not a directory!"
 
     @pytest.mark.parametrize("_config_loader", [(CONFIG_CONTENT)], indirect=True)
-    def test_output_directory_not_exists(self, _config_loader: ConfigLoader) -> None:
+    def test_output_directory_not_exists(self, _config_loader: ConfigLoader) -> NoReturn:
         evok_hardware_path: Path = _config_loader.hardware_data_file_path.parent / "evok"
         evok_hardware_path.mkdir()
         evok_hardware_yaml: Path = evok_hardware_path / "MOCKED_MODEL.yaml"

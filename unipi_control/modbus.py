@@ -3,46 +3,20 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import List
-from typing import NamedTuple
 from typing import Optional
-from typing import TypedDict
 from typing import Union
 
-from pymodbus.client import AsyncModbusSerialClient
-from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import HardwareData
-from unipi_control.config import HardwareDefinition
+from unipi_control.config import HardwareMap
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
-
-
-class ModbusWriteData(TypedDict):
-    address: Optional[int]
-    value: bool
-    slave: int
-
-
-class ModbusReadData(TypedDict):
-    address: int
-    count: int
-    slave: Optional[int]
-
-
-class ModbusRegisterBlock(TypedDict):
-    start_reg: int
-    count: int
-    slave: Optional[int]
-
-
-class ModbusFeature(TypedDict):
-    feature_type: str
-    major_group: int
-    count: int
-    val_reg: int
-    val_coil: Optional[int]
+from unipi_control.helpers.typing import HardwareDefinition
+from unipi_control.helpers.typing import ModbusClient
+from unipi_control.helpers.typing import ModbusReadData
+from unipi_control.helpers.typing import ModbusRegisterBlock
+from unipi_control.helpers.typing import ModbusWriteData
 
 
 async def check_modbus_call(
@@ -77,11 +51,6 @@ async def check_modbus_call(
     return response
 
 
-class ModbusClient(NamedTuple):
-    tcp: AsyncModbusTcpClient
-    serial: AsyncModbusSerialClient
-
-
 class ModbusCacheData:
     """Class that scan modbus register blocks and cache the response.
 
@@ -89,18 +58,18 @@ class ModbusCacheData:
     ----------
     modbus_client: ModbusClient
         A modbus client.
-    hardware: HardwareData
+    hardware: HardwareMap
         The Unipi Neuron hardware definitions.
     """
 
-    def __init__(self, modbus_client: ModbusClient, hardware: "HardwareData") -> None:
+    def __init__(self, modbus_client: ModbusClient, hardware: HardwareMap) -> None:
         self.modbus_client: ModbusClient = modbus_client
-        self.hardware: "HardwareData" = hardware
+        self.hardware: HardwareMap = hardware
 
         self.data: Dict[int, Dict[int, int]] = {}
 
     async def _save_response(
-        self, scan_type: str, modbus_register_block: ModbusRegisterBlock, definition: "HardwareDefinition"
+        self, scan_type: str, modbus_register_block: ModbusRegisterBlock, definition: HardwareDefinition
     ) -> None:
         data: ModbusReadData = {
             "address": modbus_register_block["start_reg"],

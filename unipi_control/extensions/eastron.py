@@ -1,21 +1,21 @@
 import asyncio
-from typing import Dict
+import typing
 from typing import Optional
-from typing import Union
 
 from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
-from unipi_control.config import HardwareDefinition
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.extensions import Hardware
 from unipi_control.features.extensions import MeterProps
 from unipi_control.features.extensions import Modbus
 from unipi_control.features.map import FeatureMap
-from unipi_control.features.map import FeatureType
+from unipi_control.features.utils import FeatureType
+from unipi_control.helpers.typing import EastronModbusFeature
+from unipi_control.helpers.typing import HardwareDefinition
+from unipi_control.helpers.typing import ModbusClient
+from unipi_control.helpers.typing import ModbusReadData
 from unipi_control.modbus import ModbusCacheData
-from unipi_control.modbus import ModbusClient
-from unipi_control.modbus import ModbusFeature
 from unipi_control.modbus import check_modbus_call
 
 
@@ -36,7 +36,7 @@ class EastronSDM120M:
         self.features: FeatureMap = features
         self._sw_version: Optional[str] = None
 
-    def _parse_feature_meter(self, modbus_feature: ModbusFeature) -> None:
+    def _parse_feature_meter(self, modbus_feature: EastronModbusFeature) -> None:
         meter: EastronMeter = EastronMeter(
             config=self.config,
             modbus=Modbus(
@@ -58,7 +58,7 @@ class EastronSDM120M:
 
         self.features.register(meter)
 
-    def _parse_feature(self, modbus_feature: Dict[str, Union[int, str]]) -> None:
+    def _parse_feature(self, modbus_feature: EastronModbusFeature) -> None:
         feature_type: str = modbus_feature["feature_type"].lower()
 
         if func := getattr(self, f"_parse_feature_{feature_type}", None):
@@ -67,7 +67,7 @@ class EastronSDM120M:
     async def _get_sw_version(self) -> Optional[str]:
         sw_version: str = "Unknown"
 
-        data: Dict[str, int] = {
+        data: ModbusReadData = {
             "address": 64514,
             "count": 2,
             "slave": self.definition.unit,
@@ -102,7 +102,7 @@ class EastronSDM120M:
     def parse_features(self) -> None:
         """Parse features from hardware definition."""
         for modbus_feature in self.definition.modbus_features:
-            self._parse_feature(modbus_feature)
+            self._parse_feature(typing.cast(EastronModbusFeature, modbus_feature))
 
     async def init(self) -> None:
         """Initialize Eastron SDM120M device class.

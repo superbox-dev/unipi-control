@@ -85,10 +85,13 @@ junit_xml = "reports/mypy.xml"
 # C0411: wrong-import-order
 # E0401: import-error
 # R0801: duplicate-code
+# R0903: too-few-public-methods
 # R6003: consider-alternative-union-syntax (python 3.8 compatibility)
 # W6001: deprecated-typing-alias (python 3.8 compatibility)
-disable = ["C0114", "C0115", "C0116", "C0411", "E0401", "R0801", "R6003", "W6001"]
+# W0613: unused-argument (ruff lint this)
+disable = ["C0114", "C0115", "C0116", "C0411", "E0401", "R0801", "R0903", "R6003", "W6001", "W0613"]
 notes = ["FIXME"]
+ignore-patterns = ["version.py"]
 
 load-plugins = [
     "pylint.extensions.bad_builtin",
@@ -126,14 +129,16 @@ line-length = 120
 select = ["ALL"]
 ignore = [
     "ANN101", # missing-type-self
+    "ANN002", # missing-type-args
+    "ANN003", # missing-type-kwargs
     "COM", # trailing-comma
     "D100", # undocumented-public-module
     "D101", # undocumented-public-class
     "D104", # undocumented-public-package
     "D105", # undocumented-magic-method
     "D107", # undocumented-public-init
-    "D211", # no-blank-line-before-class
-    "D212", # multi-line-summary-first-line
+    "D203", # one-blank-line-before-class
+    "D213", # multi-line-summary-second-line
     "D417", # undocumented-param
     "FBT", # boolean-trap
     "TCH", # type-checking

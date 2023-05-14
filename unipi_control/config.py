@@ -15,18 +15,19 @@ from typing import Dict
 from typing import Final
 from typing import Iterator
 from typing import List
-from typing import Literal
 from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
 from typing import Tuple
-from typing import TypedDict
+from typing import Type
+from typing import Union
 
-from unipi_control.exception import ConfigError
+from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import STDOUT_LOG_FORMAT
 from unipi_control.helpers.log import SYSTEMD_LOG_FORMAT
 from unipi_control.helpers.log import SystemdHandler
+from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.helpers.yaml import yaml_loader_safe
 
 logger: logging.Logger = logging.getLogger()
@@ -65,20 +66,22 @@ class Validation:
 @dataclass
 class ConfigLoaderMixin:
     @staticmethod
-    def _update_field_with_dataclass(value: Any, _field: dataclasses.Field) -> Any:
-        field_origin: Any = typing.get_origin(_field.type)
-        field_args: Tuple[Any, ...] = typing.get_args(_field.type)
+    def _update_field_with_dataclass(
+        value: Union[str, int, List[Any], Dict[str, Any]], name: str, field_type: Type[Any]
+    ) -> Union[str, int, List[Any], Dict[str, Any]]:
+        field_origin: Any = typing.get_origin(field_type)
+        field_args: Tuple[Any, ...] = typing.get_args(field_type)
 
         if field_origin == list and len(field_args) == 1:
             _list: List[Any] = []
 
             if isinstance(value, list):
-                for index, list_item in enumerate(value):
+                for list_item in value:
                     _dataclass = field_args[0]()
                     _dataclass.update(list_item)
                     _list.append(_dataclass)
             else:
-                msg = f"Expected {_field.name} to be {field_origin}, got {repr(value)}"
+                msg = f"Expected {name} to be {field_origin}, got {value!r}"
                 raise ConfigError(msg)
 
             value = _list
@@ -91,14 +94,14 @@ class ConfigLoaderMixin:
                     _dataclass.update(dict_value)
                     _dict[key] = _dataclass
             else:
-                msg = f"Expected {_field.name} to be {field_origin}, got {repr(value)}"
+                msg = f"Expected {name} to be {field_origin}, got {value!r}"
                 raise ConfigError(msg)
 
             value = _dict
 
         return value
 
-    def update(self, new: Dict[str, Any]):
+    def update(self, new: Dict[str, Any]) -> None:
         """Update and validate config data class with settings from a dictionary.
 
         Parameters
@@ -106,30 +109,23 @@ class ConfigLoaderMixin:
         new: dict
             Overwrite settings as dictionary.
         """
-
         for key, value in new.items():
             if hasattr(self, key):
                 item = getattr(self, key)
 
                 if is_dataclass(item):
-                    _dataclass = item.update(new=value)
-                    print("_dataclass", _dataclass)
-                    setattr(self, key, _dataclass)
+                    item.update(new=value)
                 else:
+                    _value = value
+
                     for _field in dataclasses.fields(self):
                         if _field.name == key:
-                            value = self._update_field_with_dataclass(value, _field)
+                            _value = self._update_field_with_dataclass(value, name=_field.name, field_type=_field.type)
                             break
-                    if key == "units":
-                        print(key, value)
-                        setattr(self, key, [item for item in value])
-                    else:
-                        setattr(self, key, value)
 
-        # print("TEST", self)
+                    setattr(self, key, _value)
+
         self.validate()
-
-        return self
 
     def update_from_yaml_file(self, config_path: Path) -> None:
         """Update and validate config data class with settings from a YAML file.
@@ -155,10 +151,10 @@ class ConfigLoaderMixin:
                 value.validate()
             else:
                 if method := getattr(self, f"_validate_{_field.name}", None):
-                    setattr(self, _field.name, method(getattr(self, _field.name), _field=_field))
+                    setattr(self, _field.name, method(getattr(self, _field.name), name=_field.name))
 
                 if not isinstance(value, field_type) and not is_dataclass(value):
-                    msg = f"Expected {_field.name} to be {field_type}, got {repr(value)}"
+                    msg = f"Expected {_field.name} to be {field_type}, got {value!r}"
                     raise ConfigError(msg)
 
 
@@ -168,9 +164,9 @@ class DeviceInfo(ConfigLoaderMixin):
     manufacturer: str = field(default="Unipi technology")
 
     @staticmethod
-    def _validate_name(value: str, _field: dataclasses.Field) -> str:
+    def _validate_name(value: str, name: str) -> str:
         if re.search(Validation.NAME.regex, value) is None:
-            msg = f"{LogPrefix.DEVICEINFO} Invalid value '{value}' in '{_field.name}'. {Validation.NAME.error}"
+            msg = f"{LogPrefix.DEVICEINFO} Invalid value '{value}' in '{name}'. {Validation.NAME.error}"
             raise ConfigError(msg)
 
         return value
@@ -186,7 +182,7 @@ class MqttConfig(ConfigLoaderMixin):
 
 
 @dataclass
-class FeatureConfig(ConfigLoaderMixin):
+class FeatureConfig(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
     object_id: str = field(default_factory=str)
     friendly_name: str = field(default_factory=str)
     icon: str = field(default_factory=str)
@@ -197,18 +193,18 @@ class FeatureConfig(ConfigLoaderMixin):
     invert_state: bool = field(default=False)
 
     @staticmethod
-    def _validate_object_id(value: str, _field: dataclasses.Field) -> str:
+    def _validate_object_id(value: str, name: str) -> str:
         value = value.lower()
 
         if re.search(Validation.ID.regex, value) is None:
-            msg = f"{LogPrefix.FEATURE} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
+            msg = f"{LogPrefix.FEATURE} Invalid value '{value}' in '{name}'. {Validation.ID.error}"
             raise ConfigError(msg)
 
         return value
 
 
 @dataclass
-class CoverConfig(ConfigLoaderMixin):
+class CoverConfig(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
     object_id: str = field(default_factory=str)  # pylint: disable=invalid-name
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
@@ -222,25 +218,25 @@ class CoverConfig(ConfigLoaderMixin):
         """Validate cover configuration."""
         for _field in ("object_id", "friendly_name", "device_class", "cover_up", "cover_down"):
             if not getattr(self, _field):
-                msg = f"{LogPrefix.COVER} Required key '{_field}' is missing! {repr(self)}"
+                msg = f"{LogPrefix.COVER} Required key '{_field}' is missing! {self!r}"
                 raise ConfigError(msg)
 
         super().validate()
 
     @staticmethod
-    def _validate_object_id(value: str, _field: dataclasses.Field) -> str:
+    def _validate_object_id(value: str, name: str) -> str:
         value = value.lower()
 
         if re.search(Validation.ID.regex, value) is None:
-            msg = f"{LogPrefix.COVER} Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
+            msg = f"{LogPrefix.COVER} Invalid value '{value}' in '{name}'. {Validation.ID.error}"
             raise ConfigError(msg)
 
         return value
 
-    def _validate_device_class(self, value: str, _field: dataclasses.Field) -> str:
+    def _validate_device_class(self, value: str, name: str) -> str:
         if (value := value.lower()) not in DEVICE_CLASSES:
             exception_message: str = (
-                f"{LogPrefix.COVER} Invalid value '{self.device_class}' in '{_field.name}'. "
+                f"{LogPrefix.COVER} Invalid value '{self.device_class}' in '{name}'. "
                 f"The following values are allowed: {' '.join(DEVICE_CLASSES)}."
             )
             raise ConfigError(exception_message)
@@ -255,7 +251,7 @@ class ModbusUnitConfig(ConfigLoaderMixin):
     identifier: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
 
-    def _validate_device_name(self, value: str, _field: dataclasses.Field) -> str:
+    def _validate_device_name(self, value: str, name: str) -> str:  # ruff: noqa: ARG002
         if not value:
             msg = f"{LogPrefix.MODBUS} Device name for unit '{self.unit}' is missing!"
             raise ConfigError(msg)
@@ -285,7 +281,7 @@ class ModbusConfig(ConfigLoaderMixin):
         return (modbus_unit for modbus_unit in self.units if modbus_unit.identifier == identifier)
 
     @staticmethod
-    def _validate_units(value: List[ModbusUnitConfig], _field: dataclasses.Field) -> None:
+    def _validate_units(value: List[ModbusUnitConfig], name: str) -> List[ModbusUnitConfig]:  # ruff: noqa: ARG004
         unique_units: List[int] = []
 
         for unit in value:
@@ -295,8 +291,10 @@ class ModbusConfig(ConfigLoaderMixin):
 
             unique_units.append(unit.unit)
 
+        return value
+
     @staticmethod
-    def _validate_baud_rate(value: int, _field: dataclasses.Field) -> int:
+    def _validate_baud_rate(value: int, name: str) -> int:  # ruff: noqa: ARG004
         if value not in MODBUS_BAUD_RATES:
             exception_message: str = (
                 f"{LogPrefix.MODBUS} Invalid baud rate '{value}'. "
@@ -307,10 +305,10 @@ class ModbusConfig(ConfigLoaderMixin):
         return value
 
     @staticmethod
-    def _validate_parity(value: str, _field: dataclasses.Field) -> str:
+    def _validate_parity(value: str, name: str) -> str:
         if (value := value.upper()) not in MODBUS_PARITY:
             exception_message: str = (
-                f"{LogPrefix.MODBUS} Invalid value '{value}' in '{_field.name}'. "
+                f"{LogPrefix.MODBUS} Invalid value '{value}' in '{name}'. "
                 f"The following parity options are allowed: {' '.join(MODBUS_PARITY)}."
             )
             raise ConfigError(exception_message)
@@ -323,13 +321,13 @@ class HomeAssistantConfig(ConfigLoaderMixin):
     enabled: bool = field(default=True)
     discovery_prefix: str = field(default="homeassistant")
 
-    def _validate_discovery_prefix(self, value: str, _field: dataclasses.Field) -> str:
+    def _validate_discovery_prefix(self, value: str, name: str) -> str:
         value = value.lower()
 
         if re.search(Validation.ID.regex, value) is None:
             exception_message: str = (
                 f"[{self.__class__.__name__.replace('Config', '').upper()}] "
-                f"Invalid value '{value}' in '{_field.name}'. {Validation.ID.error}"
+                f"Invalid value '{value}' in '{name}'. {Validation.ID.error}"
             )
             raise ConfigError(exception_message)
 
@@ -381,7 +379,7 @@ class LoggingConfig(ConfigLoaderMixin):
 
         logger.setLevel(level)
 
-    def _validate_level(self, value: str, _field: dataclasses.Field) -> str:
+    def _validate_level(self, value: str, name: str) -> str:
         if (value := value.lower()) not in LOG_LEVEL.keys():
             exception_message: str = (
                 f"[{self.__class__.__name__.replace('Config', '').upper()}] "
@@ -393,7 +391,7 @@ class LoggingConfig(ConfigLoaderMixin):
 
 
 @dataclass
-class Config(ConfigLoaderMixin):
+class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
     device_info: DeviceInfo = field(default_factory=DeviceInfo)
     mqtt: MqttConfig = field(default_factory=MqttConfig)
     modbus: ModbusConfig = field(default_factory=ModbusConfig)
@@ -467,7 +465,7 @@ class Config(ConfigLoaderMixin):
             object_ids.append(cover.object_id)
 
     @staticmethod
-    def _validate_config_base_path(value: Path, _field: dataclasses.Field) -> Path:
+    def _validate_config_base_path(value: Path, name: str) -> Path:  # ruff: noqa: ARG004
         if not value.is_dir() or not value.exists():
             msg = f"{LogPrefix.DEVICEINFO} Config path '{value}' is invalid!"
             raise ConfigError(msg)
@@ -535,40 +533,23 @@ class HardwareType:
     EXTENSION: Final[str] = "Extension"
 
 
-class HardwareDefinition(NamedTuple):
-    unit: int
-    hardware_type: str
-    device_name: Optional[str]
-    suggested_area: Optional[str]
-    manufacturer: Optional[str]
-    model: Optional[str]
-    modbus_register_blocks: List["ModbusRegisterBlock"]
-    modbus_features: List["ModbusFeature"]
-
-
-class HardwareDataDict(TypedDict):
-    neuron: HardwareInfo
-    definitions: List[HardwareDefinition]
-
-
-class HardwareData(Mapping):
+class HardwareMap(Mapping[str, HardwareDefinition]):
     def __init__(self, config: Config) -> None:
         self.config = config
 
-        self.data: HardwareDataDict = HardwareDataDict(
-            neuron=HardwareInfo(sys_bus=config.sys_bus),
-            definitions=[],
-        )
+        self.data: Dict[str, HardwareDefinition] = {}
+        self.info: HardwareInfo = HardwareInfo(sys_bus=config.sys_bus)
 
-        if self.data["neuron"].model is None:
+        if self.info.model is None:
             msg = "Hardware is not supported!"
             raise ConfigError(msg)
 
         self._read_neuron_definition()
         self._read_extension_definitions()
 
-    def __getitem__(self, key: Literal["neuron", "definitions"]) -> Any:
-        return self.data[key]
+    def __getitem__(self, key: str) -> HardwareDefinition:
+        data: HardwareDefinition = self.data[key]
+        return data
 
     def __iter__(self) -> Iterator[str]:
         return iter(self.data)
@@ -577,24 +558,22 @@ class HardwareData(Mapping):
         return len(self.data)
 
     def _read_neuron_definition(self) -> None:
-        definition_file: Path = Path(f'{self.config.hardware_path}/neuron/{self.data["neuron"].model}.yaml')
+        definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self.info.model}.yaml")
 
         if definition_file.is_file():
             try:
                 yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
                 if isinstance(yaml_content, dict):
-                    self.data["definitions"].append(
-                        HardwareDefinition(
-                            unit=0,
-                            hardware_type=HardwareType.NEURON,
-                            device_name=None,
-                            suggested_area=None,
-                            manufacturer=None,
-                            model=f'{self.data["neuron"].name} {self.data["neuron"].model}',
-                            modbus_register_blocks=yaml_content["modbus_register_blocks"],
-                            modbus_features=yaml_content["modbus_features"],
-                        )
+                    self.data["neuron"] = HardwareDefinition(
+                        unit=0,
+                        hardware_type=HardwareType.NEURON,
+                        device_name=None,
+                        suggested_area=None,
+                        manufacturer=None,
+                        model=f"{self.info.name} {self.info.model}",
+                        modbus_register_blocks=yaml_content["modbus_register_blocks"],
+                        modbus_features=yaml_content["modbus_features"],
                     )
             except TypeError as error:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
@@ -617,14 +596,12 @@ class HardwareData(Mapping):
                         )
 
                         for unit in units:
-                            self.data["definitions"].append(
-                                HardwareDefinition(
-                                    unit=unit.unit,
-                                    hardware_type=HardwareType.EXTENSION,
-                                    device_name=unit.device_name,
-                                    suggested_area=unit.suggested_area,
-                                    **yaml_content,
-                                )
+                            self.data[f"modbus_rtu_{unit.unit}"] = HardwareDefinition(
+                                unit=unit.unit,
+                                hardware_type=HardwareType.EXTENSION,
+                                device_name=unit.device_name,
+                                suggested_area=unit.suggested_area,
+                                **yaml_content,
                             )
                     except TypeError as error:
                         msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
@@ -647,4 +624,4 @@ class HardwareData(Mapping):
         Iterator:
             Filtered hardware definitions.
         """
-        return (definition for definition in self.data["definitions"] if definition.hardware_type in hardware_types)
+        return (definition for definition in self.data.values() if definition.hardware_type in hardware_types)

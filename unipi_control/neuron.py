@@ -1,4 +1,3 @@
-import typing
 from typing import List
 from typing import NamedTuple
 from typing import Optional
@@ -6,24 +5,24 @@ from typing import Optional
 from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
-from unipi_control.config import HardwareData
-from unipi_control.config import HardwareDefinition
+from unipi_control.config import HardwareMap
 from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
 from unipi_control.config import logger
 from unipi_control.extensions.eastron import EastronSDM120M
-from unipi_control.features.map import DigitalInput
-from unipi_control.features.map import DigitalOutput
 from unipi_control.features.map import FeatureMap
-from unipi_control.features.map import Led
-from unipi_control.features.map import Relay
+from unipi_control.features.neuron import DigitalInput
+from unipi_control.features.neuron import DigitalOutput
 from unipi_control.features.neuron import Hardware
+from unipi_control.features.neuron import Led
 from unipi_control.features.neuron import Modbus
+from unipi_control.features.neuron import Relay
 from unipi_control.features.utils import FeatureType
+from unipi_control.helpers.typing import HardwareDefinition
+from unipi_control.helpers.typing import ModbusClient
+from unipi_control.helpers.typing import ModbusFeature
+from unipi_control.helpers.typing import ModbusReadData
 from unipi_control.modbus import ModbusCacheData
-from unipi_control.modbus import ModbusClient
-from unipi_control.modbus import ModbusFeature
-from unipi_control.modbus import ModbusReadData
 from unipi_control.modbus import check_modbus_call
 
 
@@ -69,7 +68,7 @@ class Board:
     def _parse_feature_ro(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
             for index in range(0, max_count):
-                ro: Relay = Relay(
+                relay: Relay = Relay(
                     config=self.config,
                     modbus=Modbus(
                         client=self.modbus_client,
@@ -86,12 +85,12 @@ class Board:
                     ),
                 )
 
-                self.features.register(ro)
+                self.features.register(relay)
 
     def _parse_feature_di(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
             for index in range(0, max_count):
-                di: DigitalInput = DigitalInput(
+                digital_input: DigitalInput = DigitalInput(
                     config=self.config,
                     modbus=Modbus(
                         client=self.modbus_client,
@@ -107,12 +106,12 @@ class Board:
                     ),
                 )
 
-                self.features.register(di)
+                self.features.register(digital_input)
 
     def _parse_feature_do(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
             for index in range(0, max_count):
-                do: DigitalOutput = DigitalOutput(
+                digital_output: DigitalOutput = DigitalOutput(
                     config=self.config,
                     modbus=Modbus(
                         client=self.modbus_client,
@@ -129,7 +128,7 @@ class Board:
                     ),
                 )
 
-                self.features.register(do)
+                self.features.register(digital_output)
 
     def _parse_feature_led(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
@@ -163,7 +162,7 @@ class Board:
     def parse_features(self) -> None:
         """Parse features from hardware definition."""
         for modbus_feature in self.definition.modbus_features:
-            self._parse_feature(typing.cast(ModbusFeature, modbus_feature))
+            self._parse_feature(modbus_feature)
 
 
 class Neuron:
@@ -176,7 +175,7 @@ class Neuron:
     ----------
     modbus_client: ModbusClient
         A modbus tcp client.
-    hardware: HardwareData
+    hardware: HardwareMap
         The Unipi Neuron hardware definitions.
     boards: list
         All available boards from the Unipi Neuron.
@@ -188,7 +187,7 @@ class Neuron:
     def __init__(self, config: Config, modbus_client: ModbusClient) -> None:
         self.config: Config = config
         self.modbus_client: ModbusClient = modbus_client
-        self.hardware: HardwareData = HardwareData(config=config)
+        self.hardware: HardwareMap = HardwareMap(config=config)
         self.features = FeatureMap()
         self.boards: List[Board] = []
 
@@ -204,6 +203,18 @@ class Neuron:
 
     @staticmethod
     def get_firmware(response: ModbusResponse) -> str:
+        """Get the Unipi Neuron firmware version.
+
+        Parameters
+        ----------
+        response: ModbusResponse
+            Modbus response PDU
+
+        Returns
+        -------
+        str:
+            Unipi Neuron firmware version
+        """
         versions = getattr(response, "registers", [0, 0])
         return f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
 
@@ -226,7 +237,7 @@ class Neuron:
                 board = Board(
                     config=self.config,
                     modbus_client=self.modbus_client,
-                    definition=self.hardware["definitions"][0],
+                    definition=self.hardware["neuron"],
                     modbus_cache_data=self.modbus_cache_data,
                     features=self.features,
                     board_config=BoardConfig(
@@ -246,8 +257,12 @@ class Neuron:
         """Scan Modbus RTU and initialize extension classes."""
         logger.info("%s Reading extensions", LogPrefix.MODBUS)
 
-        for definition in self.hardware["definitions"][1:]:
-            if definition.manufacturer.lower() == "eastron" and definition.model == "SDM120M":
+        for key, definition in self.hardware.items():
+            if (
+                key != "neuron"
+                and (definition.manufacturer and definition.manufacturer.lower() == "eastron")
+                and (definition.model and definition.model == "SDM120M")
+            ):
                 await EastronSDM120M(
                     config=self.config,
                     modbus_client=self.modbus_client,

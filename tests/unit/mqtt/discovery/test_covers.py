@@ -2,6 +2,7 @@ import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
 from typing import List
+from typing import NoReturn
 from typing import Set
 from unittest.mock import AsyncMock
 
@@ -31,8 +32,8 @@ class TestHappyPathHassCoversMqttPlugin:
         _neuron: Neuron,
         _covers: CoverMap,
         caplog: LogCaptureFixture,
-    ) -> None:
-        async def run() -> None:
+    ) -> NoReturn:
+        async def run() -> NoReturn:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
                 neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers
@@ -122,7 +123,7 @@ class TestHappyPathHassCoversMqttPlugin:
         _neuron: Neuron,
         _covers: CoverMap,
         expected: List[dict],
-    ) -> None:
+    ) -> NoReturn:
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
             neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers

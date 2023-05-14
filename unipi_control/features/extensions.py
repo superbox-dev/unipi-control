@@ -10,9 +10,9 @@ from pymodbus.payload import BinaryPayloadDecoder
 
 from unipi_control.config import Config
 from unipi_control.config import FeatureConfig
-from unipi_control.config import HardwareDefinition
 from unipi_control.features.utils import FeatureType
 from unipi_control.helpers.text import slugify
+from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.modbus import ModbusCacheData
 
 
@@ -67,10 +67,8 @@ class EastronMeter:
     @property
     def value(self) -> Optional[float]:
         """Return Eastron meter value."""
-        _value: Optional[float] = None
-
         if _reg_value := self._reg_value():
-            _value = round(
+            return round(
                 float(
                     BinaryPayloadDecoder.fromRegisters(  # type: ignore[no-untyped-call]
                         _reg_value, byteorder=Endian.Big, wordorder=Endian.Big
@@ -79,7 +77,7 @@ class EastronMeter:
                 2,
             )
 
-        return _value
+        return None
 
     @property
     def changed(self) -> bool:

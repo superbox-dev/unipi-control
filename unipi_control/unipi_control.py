@@ -5,9 +5,11 @@ import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
+from typing import Any
 from typing import Awaitable
 from typing import Callable
 from typing import List
+from typing import NoReturn
 from typing import Optional
 from typing import Set
 
@@ -21,12 +23,12 @@ from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LogPrefix
 from unipi_control.config import MqttConfig
 from unipi_control.config import logger
-from unipi_control.exception import ConfigError
-from unipi_control.exception import UnexpectedError
 from unipi_control.helpers.argparse import init_argparse
+from unipi_control.helpers.exception import ConfigError
+from unipi_control.helpers.exception import UnexpectedError
 from unipi_control.helpers.text import slugify
+from unipi_control.helpers.typing import ModbusClient
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.modbus import ModbusClient
 from unipi_control.mqtt.discovery.binary_sensors import HassBinarySensorsMqttPlugin
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
 from unipi_control.mqtt.discovery.sensors import HassSensorsMqttPlugin
@@ -35,7 +37,6 @@ from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
 from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
 from unipi_control.mqtt.integrations.covers import CoversMqttPlugin
 from unipi_control.neuron import Neuron
-from unipi_control.typing import _T
 from unipi_control.version import __version__
 
 
@@ -53,13 +54,15 @@ class UnipiControl:
         self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
     async def _init_tasks(self, stack: AsyncExitStack, mqtt_client: Client) -> None:
-        tasks: Set[Task] = set()
+        tasks: Set[Task[Any]] = set()
         stack.push_async_callback(self._cancel_tasks, tasks)
 
         await NeuronFeaturesMqttPlugin(self.neuron, mqtt_client).init_tasks(stack, tasks)
         await MeterFeaturesMqttPlugin(self.neuron, mqtt_client).init_tasks(tasks)
 
         covers = CoverMap(self.config, self.neuron.features)
+        covers.init()
+
         covers_plugin = CoversMqttPlugin(mqtt_client, covers)
         await covers_plugin.init_tasks(stack, tasks)
 
@@ -72,7 +75,7 @@ class UnipiControl:
         await asyncio.gather(*tasks)
 
     @staticmethod
-    async def _cancel_tasks(tasks: Set[Task[_T]]) -> None:
+    async def _cancel_tasks(tasks: Set[Task[Any]]) -> None:
         for task in tasks:
             if task.done():
                 continue
@@ -81,10 +84,10 @@ class UnipiControl:
                 task.cancel()
                 await task
             except asyncio.CancelledError:
-                pass
+                ...
 
     async def _modbus_connect(self) -> None:
-        await self.modbus_client.tcp.connect()
+        await self.modbus_client.tcp.connect()  # type: ignore[no-untyped-call]
 
         if self.modbus_client.tcp.connected:
             logger.info(
@@ -99,7 +102,7 @@ class UnipiControl:
             )
             raise UnexpectedError(exception_message_tcp)
 
-        await self.modbus_client.serial.connect()
+        await self.modbus_client.serial.connect()  # type: ignore[no-untyped-call]
 
         if self.modbus_client.serial.connected:
             logger.info(
@@ -116,7 +119,7 @@ class UnipiControl:
         mqtt_config: MqttConfig,
         mqtt_client_id: str,
         callback: Callable[[AsyncExitStack, Client], Awaitable[None]],
-    ) -> None:
+    ) -> NoReturn:
         """Connect to MQTT broker and automatically retry on disconnect.
 
         Parameters
@@ -168,7 +171,7 @@ class UnipiControl:
 
                 await asyncio.sleep(reconnect_interval)
 
-    async def run(self) -> None:
+    async def run(self) -> NoReturn:
         """Connect to Modbus and initialize Unipi Neuron hardware."""
         await self._modbus_connect()
         await self.neuron.init()
@@ -243,9 +246,9 @@ def main() -> None:
         logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
-        pass
+        ...
     except asyncio.CancelledError:
-        pass
+        ...
     finally:
         if unipi_control:
             logger.info("Successfully shutdown the Unipi Control service.")

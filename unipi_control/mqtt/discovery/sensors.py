@@ -15,7 +15,6 @@ from unipi_control.features.extensions import EastronMeter
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
-from unipi_control.typing import _T
 
 
 class HassSensorsDiscovery(HassDiscoveryMixin):
@@ -80,7 +79,7 @@ class HassSensorsMqttPlugin:
     def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
         self._hass = HassSensorsDiscovery(neuron, mqtt_client)
 
-    async def init_tasks(self, tasks: Set[Task[_T]]) -> None:
+    async def init_tasks(self, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
 
         Parameters
@@ -88,5 +87,5 @@ class HassSensorsMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[_T] = asyncio.create_task(self._hass.publish())
+        task: Task[Any] = asyncio.create_task(self._hass.publish())
         tasks.add(task)

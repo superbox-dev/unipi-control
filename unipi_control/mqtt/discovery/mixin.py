@@ -4,10 +4,10 @@ from typing import Union
 from asyncio_mqtt import Client
 
 from unipi_control.config import Config
-from unipi_control.config import HardwareData
-from unipi_control.config import HardwareDefinition
+from unipi_control.config import HardwareMap
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.neuron import NeuronFeature
+from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.neuron import Neuron
 
 
@@ -17,7 +17,7 @@ class HassDiscoveryMixin:
         self.mqtt_client: Client = mqtt_client
 
         self.config: Config = neuron.config
-        self.hardware: HardwareData = neuron.hardware
+        self.hardware: HardwareMap = neuron.hardware
 
     def _get_via_device(self, feature: Union[NeuronFeature, EastronMeter]) -> Optional[str]:
         if (device_name := self.config.device_info.name) != self._get_device_name(feature):
@@ -42,7 +42,7 @@ class HassDiscoveryMixin:
         if feature and feature.hardware.definition.model:
             return f"{feature.hardware.definition.model}"
 
-        return f'{self.hardware["neuron"].name} {self.hardware["neuron"].model}'
+        return f"{self.hardware.info.name} {self.hardware.info.model}"
 
     def _get_device_manufacturer(self, feature: Optional[Union[NeuronFeature, EastronMeter]] = None) -> str:
         if feature and feature.hardware.definition.manufacturer:

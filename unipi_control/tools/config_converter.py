@@ -3,15 +3,17 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
-from typing import Union
 
-from unipi_control import __version__
+from unipi_control import __version__  # type: ignore[attr-defined]
 from unipi_control.config import Config
 from unipi_control.config import LoggingConfig
 from unipi_control.config import logger
-from unipi_control.exception import UnexpectedError
 from unipi_control.helpers.argparse import init_argparse
+from unipi_control.helpers.exception import UnexpectedError
 from unipi_control.helpers.yaml import yaml_dumper
 from unipi_control.helpers.yaml import yaml_loader_safe
 
@@ -22,8 +24,8 @@ class UnipiConfigConverter:
         self.force: bool = force
 
     @staticmethod
-    def _read_source_yaml(source: Path) -> dict:
-        source_yaml: Union[dict, list] = yaml_loader_safe(source)
+    def _read_source_yaml(source: Path) -> Dict[str, Any]:
+        source_yaml: Dict[str, Any] = yaml_loader_safe(source)
 
         if isinstance(source_yaml, dict):
             return source_yaml
@@ -31,7 +33,7 @@ class UnipiConfigConverter:
         exception_message: str = "INPUT is not a valid YAML file!"
         raise UnexpectedError(exception_message)
 
-    def _write_target_yaml(self, target: Path, content: dict) -> None:
+    def _write_target_yaml(self, target: Path, content: Dict[str, Any]) -> None:
         if target.exists() and not self.force:
             exception_message: str = "OUTPUT YAML file already exists!"
             raise UnexpectedError(exception_message)
@@ -40,27 +42,27 @@ class UnipiConfigConverter:
         logger.info("YAML file written to: %s", target.as_posix())
 
     @staticmethod
-    def _parse_modbus_register_blocks(source_yaml: dict) -> list:
-        _modbus_register_blocks: list = []
+    def _parse_modbus_register_blocks(source_yaml: Dict[str, Any]) -> List[Dict[str, Any]]:
+        _modbus_register_blocks: List[Dict[str, Any]] = []
 
         for modbus_register_block in source_yaml["modbus_register_blocks"]:
-            _modbus_register_blocks.append(
-                {
-                    "slave": modbus_register_block["board_index"],
-                    "start_reg": modbus_register_block["start_reg"],
-                    "count": modbus_register_block["count"],
-                },
-            )
+            _modbus_register_block: Dict[str, Any] = {
+                "slave": modbus_register_block["board_index"],
+                "start_reg": modbus_register_block["start_reg"],
+                "count": modbus_register_block["count"],
+            }
+
+            _modbus_register_blocks.append(_modbus_register_block)
 
         return _modbus_register_blocks
 
     @staticmethod
-    def _parse_modbus_features(source_yaml: dict) -> list:
-        _modbus_features: list = []
+    def _parse_modbus_features(source_yaml: Dict[str, Any]) -> List[Dict[str, Any]]:
+        _modbus_features: List[Dict[str, Any]] = []
 
         for modbus_feature in source_yaml["modbus_features"]:
             if modbus_feature["type"] in {"DI", "DO", "LED", "RO"}:
-                _modbus_feature: dict = {
+                _modbus_feature: Dict[str, Any] = {
                     "feature_type": modbus_feature["type"],
                     "count": modbus_feature["count"],
                     "major_group": modbus_feature["major_group"],
@@ -88,8 +90,8 @@ class UnipiConfigConverter:
         if exception_message:
             raise UnexpectedError(exception_message)
 
-        source_yaml: dict = self._read_source_yaml(source)
-        target_yaml: dict = {
+        source_yaml: Dict[str, Any] = self._read_source_yaml(source)
+        target_yaml: Dict[str, Any] = {
             "modbus_register_blocks": self._parse_modbus_register_blocks(source_yaml),
             "modbus_features": self._parse_modbus_features(source_yaml),
         }
@@ -97,7 +99,7 @@ class UnipiConfigConverter:
         self._write_target_yaml(target=target / source.name, content=target_yaml)
 
 
-def parse_args(args: list) -> argparse.Namespace:
+def parse_args(args: List[str]) -> argparse.Namespace:
     """Initialize argument parser options.
 
     Parameters
@@ -131,4 +133,4 @@ def main() -> None:
         logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
-        pass
+        ...
