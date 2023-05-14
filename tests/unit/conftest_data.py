@@ -337,14 +337,14 @@ modbus_features:
 
 MODBUS_FEATURE_ENABLED: Final[int] = 1
 
-NEURON_L203_MODBUS_REGISTER: Final[List] = [
+NEURON_L203_MODBUS_REGISTER: Final[List[MagicMock]] = [
     MagicMock(spec=ModbusResponse, registers=[0, 0]),  # DI 1.x / DO 1.x
     MagicMock(spec=ModbusResponse, registers=[0]),  # LED 1.x
     MagicMock(spec=ModbusResponse, registers=[16384, 10240]),  # DI 2.x / RO 2.x
     MagicMock(spec=ModbusResponse, registers=[24576, 8192]),  # DI 3.x / RO 3.x
 ]
 
-EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER: Final[List] = [
+EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER: Final[List[MagicMock]] = [
     MagicMock(spec=ModbusResponse, registers=[17259, 13107]),  # Voltage
     MagicMock(spec=ModbusResponse, registers=[16018, 28312]),  # Current
     MagicMock(spec=ModbusResponse, registers=[16918, 52429]),  # Active power

@@ -1,6 +1,8 @@
+from typing import Any
+from typing import Dict
 from typing import List
 
-discovery_message_expected: List[dict] = [
+discovery_message_expected: List[Dict[str, Any]] = [
     {
         "message": {
             "name": "MOCKED_FRIENDLY_NAME - DI_1_01",
