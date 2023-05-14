@@ -1,9 +1,10 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
+from typing import Any
+from typing import Dict
 from typing import Iterator
 from typing import List
-from typing import NoReturn
 from typing import Set
 from unittest.mock import AsyncMock
 
@@ -12,11 +13,11 @@ from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-
 from asyncio_mqtt import Client
 
 from tests.unit.conftest import ConfigLoader
-from tests.unit.conftest import ModbusClient
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from tests.unit.mqtt.discovery.test_sensors_data import discovery_message_expected
+from unipi_control.helpers.typing import ModbusClient
 from unipi_control.mqtt.discovery.sensors import HassSensorsDiscovery
 from unipi_control.mqtt.discovery.sensors import HassSensorsMqttPlugin
 from unipi_control.neuron import Neuron
@@ -32,13 +33,13 @@ class TestHappyPathHassSensorsMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ) -> NoReturn:
-        async def run() -> NoReturn:
+    ) -> None:
+        async def run() -> None:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             plugin: HassSensorsMqttPlugin = HassSensorsMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
 
             async with AsyncExitStack() as stack:
-                tasks: Set[Task] = set()
+                tasks: Set[Task[Any]] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
                 await plugin.init_tasks(tasks)
@@ -47,7 +48,7 @@ class TestHappyPathHassSensorsMqttPlugin:
                 for task in tasks:
                     assert task.done() is True
 
-            logs: list = [record.getMessage() for record in caplog.records]
+            logs: List[str] = [record.getMessage() for record in caplog.records]
 
             assert (
                 '[MQTT] [homeassistant/sensor/mocked_unipi_voltage_1/config] Publishing message: {"name": "MOCKED Eastron SDM120M - Workspace: Voltage", "unique_id": "mocked_unipi_voltage_1", "state_topic": "mocked_unipi/meter/voltage_1/get", "qos": 2, "force_update": true, "device": {"name": "MOCKED Eastron SDM120M - Workspace", "identifiers": "MOCKED Eastron SDM120M - Workspace", "model": "SDM120M", "sw_version": "202.04", "manufacturer": "Eastron", "suggested_area": "Workspace", "via_device": "MOCKED UNIPI"}, "device_class": "voltage", "state_class": "measurement", "unit_of_measurement": "V"}'
@@ -156,8 +157,8 @@ class TestHappyPathHassSensorsMqttPlugin:
         _modbus_client: ModbusClient,
         _config_loader: ConfigLoader,
         _neuron: Neuron,
-        expected: List[dict],
-    ) -> NoReturn:
+        expected: List[Dict[str, Any]],
+    ) -> None:
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassSensorsMqttPlugin = HassSensorsMqttPlugin(neuron=_neuron, mqtt_client=mock_mqtt_client)
         features: Iterator = _neuron.features.by_feature_types(HassSensorsDiscovery.publish_feature_types)

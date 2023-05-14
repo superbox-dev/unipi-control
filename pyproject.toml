@@ -141,6 +141,7 @@ ignore = [
     "D213", # multi-line-summary-second-line
     "D417", # undocumented-param
     "FBT", # boolean-trap
+    "S101", # assert-used
     "TCH", # type-checking
     "T201", # print
     "PLR2004", # magic-value-comparison

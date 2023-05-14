@@ -1,7 +1,6 @@
 # pylint: disable=protected-access
 from dataclasses import dataclass
 from dataclasses import field
-from typing import NoReturn
 from typing import Optional
 from typing import Union
 from unittest.mock import MagicMock
@@ -14,12 +13,12 @@ from tests.unit.conftest import MockModbusClient
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.config import ConfigError
 from unipi_control.features.extensions import EastronMeter
-from unipi_control.features.map import DigitalInput
-from unipi_control.features.map import DigitalOutput
-from unipi_control.features.map import Led
-from unipi_control.features.map import Relay
+from unipi_control.features.neuron import DigitalInput
+from unipi_control.features.neuron import DigitalOutput
+from unipi_control.features.neuron import Led
+from unipi_control.features.neuron import Relay
+from unipi_control.helpers.exception import ConfigError
 from unipi_control.neuron import Neuron
 
 
@@ -82,7 +81,7 @@ class TestHappyPathFeatures:
         _neuron: Neuron,
         options: FeatureOptions,
         expected: FeatureExpected,
-    ) -> NoReturn:
+    ) -> None:
         mock_response = MagicMock(spec=ModbusResponse)
         mock_response.isError.return_value = False
 
@@ -122,7 +121,7 @@ class TestUnhappyPathFeatures:
     )
     def test_invalid_feature_by_feature_id(
         self, _config_loader: ConfigLoader, _neuron: Neuron, feature_id: str, expected: str
-    ) -> NoReturn:
+    ) -> None:
         with pytest.raises(ConfigError) as error:
             _neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
 

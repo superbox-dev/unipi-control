@@ -1,7 +1,6 @@
 # pylint: disable=protected-access
 from dataclasses import dataclass
 from dataclasses import field
-from typing import NoReturn
 from typing import Optional
 from unittest.mock import MagicMock
 
@@ -49,7 +48,7 @@ class CoverExpected:
 
 class TestCovers:
     @pytest.fixture(autouse=True)
-    def pre(self, _modbus_client: MockModbusClient, mocker: MockerFixture) -> NoReturn:
+    def pre(self, _modbus_client: MockModbusClient, mocker: MockerFixture) -> None:
         mock_response_is_error = MagicMock(spec=ModbusResponse)
         mock_response_is_error.isError.return_value = False
 
@@ -83,7 +82,7 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = options.calibration_mode
 
@@ -149,7 +148,7 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = False
         cover._current.position = options.position
@@ -224,7 +223,7 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = False
         cover._current.position = options.position
@@ -271,7 +270,7 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: str,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = False
         cover.status.position = options.position
@@ -329,7 +328,7 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = False
         cover._current.tilt = options.current_tilt
@@ -406,11 +405,11 @@ class TestHappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = False
         cover._current.tilt = options.tilt
-        cover.tilt = options.tilt
+        cover.status.tilt = options.tilt
         cover._current.position = options.current_position
         cover.status.position = options.current_position
         cover._update_state()
@@ -449,7 +448,7 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_friendly_name(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: str
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
 
         assert str(cover) == expected
@@ -466,7 +465,7 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_state_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._current.state = options.current_cover_state
         cover.status.state = options.cover_state
@@ -486,7 +485,7 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_position_changed(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._current.position = options.current_position
         cover.status.position = options.position
@@ -506,7 +505,7 @@ class TestUnhappyPathCovers(TestCovers):
         _covers: CoverMap,
         options: CoverOptions,
         expected: int,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = False
         cover._current.position = expected
@@ -523,7 +522,7 @@ class TestUnhappyPathCovers(TestCovers):
     @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
     async def test_open_with_calibration_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = True
         cover._current.position = expected
@@ -540,7 +539,7 @@ class TestUnhappyPathCovers(TestCovers):
     @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
     async def test_close_with_calibration_mode(
         self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = True
         cover._current.position = expected
@@ -574,7 +573,7 @@ class TestUnhappyPathCovers(TestCovers):
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
-    ) -> NoReturn:
+    ) -> None:
         cover: Cover = next(_covers.by_device_classes([options.device_class]))
         cover._calibration.mode = options.calibration_mode
 

@@ -1,5 +1,5 @@
 import asyncio
-from typing import NoReturn
+from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import PropertyMock
 
@@ -14,7 +14,7 @@ from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import Config
 from unipi_control.config import HardwareType
-from unipi_control.modbus import ModbusClient
+from unipi_control.helpers.typing import ModbusClient
 from unipi_control.neuron import Neuron
 
 
@@ -27,9 +27,9 @@ class TestUnhappyPathModbus:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         caplog: LogCaptureFixture,
-    ) -> NoReturn:
+    ) -> None:
         _neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
-        logs: list = [record.getMessage() for record in caplog.records]
+        logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert "[MODBUS] Error on address 0 (unit: 1)" in logs
 
@@ -39,7 +39,7 @@ class TestUnhappyPathModbus:
     )
     async def test_timeout_exceptions(
         self, mocker: MockerFixture, _config_loader: ConfigLoader, caplog: LogCaptureFixture
-    ) -> NoReturn:
+    ) -> None:
         config: Config = _config_loader.get_config()
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()
@@ -55,7 +55,7 @@ class TestUnhappyPathModbus:
 
         await _neuron.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
-        logs: list = [record.getMessage() for record in caplog.records]
+        logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert "[MODBUS] Timeout on: {'address': 0, 'count': 2, 'slave': 0}" in logs
         assert "[MODBUS] Timeout on: {'address': 20, 'count': 1, 'slave': 0}" in logs

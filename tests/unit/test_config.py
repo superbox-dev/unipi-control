@@ -1,5 +1,3 @@
-from typing import NoReturn
-
 import pytest
 
 from tests.unit.conftest import ConfigLoader
@@ -99,7 +97,7 @@ class TestUnhappyPathConfig:
         ],
         indirect=["_config_loader"],
     )
-    def test_validation(self, _config_loader: ConfigLoader, expected: str) -> NoReturn:
+    def test_validation(self, _config_loader: ConfigLoader, expected: str) -> None:
         with pytest.raises(ConfigError) as error:
             _config_loader.get_config()
 

@@ -1,8 +1,9 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
+from typing import Any
+from typing import Dict
 from typing import List
-from typing import NoReturn
 from typing import Set
 from unittest.mock import AsyncMock
 
@@ -11,11 +12,11 @@ from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-
 from asyncio_mqtt import Client
 
 from tests.unit.conftest import ConfigLoader
-from tests.unit.conftest import ModbusClient
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import DEVICE_CLASSES
+from unipi_control.helpers.typing import ModbusClient
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
 from unipi_control.neuron import Neuron
@@ -32,15 +33,15 @@ class TestHappyPathHassCoversMqttPlugin:
         _neuron: Neuron,
         _covers: CoverMap,
         caplog: LogCaptureFixture,
-    ) -> NoReturn:
-        async def run() -> NoReturn:
+    ) -> None:
+        async def run() -> None:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
                 neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers
             )
 
             async with AsyncExitStack() as stack:
-                tasks: Set[Task] = set()
+                tasks: Set[Task[Any]] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
                 await plugin.init_tasks(tasks)
@@ -49,7 +50,7 @@ class TestHappyPathHassCoversMqttPlugin:
                 for task in tasks:
                     assert task.done() is True
 
-            logs: list = [record.getMessage() for record in caplog.records]
+            logs: List[str] = [record.getMessage() for record in caplog.records]
             assert (
                 '[MQTT] [homeassistant/cover/mocked_unipi_mocked_blind_topic_name/config] Publishing message: {"name": "MOCKED_FRIENDLY_NAME - BLIND", "unique_id": "mocked_unipi_mocked_blind_topic_name", "command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set", "state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state", "qos": 2, "optimistic": false, "device": {"name": "MOCKED UNIPI", "identifiers": "MOCKED UNIPI", "model": "MOCKED_NAME MOCKED_MODEL", "manufacturer": "Unipi technology"}, "object_id": "mocked_blind_topic_name", "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", "set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set", "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt", "tilt_command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set"}'
                 in logs
@@ -122,8 +123,8 @@ class TestHappyPathHassCoversMqttPlugin:
         _config_loader: ConfigLoader,
         _neuron: Neuron,
         _covers: CoverMap,
-        expected: List[dict],
-    ) -> NoReturn:
+        expected: List[Dict[str, Any]],
+    ) -> None:
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(
             neuron=_neuron, mqtt_client=mock_mqtt_client, covers=_covers

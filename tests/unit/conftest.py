@@ -2,8 +2,8 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import AsyncGenerator
+from typing import List
 from typing import NamedTuple
-from typing import NoReturn
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
@@ -17,13 +17,13 @@ from pytest_mock import MockerFixture
 from tests.unit.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 from tests.unit.conftest_data import NEURON_L203_MODBUS_REGISTER
 from unipi_control.config import Config
+from unipi_control.helpers.typing import ModbusClient
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.modbus import ModbusClient
 from unipi_control.neuron import Neuron
 
 
 @pytest.fixture(autouse=True, scope="session")
-def logger() -> NoReturn:
+def logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger().handlers.clear()
     logging.info("Initialize logging")
@@ -45,15 +45,15 @@ class ConfigLoader:
         self.temp_path: Path = self.temp / "unipi"
         self.temp_path.mkdir(parents=True)
 
-    def write_config(self, content: str) -> NoReturn:
+    def write_config(self, content: str) -> None:
         with self.config_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def write_hardware_data(self, content: str) -> NoReturn:
+    def write_hardware_data(self, content: str) -> None:
         with self.hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def write_extension_hardware_data(self, content: str) -> NoReturn:
+    def write_extension_hardware_data(self, content: str) -> None:
         with self.extension_hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
@@ -154,10 +154,10 @@ class MockMQTTMessage(NamedTuple):
 
 
 class MockMQTTMessages:
-    def __init__(self, message) -> None:
-        self.message = message
+    def __init__(self, message: List[bytes]) -> None:
+        self.message: List[bytes] = message
 
-    def __aiter__(self):
+    def __aiter__(self) -> "MockMQTTMessages":
         return self
 
     async def __anext__(self) -> MockMQTTMessage:

@@ -1,4 +1,4 @@
-from typing import NoReturn
+from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
@@ -14,7 +14,7 @@ from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import Config
-from unipi_control.modbus import ModbusClient
+from unipi_control.helpers.typing import ModbusClient
 from unipi_control.neuron import Neuron
 
 
@@ -28,7 +28,7 @@ class TestUnhappyPathNeuron:
         mocker: MockerFixture,
         _config_loader: ConfigLoader,
         caplog: LogCaptureFixture,
-    ) -> NoReturn:
+    ) -> None:
         config: Config = _config_loader.get_config()
 
         mock_response: MagicMock = MagicMock(spec=ModbusResponse)
@@ -47,7 +47,7 @@ class TestUnhappyPathNeuron:
 
         await _neuron.read_boards()
 
-        logs: list = [record.getMessage() for record in caplog.records]
+        logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert "[MODBUS] No board on SPI 1" in logs
         assert "[MODBUS] No board on SPI 2" in logs
