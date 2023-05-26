@@ -1,3 +1,5 @@
+"""Read config from yaml file and create config data class."""
+
 import dataclasses
 import logging
 import re

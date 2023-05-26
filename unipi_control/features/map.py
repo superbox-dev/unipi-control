@@ -1,3 +1,5 @@
+"""Feature mapping for all input and output features."""
+
 import itertools
 from typing import Dict
 from typing import Iterable
@@ -37,6 +39,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         Parameters
         ----------
         feature: Feature
+            Input or output feature.
         """
         feature_type: FeatureType = feature.hardware.feature_type
 
@@ -55,6 +58,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         feature_id: str
             The machine-readable unique name e.g. ro_2_01.
         feature_types: list
+            List of feature types e.g. DI, RO, ...
 
         Returns
         -------
@@ -90,6 +94,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         Parameters
         ----------
         feature_types: list
+            List of feature types e.g. DI, RO, ...
 
         Returns
         -------

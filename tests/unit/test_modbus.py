@@ -1,3 +1,5 @@
+"""Test modbus."""
+
 import asyncio
 from typing import List
 from unittest.mock import AsyncMock
@@ -20,27 +22,24 @@ from unipi_control.neuron import Neuron
 
 class TestUnhappyPathModbus:
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    def test_modbus_error(
-        self,
-        _config_loader: ConfigLoader,
-        _neuron: Neuron,
-        caplog: LogCaptureFixture,
-    ) -> None:
-        _neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
+    def test_modbus_error(self, neuron: Neuron, caplog: LogCaptureFixture) -> None:
+        """Test modbus error logging if read register failed."""
+        neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert "[MODBUS] Error on address 0 (unit: 1)" in logs
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    async def test_timeout_exceptions(
-        self, mocker: MockerFixture, _config_loader: ConfigLoader, caplog: LogCaptureFixture
+    async def test_modbus_timeout(
+        self, mocker: MockerFixture, config_loader: ConfigLoader, caplog: LogCaptureFixture
     ) -> None:
-        config: Config = _config_loader.get_config()
+        """Test modbus error logging if read register failed with timeout."""
+        config: Config = config_loader.get_config()
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()
         mock_modbus_tcp_client.read_input_registers.side_effect = asyncio.exceptions.TimeoutError
@@ -50,10 +49,10 @@ class TestUnhappyPathModbus:
         )
         mock_hardware_info.return_value = MockHardwareInfo()
 
-        _modbus_client = ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
-        _neuron: Neuron = Neuron(config=config, modbus_client=_modbus_client)
+        modbus_client = ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
+        neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
-        await _neuron.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
+        await neuron.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 

@@ -1,3 +1,5 @@
+"""Data for Home Assistant switches tests."""
+
 from typing import Any
 from typing import Dict
 from typing import List

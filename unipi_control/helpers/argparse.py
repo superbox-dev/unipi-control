@@ -1,3 +1,5 @@
+"""Collection of argument parser helpers."""
+
 import argparse
 
 from unipi_control.helpers.log import LOG_LEVEL

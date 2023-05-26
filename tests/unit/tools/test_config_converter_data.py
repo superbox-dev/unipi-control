@@ -1,3 +1,5 @@
+"""Data for config converter tests."""
+
 from typing import Final
 
 EVOK_MODEL_CONTENT: Final[

@@ -1,3 +1,5 @@
+"""Read model informations from /sys path."""
+
 import struct
 from pathlib import Path
 

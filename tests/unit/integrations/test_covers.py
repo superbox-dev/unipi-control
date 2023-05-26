@@ -1,4 +1,5 @@
-# pylint: disable=protected-access
+"""Test MQTT for covers."""
+
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
@@ -8,7 +9,6 @@ import pytest
 from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
-from tests.unit.conftest import ConfigLoader
 from tests.unit.conftest import MockModbusClient
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
@@ -48,22 +48,22 @@ class CoverExpected:
 
 class TestCovers:
     @pytest.fixture(autouse=True)
-    def pre(self, _modbus_client: MockModbusClient, mocker: MockerFixture) -> None:
-        mock_response_is_error = MagicMock(spec=ModbusResponse)
-        mock_response_is_error.isError.return_value = False
+    def _pre(self, modbus_client: MockModbusClient, mocker: MockerFixture) -> None:
+        mock_response: MagicMock = MagicMock(spec=ModbusResponse)
+        mock_response.isError.return_value = False
 
-        _modbus_client.tcp.write_coil.return_value = mock_response_is_error
+        modbus_client.tcp.write_coil.return_value = mock_response
 
         mocker.patch("unipi_control.integrations.covers.CoverTimer", new_callable=MagicMock)
 
 
 class TestHappyPathCovers(TestCovers):
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (
                 CoverOptions(device_class="blind", calibration_mode=True),
@@ -76,35 +76,31 @@ class TestHappyPathCovers(TestCovers):
         ],
     )
     async def test_calibrate(
-        self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
-        mocker: MockerFixture,
-        options: CoverOptions,
-        expected: CoverExpected,
+        self, covers: CoverMap, mocker: MockerFixture, options: CoverOptions, expected: CoverExpected
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = options.calibration_mode
+        """Test cover calibration start and finish."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = options.calibration_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.calibrate()
 
-        assert cover._calibration.started is expected.calibration_started
+        assert cover.calibration.started is expected.calibration_started
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
         await cover.stop_cover()
 
-        assert cover._calibration.mode == expected.calibration_mode
+        assert cover.calibration.mode == expected.calibration_mode
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (
                 CoverOptions(device_class="blind", position=0),
@@ -143,17 +139,17 @@ class TestHappyPathCovers(TestCovers):
     )
     async def test_open_cover(
         self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
+        covers: CoverMap,
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = False
-        cover._current.position = options.position
+        """Test cover status and position when open the cover."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = False
+        cover.current.position = options.position
         cover.status.position = options.position
-        cover._update_state()
+        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
         assert cover.status.state == expected.current_cover_state
 
@@ -174,12 +170,12 @@ class TestHappyPathCovers(TestCovers):
         assert cover.state_changed is True
         assert cover.position_changed == expected.position_changed
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (
                 CoverOptions(device_class="blind", position=100),
@@ -218,17 +214,17 @@ class TestHappyPathCovers(TestCovers):
     )
     async def test_close_cover(
         self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
+        covers: CoverMap,
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = False
-        cover._current.position = options.position
+        """Test cover status and position when close the cover."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = False
+        cover.current.position = options.position
         cover.status.position = options.position
-        cover._update_state()
+        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
         assert cover.status.state == expected.current_cover_state
 
@@ -251,12 +247,12 @@ class TestHappyPathCovers(TestCovers):
         assert cover.state_changed is True
         assert cover.position_changed == expected.position_changed
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (CoverOptions(device_class="blind", position=0, cover_state=CoverState.CLOSING), "closed"),
             (CoverOptions(device_class="blind", position=50, cover_state=CoverState.OPENING), "stopped"),
@@ -265,14 +261,14 @@ class TestHappyPathCovers(TestCovers):
     )
     async def test_stop_cover(
         self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
+        covers: CoverMap,
         mocker: MockerFixture,
         options: CoverOptions,
         expected: str,
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = False
+        """Test cover status when stop the cover."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = False
         cover.status.position = options.position
         cover.status.state = options.cover_state
 
@@ -282,12 +278,12 @@ class TestHappyPathCovers(TestCovers):
         await cover.stop_cover()
         assert cover.status.state == expected
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (
                 CoverOptions(device_class="blind", position=50, current_tilt=50, tilt=25),
@@ -323,19 +319,19 @@ class TestHappyPathCovers(TestCovers):
     )
     async def test_set_tilt(
         self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
+        covers: CoverMap,
         mocker: MockerFixture,
         options: CoverOptions,
         expected: CoverExpected,
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = False
-        cover._current.tilt = options.current_tilt
+        """Test cover status and tilt when tilt the cover."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = False
+        cover.current.tilt = options.current_tilt
         cover.status.tilt = options.current_tilt
-        cover._current.position = options.position
+        cover.current.position = options.position
         cover.status.position = options.position
-        cover._update_state()
+        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
         assert cover.status.state == expected.current_cover_state
 
@@ -359,12 +355,12 @@ class TestHappyPathCovers(TestCovers):
         assert cover.state_changed is True
         assert cover.tilt_changed == expected.tilt_changed
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (
                 CoverOptions(device_class="blind", current_position=50, tilt=50, position=25),
@@ -399,20 +395,16 @@ class TestHappyPathCovers(TestCovers):
         ],
     )
     async def test_set_position(
-        self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
-        mocker: MockerFixture,
-        options: CoverOptions,
-        expected: CoverExpected,
+        self, covers: CoverMap, mocker: MockerFixture, options: CoverOptions, expected: CoverExpected
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = False
-        cover._current.tilt = options.tilt
+        """Test cover status when changed position for the cover."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = False
+        cover.current.tilt = options.tilt
         cover.status.tilt = options.tilt
-        cover._current.position = options.current_position
+        cover.current.position = options.current_position
         cover.status.position = options.current_position
-        cover._update_state()
+        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
         assert cover.status.state == expected.current_cover_state
 
@@ -437,124 +429,123 @@ class TestHappyPathCovers(TestCovers):
         assert cover.position_changed == expected.position_changed
 
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (CoverOptions(device_class="blind"), "MOCKED_FRIENDLY_NAME - BLIND"),
             (CoverOptions(device_class="roller_shutter"), "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER"),
         ],
     )
-    def test_friendly_name(
-        self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: str
-    ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
+    def test_friendly_name(self, covers: CoverMap, options: CoverOptions, expected: str) -> None:
+        """Test friendly name for the cover."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
 
         assert str(cover) == expected
 
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (CoverOptions(device_class="blind", current_cover_state="stopped", cover_state="close"), True),
             (CoverOptions(device_class="blind", current_cover_state="closed", cover_state="closed"), False),
         ],
     )
-    def test_state_changed(
-        self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
-    ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._current.state = options.current_cover_state
+    def test_state_changed(self, covers: CoverMap, options: CoverOptions, expected: bool) -> None:
+        """Test cover state changed."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.current.state = options.current_cover_state
         cover.status.state = options.cover_state
 
         assert cover.state_changed == expected
 
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (CoverOptions(device_class="blind", current_position=0, position=50), True),
             (CoverOptions(device_class="blind", current_position=50, position=50), False),
             (CoverOptions(device_class="roller_shutter", current_position=None, position=None), False),
         ],
     )
-    def test_position_changed(
-        self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: bool
-    ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._current.position = options.current_position
+    def test_position_changed(self, covers: CoverMap, options: CoverOptions, expected: bool) -> None:
+        """Test cover position changed."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.current.position = options.current_position
         cover.status.position = options.position
 
         assert cover.position_changed == expected
 
 
 class TestUnhappyPathCovers(TestCovers):
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 105)])
-    async def test_open_with_invalid_position(
+    @pytest.mark.parametrize(("options", "expected"), [(CoverOptions(device_class="blind"), 105)])
+    async def test_open_cover_with_invalid_position(
         self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
+        covers: CoverMap,
         options: CoverOptions,
         expected: int,
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = False
-        cover._current.position = expected
+        """Test open cover when cover position has position greater than 100."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = False
+        cover.current.position = expected
         cover.status.position = expected
 
         cover_run_time: Optional[float] = await cover.open_cover()
 
         assert cover_run_time is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
-    async def test_open_with_calibration_mode(
-        self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
+    @pytest.mark.parametrize(("options", "expected"), [(CoverOptions(device_class="blind"), 50)])
+    async def test_open_cover_with_calibration_mode(
+        self, covers: CoverMap, options: CoverOptions, expected: int
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = True
-        cover._current.position = expected
+        """Test open cover when calibration mode is enabled."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = True
+        cover.current.position = expected
         cover.status.position = expected
 
         cover_run_time: Optional[float] = await cover.open_cover()
 
         assert cover_run_time is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    @pytest.mark.parametrize("options, expected", [(CoverOptions(device_class="blind"), 50)])
-    async def test_close_with_calibration_mode(
-        self, _config_loader: ConfigLoader, _covers: CoverMap, options: CoverOptions, expected: int
+    @pytest.mark.parametrize(("options", "expected"), [(CoverOptions(device_class="blind"), 50)])
+    async def test_close_cover_with_calibration_mode(
+        self, covers: CoverMap, options: CoverOptions, expected: int
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = True
-        cover._current.position = expected
+        """Test close cover when calibration mode is enabled."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = True
+        cover.current.position = expected
         cover.status.position = expected
 
         cover_run_time: Optional[float] = await cover.close_cover()
 
         assert cover_run_time is None
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
     @pytest.mark.parametrize(
-        "options, expected",
+        ("options", "expected"),
         [
             (
                 CoverOptions(device_class="blind", calibration_mode=True),
@@ -567,25 +558,21 @@ class TestUnhappyPathCovers(TestCovers):
         ],
     )
     async def test_calibrate_stopped(
-        self,
-        _config_loader: ConfigLoader,
-        _covers: CoverMap,
-        mocker: MockerFixture,
-        options: CoverOptions,
-        expected: CoverExpected,
+        self, covers: CoverMap, mocker: MockerFixture, options: CoverOptions, expected: CoverExpected
     ) -> None:
-        cover: Cover = next(_covers.by_device_classes([options.device_class]))
-        cover._calibration.mode = options.calibration_mode
+        """Test calibration mode is stopped before finished."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = options.calibration_mode
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.calibrate()
 
-        assert cover._calibration.started is expected.calibration_started
+        assert cover.calibration.started is expected.calibration_started
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time / 2
 
         await cover.stop_cover()
 
-        assert cover._calibration.mode == expected.calibration_mode
+        assert cover.calibration.mode == expected.calibration_mode

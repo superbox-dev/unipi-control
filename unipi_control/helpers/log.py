@@ -1,3 +1,5 @@
+"""Collection of logging helpers."""
+
 import logging
 from collections import OrderedDict
 from logging import StreamHandler

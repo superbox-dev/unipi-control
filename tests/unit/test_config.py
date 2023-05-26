@@ -1,3 +1,5 @@
+"""Test configuration."""
+
 import pytest
 
 from tests.unit.conftest import ConfigLoader
@@ -24,11 +26,12 @@ from unipi_control.helpers.exception import ConfigError
 
 class TestUnhappyPathConfig:
     @pytest.mark.parametrize(
-        "_config_loader, expected",
+        ("config_loader", "expected"),
         [
             (
                 (CONFIG_INVALID_DEVICE_NAME, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[DEVICEINFO] Invalid value 'INVALID DEVICE NAME$' in 'name'. The following characters are prohibited: a-z 0-9 -_ space",
+                "[DEVICEINFO] Invalid value 'INVALID DEVICE NAME$' in 'name'. "
+                "The following characters are prohibited: a-z 0-9 -_ space",
             ),
             (
                 (
@@ -36,7 +39,8 @@ class TestUnhappyPathConfig:
                     HARDWARE_DATA_CONTENT,
                     EXTENSION_HARDWARE_DATA_CONTENT,
                 ),
-                "[HOMEASSISTANT] Invalid value 'invalid discovery name' in 'discovery_prefix'. The following characters are prohibited: a-z 0-9 -_",
+                "[HOMEASSISTANT] Invalid value 'invalid discovery name' in 'discovery_prefix'. "
+                "The following characters are prohibited: a-z 0-9 -_",
             ),
             (
                 (CONFIG_INVALID_FEATURE_TYPE, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -44,27 +48,35 @@ class TestUnhappyPathConfig:
             ),
             (
                 (CONFIG_INVALID_COVER_ID, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[COVER] Invalid value 'invalid id' in 'object_id'. The following characters are prohibited: a-z 0-9 -_",
+                "[COVER] Invalid value 'invalid id' in 'object_id'. "
+                "The following characters are prohibited: a-z 0-9 -_",
             ),
             (
                 (CONFIG_INVALID_DEVICE_CLASS, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[COVER] Invalid value 'INVALID' in 'device_class'. The following values are allowed: blind roller_shutter garage_door.",
+                "[COVER] Invalid value 'INVALID' in 'device_class'. "
+                "The following values are allowed: blind roller_shutter garage_door.",
             ),
             (
                 (CONFIG_MISSING_COVER_KEY, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[COVER] Required key 'object_id' is missing! CoverConfig(object_id='', friendly_name='MOCKED_FRIENDLY_NAME - BLIND', suggested_area='', device_class='blind', cover_run_time=35.5, tilt_change_time=1.5, cover_up='ro_3_01', cover_down='ro_3_02')",
+                "[COVER] Required key 'object_id' is missing! "
+                "CoverConfig(object_id='', friendly_name='MOCKED_FRIENDLY_NAME - BLIND', suggested_area='', "
+                "device_class='blind', cover_run_time=35.5, tilt_change_time=1.5, cover_up='ro_3_01', "
+                "cover_down='ro_3_02')",
             ),
             (
                 (CONFIG_DUPLICATE_COVERS_CIRCUITS, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[COVER] Duplicate circuits found in 'covers'. Driving both signals up and down at the same time can damage the motor!",
+                "[COVER] Duplicate circuits found in 'covers'. "
+                "Driving both signals up and down at the same time can damage the motor!",
             ),
             (
                 (CONFIG_INVALID, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                """Can't read YAML file!\n  in "<unicode string>", line 2, column 21:\n      name: MOCKED UNIPI:\n                        ^""",
+                'Can\'t read YAML file!\n  in "<unicode string>", line 2, column 21:\n'
+                "      name: MOCKED UNIPI:\n                        ^",
             ),
             (
                 (CONFIG_INVALID_LOG_LEVEL, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[LOGGING] Invalid log level 'invalid'. The following log levels are allowed: error warning info debug.",
+                "[LOGGING] Invalid log level 'invalid'. "
+                "The following log levels are allowed: error warning info debug.",
             ),
             (
                 (CONFIG_DUPLICATE_COVER_ID, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -76,11 +88,13 @@ class TestUnhappyPathConfig:
             ),
             (
                 (CONFIG_INVALID_FEATURE_ID, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[FEATURE] Invalid value 'invalid id' in 'object_id'. The following characters are prohibited: a-z 0-9 -_",
+                "[FEATURE] Invalid value 'invalid id' in 'object_id'. "
+                "The following characters are prohibited: a-z 0-9 -_",
             ),
             (
                 (CONFIG_INVALID_MODBUS_BAUD_RATE, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                "[MODBUS] Invalid baud rate '2401'. The following baud rates are allowed: 2400 4800 9600 19200 38400 57600 115200.",
+                "[MODBUS] Invalid baud rate '2401'. "
+                "The following baud rates are allowed: 2400 4800 9600 19200 38400 57600 115200.",
             ),
             (
                 (CONFIG_INVALID_MODBUS_PARITY, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -95,10 +109,11 @@ class TestUnhappyPathConfig:
                 "[MODBUS] Device name for unit '1' is missing!",
             ),
         ],
-        indirect=["_config_loader"],
+        indirect=["config_loader"],
     )
-    def test_validation(self, _config_loader: ConfigLoader, expected: str) -> None:
+    def test_validation(self, config_loader: ConfigLoader, expected: str) -> None:
+        """Test yaml config raises ConfigError when validation failed."""
         with pytest.raises(ConfigError) as error:
-            _config_loader.get_config()
+            config_loader.get_config()
 
         assert str(error.value) == expected

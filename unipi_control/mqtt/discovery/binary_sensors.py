@@ -1,3 +1,5 @@
+"""Initialize MQTT subscribe and publish for Home Assistant binary sensors."""
+
 import asyncio
 import json
 from asyncio import Task
@@ -22,7 +24,19 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
 
     publish_feature_types: List[str] = ["DI"]
 
-    def _get_discovery(self, feature: DigitalInput) -> Tuple[str, Dict[str, Any]]:
+    def get_discovery(self, feature: DigitalInput) -> Tuple[str, Dict[str, Any]]:
+        """Get Mqtt topic and message for publish with mqtt.
+
+        Parameters
+        ----------
+        feature:
+            All input features.
+
+        Returns
+        -------
+        tuple:
+            Return mqtt topic and message as tuple.
+        """
         topic: str = f"{self.config.homeassistant.discovery_prefix}/binary_sensor/{feature.unique_id}/config"
         device_name: str = self._get_device_name(feature)
 
@@ -64,17 +78,18 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
     async def publish(self) -> None:
         """Publish MQTT Home Assistant discovery topics for binary sensors."""
         for feature in self.neuron.features.by_feature_types(self.publish_feature_types):
-            topic, message = self._get_discovery(feature)
-            json_data: str = json.dumps(message)
-            await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
-            logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+            if isinstance(feature, DigitalInput):
+                topic, message = self.get_discovery(feature)
+                json_data: str = json.dumps(message)
+                await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
+                logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassBinarySensorsMqttPlugin:
     """Provide Home Assistant MQTT commands for binary sensors."""
 
     def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
-        self._hass = HassBinarySensorsDiscovery(neuron, mqtt_client)
+        self.hass = HassBinarySensorsDiscovery(neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
@@ -84,5 +99,5 @@ class HassBinarySensorsMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[Any] = asyncio.create_task(self._hass.publish())
+        task: Task[Any] = asyncio.create_task(self.hass.publish())
         tasks.add(task)

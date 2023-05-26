@@ -1,3 +1,5 @@
+"""Data for config tests."""
+
 from typing import Final
 
 CONFIG_INVALID_DEVICE_NAME: Final[

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Backup Unipi Control configuration."""
+
 import argparse
 import sys
 import tarfile

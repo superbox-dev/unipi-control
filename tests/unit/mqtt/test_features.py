@@ -1,3 +1,5 @@
+"""Test MQTT for input and output features."""
+
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
@@ -14,12 +16,10 @@ from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-
 from asyncio_mqtt import Client
 from pytest_mock import MockerFixture
 
-from tests.unit.conftest import ConfigLoader
 from tests.unit.conftest import MockMQTTMessages
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.helpers.typing import ModbusClient
 from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
 from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
 from unipi_control.neuron import Neuron
@@ -27,16 +27,11 @@ from unipi_control.neuron import Neuron
 
 class TestHappyPathNeuronFeaturesMqttPlugin:
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    def test_init_tasks(
-        self,
-        mocker: MockerFixture,
-        _modbus_client: ModbusClient,
-        _config_loader: ConfigLoader,
-        _neuron: Neuron,
-        caplog: LogCaptureFixture,
-    ) -> None:
+    def test_init_tasks(self, mocker: MockerFixture, neuron: Neuron, caplog: LogCaptureFixture) -> None:
+        """Test MQTT output after initialize neuron features."""
+
         async def run() -> None:
             mock_mqtt_messages: AsyncMock = AsyncMock()
             mock_mqtt_messages.__aenter__.return_value = MockMQTTMessages([b"""ON""", b"""OFF"""])
@@ -53,7 +48,7 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
                 tasks: Set[Task[Any]] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
-                await NeuronFeaturesMqttPlugin(_neuron, mock_mqtt_client).init_tasks(stack, tasks)
+                await NeuronFeaturesMqttPlugin(neuron, mock_mqtt_client).init_tasks(stack, tasks)
                 await asyncio.gather(*tasks)
 
                 for task in tasks:
@@ -88,16 +83,11 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
 
 class TestHappyPathMeterFeaturesMqttPlugin:
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    def test_init_tasks(
-        self,
-        mocker: MockerFixture,
-        _modbus_client: ModbusClient,
-        _config_loader: ConfigLoader,
-        _neuron: Neuron,
-        caplog: LogCaptureFixture,
-    ) -> None:
+    def test_init_tasks(self, mocker: MockerFixture, neuron: Neuron, caplog: LogCaptureFixture) -> None:
+        """Test MQTT output after initialize meter features."""
+
         async def run() -> None:
             mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
             mock_modbus_cache_data_scan: MagicMock = mocker.patch("unipi_control.modbus.ModbusCacheData.scan")
@@ -109,7 +99,7 @@ class TestHappyPathMeterFeaturesMqttPlugin:
                 tasks: Set[Task[Any]] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
-                await MeterFeaturesMqttPlugin(_neuron, mock_mqtt_client).init_tasks(tasks)
+                await MeterFeaturesMqttPlugin(neuron, mock_mqtt_client).init_tasks(tasks)
                 await asyncio.gather(*tasks)
 
                 for task in tasks:

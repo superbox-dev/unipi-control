@@ -1,3 +1,5 @@
+"""Initialize MQTT subscribe and publish for features."""
+
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
@@ -54,20 +56,22 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
         Parameters
         ----------
         stack: AsyncExitStack
+            The async exit stack for mqtt.
         tasks: set
             A set of all MQTT tasks.
         """
         for feature in self.neuron.features.by_feature_types(self.subscribe_feature_types):
-            topic: str = f"{feature.topic}/set"
+            if isinstance(feature, (DigitalOutput, Relay)):
+                topic: str = f"{feature.topic}/set"
 
-            manager = self.mqtt_client.filtered_messages(topic)
-            messages = await stack.enter_async_context(manager)
+                manager = self.mqtt_client.filtered_messages(topic)
+                messages = await stack.enter_async_context(manager)
 
-            subscribe_task: Task[Any] = asyncio.create_task(self._subscribe(feature, topic, messages))
-            tasks.add(subscribe_task)
+                subscribe_task: Task[Any] = asyncio.create_task(self._subscribe(feature, topic, messages))
+                tasks.add(subscribe_task)
 
-            await self.mqtt_client.subscribe(topic)
-            logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
+                await self.mqtt_client.subscribe(topic)
+                logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         task: Task[Any] = asyncio.create_task(
             self._publish(

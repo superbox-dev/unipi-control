@@ -1,3 +1,5 @@
+"""Test neuron device."""
+
 from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -19,33 +21,34 @@ from unipi_control.neuron import Neuron
 
 
 class TestUnhappyPathNeuron:
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    async def test_read_boards(
+    async def test_no_boards_found(
         self,
         mocker: MockerFixture,
-        _config_loader: ConfigLoader,
+        config_loader: ConfigLoader,
         caplog: LogCaptureFixture,
     ) -> None:
-        config: Config = _config_loader.get_config()
+        """Test read neuron boards failed with no boards found."""
+        config: Config = config_loader.get_config()
 
         mock_response: MagicMock = MagicMock(spec=ModbusResponse)
         mock_response.isError.return_value = True
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()
-        mock_modbus_tcp_client.read_input_registers.side_effect = mock_response
+        mock_modbus_tcp_client.read_input_registers.return_value = mock_response
 
         mock_hardware_info: PropertyMock = mocker.patch(
             "unipi_control.config.HardwareInfo", new_callable=PropertyMock()
         )
         mock_hardware_info.return_value = MockHardwareInfo()
 
-        _modbus_client = ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
-        _neuron: Neuron = Neuron(config=config, modbus_client=_modbus_client)
+        modbus_client = ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
+        neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
-        await _neuron.read_boards()
+        await neuron.read_boards()
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 

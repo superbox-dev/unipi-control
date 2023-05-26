@@ -1,3 +1,5 @@
+"""Read hardware to initialize neuron device."""
+
 from typing import List
 from typing import NamedTuple
 from typing import Optional
@@ -53,10 +55,18 @@ class Board:
 
         Parameters
         ----------
-        firmware: str
-            The board firmware.
-        major_group: int
-            The board group number.
+        config: Config
+            Dataclass with configuration settings from yaml file.
+        modbus_client: ModbusClient
+            Modbus named tuple with tcp and serial client.
+        modbus_cache_data: ModbusCacheData
+            Cached modbus registers.
+        definition: HardwareDefinition
+            Neuron and extension hardware definition data.
+        features: FeatureMap
+            Input and output features.
+        board_config: BoardConfig
+            Neuron board configuration e.g. major_group and firmware.
         """
         self.config: Config = config
         self.modbus_client: ModbusClient = modbus_client

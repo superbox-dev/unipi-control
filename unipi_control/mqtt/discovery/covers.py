@@ -1,3 +1,5 @@
+"""Initialize MQTT subscribe and publish for Home Assistant covers."""
+
 import asyncio
 import json
 from asyncio import Task
@@ -29,7 +31,19 @@ class HassCoversDiscovery:
         self.config: Config = neuron.config
         self.hardware: HardwareMap = neuron.hardware
 
-    def _get_discovery(self, cover: Cover) -> Tuple[str, Dict[str, Any]]:
+    def get_discovery(self, cover: Cover) -> Tuple[str, Dict[str, Any]]:
+        """Get MQTT topic and message for publish with MQTT.
+
+        Parameters
+        ----------
+        cover:
+            The Cover class.
+
+        Returns
+        -------
+        tuple:
+            Return MQTT topic and message as tuple.
+        """
         topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.unique_id}/config"
         device_name: str = self.config.device_info.name
         via_device: Optional[str] = None
@@ -73,7 +87,7 @@ class HassCoversDiscovery:
     async def publish(self) -> None:
         """Publish MQTT Home Assistant discovery topics for covers."""
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
-            topic, message = self._get_discovery(cover)
+            topic, message = self.get_discovery(cover)
             json_data: str = json.dumps(message)
             await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
             logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
@@ -83,7 +97,7 @@ class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
     def __init__(self, neuron: Neuron, mqtt_client: Client, covers: CoverMap) -> None:
-        self._hass = HassCoversDiscovery(covers, neuron, mqtt_client)
+        self.hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
@@ -93,5 +107,5 @@ class HassCoversMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[Any] = asyncio.create_task(self._hass.publish())
+        task: Task[Any] = asyncio.create_task(self.hass.publish())
         tasks.add(task)

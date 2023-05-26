@@ -1,3 +1,5 @@
+"""Modbus helpers and register caches."""
+
 import asyncio
 from typing import Any
 from typing import Callable

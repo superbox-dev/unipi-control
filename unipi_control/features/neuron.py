@@ -1,3 +1,5 @@
+"""Neuron features classes."""
+
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Callable
@@ -54,7 +56,7 @@ class NeuronFeature:
         self._reg_value: Callable[..., int] = lambda: modbus.cache.get_register(
             address=modbus.val_reg, index=1, unit=0
         )[0]
-        self._value: Optional[Union[float, int]] = None
+        self.saved_value: Optional[Union[float, int]] = None
 
     def __repr__(self) -> str:
         return self.base_friendly_name
@@ -64,9 +66,9 @@ class NeuronFeature:
         """Detect whether the status has changed."""
         changed: bool = False
 
-        if self.value != self._value:
+        if self.value != self.saved_value:
             changed = True
-            self._value = self.value
+            self.saved_value = self.value
 
         return changed
 
@@ -164,6 +166,7 @@ class Relay(NeuronFeature):
         Parameters
         ----------
         value: bool
+            Feature value as boolean.
 
         Returns
         -------
@@ -187,6 +190,7 @@ class DigitalOutput(NeuronFeature):
         Parameters
         ----------
         value: bool
+            Feature value as boolean.
 
         Returns
         -------
@@ -214,6 +218,7 @@ class Led(NeuronFeature):
         Parameters
         ----------
         value: bool
+            Feature value as boolean.
 
         Returns
         -------

@@ -1,4 +1,5 @@
-# pylint: disable=protected-access
+"""Test input and output features."""
+
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Optional
@@ -8,7 +9,6 @@ from unittest.mock import MagicMock
 import pytest
 from pymodbus.pdu import ModbusResponse
 
-from tests.unit.conftest import ConfigLoader
 from tests.unit.conftest import MockModbusClient
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
@@ -32,69 +32,65 @@ class FeatureOptions:
 class FeatureExpected:
     topic_feature_name: Optional[str] = field(default=None)
     value: Optional[Union[float, int]] = field(default=None)
-    repr: Optional[str] = field(default=None)
+    str_output: Optional[str] = field(default=None)
     coil: Optional[int] = field(default=None)
 
 
 class TestHappyPathFeatures:
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "_config_loader, options, expected",
+        ("config_loader", "options", "expected"),
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="di_2_15", feature_type="DI"),
-                FeatureExpected(topic_feature_name="input", value=1, repr="Digital Input 2.15", coil=None),
+                FeatureExpected(topic_feature_name="input", value=1, str_output="Digital Input 2.15", coil=None),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="do_1_01", feature_type="DO"),
-                FeatureExpected(topic_feature_name="relay", value=0, repr="Digital Output 1.01", coil=0),
+                FeatureExpected(topic_feature_name="relay", value=0, str_output="Digital Output 1.01", coil=0),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="ro_2_13", feature_type="RO"),
-                FeatureExpected(topic_feature_name="relay", value=0, repr="Relay 2.13", coil=112),
+                FeatureExpected(topic_feature_name="relay", value=0, str_output="Relay 2.13", coil=112),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="ro_2_14", feature_type="RO"),
-                FeatureExpected(topic_feature_name="relay", value=1, repr="Relay 2.14", coil=113),
+                FeatureExpected(topic_feature_name="relay", value=1, str_output="Relay 2.14", coil=113),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="led_1_01", feature_type="LED"),
-                FeatureExpected(topic_feature_name="led", value=0, repr="LED 1.01", coil=8),
+                FeatureExpected(topic_feature_name="led", value=0, str_output="LED 1.01", coil=8),
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 FeatureOptions(feature_id="active_power_1", feature_type="METER"),
-                FeatureExpected(topic_feature_name="meter", value=37.7, repr="Active Power"),
+                FeatureExpected(topic_feature_name="meter", value=37.7, str_output="Active Power"),
             ),
         ],
-        indirect=["_config_loader"],
+        indirect=["config_loader"],
     )
     async def test_output_features(
-        self,
-        _modbus_client: MockModbusClient,
-        _config_loader: ConfigLoader,
-        _neuron: Neuron,
-        options: FeatureOptions,
-        expected: FeatureExpected,
+        self, modbus_client: MockModbusClient, neuron: Neuron, options: FeatureOptions, expected: FeatureExpected
     ) -> None:
+        """Test values from the output features."""
         mock_response = MagicMock(spec=ModbusResponse)
         mock_response.isError.return_value = False
 
-        _modbus_client.tcp.write_coil.return_value = mock_response
+        modbus_client.tcp.write_coil.return_value = mock_response
 
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = _neuron.features.by_feature_id(
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = neuron.features.by_feature_id(
             options.feature_id, feature_types=[options.feature_type]
         )
 
         assert feature.topic == f"mocked_unipi/{expected.topic_feature_name}/{options.feature_id}"
-        assert str(feature) == expected.repr
+        assert str(feature) == expected.str_output
 
-        feature._value = False
+        feature.saved_value = False
 
         assert feature.changed == bool(expected.value)
         assert feature.value == expected.value
@@ -109,7 +105,7 @@ class TestHappyPathFeatures:
 
 class TestUnhappyPathFeatures:
     @pytest.mark.parametrize(
-        "_config_loader, feature_id, expected",
+        ("config_loader", "feature_id", "expected"),
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -117,12 +113,11 @@ class TestUnhappyPathFeatures:
                 "[CONFIG] 'INVALID' not found in FeatureMap!",
             )
         ],
-        indirect=["_config_loader"],
+        indirect=["config_loader"],
     )
-    def test_invalid_feature_by_feature_id(
-        self, _config_loader: ConfigLoader, _neuron: Neuron, feature_id: str, expected: str
-    ) -> None:
+    def test_invalid_feature_by_feature_id(self, neuron: Neuron, feature_id: str, expected: str) -> None:
+        """Test that invalid feature id raises ConfigError when reading feature by feature id."""
         with pytest.raises(ConfigError) as error:
-            _neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
+            neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])
 
         assert str(error.value) == expected

@@ -1,3 +1,5 @@
+"""Collection of text helpers."""
+
 import re
 
 import unicodedata
@@ -13,10 +15,12 @@ def slugify(value: str) -> str:
     Parameters
     ----------
     value: str
+        String to slugify.
 
     Returns
     -------
     str
+        Converted string.
     """
     value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     value = re.sub(r"[^\w\s-]", "", value.lower())

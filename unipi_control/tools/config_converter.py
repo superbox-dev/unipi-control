@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Convert Evok to Unipi Control YAML file format."""
+
 import argparse
 import json
 import sys
@@ -121,7 +123,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
 
 
 def main() -> None:
-    """Entrypoint for Unipi Config Converter."""
+    """Entry point for Unipi Config Converter."""
     try:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 

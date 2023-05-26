@@ -1,3 +1,5 @@
+"""Initialize MQTT subscribe and publish for covers."""
+
 import asyncio
 from asyncio import Queue
 from asyncio import Task
@@ -66,6 +68,7 @@ class CoversMqttPlugin:
         Parameters
         ----------
         stack: AsyncExitStack
+            The async exit stack for MQTT.
         tasks: set
             A set of all MQTT tasks.
         """

@@ -1,3 +1,5 @@
+"""Initialize fixtures for tests."""
+
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,7 +25,7 @@ from unipi_control.neuron import Neuron
 
 
 @pytest.fixture(autouse=True, scope="session")
-def logger() -> None:
+def _logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger().handlers.clear()
     logging.info("Initialize logging")
@@ -46,23 +48,59 @@ class ConfigLoader:
         self.temp_path.mkdir(parents=True)
 
     def write_config(self, content: str) -> None:
+        """Write config yaml file to temporary directory.
+
+        Parameters
+        ----------
+        content: str
+            Content for the config yaml file
+        """
         with self.config_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
     def write_hardware_data(self, content: str) -> None:
+        """Write hardware yaml file to temporary directory.
+
+        Parameters
+        ----------
+        content: str
+            Content for the hardware yaml file
+        """
         with self.hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
     def write_extension_hardware_data(self, content: str) -> None:
+        """Write extension hardware yaml file to temporary directory.
+
+        Parameters
+        ----------
+        content: str
+            Content for extension the hardware yaml file
+        """
         with self.extension_hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
     def get_config(self) -> Config:
+        """Get the config dataclass."""
         return Config(config_base_path=self.temp, temp_path=self.temp_path)
 
 
-@pytest.fixture()
-def _config_loader(request: SubRequest, tmp_path: Path) -> ConfigLoader:
+@pytest.fixture(name="config_loader")
+def create_config(request: SubRequest, tmp_path: Path) -> ConfigLoader:
+    """Create config yaml file in temporary directory.
+
+    Parameters
+    ----------
+    request: SubRequest
+        config, hardware data and extension hardware data content.
+    tmp_path: Path
+        Temporary directory for pytest.
+
+    Returns
+    -------
+    ConfigLoader:
+        Helper methods from the config loader class.
+    """
     config_loader: ConfigLoader = ConfigLoader(temp=tmp_path)
     config_loader.write_config(request.param[0])
     config_loader.write_hardware_data(request.param[1])
@@ -86,8 +124,20 @@ class MockModbusClient(NamedTuple):
     serial: AsyncMock
 
 
-@pytest.fixture()
-def _modbus_client(mocker: MockerFixture) -> MockModbusClient:
+@pytest.fixture(name="modbus_client")
+def mock_modbus_client(mocker: MockerFixture) -> MockModbusClient:
+    """Mock modbus client responses from read registers.
+
+    Parameters
+    ----------
+    mocker: MockerFixture
+        pytest fixture for mocking.
+
+    Returns
+    -------
+    MockModbusClient: NamedTuple
+        Named tuple with mocked tcp and serial client
+    """
     mock_bord_response: MagicMock = MagicMock(spec=ModbusResponse, registers=[0])
     mock_bord_response.isError.return_value = False
 
@@ -95,20 +145,17 @@ def _modbus_client(mocker: MockerFixture) -> MockModbusClient:
         mock_response.isError.return_value = False
 
     mock_modbus_tcp_client: AsyncMock = AsyncMock()
-    mock_modbus_tcp_client.read_input_registers.side_effect = (
-        [
-            # Board 1
-            mock_bord_response,
-            # Board 2
-            mock_bord_response,
-            # Board 3
-            mock_bord_response,
-        ]
+    mock_modbus_tcp_client.read_input_registers.side_effect = [
+        # Board 1
+        mock_bord_response,
+        # Board 2
+        mock_bord_response,
+        # Board 3
+        mock_bord_response,
         # Add the modbus register twice to test if feature changed.
         # In the first scan() features changed and in the second scan() features not changed.
-        + NEURON_L203_MODBUS_REGISTER
-        + NEURON_L203_MODBUS_REGISTER
-    )
+        *NEURON_L203_MODBUS_REGISTER + NEURON_L203_MODBUS_REGISTER,
+    ]
 
     for mock_response in EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER:
         mock_response.isError.return_value = False
@@ -130,20 +177,38 @@ def _modbus_client(mocker: MockerFixture) -> MockModbusClient:
     return MockModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_serial_client)
 
 
-@pytest_asyncio.fixture()
-async def _neuron(_config_loader: ConfigLoader, _modbus_client: ModbusClient) -> AsyncGenerator:
-    config: Config = _config_loader.get_config()
+@pytest_asyncio.fixture(name="neuron")
+async def init_neuron(config_loader: ConfigLoader, modbus_client: ModbusClient) -> AsyncGenerator[Neuron, None]:
+    """Initialize neuron device for tests.
 
-    _neuron: Neuron = Neuron(config=config, modbus_client=_modbus_client)
-    await _neuron.init()
+    Parameters
+    ----------
+    config_loader: ConfigLoader
+        Config loader class with helper methods.
+    modbus_client: ModbusClient
+        Mocked modbus client.
+    """
+    config: Config = config_loader.get_config()
 
-    yield _neuron
+    neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+    await neuron.init()
+
+    yield neuron
 
 
-@pytest_asyncio.fixture()
-async def _covers(_config_loader: ConfigLoader, _neuron: Neuron) -> AsyncGenerator:
-    config: Config = _config_loader.get_config()
-    covers: CoverMap = CoverMap(config=config, features=_neuron.features)
+@pytest_asyncio.fixture(name="covers")
+async def init_covers(config_loader: ConfigLoader, neuron: Neuron) -> AsyncGenerator[CoverMap, None]:
+    """Initialize cover map for tests.
+
+    Parameters
+    ----------
+    config_loader: ConfigLoader
+        Config loader class with helper methods.
+    neuron: Neuron
+        Initialized neuron device.
+    """
+    config: Config = config_loader.get_config()
+    covers: CoverMap = CoverMap(config=config, features=neuron.features)
     covers.init()
 
     yield covers

@@ -1,3 +1,5 @@
+"""Collection of typed tuples and dicts."""
+
 from typing import Any
 from typing import ClassVar
 from typing import Dict
@@ -35,7 +37,7 @@ class ModbusFeature(TypedDict):
 
 
 class EastronModbusFeature(ModbusFeature):
-    friendly_name: Optional[str]
+    friendly_name: str
     device_class: Optional[str]
     state_class: Optional[str]
     unit_of_measurement: Optional[str]

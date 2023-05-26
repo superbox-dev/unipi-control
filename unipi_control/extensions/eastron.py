@@ -1,3 +1,5 @@
+"""Initialize Eastron features."""
+
 import asyncio
 import typing
 from typing import Optional

@@ -1,3 +1,5 @@
+"""Unipi Control entry point for read configuration, initialize modbus and connect to mqtt."""
+
 import argparse
 import asyncio
 import sys

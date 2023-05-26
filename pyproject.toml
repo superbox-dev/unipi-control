@@ -85,11 +85,13 @@ junit_xml = "reports/mypy.xml"
 # C0411: wrong-import-order
 # E0401: import-error
 # R0801: duplicate-code
+# R0902: too-many-instance-attributes
 # R0903: too-few-public-methods
+# R0913: too-many-arguments
 # R6003: consider-alternative-union-syntax (python 3.8 compatibility)
 # W6001: deprecated-typing-alias (python 3.8 compatibility)
 # W0613: unused-argument (ruff lint this)
-disable = ["C0114", "C0115", "C0116", "C0411", "E0401", "R0801", "R0903", "R6003", "W6001", "W0613"]
+disable = ["C0114", "C0115", "C0116", "C0411", "E0401", "R0801", "R0902", "R0903", "R0913", "R6003", "W6001", "W0613"]
 notes = ["FIXME"]
 ignore-patterns = ["version.py"]
 
@@ -132,18 +134,18 @@ ignore = [
     "ANN002", # missing-type-args
     "ANN003", # missing-type-kwargs
     "COM", # trailing-comma
-    "D100", # undocumented-public-module
+    #"D100", # undocumented-public-module
     "D101", # undocumented-public-class
     "D104", # undocumented-public-package
     "D105", # undocumented-magic-method
     "D107", # undocumented-public-init
     "D203", # one-blank-line-before-class
     "D213", # multi-line-summary-second-line
-    "D417", # undocumented-param
     "FBT", # boolean-trap
     "S101", # assert-used
     "TCH", # type-checking
     "T201", # print
+    "PLR0913", # too-many-arguments
     "PLR2004", # magic-value-comparison
     "I001", # unsorted-imports
 ]

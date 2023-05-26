@@ -1,3 +1,5 @@
+"""Extensions features classes."""
+
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Callable
@@ -54,7 +56,7 @@ class EastronMeter:
         self._reg_value: Callable[..., Iterable[int]] = lambda: modbus.cache.get_register(
             address=modbus.val_reg, index=2, unit=hardware.definition.unit
         )
-        self._value: Optional[Union[float, int]] = None
+        self.saved_value: Optional[Union[float, int]] = None
 
     def __repr__(self) -> str:
         return self.props.friendly_name
@@ -84,9 +86,9 @@ class EastronMeter:
         """Detect whether the status has changed."""
         changed: bool = False
 
-        if self.value != self._value:
+        if self.value != self.saved_value:
             changed = True
-            self._value = self.value
+            self.saved_value = self.value
 
         return changed
 

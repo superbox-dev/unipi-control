@@ -1,3 +1,6 @@
+"""Collection of exception helpers."""
+
+
 class UnexpectedError(Exception):
     ...
 

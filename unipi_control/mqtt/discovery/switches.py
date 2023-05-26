@@ -1,3 +1,5 @@
+"""Initialize MQTT subscribe and publish for Home Assistant switches."""
+
 import asyncio
 import json
 from asyncio import Task
@@ -24,7 +26,19 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
 
     publish_feature_types: List[str] = ["DO", "RO"]
 
-    def _get_discovery(self, feature: Union[DigitalOutput, Relay]) -> Tuple[str, Dict[str, Any]]:
+    def get_discovery(self, feature: Union[DigitalOutput, Relay]) -> Tuple[str, Dict[str, Any]]:
+        """Get Mqtt topic and message for publish with mqtt.
+
+        Parameters
+        ----------
+        feature:
+            All output features.
+
+        Returns
+        -------
+        tuple:
+            Return mqtt topic and message as tuple.
+        """
         topic: str = f"{self.config.homeassistant.discovery_prefix}/switch/{feature.unique_id}/config"
         device_name: str = self._get_device_name(feature)
 
@@ -67,8 +81,11 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
     async def publish(self) -> None:
         """Publish MQTT Home Assistant discovery topics for switches."""
         for feature in self.neuron.features.by_feature_types(self.publish_feature_types):
-            if feature.feature_id not in self.config.get_cover_circuits():
-                topic, message = self._get_discovery(feature)
+            if (
+                isinstance(feature, (DigitalOutput, Relay))
+                and feature.feature_id not in self.config.get_cover_circuits()
+            ):
+                topic, message = self.get_discovery(feature)
 
                 json_data: str = json.dumps(message)
                 await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
@@ -79,7 +96,7 @@ class HassSwitchesMqttPlugin:
     """Provide Home Assistant MQTT commands for switches."""
 
     def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
-        self._hass = HassSwitchesDiscoveryMixin(neuron, mqtt_client)
+        self.hass = HassSwitchesDiscoveryMixin(neuron, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task[Any]]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
@@ -89,5 +106,5 @@ class HassSwitchesMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[Any] = asyncio.create_task(self._hass.publish())
+        task: Task[Any] = asyncio.create_task(self.hass.publish())
         tasks.add(task)
