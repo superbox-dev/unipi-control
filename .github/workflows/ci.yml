@@ -124,7 +124,7 @@ jobs:
       ftp-port: ${{ vars.FTP_PORT }}
       ftp-username: ${{ vars.FTP_USERNAME }}
       ftp-publish-path: ${{ vars.FTP_PUBLISH_PATH }}
-      version-dev: ${{ needs.parameters.outputs.version-dev }}
+      is-dev-version: ${{ needs.parameters.outputs.is-dev-version }}
     secrets:
       FTP_PASSWORD: ${{ secrets.FILES_SUPERBOX_ONE_FTP_PASSWORD }}
 
