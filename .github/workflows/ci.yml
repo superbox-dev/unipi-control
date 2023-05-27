@@ -52,7 +52,6 @@ jobs:
     name: Build python package
     if: |
       contains(fromJSON('["tag", "branch"]'), github.ref_type)
-      && github.ref_name != 'main'
       && !endsWith(github.ref_name, '/merge')
     uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
     needs:
@@ -67,7 +66,6 @@ jobs:
     name: Build binary files
     if: |
       contains(fromJSON('["tag", "branch"]'), github.ref_type)
-      && github.ref_name != 'main'
       && !endsWith(github.ref_name, '/merge')
     uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
     needs:
