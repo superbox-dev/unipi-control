@@ -20,6 +20,7 @@ jobs:
     needs:
       - parameters
     with:
+      package-name: ${{ needs.parameters.outputs.package-name }}
       python-versions: ${{ needs.parameters.outputs.python-versions }}
 
   coverage:

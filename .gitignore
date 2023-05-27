@@ -22,6 +22,7 @@ output/
 
 # reports
 reports/
+.coverage
 
 # build package
 *.egg

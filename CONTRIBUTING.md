@@ -37,7 +37,7 @@ pytest -n auto
 To get the full test coverage report of `unipi-control`, run the following command:
 
 ```bash
-pytest --cov-report term-missing --cov=src
+pytest --cov-report term-missing --cov=unipi_control
 ```
 
 ## Making a pull request
