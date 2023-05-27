@@ -1,8 +1,9 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 # Update packages
 RUN apt update \
     && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+      git \
       gcc \
       ccache \
       sudo \
