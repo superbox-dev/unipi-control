@@ -166,6 +166,3 @@ omit = ["unipi_control/tools/model_info.py"]
 fail_under = 80
 show_missing = true
 skip_covered = true
-
-[tool.coverage.xml] # https://coverage.readthedocs.io/en/latest/config.html#xml
-output = "reports/test-results.xml"
