@@ -7,7 +7,6 @@ import uuid
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
-from typing import Any
 from typing import Awaitable
 from typing import Callable
 from typing import List
@@ -56,7 +55,7 @@ class UnipiControl:
         self.neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
 
     async def _init_tasks(self, stack: AsyncExitStack, mqtt_client: Client) -> None:
-        tasks: Set[Task[Any]] = set()
+        tasks: Set[Task] = set()
         stack.push_async_callback(self._cancel_tasks, tasks)
 
         await NeuronFeaturesMqttPlugin(self.neuron, mqtt_client).init_tasks(stack, tasks)
@@ -77,7 +76,7 @@ class UnipiControl:
         await asyncio.gather(*tasks)
 
     @staticmethod
-    async def _cancel_tasks(tasks: Set[Task[Any]]) -> None:
+    async def _cancel_tasks(tasks: Set[Task]) -> None:
         for task in tasks:
             if task.done():
                 continue

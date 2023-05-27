@@ -3,7 +3,6 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
-from typing import Any
 from typing import List
 from typing import Set
 from unittest.mock import AsyncMock
@@ -45,7 +44,7 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
             NeuronFeaturesMqttPlugin.scan_interval = 25e-3
 
             async with AsyncExitStack() as stack:
-                tasks: Set[Task[Any]] = set()
+                tasks: Set[Task] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
                 await NeuronFeaturesMqttPlugin(neuron, mock_mqtt_client).init_tasks(stack, tasks)
@@ -96,7 +95,7 @@ class TestHappyPathMeterFeaturesMqttPlugin:
             MeterFeaturesMqttPlugin.scan_interval = 25e-3
 
             async with AsyncExitStack() as stack:
-                tasks: Set[Task[Any]] = set()
+                tasks: Set[Task] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
                 await MeterFeaturesMqttPlugin(neuron, mock_mqtt_client).init_tasks(tasks)

@@ -44,7 +44,7 @@ class CoversMqttPlugin:
         self.mqtt_client: Client = mqtt_client
         self.covers: CoverMap = covers
 
-        self._queues: Dict[str, Queue[SubscribeCommand]] = {}
+        self._queues: Dict[str, Queue] = {}
 
         self._init_queues()
 
@@ -53,7 +53,7 @@ class CoversMqttPlugin:
             self._queues[cover.topic] = Queue()
 
     async def _clear_queue(self, cover: Cover) -> None:
-        queue: Queue[SubscribeCommand] = self._queues[cover.topic]
+        queue: Queue = self._queues[cover.topic]
 
         if (size := queue.qsize()) > 0:
             for _ in range(size):
@@ -62,7 +62,7 @@ class CoversMqttPlugin:
 
             logger.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
 
-    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
+    async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         """Initialize MQTT tasks for subscribe and publish MQTT topics.
 
         Parameters
@@ -76,7 +76,7 @@ class CoversMqttPlugin:
         await self._set_position_topic(stack, tasks)
         await self._tilt_command_topic(stack, tasks)
 
-        task: Task[Any] = asyncio.create_task(self._publish())
+        task: Task = asyncio.create_task(self._publish())
         tasks.add(task)
 
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
@@ -85,7 +85,7 @@ class CoversMqttPlugin:
 
     async def _subscribe_command_worker(self, cover: Cover) -> None:
         while self.SUBSCRIBE_COMMAND_WORKER_RUNNING:
-            queue: Queue[SubscribeCommand] = self._queues[cover.topic]
+            queue: Queue = self._queues[cover.topic]
 
             if queue.qsize() > 0:
                 logger.info("%s [%s] [Worker] %s task(s) in queue.", LogPrefix.COVER, cover.topic, queue.qsize())
@@ -111,33 +111,33 @@ class CoversMqttPlugin:
             else:
                 queue.task_done()
 
-    async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
+    async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic: str = f"{cover.topic}/set"
 
             manager = self.mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            task: Task[Any] = asyncio.create_task(self._subscribe_command_topic(cover, topic, messages))
+            task: Task = asyncio.create_task(self._subscribe_command_topic(cover, topic, messages))
             tasks.add(task)
 
             await self.mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-    async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
+    async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic: str = f"{cover.topic}/position/set"
 
             manager = self.mqtt_client.filtered_messages(topic)
             messages = await stack.enter_async_context(manager)
 
-            task: Task[Any] = asyncio.create_task(self._subscribe_set_position_topic(cover, topic, messages))
+            task: Task = asyncio.create_task(self._subscribe_set_position_topic(cover, topic, messages))
             tasks.add(task)
 
             await self.mqtt_client.subscribe(topic, qos=0)
             logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
-    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task[Any]]) -> None:
+    async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             if cover.settings.tilt_change_time:
                 topic: str = f"{cover.topic}/tilt/set"
@@ -145,7 +145,7 @@ class CoversMqttPlugin:
                 manager = self.mqtt_client.filtered_messages(topic)
                 messages = await stack.enter_async_context(manager)
 
-                task: Task[Any] = asyncio.create_task(self._subscribe_tilt_command_topic(cover, topic, messages))
+                task: Task = asyncio.create_task(self._subscribe_tilt_command_topic(cover, topic, messages))
                 tasks.add(task)
 
                 await self.mqtt_client.subscribe(topic, qos=0)
@@ -170,7 +170,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 position: int = int(message.payload.decode())
-                queue: Queue[SubscribeCommand] = self._queues[cover.topic]
+                queue: Queue = self._queues[cover.topic]
 
                 await queue.put(
                     SubscribeCommand(
@@ -186,7 +186,7 @@ class CoversMqttPlugin:
         async for message in messages:
             try:
                 tilt: int = int(message.payload.decode())
-                queue: Queue[SubscribeCommand] = self._queues[cover.topic]
+                queue: Queue = self._queues[cover.topic]
 
                 await queue.put(
                     SubscribeCommand(

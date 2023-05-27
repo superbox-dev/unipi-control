@@ -25,7 +25,7 @@ LOG_LEVEL: Final[Dict[str, int]] = OrderedDict(
 )
 
 
-class SystemdHandler(StreamHandler):  # type: ignore[type-arg]
+class SystemdHandler(StreamHandler):
     """Systemd handler with logging prefix for submit log level to journalcl."""
 
     # https://www.freedesktop.org/software/systemd/man/sd-daemon.html

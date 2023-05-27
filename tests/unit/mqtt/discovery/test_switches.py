@@ -41,7 +41,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
             plugin: HassSwitchesMqttPlugin = HassSwitchesMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
 
             async with AsyncExitStack() as stack:
-                tasks: Set[Task[Any]] = set()
+                tasks: Set[Task] = set()
 
                 await stack.enter_async_context(mock_mqtt_client)
                 await plugin.init_tasks(tasks)

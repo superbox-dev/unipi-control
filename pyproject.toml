@@ -76,6 +76,7 @@ target-version = ["py38", "py39", "py310", "py311"]
 strict = true
 python_version = "3.8"
 ignore_missing_imports = true
+disallow_any_generics = false # python 3.8 compatibility
 junit_xml = "reports/mypy.xml"
 
 [tool.pylint.master]

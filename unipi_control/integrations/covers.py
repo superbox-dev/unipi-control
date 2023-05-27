@@ -39,7 +39,7 @@ def run_in_executor(_func: Callable[..., Any]) -> Callable[..., Any]:
     """Run blocking code async."""
 
     @functools.wraps(_func)
-    def wrapped(*args, **kwargs) -> Future[Any]:  # type: ignore[no-untyped-def]
+    def wrapped(*args, **kwargs) -> Future:  # type: ignore[no-untyped-def]
         loop = asyncio.get_running_loop()
         func = functools.partial(_func, *args, **kwargs)
         return loop.run_in_executor(executor=None, func=func)
@@ -112,7 +112,7 @@ class CoverTimer:
         """
         self._timeout: float = timeout
         self._callback: Callable[[], Awaitable[None]] = callback
-        self._task: Optional[Task[Any]] = None
+        self._task: Optional[Task] = None
 
     async def _job(self) -> None:
         await asyncio.sleep(self._timeout - ASYNCIO_SLEEP_DELAY_FIX)
@@ -713,7 +713,7 @@ class CoverMap(Mapping[str, List[Cover]]):
         data: List[Cover] = self.data[key]
         return data
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator:
         return iter(self.data)
 
     def __len__(self) -> int:
@@ -746,7 +746,7 @@ class CoverMap(Mapping[str, List[Cover]]):
 
                 self.data[device_class].append(_cover)
 
-    def by_device_classes(self, device_classes: List[str]) -> Iterator[Cover]:
+    def by_device_classes(self, device_classes: List[str]) -> Iterator:
         """Filter covers by device classes.
 
         Parameters

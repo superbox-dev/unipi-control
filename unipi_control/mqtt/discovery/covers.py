@@ -99,7 +99,7 @@ class HassCoversMqttPlugin:
     def __init__(self, neuron: Neuron, mqtt_client: Client, covers: CoverMap) -> None:
         self.hass = HassCoversDiscovery(covers, neuron, mqtt_client)
 
-    async def init_tasks(self, tasks: Set[Task[Any]]) -> None:
+    async def init_tasks(self, tasks: Set[Task]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.
 
         Parameters
@@ -107,5 +107,5 @@ class HassCoversMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        task: Task[Any] = asyncio.create_task(self.hass.publish())
+        task: Task = asyncio.create_task(self.hass.publish())
         tasks.add(task)
