@@ -14,17 +14,6 @@ jobs:
     with:
       json: ./.github/workflows/parameters.json
 
-  validate:
-    name: Validate
-    if: |
-      contains(fromJSON('["tag", "branch"]'), github.ref_type)
-      && !endsWith(github.ref_name, '/merge')
-    uses: superbox-dev/python-package-workflows/.github/workflows/validate-version.yml@main
-    needs:
-      - parameters
-    with:
-      latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
-
   unit-testing:
     name: Unit testing
     uses: superbox-dev/python-package-workflows/.github/workflows/unit-testing.yml@main
@@ -67,7 +56,6 @@ jobs:
     uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
     needs:
       - parameters
-      - validate
       - unit-testing
       - code-analyse
     with:
@@ -83,7 +71,6 @@ jobs:
     uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
     needs:
       - parameters
-      - validate
       - unit-testing
       - code-analyse
     with:
