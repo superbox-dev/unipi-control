@@ -86,6 +86,10 @@ jobs:
       latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
       package-name: ${{ needs.parameters.outputs.package-name }}
       package-version: ${{ needs.parameters.outputs.package-version }}
+      package-maintainer: ${{ needs.parameters.outputs.package-maintainer }}
+      package-source-url: ${{ needs.parameters.outputs.package-source-url }}
+      package-description: ${{ needs.parameters.outputs.package-description }}
+      package-license: ${{ needs.parameters.outputs.package-license }}
 
   release:
     name: Release on GitHub

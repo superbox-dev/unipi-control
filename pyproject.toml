@@ -9,6 +9,9 @@ readme = "README.md"
 authors = [
     { name = "Michael Hacker", email = "mh@superbox.one" },
 ]
+maintainers = [
+    { name = "Michael Hacker", email = "mh@superbox.one" },
+]
 license = {text = "Apache-2.0 license"}
 keywords = ["mqtt", "modbus", "unipi"]
 classifiers = [
