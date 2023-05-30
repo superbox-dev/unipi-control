@@ -12,7 +12,7 @@ from typing import Union
 
 from asyncio_mqtt import Client
 
-from unipi_control.config import logger
+from unipi_control.config import root_logger
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
@@ -85,7 +85,7 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
                 topic, message = self.get_discovery(feature)
                 json_data: str = json.dumps(message)
                 await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
-                logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+                root_logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassSensorsMqttPlugin:

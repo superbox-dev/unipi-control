@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import AsyncGenerator
 from typing import List
 from typing import NamedTuple
+from typing import Optional
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
@@ -80,9 +81,12 @@ class ConfigLoader:
         with self.extension_hardware_data_file_path.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def get_config(self) -> Config:
+    def get_config(self, config_base_path: Optional[Path] = None) -> Config:
         """Get the config dataclass."""
-        return Config(config_base_path=self.temp, temp_path=self.temp_path)
+        if not config_base_path:
+            config_base_path = self.temp
+
+        return Config(config_base_path=config_base_path, temp_path=self.temp_path)
 
 
 @pytest.fixture(name="config_loader")

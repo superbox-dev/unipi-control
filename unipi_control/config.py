@@ -32,7 +32,7 @@ from unipi_control.helpers.log import SystemdHandler
 from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.helpers.yaml import yaml_loader_safe
 
-logger: logging.Logger = logging.getLogger()
+root_logger: logging.Logger = logging.getLogger()
 
 DEFAULT_CONFIG_PATH: Final[Path] = Path("/etc/unipi")
 DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
@@ -137,7 +137,7 @@ class ConfigLoaderMixin:
         config_path: Path
             Path to the YAML file.
         """
-        if config_path.exists():
+        if config_path.is_file() and config_path.exists():
             yaml_data: Dict[str, Any] = yaml_loader_safe(config_path)
 
             if isinstance(yaml_data, dict):
@@ -345,13 +345,15 @@ class LoggingConfig(ConfigLoaderMixin):
         """Get logging verbose level as integer."""
         return list(LOG_LEVEL).index(self.level)
 
-    def init(self, log: Optional[str], verbose: int = 0) -> None:
+    def init(self, logger: logging.Logger, log: Optional[str], verbose: int = 0) -> None:
         """Initialize logger handler and formatter.
 
         Parameters
         ----------
+        logger:
+            Logging handler.
         log: str
-            set log handler to systemd, stdout or file.
+            set log handler to systemd or stdout.
         verbose: int
             Logging verbose level as integer.
         """
@@ -366,13 +368,15 @@ class LoggingConfig(ConfigLoaderMixin):
             stdout_handler.setFormatter(logging.Formatter(STDOUT_LOG_FORMAT))
             logger.addHandler(stdout_handler)
 
-        self.update_level(verbose)
+        self.update_level(logger, verbose)
 
-    def update_level(self, verbose: int) -> None:
+    def update_level(self, logger: logging.Logger, verbose: int) -> None:
         """Update the logging level in config data class.
 
         Parameters
         ----------
+        logger:
+            Logging handler.
         verbose: int
             Logging verbose level as integer.
         """
@@ -465,14 +469,6 @@ class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
                 raise ConfigError(msg)
 
             object_ids.append(cover.object_id)
-
-    @staticmethod
-    def _validate_config_base_path(value: Path, name: str) -> Path:  # ruff: noqa: ARG004
-        if not value.is_dir() or not value.exists():
-            msg = f"{LogPrefix.DEVICEINFO} Config path '{value}' is invalid!"
-            raise ConfigError(msg)
-
-        return value
 
 
 @dataclass
@@ -581,7 +577,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
                 raise ConfigError(msg) from error
 
-            logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+            root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         else:
             msg = "No valid YAML definition found for this device!"
             raise ConfigError(msg)
@@ -609,9 +605,9 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                         msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
                         raise ConfigError(msg) from error
 
-                    logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+                    root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
         except FileNotFoundError as error:
-            logger.info("%s %s", LogPrefix.CONFIG, str(error))
+            root_logger.info("%s %s", LogPrefix.CONFIG, str(error))
 
     def get_definition_by_hardware_types(self, hardware_types: List[str]) -> Iterator[HardwareDefinition]:
         """Filter hardware definitions by hardware types.

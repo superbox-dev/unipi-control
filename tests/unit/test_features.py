@@ -1,7 +1,6 @@
 """Test input and output features."""
 
-from dataclasses import dataclass
-from dataclasses import field
+from typing import NamedTuple
 from typing import Optional
 from typing import Union
 from unittest.mock import MagicMock
@@ -22,18 +21,16 @@ from unipi_control.helpers.exception import ConfigError
 from unipi_control.neuron import Neuron
 
 
-@dataclass
-class FeatureOptions:
-    feature_id: str = field(default_factory=str)
-    feature_type: str = field(default_factory=str)
+class FeatureOptions(NamedTuple):
+    feature_id: str
+    feature_type: str
 
 
-@dataclass
-class FeatureExpected:
-    topic_feature_name: Optional[str] = field(default=None)
-    value: Optional[Union[float, int]] = field(default=None)
-    str_output: Optional[str] = field(default=None)
-    coil: Optional[int] = field(default=None)
+class FeatureExpected(NamedTuple):
+    topic_feature_name: Optional[str] = None
+    value: Optional[Union[float, int]] = None
+    str_output: Optional[str] = None
+    coil: Optional[int] = None
 
 
 class TestHappyPathFeatures:

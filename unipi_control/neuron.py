@@ -10,7 +10,7 @@ from unipi_control.config import Config
 from unipi_control.config import HardwareMap
 from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
-from unipi_control.config import logger
+from unipi_control.config import root_logger
 from unipi_control.extensions.eastron import EastronSDM120M
 from unipi_control.features.map import FeatureMap
 from unipi_control.features.neuron import DigitalInput
@@ -230,7 +230,7 @@ class Neuron:
 
     async def read_boards(self) -> None:
         """Scan Modbus TCP and initialize Unipi Neuron board."""
-        logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
+        root_logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
 
         for index in (1, 2, 3):
             data: ModbusReadData = {
@@ -259,13 +259,13 @@ class Neuron:
 
                 self.boards.append(board)
             else:
-                logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
+                root_logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
 
         await self.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
     async def read_extensions(self) -> None:
         """Scan Modbus RTU and initialize extension classes."""
-        logger.info("%s Reading extensions", LogPrefix.MODBUS)
+        root_logger.info("%s Reading extensions", LogPrefix.MODBUS)
 
         for key, definition in self.hardware.items():
             if (

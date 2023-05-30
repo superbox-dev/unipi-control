@@ -12,8 +12,7 @@ LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
 
 SYSTEMD_LOG_FORMAT: Final[str] = "%(message)s"
-STDOUT_LOG_FORMAT: Final[str] = "%(message)s"
-FILE_LOG_FORMAT: Final[str] = "%(asctime)s | %(levelname)s | %(message)s"
+STDOUT_LOG_FORMAT: Final[str] = "%(asctime)s | %(levelname)s | %(message)s"
 
 LOG_LEVEL: Final[Dict[str, int]] = OrderedDict(
     {
@@ -39,12 +38,7 @@ class SystemdHandler(StreamHandler):
 
     def emit(self, record: logging.LogRecord) -> None:
         """Modify a record and add logging prefix."""
-        try:
-            msg: str = self.format(record)
-            prefix: str = self.PREFIX.get(record.levelno, "<6>")
-            self.stream.write(f"{prefix}{msg}{self.terminator}")
-            self.flush()
-        except RecursionError:
-            raise
-        except Exception:  # noqa: BLE001 pylint: disable=broad-exception-caught
-            self.handleError(record)
+        msg: str = self.format(record)
+        prefix: str = self.PREFIX.get(record.levelno, "<6>")
+        self.stream.write(f"{prefix}{msg}{self.terminator}")
+        self.flush()

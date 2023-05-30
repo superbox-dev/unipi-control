@@ -2,6 +2,14 @@
 
 from typing import Final
 
+CONFIG_LOGGING_LEVEL: Final[
+    str
+] = """device_info:
+  name: MOCKED UNIPI
+logging:
+  level: debug
+"""
+
 CONFIG_INVALID_DEVICE_NAME: Final[
     str
 ] = """device_info:
@@ -16,6 +24,26 @@ CONFIG_INVALID_FEATURE_TYPE: Final[
 features: INVALID
 logging:
   level: debug"""
+
+CONFIG_INVALID_COVER_TYPE: Final[
+    str
+] = """device_info:
+  name: MOCKED UNIPI
+covers: INVALID
+logging:
+  level: debug"""
+
+CONFIG_INVALID_MQTT_PORT_TYPE: Final[
+    str
+] = """device_info:
+  name: MOCKED UNIPI
+mqtt:
+  host: localhost
+  port: INVALID
+  connection:
+    keepalive: 15
+    retry_limit: 30
+    reconnect_interval: 10"""
 
 CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_PREFIX: Final[
     str

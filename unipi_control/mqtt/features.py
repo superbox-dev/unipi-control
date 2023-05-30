@@ -12,7 +12,7 @@ from typing import Union
 from asyncio_mqtt import Client
 
 from unipi_control.config import HardwareType
-from unipi_control.config import logger
+from unipi_control.config import root_logger
 from unipi_control.features.neuron import DigitalOutput
 from unipi_control.features.neuron import Relay
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
@@ -38,7 +38,7 @@ class BaseFeaturesMqttPlugin:
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
                     await self.mqtt_client.publish(topic, feature.payload, qos=1, retain=True)
-                    logger.info(LOG_MQTT_PUBLISH, topic, feature.payload)
+                    root_logger.info(LOG_MQTT_PUBLISH, topic, feature.payload)
 
             await asyncio.sleep(sleep)
 
@@ -71,7 +71,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
                 tasks.add(subscribe_task)
 
                 await self.mqtt_client.subscribe(topic)
-                logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
+                root_logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
         task: Task = asyncio.create_task(
             self._publish(
@@ -91,10 +91,10 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
 
             if value == "ON":
                 await feature.set_state(True)
-                logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
+                root_logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
             elif value == "OFF":
                 await feature.set_state(False)
-                logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
+                root_logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
 
 class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):

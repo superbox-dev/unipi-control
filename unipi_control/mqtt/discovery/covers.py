@@ -14,7 +14,7 @@ from asyncio_mqtt import Client
 from unipi_control.config import Config
 from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import HardwareMap
-from unipi_control.config import logger
+from unipi_control.config import root_logger
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
@@ -90,7 +90,7 @@ class HassCoversDiscovery:
             topic, message = self.get_discovery(cover)
             json_data: str = json.dumps(message)
             await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
-            logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+            root_logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassCoversMqttPlugin:

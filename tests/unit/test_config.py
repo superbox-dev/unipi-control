@@ -1,6 +1,11 @@
 """Test configuration."""
+import logging
+import re
+import uuid
+from typing import NamedTuple
 
 import pytest
+from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
 
 from tests.unit.conftest import ConfigLoader
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
@@ -11,6 +16,7 @@ from tests.unit.test_config_data import CONFIG_DUPLICATE_MODBUS_UNIT
 from tests.unit.test_config_data import CONFIG_DUPLICATE_OBJECT_ID
 from tests.unit.test_config_data import CONFIG_INVALID
 from tests.unit.test_config_data import CONFIG_INVALID_COVER_ID
+from tests.unit.test_config_data import CONFIG_INVALID_COVER_TYPE
 from tests.unit.test_config_data import CONFIG_INVALID_DEVICE_CLASS
 from tests.unit.test_config_data import CONFIG_INVALID_DEVICE_NAME
 from tests.unit.test_config_data import CONFIG_INVALID_FEATURE_ID
@@ -19,9 +25,116 @@ from tests.unit.test_config_data import CONFIG_INVALID_HOMEASSISTANT_DISCOVERY_P
 from tests.unit.test_config_data import CONFIG_INVALID_LOG_LEVEL
 from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_BAUD_RATE
 from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_PARITY
+from tests.unit.test_config_data import CONFIG_INVALID_MQTT_PORT_TYPE
+from tests.unit.test_config_data import CONFIG_LOGGING_LEVEL
 from tests.unit.test_config_data import CONFIG_MISSING_COVER_KEY
 from tests.unit.test_config_data import CONFIG_MISSING_DEVICE_NAME
+from unipi_control.config import Config
 from unipi_control.helpers.exception import ConfigError
+
+
+class LoggingLevelParams(NamedTuple):
+    log: str
+    verbose: int
+
+
+class LoggingOutputParams(NamedTuple):
+    level: int
+    log: str
+    message: str
+
+
+class TestHappyPathConfig:
+    @pytest.mark.parametrize(
+        ("config_loader", "params", "expected"),
+        [
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingLevelParams(log="stdout", verbose=0),
+                logging.ERROR,
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingLevelParams(log="systemd", verbose=0),
+                logging.ERROR,
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingLevelParams(log="systemd", verbose=1),
+                logging.WARNING,
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingLevelParams(log="systemd", verbose=2),
+                logging.INFO,
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingLevelParams(log="systemd", verbose=3),
+                logging.DEBUG,
+            ),
+        ],
+        indirect=["config_loader"],
+    )
+    def test_logging_level(self, config_loader: ConfigLoader, params: LoggingLevelParams, expected: int) -> None:
+        """Test verbose arguments change log level."""
+        uniqid = str(uuid.uuid4())
+        logger: logging.Logger = logging.getLogger(uniqid)
+
+        config: Config = config_loader.get_config()
+        config.logging.init(logger=logger, log=params.log, verbose=params.verbose)
+
+        assert logger.level == expected
+
+    @pytest.mark.parametrize(
+        ("config_loader", "params", "expected"),
+        [
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingOutputParams(level=logging.CRITICAL, log="stdout", message="MOCKED MESSAGE"),
+                r"^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2},\d{3} \| CRITICAL \| MOCKED MESSAGE\n$",
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingOutputParams(level=logging.CRITICAL, log="systemd", message="MOCKED MESSAGE"),
+                r"<2>MOCKED MESSAGE\n",
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingOutputParams(level=logging.ERROR, log="systemd", message="MOCKED MESSAGE"),
+                r"<3>MOCKED MESSAGE\n",
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingOutputParams(level=logging.WARNING, log="systemd", message="MOCKED MESSAGE"),
+                r"<4>MOCKED MESSAGE\n",
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingOutputParams(level=logging.INFO, log="systemd", message="MOCKED MESSAGE"),
+                r"<6>MOCKED MESSAGE\n",
+            ),
+            (
+                CONFIG_LOGGING_LEVEL,
+                LoggingOutputParams(level=logging.DEBUG, log="systemd", message="MOCKED MESSAGE"),
+                r"<7>MOCKED MESSAGE\n",
+            ),
+        ],
+        indirect=["config_loader"],
+    )
+    def test_logging_output(
+        self, config_loader: ConfigLoader, params: LoggingOutputParams, expected: str, capsys: CaptureFixture
+    ) -> None:
+        """Test log handler output."""
+        uniqid = str(uuid.uuid4())
+        logger: logging.Logger = logging.getLogger(uniqid)
+
+        config: Config = config_loader.get_config()
+        config.logging.init(logger=logger, log=params.log, verbose=3)
+
+        logger.log(level=params.level, msg=params.message)
+
+        assert re.compile(expected).search(capsys.readouterr().err)
 
 
 class TestUnhappyPathConfig:
@@ -45,6 +158,14 @@ class TestUnhappyPathConfig:
             (
                 (CONFIG_INVALID_FEATURE_TYPE, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 "Expected features to be <class 'dict'>, got 'INVALID'",
+            ),
+            (
+                (CONFIG_INVALID_COVER_TYPE, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                "Expected covers to be <class 'list'>, got 'INVALID'",
+            ),
+            (
+                (CONFIG_INVALID_MQTT_PORT_TYPE, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                "Expected port to be <class 'int'>, got 'INVALID'",
             ),
             (
                 (CONFIG_INVALID_COVER_ID, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),

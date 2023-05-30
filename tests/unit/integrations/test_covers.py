@@ -1,7 +1,6 @@
 """Test MQTT for covers."""
 
-from dataclasses import dataclass
-from dataclasses import field
+from typing import NamedTuple
 from typing import Optional
 from unittest.mock import MagicMock
 
@@ -18,32 +17,30 @@ from unipi_control.integrations.covers import CoverMap
 from unipi_control.integrations.covers import CoverState
 
 
-@dataclass
-class CoverOptions:
+class CoverOptions(NamedTuple):
     device_class: str
-    calibration_mode: bool = field(default_factory=bool)
-    position: Optional[int] = field(default=None)
-    current_position: Optional[int] = field(default=None)
-    tilt: Optional[int] = field(default=None)
-    current_tilt: Optional[int] = field(default=None)
-    cover_state: Optional[str] = field(default=None)
-    current_cover_state: Optional[str] = field(default=None)
+    calibration_mode: bool = False
+    position: Optional[int] = None
+    current_position: Optional[int] = None
+    tilt: Optional[int] = None
+    current_tilt: Optional[int] = None
+    cover_state: Optional[str] = None
+    current_cover_state: Optional[str] = None
 
 
-@dataclass
-class CoverExpected:
-    calibration_started: Optional[bool] = field(default=None)
-    calibration_mode: Optional[bool] = field(default=None)
-    position: Optional[int] = field(default=None)
-    tilt: Optional[int] = field(default=None)
-    current_cover_state: Optional[str] = field(default=None)
-    position_cover_state: Optional[str] = field(default=None)
-    tilt_cover_state: Optional[str] = field(default=None)
-    open_cover_state: Optional[str] = field(default=None)
-    close_cover_state: Optional[str] = field(default=None)
-    stop_cover_state: Optional[str] = field(default=None)
-    position_changed: Optional[bool] = field(default=None)
-    tilt_changed: Optional[bool] = field(default=None)
+class CoverExpected(NamedTuple):
+    calibration_started: Optional[bool] = None
+    calibration_mode: Optional[bool] = None
+    position: Optional[int] = None
+    tilt: Optional[int] = None
+    current_cover_state: Optional[str] = None
+    position_cover_state: Optional[str] = None
+    tilt_cover_state: Optional[str] = None
+    open_cover_state: Optional[str] = None
+    close_cover_state: Optional[str] = None
+    stop_cover_state: Optional[str] = None
+    position_changed: Optional[bool] = None
+    tilt_changed: Optional[bool] = None
 
 
 class TestCovers:

@@ -13,7 +13,7 @@ from typing import Optional
 from unipi_control import __version__  # type: ignore[attr-defined]
 from unipi_control.config import Config
 from unipi_control.config import LoggingConfig
-from unipi_control.config import logger
+from unipi_control.config import root_logger
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.exception import UnexpectedError
 from unipi_control.helpers.yaml import yaml_dumper
@@ -41,7 +41,7 @@ class UnipiConfigConverter:
             raise UnexpectedError(exception_message)
 
         target.write_text(yaml_dumper(json.dumps(content)), encoding="utf-8")
-        logger.info("YAML file written to: %s", target.as_posix())
+        root_logger.info("YAML file written to: %s", target.as_posix())
 
     @staticmethod
     def _parse_modbus_register_blocks(source_yaml: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -128,11 +128,11 @@ def main() -> None:
         args: argparse.Namespace = parse_args(sys.argv[1:])
 
         config: Config = Config(logging=LoggingConfig(level="info"))
-        config.logging.init(log=args.log, verbose=args.verbose)
+        config.logging.init(logger=root_logger, log=args.log, verbose=args.verbose)
 
         UnipiConfigConverter(config=config, force=args.force).convert(source=Path(args.input), target=Path(args.output))
     except UnexpectedError as error:
-        logger.critical(error)
+        root_logger.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
         ...

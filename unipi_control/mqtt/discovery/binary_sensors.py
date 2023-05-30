@@ -11,7 +11,7 @@ from typing import Tuple
 
 from asyncio_mqtt import Client
 
-from unipi_control.config import logger
+from unipi_control.config import root_logger
 from unipi_control.features.neuron import DigitalInput
 from unipi_control.features.utils import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
@@ -82,7 +82,7 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
                 topic, message = self.get_discovery(feature)
                 json_data: str = json.dumps(message)
                 await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
-                logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+                root_logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassBinarySensorsMqttPlugin:
