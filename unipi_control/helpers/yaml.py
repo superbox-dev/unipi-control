@@ -53,7 +53,7 @@ def yaml_loader_safe(yaml_file: Path) -> Dict[str, Any]:
 
     Raises
     ------
-    ConfigError
+    YamlError
         Raise if the YAML file can't be read.
     """
     try:
