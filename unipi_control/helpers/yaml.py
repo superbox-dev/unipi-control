@@ -6,7 +6,7 @@ from typing import Dict
 
 import yaml
 
-from unipi_control.helpers.exception import ConfigError
+from unipi_control.helpers.exception import YamlError
 
 
 class Dumper(yaml.Dumper):  # pylint: disable=too-many-ancestors
@@ -60,6 +60,6 @@ def yaml_loader_safe(yaml_file: Path) -> Dict[str, Any]:
         data: Dict[str, Any] = yaml.safe_load(yaml_file.read_text())
     except yaml.MarkedYAMLError as error:
         msg = f"Can't read YAML file!\n{error.problem_mark}"
-        raise ConfigError(msg) from error
+        raise YamlError(msg) from error
 
     return data

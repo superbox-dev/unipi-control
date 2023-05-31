@@ -25,6 +25,7 @@ from typing import Type
 from typing import Union
 
 from unipi_control.helpers.exception import ConfigError
+from unipi_control.helpers.exception import YamlError
 from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import STDOUT_LOG_FORMAT
 from unipi_control.helpers.log import SYSTEMD_LOG_FORMAT
@@ -138,7 +139,10 @@ class ConfigLoaderMixin:
             Path to the YAML file.
         """
         if config_path.is_file() and config_path.exists():
-            yaml_data: Dict[str, Any] = yaml_loader_safe(config_path)
+            try:
+                yaml_data: Dict[str, Any] = yaml_loader_safe(config_path)
+            except YamlError as error:
+                raise ConfigError(error)
 
             if isinstance(yaml_data, dict):
                 self.update(yaml_data)
@@ -557,27 +561,32 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
 
     def _read_neuron_definition(self) -> None:
         definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self.info.model}.yaml")
+        msg: Optional[str] = None
 
         if definition_file.is_file():
             try:
                 yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
-                if isinstance(yaml_content, dict):
-                    self.data["neuron"] = HardwareDefinition(
-                        unit=0,
-                        hardware_type=HardwareType.NEURON,
-                        device_name=None,
-                        suggested_area=None,
-                        manufacturer=None,
-                        model=f"{self.info.name} {self.info.model}",
-                        modbus_register_blocks=yaml_content["modbus_register_blocks"],
-                        modbus_features=yaml_content["modbus_features"],
-                    )
-            except TypeError as error:
+                self.data["neuron"] = HardwareDefinition(
+                    unit=0,
+                    hardware_type=HardwareType.NEURON,
+                    device_name=None,
+                    suggested_area=None,
+                    manufacturer=None,
+                    model=f"{self.info.name} {self.info.model}",
+                    modbus_register_blocks=yaml_content["modbus_register_blocks"],
+                    modbus_features=yaml_content["modbus_features"],
+                )
+                root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+            except KeyError as error:
+                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
+            except TypeError:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
-                raise ConfigError(msg) from error
+            except YamlError as error:
+                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
 
-            root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+            if msg:
+                raise ConfigError(msg)
         else:
             msg = "No valid YAML definition found for this device!"
             raise ConfigError(msg)
@@ -585,27 +594,35 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
     def _read_extension_definitions(self) -> None:
         try:
             for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
-                yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
+                msg: Optional[str] = None
 
-                if isinstance(yaml_content, dict):
-                    try:
-                        units: Iterator[ModbusUnitConfig] = self.config.modbus.get_units_by_identifier(
-                            identifier=definition_file.stem
+                try:
+                    yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
+
+                    units: Iterator[ModbusUnitConfig] = self.config.modbus.get_units_by_identifier(
+                        identifier=definition_file.stem
+                    )
+
+                    for unit in units:
+                        self.data[f"modbus_rtu_{unit.unit}"] = HardwareDefinition(
+                            unit=unit.unit,
+                            hardware_type=HardwareType.EXTENSION,
+                            device_name=unit.device_name,
+                            suggested_area=unit.suggested_area,
+                            **yaml_content,
                         )
 
-                        for unit in units:
-                            self.data[f"modbus_rtu_{unit.unit}"] = HardwareDefinition(
-                                unit=unit.unit,
-                                hardware_type=HardwareType.EXTENSION,
-                                device_name=unit.device_name,
-                                suggested_area=unit.suggested_area,
-                                **yaml_content,
-                            )
-                    except TypeError as error:
-                        msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
-                        raise ConfigError(msg) from error
-
                     root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+                except KeyError as error:
+                    msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
+                except TypeError:
+                    msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
+                except YamlError as error:
+                    msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
+
+                if msg:
+                    raise ConfigError(msg)
+
         except FileNotFoundError as error:
             root_logger.info("%s %s", LogPrefix.CONFIG, str(error))
 

@@ -6,8 +6,10 @@ from typing import NamedTuple
 
 import pytest
 from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture
 
 from tests.unit.conftest import ConfigLoader
+from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
 from tests.unit.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
@@ -29,8 +31,13 @@ from tests.unit.test_config_data import CONFIG_INVALID_MQTT_PORT_TYPE
 from tests.unit.test_config_data import CONFIG_LOGGING_LEVEL
 from tests.unit.test_config_data import CONFIG_MISSING_COVER_KEY
 from tests.unit.test_config_data import CONFIG_MISSING_DEVICE_NAME
+from tests.unit.test_config_data import HARDWARE_DATA_INVALID_KEY
+from tests.unit.test_config_data import HARDWARE_DATA_IS_INVALID_YAML
+from tests.unit.test_config_data import HARDWARE_DATA_IS_LIST
 from unipi_control.config import Config
 from unipi_control.helpers.exception import ConfigError
+from unipi_control.helpers.typing import ModbusClient
+from unipi_control.neuron import Neuron
 
 
 class LoggingLevelParams(NamedTuple):
@@ -238,3 +245,33 @@ class TestUnhappyPathConfig:
             config_loader.get_config()
 
         assert str(error.value) == expected
+
+    @pytest.mark.parametrize(
+        "config_loader, expected",
+        [
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_INVALID_KEY, EXTENSION_HARDWARE_DATA_CONTENT),
+                "\nKeyError: 'modbus_register_blocks'",
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_IS_LIST, EXTENSION_HARDWARE_DATA_CONTENT),
+                "",
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_IS_INVALID_YAML, EXTENSION_HARDWARE_DATA_CONTENT),
+                '\nCan\'t read YAML file!\n  in "<unicode string>", line 1, column 25:\n'
+                "    modbus_features: INVALID:\n                            ^",
+            ),
+        ],
+        indirect=["config_loader"],
+    )
+    def test_invalid_neuron_hardware_definition(
+        self, config_loader: ConfigLoader, modbus_client: ModbusClient, caplog: LogCaptureFixture, expected: str
+    ) -> None:
+        """Test invalid neuron hardware definition."""
+        config: Config = config_loader.get_config()
+
+        with pytest.raises(ConfigError) as error:
+            Neuron(config=config, modbus_client=modbus_client)
+
+        assert str(error.value) == f"[CONFIG] Definition is invalid: {config_loader.hardware_data_file_path}{expected}"

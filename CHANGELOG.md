@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added `setuptools_scm` for automatic versioning.
 - Added ruff as new linter.
 - Added date and log level to unipi-control CLI output
+- Added better error handling if hardware definition files are invalid
 
 ### Changed
 
