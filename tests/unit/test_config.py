@@ -6,7 +6,6 @@ from typing import NamedTuple
 
 import pytest
 from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
-from _pytest.logging import LogCaptureFixture
 
 from tests.unit.conftest import ConfigLoader
 from tests.unit.conftest_data import CONFIG_CONTENT
@@ -247,7 +246,7 @@ class TestUnhappyPathConfig:
         assert str(error.value) == expected
 
     @pytest.mark.parametrize(
-        "config_loader, expected",
+        ("config_loader", "expected"),
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_INVALID_KEY, EXTENSION_HARDWARE_DATA_CONTENT),
@@ -266,7 +265,7 @@ class TestUnhappyPathConfig:
         indirect=["config_loader"],
     )
     def test_invalid_neuron_hardware_definition(
-        self, config_loader: ConfigLoader, modbus_client: ModbusClient, caplog: LogCaptureFixture, expected: str
+        self, config_loader: ConfigLoader, modbus_client: ModbusClient, expected: str
     ) -> None:
         """Test invalid neuron hardware definition."""
         config: Config = config_loader.get_config()

@@ -142,7 +142,7 @@ class ConfigLoaderMixin:
             try:
                 yaml_data: Dict[str, Any] = yaml_loader_safe(config_path)
             except YamlError as error:
-                raise ConfigError(error)
+                raise ConfigError(error) from error
 
             if isinstance(yaml_data, dict):
                 self.update(yaml_data)
@@ -561,7 +561,6 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
 
     def _read_neuron_definition(self) -> None:
         definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self.info.model}.yaml")
-        msg: Optional[str] = None
 
         if definition_file.is_file():
             try:
@@ -580,13 +579,13 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                 root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
             except KeyError as error:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
-            except TypeError:
+                raise ConfigError(msg) from error
+            except TypeError as error:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
+                raise ConfigError(msg) from error
             except YamlError as error:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
-
-            if msg:
-                raise ConfigError(msg)
+                raise ConfigError(msg) from error
         else:
             msg = "No valid YAML definition found for this device!"
             raise ConfigError(msg)
@@ -594,8 +593,6 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
     def _read_extension_definitions(self) -> None:
         try:
             for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
-                msg: Optional[str] = None
-
                 try:
                     yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
@@ -615,13 +612,13 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                     root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
                 except KeyError as error:
                     msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
-                except TypeError:
+                    raise ConfigError(msg) from error
+                except TypeError as error:
                     msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
+                    raise ConfigError(msg) from error
                 except YamlError as error:
                     msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
-
-                if msg:
-                    raise ConfigError(msg)
+                    raise ConfigError(msg) from error
 
         except FileNotFoundError as error:
             root_logger.info("%s %s", LogPrefix.CONFIG, str(error))
