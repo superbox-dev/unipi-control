@@ -208,6 +208,8 @@ class Neuron:
 
     async def init(self) -> None:
         """Initialize internal and external hardware."""
+        root_logger.info("%s %s hardware definition(s) found.", LogPrefix.CONFIG, len(self.hardware))
+
         await self.read_boards()
         await self.read_extensions()
 

@@ -2,15 +2,18 @@
 import logging
 import re
 import uuid
-from dataclasses import dataclass
+from typing import Dict
+from typing import List
 from typing import NamedTuple
 from unittest.mock import PropertyMock
 
 import pytest
 from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture
 from pytest_mock import MockerFixture
 
 from tests.unit.conftest import ConfigLoader
+from tests.unit.conftest import MockHardwareInfo
 from tests.unit.conftest_data import CONFIG_CONTENT
 from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
@@ -54,14 +57,6 @@ class LoggingOutputParams(NamedTuple):
     level: int
     log: str
     message: str
-
-
-@dataclass
-class MockHardwareInfo:
-    name: str = "unknown"
-    model: str = "unknown"
-    version: str = "unknown"
-    serial: str = "unknown"
 
 
 class TestHappyPathConfig:
@@ -155,6 +150,25 @@ class TestHappyPathConfig:
         logger.log(level=params.level, msg=params.message)
 
         assert re.compile(expected).search(capsys.readouterr().err)
+
+    @pytest.mark.asyncio()
+    @pytest.mark.parametrize(
+        "config_loader",
+        [
+            (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+        ],
+        indirect=["config_loader"],
+    )
+    async def test_hardware_definition_found(
+        self, config_loader: ConfigLoader, modbus_client: ModbusClient, caplog: LogCaptureFixture
+    ) -> None:
+        """Test hardware definition found."""
+        config: Config = config_loader.get_config()
+        neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+        await neuron.init()
+
+        logs: List[str] = [record.getMessage() for record in caplog.records]
+        assert "[CONFIG] 2 hardware definition(s) found." in logs
 
 
 class TestUnhappyPathConfig:
@@ -323,23 +337,44 @@ class TestUnhappyPathConfig:
         )
 
     @pytest.mark.parametrize(
-        ("config_loader", "expected"),
+        ("config_loader", "hardware_info", "expected"),
         [
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                {
+                    "name": "unknown",
+                    "model": "unknown",
+                    "version": "unknown",
+                    "serial": "unknown",
+                },
+                "Hardware is not supported!",
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                {
+                    "name": "unknown",
+                    "model": "MOCKED_MODEL_NOT_FOUND",
+                    "version": "unknown",
+                    "serial": "unknown",
+                },
                 "No valid YAML definition found for this device!",
             ),
         ],
         indirect=["config_loader"],
     )
     def test_hardware_is_supported(
-        self, config_loader: ConfigLoader, modbus_client: ModbusClient, expected: str, mocker: MockerFixture
+        self,
+        config_loader: ConfigLoader,
+        modbus_client: ModbusClient,
+        hardware_info: Dict[str, str],
+        expected: str,
+        mocker: MockerFixture,
     ) -> None:
         """Test hardware is supported."""
         mock_hardware_info: PropertyMock = mocker.patch(
             "unipi_control.config.HardwareInfo", new_callable=PropertyMock()
         )
-        mock_hardware_info.return_value = MockHardwareInfo()
+        mock_hardware_info.return_value = MockHardwareInfo(**hardware_info)
 
         config: Config = config_loader.get_config()
 

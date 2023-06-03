@@ -542,7 +542,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
         self.data: Dict[str, HardwareDefinition] = {}
         self.info: HardwareInfo = HardwareInfo(sys_bus=config.sys_bus)
 
-        if self.info.model is None:
+        if self.info.model == "unknown":
             msg = "Hardware is not supported!"
             raise ConfigError(msg)
 
