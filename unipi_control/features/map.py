@@ -43,7 +43,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         """
         feature_type: FeatureType = feature.hardware.feature_type
 
-        if not self.data.get(feature_type.short_name):
+        if not self.get(feature_type.short_name):
             self.data[feature_type.short_name] = []
 
         self.data[feature_type.short_name].append(feature)
@@ -57,7 +57,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         ----------
         feature_id: str
             The machine-readable unique name e.g. ro_2_01.
-        feature_types: list
+        feature_types: list, optional
             List of feature types e.g. DI, RO, ...
 
         Returns
@@ -70,7 +70,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
             Get an exception if feature type not found.
         """
         data: Iterable[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]] = itertools.chain.from_iterable(
-            self.data.values()
+            self.values()
         )
 
         if feature_types:
@@ -102,5 +102,5 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
             A list of features filtered by feature type.
         """
         return itertools.chain.from_iterable(
-            [item for item in (self.data.get(feature_type) for feature_type in feature_types) if item is not None]
+            [item for item in (self.get(feature_type) for feature_type in feature_types) if item is not None]
         )
