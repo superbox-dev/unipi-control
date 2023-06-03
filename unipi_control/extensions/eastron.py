@@ -22,6 +22,8 @@ from unipi_control.modbus import check_modbus_call
 
 
 class EastronSDM120M:
+    RETRY_LIMIT: int = 5
+
     def __init__(
         self,
         config: Config,
@@ -77,7 +79,6 @@ class EastronSDM120M:
 
         retry: bool = True
         retry_reconnect: int = 0
-        retry_limit: int = 5
 
         while retry:
             retry_reconnect += 1
@@ -94,7 +95,7 @@ class EastronSDM120M:
                 sw_version = f"{meter_code[:3]}.{meter_code[3:]}"
                 retry = False
 
-            if retry_reconnect == retry_limit:
+            if retry_reconnect == self.RETRY_LIMIT:
                 retry = False
 
             await asyncio.sleep(1)

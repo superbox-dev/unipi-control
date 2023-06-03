@@ -99,6 +99,31 @@ class TestHappyPathFeatures:
         elif isinstance(feature, EastronMeter):
             assert feature.payload == expected.value
 
+    @pytest.mark.asyncio()
+    @pytest.mark.parametrize(
+        ("config_loader", "modbus_client", "expected"),
+        [
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                {"eastron_sw_version_failed": True},
+                "Unknown",
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                {"eastron_sw_version_failed": False},
+                "202.04",
+            ),
+        ],
+        indirect=["config_loader", "modbus_client"],
+    )
+    async def test_eastron_sw_version(self, modbus_client: MockModbusClient, neuron: Neuron, expected: str) -> None:
+        """Test eastron software version."""
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = neuron.features.by_feature_id(
+            "active_power_1", feature_types=["METER"]
+        )
+
+        assert feature.sw_version == expected
+
 
 class TestUnhappyPathFeatures:
     @pytest.mark.parametrize(

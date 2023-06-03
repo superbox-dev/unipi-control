@@ -3,7 +3,9 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 from typing import AsyncGenerator
+from typing import Dict
 from typing import List
 from typing import NamedTuple
 from typing import Optional
@@ -20,6 +22,7 @@ from pytest_mock import MockerFixture
 from tests.unit.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 from tests.unit.conftest_data import NEURON_L203_MODBUS_REGISTER
 from unipi_control.config import Config
+from unipi_control.extensions.eastron import EastronSDM120M
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.neuron import Neuron
@@ -129,7 +132,7 @@ class MockModbusClient(NamedTuple):
 
 
 @pytest.fixture(name="modbus_client")
-def mock_modbus_client(mocker: MockerFixture) -> MockModbusClient:
+def mock_modbus_client(request: SubRequest, mocker: MockerFixture) -> MockModbusClient:
     """Mock modbus client responses from read registers.
 
     Parameters
@@ -142,6 +145,8 @@ def mock_modbus_client(mocker: MockerFixture) -> MockModbusClient:
     MockModbusClient: NamedTuple
         Named tuple with mocked tcp and serial client
     """
+    modbus_client_config: Dict[str, Any] = getattr(request, "param", {})
+
     mock_bord_response: MagicMock = MagicMock(spec=ModbusResponse, registers=[0])
     mock_bord_response.isError.return_value = False
 
@@ -168,12 +173,12 @@ def mock_modbus_client(mocker: MockerFixture) -> MockModbusClient:
     mock_modbus_serial_client.read_input_registers.side_effect = EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 
     mock_response_sw_version: MagicMock = MagicMock(spec=ModbusResponse, registers=[32, 516])
-    mock_response_sw_version.isError.return_value = False
+    mock_response_sw_version.isError.return_value = modbus_client_config.get("eastron_sw_version_failed", False)
 
     mock_modbus_serial_client.read_holding_registers.side_effect = [
         # Eastron SDM120M Software Version
-        mock_response_sw_version
-    ]
+        mock_response_sw_version,
+    ] * (EastronSDM120M.RETRY_LIMIT if modbus_client_config.get("eastron_sw_version_failed") else 1)
 
     mock_hardware_info: PropertyMock = mocker.patch("unipi_control.config.HardwareInfo", new_callable=PropertyMock())
     mock_hardware_info.return_value = MockHardwareInfo()
