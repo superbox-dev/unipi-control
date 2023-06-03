@@ -311,8 +311,7 @@ modbus_features:
 
 HARDWARE_DATA_IS_LIST: Final[
     str
-] = """
-- start_reg: 0
+] = """- start_reg: 0
   count: 2
 - start_reg: 20
   count: 1
@@ -323,3 +322,29 @@ HARDWARE_DATA_IS_LIST: Final[
 """
 
 HARDWARE_DATA_IS_INVALID_YAML: Final[str] = """modbus_features: INVALID:"""
+
+EXTENSION_HARDWARE_DATA_INVALID_KEY: Final[
+    str
+] = """manufacturer: Eastron
+model: SDM120M
+modbus_register_block:
+  # Voltage
+  - start_reg: 0
+    count: 2
+modbus_features:
+  - feature_type: METER
+    friendly_name: Voltage
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    val_reg: 0
+    count: 2
+"""
+
+EXTENSION_HARDWARE_DATA_IS_LIST: Final[
+    str
+] = """- start_reg: 0
+  count: 2
+"""
+
+EXTENSION_HARDWARE_DATA_IS_INVALID_YAML: Final[str] = """manufacturer: INVALID:"""

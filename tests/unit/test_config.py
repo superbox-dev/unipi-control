@@ -2,10 +2,13 @@
 import logging
 import re
 import uuid
+from dataclasses import dataclass
 from typing import NamedTuple
+from unittest.mock import PropertyMock
 
 import pytest
 from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
+from pytest_mock import MockerFixture
 
 from tests.unit.conftest import ConfigLoader
 from tests.unit.conftest_data import CONFIG_CONTENT
@@ -30,6 +33,9 @@ from tests.unit.test_config_data import CONFIG_INVALID_MQTT_PORT_TYPE
 from tests.unit.test_config_data import CONFIG_LOGGING_LEVEL
 from tests.unit.test_config_data import CONFIG_MISSING_COVER_KEY
 from tests.unit.test_config_data import CONFIG_MISSING_DEVICE_NAME
+from tests.unit.test_config_data import EXTENSION_HARDWARE_DATA_INVALID_KEY
+from tests.unit.test_config_data import EXTENSION_HARDWARE_DATA_IS_INVALID_YAML
+from tests.unit.test_config_data import EXTENSION_HARDWARE_DATA_IS_LIST
 from tests.unit.test_config_data import HARDWARE_DATA_INVALID_KEY
 from tests.unit.test_config_data import HARDWARE_DATA_IS_INVALID_YAML
 from tests.unit.test_config_data import HARDWARE_DATA_IS_LIST
@@ -48,6 +54,14 @@ class LoggingOutputParams(NamedTuple):
     level: int
     log: str
     message: str
+
+
+@dataclass
+class MockHardwareInfo:
+    name: str = "unknown"
+    model: str = "unknown"
+    version: str = "unknown"
+    serial: str = "unknown"
 
 
 class TestHappyPathConfig:
@@ -274,3 +288,62 @@ class TestUnhappyPathConfig:
             Neuron(config=config, modbus_client=modbus_client)
 
         assert str(error.value) == f"[CONFIG] Definition is invalid: {config_loader.hardware_data_file_path}{expected}"
+
+    @pytest.mark.parametrize(
+        ("config_loader", "expected"),
+        [
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_INVALID_KEY),
+                "\nKeyError: 'modbus_register_blocks'",
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_IS_LIST),
+                "",
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_IS_INVALID_YAML),
+                '\nCan\'t read YAML file!\n  in "<unicode string>", line 1, column 22:\n'
+                "    manufacturer: INVALID:\n                         ^",
+            ),
+        ],
+        indirect=["config_loader"],
+    )
+    def test_invalid_extension_hardware_definition(
+        self, config_loader: ConfigLoader, modbus_client: ModbusClient, expected: str
+    ) -> None:
+        """Test invalid extension hardware definition."""
+        config: Config = config_loader.get_config()
+
+        with pytest.raises(ConfigError) as error:
+            Neuron(config=config, modbus_client=modbus_client)
+
+        assert (
+            str(error.value)
+            == f"[CONFIG] Definition is invalid: {config_loader.extension_hardware_data_file_path}{expected}"
+        )
+
+    @pytest.mark.parametrize(
+        ("config_loader", "expected"),
+        [
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                "No valid YAML definition found for this device!",
+            ),
+        ],
+        indirect=["config_loader"],
+    )
+    def test_hardware_is_supported(
+        self, config_loader: ConfigLoader, modbus_client: ModbusClient, expected: str, mocker: MockerFixture
+    ) -> None:
+        """Test hardware is supported."""
+        mock_hardware_info: PropertyMock = mocker.patch(
+            "unipi_control.config.HardwareInfo", new_callable=PropertyMock()
+        )
+        mock_hardware_info.return_value = MockHardwareInfo()
+
+        config: Config = config_loader.get_config()
+
+        with pytest.raises(ConfigError) as error:
+            Neuron(config=config, modbus_client=modbus_client)
+
+        assert str(error.value) == expected

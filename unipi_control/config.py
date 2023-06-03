@@ -591,37 +591,36 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
             raise ConfigError(msg)
 
     def _read_extension_definitions(self) -> None:
-        try:
-            for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
-                try:
-                    yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
+        for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
+            try:
+                yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
-                    units: Iterator[ModbusUnitConfig] = self.config.modbus.get_units_by_identifier(
-                        identifier=definition_file.stem
+                units: Iterator[ModbusUnitConfig] = self.config.modbus.get_units_by_identifier(
+                    identifier=definition_file.stem
+                )
+
+                for unit in units:
+                    self.data[f"modbus_rtu_{unit.unit}"] = HardwareDefinition(
+                        unit=unit.unit,
+                        hardware_type=HardwareType.EXTENSION,
+                        device_name=unit.device_name,
+                        suggested_area=unit.suggested_area,
+                        manufacturer=yaml_content["manufacturer"],
+                        model=yaml_content["model"],
+                        modbus_register_blocks=yaml_content["modbus_register_blocks"],
+                        modbus_features=yaml_content["modbus_features"],
                     )
 
-                    for unit in units:
-                        self.data[f"modbus_rtu_{unit.unit}"] = HardwareDefinition(
-                            unit=unit.unit,
-                            hardware_type=HardwareType.EXTENSION,
-                            device_name=unit.device_name,
-                            suggested_area=unit.suggested_area,
-                            **yaml_content,
-                        )
-
-                    root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
-                except KeyError as error:
-                    msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
-                    raise ConfigError(msg) from error
-                except TypeError as error:
-                    msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
-                    raise ConfigError(msg) from error
-                except YamlError as error:
-                    msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
-                    raise ConfigError(msg) from error
-
-        except FileNotFoundError as error:
-            root_logger.info("%s %s", LogPrefix.CONFIG, str(error))
+                root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+            except KeyError as error:
+                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
+                raise ConfigError(msg) from error
+            except TypeError as error:
+                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
+                raise ConfigError(msg) from error
+            except YamlError as error:
+                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
+                raise ConfigError(msg) from error
 
     def get_definition_by_hardware_types(self, hardware_types: List[str]) -> Iterator[HardwareDefinition]:
         """Filter hardware definitions by hardware types.
