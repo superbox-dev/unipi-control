@@ -7,6 +7,7 @@ from unittest.mock import PropertyMock
 
 import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from pymodbus.exceptions import ModbusException
 from pytest_mock import MockerFixture
 
 from tests.unit.conftest import ConfigLoader
@@ -33,16 +34,41 @@ class TestUnhappyPathModbus:
 
     @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+        ("config_loader", "exception", "expected"),
+        [
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                asyncio.exceptions.TimeoutError,
+                [
+                    "[MODBUS] Timeout on: {'address': 0, 'count': 2, 'slave': 0}",
+                    "[MODBUS] Timeout on: {'address': 20, 'count': 1, 'slave': 0}",
+                    "[MODBUS] Timeout on: {'address': 100, 'count': 2, 'slave': 0}",
+                    "[MODBUS] Timeout on: {'address': 200, 'count': 2, 'slave': 0}",
+                ],
+            ),
+            (
+                (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
+                ModbusException("MOCKED ERROR"),
+                [
+                    "[MODBUS] Modbus Error: MOCKED ERROR",
+                ],
+            ),
+        ],
+        indirect=["config_loader"],
     )
-    async def test_modbus_timeout(
-        self, mocker: MockerFixture, config_loader: ConfigLoader, caplog: LogCaptureFixture
+    async def test_modbus_exceptions(
+        self,
+        mocker: MockerFixture,
+        config_loader: ConfigLoader,
+        exception: Exception,
+        expected: List[str],
+        caplog: LogCaptureFixture,
     ) -> None:
         """Test modbus error logging if read register failed with timeout."""
         config: Config = config_loader.get_config()
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()
-        mock_modbus_tcp_client.read_input_registers.side_effect = asyncio.exceptions.TimeoutError
+        mock_modbus_tcp_client.read_input_registers.side_effect = exception
 
         mock_hardware_info: PropertyMock = mocker.patch(
             "unipi_control.config.HardwareInfo", new_callable=PropertyMock()
@@ -56,7 +82,4 @@ class TestUnhappyPathModbus:
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
-        assert "[MODBUS] Timeout on: {'address': 0, 'count': 2, 'slave': 0}" in logs
-        assert "[MODBUS] Timeout on: {'address': 20, 'count': 1, 'slave': 0}" in logs
-        assert "[MODBUS] Timeout on: {'address': 100, 'count': 2, 'slave': 0}" in logs
-        assert "[MODBUS] Timeout on: {'address': 200, 'count': 2, 'slave': 0}" in logs
+        assert set(expected).issubset(logs)

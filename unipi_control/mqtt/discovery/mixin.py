@@ -40,14 +40,12 @@ class HassDiscoveryMixin:
 
         return device_name
 
-    def _get_device_model(self, feature: Optional[Union[NeuronFeature, EastronMeter]] = None) -> str:
-        if feature and feature.hardware.definition.model:
-            return f"{feature.hardware.definition.model}"
+    @staticmethod
+    def _get_device_model(feature: Union[NeuronFeature, EastronMeter]) -> str:
+        return f"{feature.hardware.definition.model}"
 
-        return f"{self.hardware.info.name} {self.hardware.info.model}"
-
-    def _get_device_manufacturer(self, feature: Optional[Union[NeuronFeature, EastronMeter]] = None) -> str:
-        if feature and feature.hardware.definition.manufacturer:
+    def _get_device_manufacturer(self, feature: Union[NeuronFeature, EastronMeter]) -> str:
+        if feature.hardware.definition.manufacturer:
             return f"{feature.hardware.definition.manufacturer}"
 
         return self.config.device_info.manufacturer

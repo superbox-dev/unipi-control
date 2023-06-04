@@ -61,6 +61,6 @@ class HardwareDefinition(NamedTuple):
     device_name: Optional[str]
     suggested_area: Optional[str]
     manufacturer: Optional[str]
-    model: Optional[str]
+    model: str
     modbus_register_blocks: List[ModbusRegisterBlock]
     modbus_features: List[ModbusFeature]
