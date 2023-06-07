@@ -10,11 +10,11 @@ from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-
 from pymodbus.exceptions import ModbusException
 from pytest_mock import MockerFixture
 
-from tests.unit.conftest import ConfigLoader
-from tests.unit.conftest import MockHardwareInfo
-from tests.unit.conftest_data import CONFIG_CONTENT
-from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
-from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
+from tests.conftest import ConfigLoader
+from tests.conftest import MockHardwareInfo
+from tests.conftest_data import CONFIG_CONTENT
+from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import Config
 from unipi_control.config import HardwareType
 from unipi_control.helpers.typing import ModbusClient
@@ -64,7 +64,7 @@ class TestUnhappyPathModbus:
         expected: List[str],
         caplog: LogCaptureFixture,
     ) -> None:
-        """Test modbus error logging if read register failed with timeout."""
+        """Test modbus error logging if read register failed with exception."""
         config: Config = config_loader.get_config()
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()

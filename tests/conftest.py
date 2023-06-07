@@ -1,4 +1,4 @@
-"""Initialize fixtures for tests."""
+"""Test configuration for pytest."""
 
 import logging
 from dataclasses import dataclass
@@ -19,20 +19,25 @@ from _pytest.fixtures import SubRequest  # pylint: disable=import-private-name
 from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
-from tests.unit.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
-from tests.unit.conftest_data import NEURON_L203_MODBUS_REGISTER
+from tests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
+from tests.conftest_data import NEURON_L203_MODBUS_REGISTER
 from unipi_control.config import Config
+from unipi_control.config import root_logger
 from unipi_control.extensions.eastron import EastronSDM120M
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.neuron import Neuron
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(autouse=True)
 def _logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
-    logging.getLogger().handlers.clear()
-    logging.info("Initialize logging")
+
+    root_logger.setLevel(logging.NOTSET)
+    print("TEST")
+    root_logger.handlers.clear()
+
+    logging.info("Initialized logging")
 
 
 class ConfigLoader:
@@ -88,6 +93,8 @@ class ConfigLoader:
         """Get the config dataclass."""
         if not config_base_path:
             config_base_path = self.temp
+
+        print("LEVEL1", root_logger.level)
 
         return Config(config_base_path=config_base_path, temp_path=self.temp_path)
 

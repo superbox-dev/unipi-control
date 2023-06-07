@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from tests.unit.conftest import ConfigLoader
-from tests.unit.conftest_data import CONFIG_CONTENT
+from tests.conftest import ConfigLoader
+from tests.conftest_data import CONFIG_CONTENT
 from tests.unit.tools.test_config_converter_data import CONVERTED_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import EVOK_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import INVALID_EVOK_MODEL_CONTENT

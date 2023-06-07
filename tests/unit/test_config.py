@@ -12,11 +12,11 @@ from _pytest.capture import CaptureFixture  # pylint: disable=import-private-nam
 from _pytest.logging import LogCaptureFixture
 from pytest_mock import MockerFixture
 
-from tests.unit.conftest import ConfigLoader
-from tests.unit.conftest import MockHardwareInfo
-from tests.unit.conftest_data import CONFIG_CONTENT
-from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
-from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
+from tests.conftest import ConfigLoader
+from tests.conftest import MockHardwareInfo
+from tests.conftest_data import CONFIG_CONTENT
+from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.conftest_data import HARDWARE_DATA_CONTENT
 from tests.unit.test_config_data import CONFIG_DUPLICATE_COVERS_CIRCUITS
 from tests.unit.test_config_data import CONFIG_DUPLICATE_COVER_ID
 from tests.unit.test_config_data import CONFIG_DUPLICATE_MODBUS_UNIT

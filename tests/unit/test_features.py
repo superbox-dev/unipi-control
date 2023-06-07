@@ -8,10 +8,10 @@ from unittest.mock import MagicMock
 import pytest
 from pymodbus.pdu import ModbusResponse
 
-from tests.unit.conftest import MockModbusClient
-from tests.unit.conftest_data import CONFIG_CONTENT
-from tests.unit.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
-from tests.unit.conftest_data import HARDWARE_DATA_CONTENT
+from tests.conftest import MockModbusClient
+from tests.conftest_data import CONFIG_CONTENT
+from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.neuron import DigitalInput
 from unipi_control.features.neuron import DigitalOutput
