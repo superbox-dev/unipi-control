@@ -19,7 +19,6 @@ from tests.conftest import MockMQTTMessages
 from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.config import root_logger
 from unipi_control.mqtt.features import MeterFeaturesMqttPlugin
 from unipi_control.mqtt.features import NeuronFeaturesMqttPlugin
 from unipi_control.neuron import Neuron
@@ -32,7 +31,6 @@ class TestHappyPathNeuronFeaturesMqttPlugin:
     )
     async def test_init_tasks(self, mocker: MockerFixture, neuron: Neuron, caplog: LogCaptureFixture) -> None:
         """Test MQTT output after initialize neuron features."""
-        print("LEVEL2", root_logger.level)
         mock_mqtt_messages: AsyncMock = AsyncMock()
         mock_mqtt_messages.__aenter__.return_value = MockMQTTMessages([b"""ON""", b"""OFF"""])
 

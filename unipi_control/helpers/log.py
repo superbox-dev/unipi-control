@@ -11,8 +11,8 @@ LOG_MQTT_PUBLISH: Final[str] = "[MQTT] [%s] Publishing message: %s"
 LOG_MQTT_SUBSCRIBE: Final[str] = "[MQTT] [%s] Subscribe message: %s"
 LOG_MQTT_SUBSCRIBE_TOPIC: Final[str] = "[MQTT] Subscribe topic %s"
 
-SYSTEMD_LOG_FORMAT: Final[str] = "%(message)s"
-STDOUT_LOG_FORMAT: Final[str] = "%(asctime)s | %(levelname)s | %(message)s"
+SIMPLE_LOG_FORMAT: Final[str] = "%(message)s"
+LOG_FORMAT: Final[str] = "%(asctime)s | %(levelname)s | %(message)s"
 
 LOG_LEVEL: Final[Dict[str, int]] = OrderedDict(
     {

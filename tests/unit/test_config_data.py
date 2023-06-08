@@ -2,12 +2,20 @@
 
 from typing import Final
 
-CONFIG_LOGGING_LEVEL: Final[
+CONFIG_LOGGING_LEVEL_INFO: Final[
     str
 ] = """device_info:
   name: MOCKED UNIPI
 logging:
-  level: debug
+  level: info
+"""
+
+CONFIG_LOGGING_LEVEL_ERROR: Final[
+    str
+] = """device_info:
+  name: MOCKED UNIPI
+logging:
+  level: error
 """
 
 CONFIG_INVALID_DEVICE_NAME: Final[

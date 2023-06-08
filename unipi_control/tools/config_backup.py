@@ -17,6 +17,7 @@ from unipi_control.config import LoggingConfig
 from unipi_control.config import root_logger
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.exception import UnexpectedError
+from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 
 
 class UnipiConfigBackup:
@@ -79,13 +80,16 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def main() -> None:
+def main(argv: Optional[List[str]] = None) -> None:
     """Entrypoint for Unipi Config Converter."""
+    if argv is None:
+        argv = sys.argv[1:]
+
     try:
-        args: argparse.Namespace = parse_args(sys.argv[1:])
+        args: argparse.Namespace = parse_args(argv)
 
         config: Config = Config(logging=LoggingConfig(level="info"), config_base_path=Path(args.config))
-        config.logging.init(logger=root_logger, log=args.log, verbose=args.verbose)
+        config.logging.init(logger=root_logger, log=args.log, verbose=args.verbose, fmt=SIMPLE_LOG_FORMAT)
 
         UnipiConfigBackup(config=config).backup(target=Path(args.output))
     except UnexpectedError as error:

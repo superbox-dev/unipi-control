@@ -34,7 +34,6 @@ def _logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
 
     root_logger.setLevel(logging.NOTSET)
-    print("TEST")
     root_logger.handlers.clear()
 
     logging.info("Initialized logging")
@@ -93,8 +92,6 @@ class ConfigLoader:
         """Get the config dataclass."""
         if not config_base_path:
             config_base_path = self.temp
-
-        print("LEVEL1", root_logger.level)
 
         return Config(config_base_path=config_base_path, temp_path=self.temp_path)
 
@@ -205,6 +202,7 @@ async def init_neuron(config_loader: ConfigLoader, modbus_client: ModbusClient) 
         Mocked modbus client.
     """
     config: Config = config_loader.get_config()
+    config.logging.init(logger=root_logger)
 
     neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
     await neuron.init()
@@ -224,6 +222,7 @@ async def init_covers(config_loader: ConfigLoader, neuron: Neuron) -> AsyncGener
         Initialized neuron device.
     """
     config: Config = config_loader.get_config()
+    config.logging.init(logger=root_logger)
     covers: CoverMap = CoverMap(config=config, features=neuron.features)
     covers.init()
 

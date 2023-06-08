@@ -7,6 +7,8 @@ import pytest
 
 from tests.conftest import ConfigLoader
 from tests.conftest_data import CONFIG_CONTENT
+from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
+from tests.conftest_data import HARDWARE_DATA_CONTENT
 from tests.unit.tools.test_config_converter_data import CONVERTED_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import EVOK_MODEL_CONTENT
 from tests.unit.tools.test_config_converter_data import INVALID_EVOK_MODEL_CONTENT
@@ -46,7 +48,9 @@ class TestHappyPathUnipiConfigConverter:
 
 
 class TestUnhappyPathUnipiConfigConverter:
-    @pytest.mark.parametrize("config_loader", [CONFIG_CONTENT], indirect=True)
+    @pytest.mark.parametrize(
+        "config_loader", [CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT], indirect=True
+    )
     def test_invalid_input_yaml_file(self, config_loader: ConfigLoader) -> None:
         """Test that input yaml file raises UnexpectedError for invalid yaml file."""
         config_loader.hardware_data_file_path.unlink()
@@ -63,7 +67,9 @@ class TestUnhappyPathUnipiConfigConverter:
 
         assert str(error.value) == "INPUT is not a valid YAML file!"
 
-    @pytest.mark.parametrize("config_loader", [CONFIG_CONTENT], indirect=True)
+    @pytest.mark.parametrize(
+        "config_loader", [CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT], indirect=True
+    )
     def test_output_yaml_file_already_exists(self, config_loader: ConfigLoader) -> None:
         """Test that output yaml file raises UnexpectedError if file already exists."""
         evok_hardware_path: Path = config_loader.hardware_data_file_path.parent / "evok"
@@ -78,7 +84,9 @@ class TestUnhappyPathUnipiConfigConverter:
 
         assert str(error.value) == "OUTPUT YAML file already exists!"
 
-    @pytest.mark.parametrize("config_loader", [CONFIG_CONTENT], indirect=True)
+    @pytest.mark.parametrize(
+        "config_loader", [CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT], indirect=True
+    )
     def test_input_is_not_a_file(self, config_loader: ConfigLoader) -> None:
         """Test that input yaml file raises UnexpectedError if input is not a file."""
         evok_hardware_path: Path = config_loader.hardware_data_file_path.parent / "evok"
@@ -91,7 +99,9 @@ class TestUnhappyPathUnipiConfigConverter:
 
         assert str(error.value) == "INPUT is not a file!"
 
-    @pytest.mark.parametrize("config_loader", [CONFIG_CONTENT], indirect=True)
+    @pytest.mark.parametrize(
+        "config_loader", [CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT], indirect=True
+    )
     def test_output_is_a_file(self, config_loader: ConfigLoader) -> None:
         """Test that output yaml directory raises UnexpectedError if output is a file."""
         evok_hardware_path: Path = config_loader.hardware_data_file_path.parent / "evok"
@@ -106,7 +116,9 @@ class TestUnhappyPathUnipiConfigConverter:
 
         assert str(error.value) == "OUTPUT is a file not a directory!"
 
-    @pytest.mark.parametrize("config_loader", [CONFIG_CONTENT], indirect=True)
+    @pytest.mark.parametrize(
+        "config_loader", [CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT], indirect=True
+    )
     def test_output_directory_not_exists(self, config_loader: ConfigLoader) -> None:
         """Test that output yaml directory raises UnexpectedError if not exists."""
         evok_hardware_path: Path = config_loader.hardware_data_file_path.parent / "evok"

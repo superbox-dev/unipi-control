@@ -27,8 +27,8 @@ from typing import Union
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.exception import YamlError
 from unipi_control.helpers.log import LOG_LEVEL
-from unipi_control.helpers.log import STDOUT_LOG_FORMAT
-from unipi_control.helpers.log import SYSTEMD_LOG_FORMAT
+from unipi_control.helpers.log import LOG_FORMAT
+from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.log import SystemdHandler
 from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.helpers.yaml import yaml_loader_safe
@@ -349,7 +349,9 @@ class LoggingConfig(ConfigLoaderMixin):
         """Get logging verbose level as integer."""
         return list(LOG_LEVEL).index(self.level)
 
-    def init(self, logger: logging.Logger, log: Optional[str], verbose: int = 0) -> None:
+    def init(
+        self, logger: logging.Logger, log: Optional[str] = None, verbose: int = 0, fmt: Optional[str] = None
+    ) -> None:
         """Initialize logger handler and formatter.
 
         Parameters
@@ -360,19 +362,22 @@ class LoggingConfig(ConfigLoaderMixin):
             set log handler to systemd or stdout.
         verbose: int
             Logging verbose level as integer.
+        fmt: str, optional
+            Custom logging formater
         """
-        logger.setLevel(LOG_LEVEL["info"])
+        logger.setLevel(LOG_LEVEL[self.level])
 
         if log == "systemd":
             systemd_handler = SystemdHandler()
-            systemd_handler.setFormatter(logging.Formatter(SYSTEMD_LOG_FORMAT))
+            systemd_handler.setFormatter(logging.Formatter(fmt or SIMPLE_LOG_FORMAT))
             logger.addHandler(systemd_handler)
         else:
             stdout_handler: logging.Handler = logging.StreamHandler()
-            stdout_handler.setFormatter(logging.Formatter(STDOUT_LOG_FORMAT))
+            stdout_handler.setFormatter(logging.Formatter(fmt or LOG_FORMAT))
             logger.addHandler(stdout_handler)
 
-        self.update_level(logger, verbose)
+        if verbose > 0:
+            self.update_level(logger, verbose)
 
     def update_level(self, logger: logging.Logger, verbose: int) -> None:
         """Update the logging level in config data class.

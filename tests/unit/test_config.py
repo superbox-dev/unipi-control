@@ -5,6 +5,7 @@ import uuid
 from typing import Dict
 from typing import List
 from typing import NamedTuple
+from typing import Optional
 from unittest.mock import PropertyMock
 
 import pytest
@@ -33,7 +34,8 @@ from tests.unit.test_config_data import CONFIG_INVALID_LOG_LEVEL
 from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_BAUD_RATE
 from tests.unit.test_config_data import CONFIG_INVALID_MODBUS_PARITY
 from tests.unit.test_config_data import CONFIG_INVALID_MQTT_PORT_TYPE
-from tests.unit.test_config_data import CONFIG_LOGGING_LEVEL
+from tests.unit.test_config_data import CONFIG_LOGGING_LEVEL_ERROR
+from tests.unit.test_config_data import CONFIG_LOGGING_LEVEL_INFO
 from tests.unit.test_config_data import CONFIG_MISSING_COVER_KEY
 from tests.unit.test_config_data import CONFIG_MISSING_DEVICE_NAME
 from tests.unit.test_config_data import EXTENSION_HARDWARE_DATA_INVALID_KEY
@@ -44,18 +46,20 @@ from tests.unit.test_config_data import HARDWARE_DATA_IS_INVALID_YAML
 from tests.unit.test_config_data import HARDWARE_DATA_IS_LIST
 from unipi_control.config import Config
 from unipi_control.helpers.exception import ConfigError
+from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.neuron import Neuron
 
 
 class LoggingLevelParams(NamedTuple):
-    log: str
-    verbose: int
+    log: Optional[str]
+    verbose: Optional[int]
 
 
 class LoggingOutputParams(NamedTuple):
     level: int
     log: str
+    fmt: Optional[str]
     message: str
 
 
@@ -64,27 +68,62 @@ class TestHappyPathConfig:
         ("config_loader", "params", "expected"),
         [
             (
-                CONFIG_LOGGING_LEVEL,
+                [CONFIG_LOGGING_LEVEL_INFO, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
                 LoggingLevelParams(log="stdout", verbose=0),
-                logging.ERROR,
+                logging.INFO,
             ),
             (
-                CONFIG_LOGGING_LEVEL,
+                [CONFIG_LOGGING_LEVEL_INFO, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
                 LoggingLevelParams(log="systemd", verbose=0),
-                logging.ERROR,
+                logging.INFO,
             ),
             (
-                CONFIG_LOGGING_LEVEL,
+                [CONFIG_LOGGING_LEVEL_INFO, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
+                LoggingLevelParams(log=None, verbose=0),
+                logging.INFO,
+            ),
+            (
+                [CONFIG_LOGGING_LEVEL_INFO, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
                 LoggingLevelParams(log="systemd", verbose=1),
-                logging.WARNING,
+                logging.INFO,
             ),
             (
-                CONFIG_LOGGING_LEVEL,
+                [CONFIG_LOGGING_LEVEL_INFO, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
                 LoggingLevelParams(log="systemd", verbose=2),
                 logging.INFO,
             ),
             (
-                CONFIG_LOGGING_LEVEL,
+                [CONFIG_LOGGING_LEVEL_INFO, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
+                LoggingLevelParams(log="systemd", verbose=3),
+                logging.DEBUG,
+            ),
+            (
+                [CONFIG_LOGGING_LEVEL_ERROR, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
+                LoggingLevelParams(log="stdout", verbose=0),
+                logging.ERROR,
+            ),
+            (
+                [CONFIG_LOGGING_LEVEL_ERROR, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
+                LoggingLevelParams(log="systemd", verbose=0),
+                logging.ERROR,
+            ),
+            (
+                [CONFIG_LOGGING_LEVEL_ERROR, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
+                LoggingLevelParams(log=None, verbose=0),
+                logging.ERROR,
+            ),
+            (
+                [CONFIG_LOGGING_LEVEL_ERROR, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
+                LoggingLevelParams(log="systemd", verbose=1),
+                logging.WARNING,
+            ),
+            (
+                [CONFIG_LOGGING_LEVEL_ERROR, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
+                LoggingLevelParams(log="systemd", verbose=2),
+                logging.INFO,
+            ),
+            (
+                [CONFIG_LOGGING_LEVEL_ERROR, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT],
                 LoggingLevelParams(log="systemd", verbose=3),
                 logging.DEBUG,
             ),
@@ -98,6 +137,7 @@ class TestHappyPathConfig:
 
         config: Config = config_loader.get_config()
         config.logging.init(logger=logger, log=params.log, verbose=params.verbose)
+        print(logger.level)
 
         assert logger.level == expected
 
@@ -105,33 +145,40 @@ class TestHappyPathConfig:
         ("config_loader", "params", "expected"),
         [
             (
-                CONFIG_LOGGING_LEVEL,
-                LoggingOutputParams(level=logging.CRITICAL, log="stdout", message="MOCKED MESSAGE"),
+                CONFIG_LOGGING_LEVEL_INFO,
+                LoggingOutputParams(level=logging.CRITICAL, log="stdout", fmt=None, message="MOCKED MESSAGE"),
                 r"^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2},\d{3} \| CRITICAL \| MOCKED MESSAGE\n$",
             ),
             (
-                CONFIG_LOGGING_LEVEL,
-                LoggingOutputParams(level=logging.CRITICAL, log="systemd", message="MOCKED MESSAGE"),
+                CONFIG_LOGGING_LEVEL_INFO,
+                LoggingOutputParams(
+                    level=logging.CRITICAL, log="stdout", fmt=SIMPLE_LOG_FORMAT, message="MOCKED MESSAGE"
+                ),
+                r"^MOCKED MESSAGE\n$",
+            ),
+            (
+                CONFIG_LOGGING_LEVEL_INFO,
+                LoggingOutputParams(level=logging.CRITICAL, log="systemd", fmt=None, message="MOCKED MESSAGE"),
                 r"<2>MOCKED MESSAGE\n",
             ),
             (
-                CONFIG_LOGGING_LEVEL,
-                LoggingOutputParams(level=logging.ERROR, log="systemd", message="MOCKED MESSAGE"),
+                CONFIG_LOGGING_LEVEL_INFO,
+                LoggingOutputParams(level=logging.ERROR, log="systemd", fmt=None, message="MOCKED MESSAGE"),
                 r"<3>MOCKED MESSAGE\n",
             ),
             (
-                CONFIG_LOGGING_LEVEL,
-                LoggingOutputParams(level=logging.WARNING, log="systemd", message="MOCKED MESSAGE"),
+                CONFIG_LOGGING_LEVEL_INFO,
+                LoggingOutputParams(level=logging.WARNING, log="systemd", fmt=None, message="MOCKED MESSAGE"),
                 r"<4>MOCKED MESSAGE\n",
             ),
             (
-                CONFIG_LOGGING_LEVEL,
-                LoggingOutputParams(level=logging.INFO, log="systemd", message="MOCKED MESSAGE"),
+                CONFIG_LOGGING_LEVEL_INFO,
+                LoggingOutputParams(level=logging.INFO, log="systemd", fmt=None, message="MOCKED MESSAGE"),
                 r"<6>MOCKED MESSAGE\n",
             ),
             (
-                CONFIG_LOGGING_LEVEL,
-                LoggingOutputParams(level=logging.DEBUG, log="systemd", message="MOCKED MESSAGE"),
+                CONFIG_LOGGING_LEVEL_INFO,
+                LoggingOutputParams(level=logging.DEBUG, log="systemd", fmt=None, message="MOCKED MESSAGE"),
                 r"<7>MOCKED MESSAGE\n",
             ),
         ],
@@ -145,7 +192,7 @@ class TestHappyPathConfig:
         logger: logging.Logger = logging.getLogger(uniqid)
 
         config: Config = config_loader.get_config()
-        config.logging.init(logger=logger, log=params.log, verbose=3)
+        config.logging.init(logger=logger, log=params.log, verbose=3, fmt=params.fmt)
 
         logger.log(level=params.level, msg=params.message)
 

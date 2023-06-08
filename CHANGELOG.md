@@ -21,13 +21,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Updated pytest/coverage configuration
   - Save all output files e.g. `pytest.xml` in the reports folder 
 - Split README.md content in separate files under [docs](docs) (Prepare for [docs.superbox.one](https://docs.superbox.one))
-- Changed project structure to `unipi_control`, `data`, `scripts` and `tests` folder.
+- Changed project structure (flat layout) to `unipi_control`, `data`, `scripts` and `tests` folder.
 
 ### Removed
 
 - Removed superbox-utils dependencies.
 - Removed old `flake8` linter.
-- Removed `src` folder.
+
+### Fixed
+
+- Fixed wrong logging level. Logging level from YAML configuration was not set correctly.
 
 ## [2023.7] - 2023-07-04
 
