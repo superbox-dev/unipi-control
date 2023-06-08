@@ -1,6 +1,8 @@
 """Test modbus."""
 
 import asyncio
+from typing import Any
+from typing import Callable
 from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import PropertyMock
@@ -48,7 +50,7 @@ class TestUnhappyPathModbus:
             ),
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-                ModbusException("MOCKED ERROR"),
+                ModbusException,
                 [
                     "[MODBUS] Modbus Error: MOCKED ERROR",
                 ],
@@ -60,7 +62,7 @@ class TestUnhappyPathModbus:
         self,
         mocker: MockerFixture,
         config_loader: ConfigLoader,
-        exception: Exception,
+        exception: Callable[..., Any],
         expected: List[str],
         caplog: LogCaptureFixture,
     ) -> None:
@@ -68,7 +70,7 @@ class TestUnhappyPathModbus:
         config: Config = config_loader.get_config()
 
         mock_modbus_tcp_client: AsyncMock = AsyncMock()
-        mock_modbus_tcp_client.read_input_registers.side_effect = exception
+        mock_modbus_tcp_client.read_input_registers.side_effect = exception("MOCKED ERROR")
 
         mock_hardware_info: PropertyMock = mocker.patch(
             "unipi_control.config.HardwareInfo", new_callable=PropertyMock()

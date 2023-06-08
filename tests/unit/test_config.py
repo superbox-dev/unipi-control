@@ -53,7 +53,7 @@ from unipi_control.neuron import Neuron
 
 class LoggingLevelParams(NamedTuple):
     log: Optional[str]
-    verbose: Optional[int]
+    verbose: int
 
 
 class LoggingOutputParams(NamedTuple):
