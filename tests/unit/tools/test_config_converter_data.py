@@ -1,4 +1,4 @@
-"""Data for config converter tests."""
+"""Data for unipi-config-converter unit tests."""
 
 from typing import Final
 

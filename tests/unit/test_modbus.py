@@ -1,4 +1,4 @@
-"""Test modbus."""
+"""Unit tests for modbus."""
 
 import asyncio
 from typing import Any

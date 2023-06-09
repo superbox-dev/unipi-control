@@ -141,6 +141,8 @@ def mock_modbus_client(request: SubRequest, mocker: MockerFixture) -> MockModbus
 
     Parameters
     ----------
+    request: SubRequest
+        Config for mocked modbus fixture.
     mocker: MockerFixture
         pytest fixture for mocking.
 

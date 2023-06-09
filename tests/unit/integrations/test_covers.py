@@ -1,4 +1,4 @@
-"""Test MQTT for covers."""
+"""Unit tests MQTT for covers."""
 
 from typing import NamedTuple
 from typing import Optional

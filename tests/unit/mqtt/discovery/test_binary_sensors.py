@@ -1,4 +1,4 @@
-"""Test MQTT for Home Assistant binary sensors."""
+"""Unit tests MQTT for Home Assistant binary sensors."""
 
 import asyncio
 from asyncio import Task
@@ -35,7 +35,6 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
     )
     async def test_init_tasks(self, neuron: Neuron, caplog: LogCaptureFixture) -> None:
         """Test mqtt output after initialize Home Assistant binary sensors."""
-
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassBinarySensorsMqttPlugin = HassBinarySensorsMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
 

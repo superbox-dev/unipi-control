@@ -1,4 +1,4 @@
-"""Data for config tests."""
+"""Data for config unit tests."""
 
 from typing import Final
 

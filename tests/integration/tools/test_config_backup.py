@@ -1,3 +1,4 @@
+"""Integration tests for unipi-config-backup cli command."""
 import re
 from pathlib import Path
 from typing import List

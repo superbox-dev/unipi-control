@@ -1,4 +1,4 @@
-"""Test unipi-control entry point."""
+"""Unit tests for unipi-control entry point."""
 
 from argparse import Namespace
 

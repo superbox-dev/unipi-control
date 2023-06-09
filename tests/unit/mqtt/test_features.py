@@ -1,4 +1,4 @@
-"""Test MQTT for input and output features."""
+"""Unit tests MQTT for input and output features."""
 
 import asyncio
 from asyncio import Task
@@ -81,7 +81,6 @@ class TestHappyPathMeterFeaturesMqttPlugin:
     )
     async def test_init_tasks(self, mocker: MockerFixture, neuron: Neuron, caplog: LogCaptureFixture) -> None:
         """Test MQTT output after initialize meter features."""
-
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         mock_modbus_cache_data_scan: MagicMock = mocker.patch("unipi_control.modbus.ModbusCacheData.scan")
 

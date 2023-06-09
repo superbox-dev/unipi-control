@@ -1,4 +1,4 @@
-"""Test configuration."""
+"""Unit test for configurations."""
 import logging
 import re
 import uuid

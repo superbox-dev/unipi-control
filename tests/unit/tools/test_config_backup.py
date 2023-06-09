@@ -1,3 +1,4 @@
+"""Unit tests for unipi-config-backup cli command."""
 from argparse import Namespace
 
 from unipi_control.tools.config_backup import parse_args

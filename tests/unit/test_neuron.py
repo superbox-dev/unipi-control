@@ -1,4 +1,4 @@
-"""Test neuron device."""
+"""Unit tests for neuron device."""
 
 from typing import List
 from unittest.mock import AsyncMock

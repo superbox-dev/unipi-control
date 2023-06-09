@@ -1,4 +1,4 @@
-"""Test config converter."""
+"""Unit tests for unipi-config-converter cli command."""
 
 from argparse import Namespace
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""Data for Home Assistant switches tests."""
+"""Data for Home Assistant switches unit tests."""
 
 from typing import Any
 from typing import Dict

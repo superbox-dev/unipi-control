@@ -1,4 +1,4 @@
-"""Test input and output features."""
+"""Unit tests for input and output features."""
 
 from typing import NamedTuple
 from typing import Optional
@@ -116,7 +116,7 @@ class TestHappyPathFeatures:
         ],
         indirect=["config_loader", "modbus_client"],
     )
-    async def test_eastron_sw_version(self, modbus_client: MockModbusClient, neuron: Neuron, expected: str) -> None:
+    async def test_eastron_sw_version(self, neuron: Neuron, expected: str) -> None:
         """Test eastron software version."""
         feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = neuron.features.by_feature_id(
             "active_power_1", feature_types=["METER"]
