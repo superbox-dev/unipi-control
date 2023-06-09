@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from _pytest.logging import LogCaptureFixture
+from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 
 from tests.conftest import ConfigLoader
 from tests.conftest_data import CONFIG_CONTENT
