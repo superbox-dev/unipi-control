@@ -48,7 +48,7 @@ class UnipiConfigBackup:
             with tarfile.open(tar_file, "x:gz") as tar:
                 tar.add(self.config.config_base_path / "control.yaml", arcname=self.config.config_base_path)
         except OSError as error:
-            exception_message = f"{error.strerror}: '{error.filename}"
+            exception_message = f"{error.strerror}: '{error.filename}'"
             raise UnexpectedError(exception_message) from error
 
         root_logger.info("%s created!", tar_file.as_posix())

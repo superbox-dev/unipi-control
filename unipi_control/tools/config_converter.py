@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any
@@ -11,18 +12,22 @@ from typing import List
 from typing import Optional
 
 from unipi_control import __version__  # type: ignore[attr-defined]
-from unipi_control.config import Config
-from unipi_control.config import LoggingConfig
 from unipi_control.config import root_logger
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.exception import UnexpectedError
+from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.yaml import yaml_dumper
 from unipi_control.helpers.yaml import yaml_loader_safe
 
+root_logger.setLevel(logging.INFO)
+
+stdout_handler: logging.Handler = logging.StreamHandler()
+stdout_handler.setFormatter(logging.Formatter(SIMPLE_LOG_FORMAT))
+root_logger.addHandler(stdout_handler)
+
 
 class UnipiConfigConverter:
-    def __init__(self, config: Config, force: bool) -> None:
-        self.config: Config = config
+    def __init__(self, force: bool) -> None:
         self.force: bool = force
 
     @staticmethod
@@ -122,15 +127,14 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def main() -> None:
+def main(argv: Optional[List[str]] = None) -> None:
     """Entry point for Unipi Config Converter."""
+    if argv is None:
+        argv = sys.argv[1:]
+
     try:
-        args: argparse.Namespace = parse_args(sys.argv[1:])
-
-        config: Config = Config(logging=LoggingConfig(level="info"))
-        config.logging.init(logger=root_logger, log=args.log, verbose=args.verbose)
-
-        UnipiConfigConverter(config=config, force=args.force).convert(source=Path(args.input), target=Path(args.output))
+        args: argparse.Namespace = parse_args(argv)
+        UnipiConfigConverter(force=args.force).convert(source=Path(args.input), target=Path(args.output))
     except UnexpectedError as error:
         root_logger.critical(error)
         sys.exit(1)

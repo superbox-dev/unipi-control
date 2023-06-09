@@ -69,8 +69,10 @@ class EastronMeter:
     @property
     def value(self) -> Optional[float]:
         """Return Eastron meter value."""
-        if _reg_value := self._reg_value():
-            return round(
+        _reg_value: Iterable[int] = self._reg_value()
+
+        return (
+            round(
                 float(
                     BinaryPayloadDecoder.fromRegisters(  # type: ignore[no-untyped-call]
                         _reg_value, byteorder=Endian.Big, wordorder=Endian.Big
@@ -78,8 +80,9 @@ class EastronMeter:
                 ),
                 2,
             )
-
-        return None
+            if _reg_value
+            else None
+        )
 
     @property
     def changed(self) -> bool:
