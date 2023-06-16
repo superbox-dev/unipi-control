@@ -26,8 +26,8 @@ from typing import Union
 
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.exception import YamlError
-from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import LOG_FORMAT
+from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.log import SystemdHandler
 from unipi_control.helpers.typing import HardwareDefinition
@@ -489,6 +489,8 @@ class HardwareInfo:
     serial: str = field(default="unknown", init=False)
 
     def __post_init__(self) -> None:  # pragma: no cover
+        # Can't unit testing the hardware info.
+        # This code only works on the real hardware!
         unipi_1: Path = self.sys_bus / "1-0050/eeprom"
         unipi_patron: Path = self.sys_bus / "2-0057/eeprom"
         unipi_neuron_1: Path = self.sys_bus / "1-0057/eeprom"
