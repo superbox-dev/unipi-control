@@ -24,7 +24,7 @@ from typing import Union
 
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import Config
+from unipi_control.config import Config, root_logger, LogPrefix
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.map import FeatureMap
 from unipi_control.features.neuron import DigitalOutput
@@ -457,39 +457,37 @@ class Cover:
         ):
             return None
 
-        if self.calibration.mode is True and not calibrate:
-            return None
+        cover_run_time: Optional[float] = None
 
-        self._update_position()
-        response: Optional[ModbusResponse] = await self.settings.cover_down_feature.set_state(False)
-        self._stop_timer()
+        if (self.calibration.mode is True and calibrate) or self.calibration.mode is False:
+            self._update_position()
+            response: Optional[ModbusResponse] = await self.settings.cover_down_feature.set_state(False)
+            self._stop_timer()
 
-        if response:
-            await self.settings.cover_up_feature.set_state(True)
+            if response:
+                await self.settings.cover_up_feature.set_state(True)
 
-            self.current.device_state = CoverDeviceState.OPEN
-            self.status.state = CoverState.OPENING
-            self.timer.start = time.monotonic()
+                self.current.device_state = CoverDeviceState.OPEN
+                self.status.state = CoverState.OPENING
+                self.timer.start = time.monotonic()
 
-            if self.properties.set_position is True:
-                if self.settings.tilt_change_time:
-                    self.status.tilt = CoverState.OPEN_IN_PERCENT
+                if self.properties.set_position is True:
+                    if self.settings.tilt_change_time:
+                        self.status.tilt = CoverState.OPEN_IN_PERCENT
 
-                if self.status.position is not None and self.settings.cover_run_time:
-                    position = 105 if position == CoverState.OPEN_IN_PERCENT else position
-                    cover_run_time: float = (position - self.status.position) * self.settings.cover_run_time / 100
+                    if self.status.position is not None and self.settings.cover_run_time:
+                        position = 105 if position == CoverState.OPEN_IN_PERCENT else position
+                        cover_run_time = (position - self.status.position) * self.settings.cover_run_time / 100
 
-                    if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
-                        cover_run_time = self.settings.tilt_change_time
+                        if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
+                            cover_run_time = self.settings.tilt_change_time
 
-                    self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
-                    self.timer.timer.start()
+                        self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
+                        self.timer.timer.start()
 
-                    self._delete_position()
+                        self._delete_position()
 
-                    return cover_run_time
-
-        return None
+        return cover_run_time
 
     async def close_cover(self, position: int = CoverState.CLOSED_IN_PERCENT) -> Optional[float]:
         """Close the cover.
@@ -515,46 +513,43 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if self.properties.set_position is True:
-            if self.status.position is None:
-                return None
-
-            if self.status.position <= CoverState.CLOSED_IN_PERCENT:
-                return None
-
-        if self.calibration.mode is True:
+        if self.properties.set_position is True and (
+            self.status.position is None
+            or (self.status.position is not None and self.status.position <= CoverState.CLOSED_IN_PERCENT)
+        ):
             return None
 
-        self._update_position()
-        response: Optional[ModbusResponse] = await self.settings.cover_up_feature.set_state(False)
-        self._stop_timer()
+        cover_run_time: Optional[float] = None
 
-        if response:
-            await self.settings.cover_down_feature.set_state(True)
+        if self.calibration.mode is False:
+            self._update_position()
+            response: Optional[ModbusResponse] = await self.settings.cover_up_feature.set_state(False)
+            self._stop_timer()
 
-            self.current.device_state = CoverDeviceState.CLOSE
-            self.status.state = CoverState.CLOSING
-            self.timer.start = time.monotonic()
+            if response:
+                await self.settings.cover_down_feature.set_state(True)
 
-            if self.properties.set_position is True:
-                if self.settings.tilt_change_time:
-                    self.status.tilt = CoverState.CLOSED_IN_PERCENT
+                self.current.device_state = CoverDeviceState.CLOSE
+                self.status.state = CoverState.CLOSING
+                self.timer.start = time.monotonic()
 
-                if self.status.position is not None and self.settings.cover_run_time:
-                    position = position if position else -5
-                    cover_run_time: float = (self.status.position - position) * self.settings.cover_run_time / 100
+                if self.properties.set_position is True:
+                    if self.settings.tilt_change_time:
+                        self.status.tilt = CoverState.CLOSED_IN_PERCENT
 
-                    if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
-                        cover_run_time = self.settings.tilt_change_time
+                    if self.status.position is not None and self.settings.cover_run_time:
+                        position = position if position else -5
+                        cover_run_time = (self.status.position - position) * self.settings.cover_run_time / 100
 
-                    self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
-                    self.timer.timer.start()
+                        if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
+                            cover_run_time = self.settings.tilt_change_time
 
-                    self._delete_position()
+                        self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
+                        self.timer.timer.start()
 
-                    return cover_run_time
+                        self._delete_position()
 
-        return None
+        return cover_run_time
 
     async def stop_cover(self) -> None:
         """Stop moving the cover.
@@ -590,13 +585,7 @@ class Cover:
     async def _open_tilt(self, tilt: int = CoverState.OPEN_IN_PERCENT) -> Optional[float]:
         cover_run_time: Optional[float] = None
 
-        if self.status.tilt is None:
-            return None
-
-        if self.status.tilt == CoverState.OPEN_IN_PERCENT:
-            return None
-
-        if self.settings.tilt_change_time:
+        if self.status.tilt is not None and self.settings.tilt_change_time:
             self._update_position()
             response: Optional[ModbusResponse] = await self.settings.cover_down_feature.set_state(False)
             self._stop_timer()
@@ -620,10 +609,7 @@ class Cover:
     async def _close_tilt(self, tilt: int = CoverState.CLOSED_IN_PERCENT) -> Optional[float]:
         cover_run_time: Optional[float] = None
 
-        if not self.status.tilt:
-            return None
-
-        if self.settings.tilt_change_time:
+        if self.status.tilt is not None and self.settings.tilt_change_time:
             self._update_position()
             response: Optional[ModbusResponse] = await self.settings.cover_up_feature.set_state(False)
             self._stop_timer()
@@ -683,18 +669,17 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if not self.properties.set_tilt:
-            return None
-
-        if not self.settings.tilt_change_time:
-            return None
-
         cover_run_time: Optional[float] = None
 
-        if not self.calibration.mode and self.status.tilt is not None:
-            if tilt > self.status.tilt:
+        if (
+            self.properties.set_tilt
+            and self.settings.tilt_change_time
+            and self.calibration.mode is False
+            and self.status.tilt is not None
+        ):
+            if tilt > self.status.tilt and self.status.tilt < CoverState.OPEN_IN_PERCENT:
                 cover_run_time = await self._open_tilt(tilt)
-            elif tilt < self.status.tilt:
+            elif tilt < self.status.tilt and self.status.tilt > CoverState.CLOSED_IN_PERCENT:
                 cover_run_time = await self._close_tilt(tilt)
 
             self.status.tilt = tilt
@@ -713,7 +698,8 @@ class CoverMap(Mapping[str, List[Cover]]):
         data: List[Cover] = self.data[key]
         return data
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator:  # pragma: no cover
+        # Iterator never used but required from abstract class Mapping()
         return iter(self.data)
 
     def __len__(self) -> int:
@@ -730,7 +716,7 @@ class CoverMap(Mapping[str, List[Cover]]):
             ):
                 device_class: str = cover.device_class
 
-                if not self.data.get(device_class):
+                if not self.get(device_class):
                     self.data[device_class] = []
 
                 _cover = Cover(
@@ -746,6 +732,8 @@ class CoverMap(Mapping[str, List[Cover]]):
 
                 self.data[device_class].append(_cover)
 
+        root_logger.info("%s %s covers initialized.", LogPrefix.CONFIG, len(self))
+
     def by_device_classes(self, device_classes: List[str]) -> Iterator:
         """Filter covers by device classes.
 
@@ -760,5 +748,5 @@ class CoverMap(Mapping[str, List[Cover]]):
             Filtered covers list.
         """
         return itertools.chain.from_iterable(
-            [item for item in (self.data.get(device_class) for device_class in device_classes) if item is not None]
+            [item for item in (self.get(device_class) for device_class in device_classes) if item is not None]
         )

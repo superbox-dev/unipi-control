@@ -41,6 +41,7 @@ class CoverExpected(NamedTuple):
     stop_cover_state: Optional[str] = None
     position_changed: Optional[bool] = None
     tilt_changed: Optional[bool] = None
+    state_changed: Optional[bool] = None
     cover_run_time: Optional[float] = None
 
 
@@ -109,6 +110,7 @@ class TestHappyPathCovers(TestCovers):
                     open_cover_state="opening",
                     stop_cover_state="open",
                     position_changed=True,
+                    state_changed=True,
                     cover_run_time=37.275,
                 ),
             ),
@@ -121,6 +123,7 @@ class TestHappyPathCovers(TestCovers):
                     open_cover_state="opening",
                     stop_cover_state="open",
                     position_changed=True,
+                    state_changed=True,
                     cover_run_time=19.525,
                 ),
             ),
@@ -133,6 +136,7 @@ class TestHappyPathCovers(TestCovers):
                     open_cover_state="opening",
                     stop_cover_state="stopped",
                     position_changed=True,
+                    state_changed=True,
                     cover_run_time=1.5,  # Test minimum cover run time (tilt_change_time == 1.5)
                 ),
             ),
@@ -145,6 +149,7 @@ class TestHappyPathCovers(TestCovers):
                     open_cover_state="opening",
                     stop_cover_state="stopped",
                     position_changed=False,
+                    state_changed=True,
                     cover_run_time=None,
                 ),
             ),
@@ -182,7 +187,7 @@ class TestHappyPathCovers(TestCovers):
         assert cover.status.position == expected.position
         assert cover.status.tilt == expected.tilt
         assert cover.status.state == expected.stop_cover_state
-        assert cover.state_changed is True
+        assert cover.state_changed == expected.state_changed
         assert cover.position_changed == expected.position_changed
 
     @pytest.mark.asyncio()
@@ -201,7 +206,22 @@ class TestHappyPathCovers(TestCovers):
                     close_cover_state="closing",
                     stop_cover_state="closed",
                     position_changed=True,
+                    state_changed=True,
                     cover_run_time=37.275,
+                ),
+            ),
+            (
+                # Cover is already closed
+                CoverOptions(device_class="blind", current_position=0, position=0),
+                CoverExpected(
+                    position=0,
+                    tilt=0,
+                    current_cover_state="closed",
+                    close_cover_state="closed",
+                    stop_cover_state="closed",
+                    position_changed=False,
+                    state_changed=True,
+                    cover_run_time=None,
                 ),
             ),
             (
@@ -213,6 +233,7 @@ class TestHappyPathCovers(TestCovers):
                     close_cover_state="closing",
                     stop_cover_state="closed",
                     position_changed=True,
+                    state_changed=True,
                     cover_run_time=19.525,
                 ),
             ),
@@ -225,6 +246,7 @@ class TestHappyPathCovers(TestCovers):
                     close_cover_state="closing",
                     stop_cover_state="stopped",
                     position_changed=True,
+                    state_changed=True,
                     cover_run_time=1.5,  # Test minimum cover run time (tilt_change_time == 1.5)
                 ),
             ),
@@ -237,6 +259,7 @@ class TestHappyPathCovers(TestCovers):
                     close_cover_state="closing",
                     stop_cover_state="stopped",
                     position_changed=False,
+                    state_changed=True,
                     cover_run_time=None,
                 ),
             ),
@@ -275,7 +298,7 @@ class TestHappyPathCovers(TestCovers):
         assert cover.status.position == expected.position
         assert cover.status.tilt == expected.tilt
         assert cover.status.state == expected.stop_cover_state
-        assert cover.state_changed is True
+        assert cover.state_changed == expected.state_changed
         assert cover.position_changed == expected.position_changed
 
     @pytest.mark.asyncio()
@@ -317,33 +340,36 @@ class TestHappyPathCovers(TestCovers):
         ("options", "expected"),
         [
             (
-                CoverOptions(device_class="blind", position=50, current_tilt=50, tilt=25),
+                CoverOptions(device_class="blind", current_position=50, current_tilt=50, tilt=25),
                 CoverExpected(
                     tilt=25,
                     current_cover_state="stopped",
                     tilt_cover_state="closing",
                     stop_cover_state="stopped",
                     tilt_changed=True,
+                    state_changed=True,
                 ),
             ),
             (
-                CoverOptions(device_class="blind", position=50, current_tilt=50, tilt=75),
+                CoverOptions(device_class="blind", current_position=50, current_tilt=50, tilt=75),
                 CoverExpected(
                     tilt=75,
                     current_cover_state="stopped",
                     tilt_cover_state="opening",
                     stop_cover_state="stopped",
                     tilt_changed=True,
+                    state_changed=True,
                 ),
             ),
             (
-                CoverOptions(device_class="roller_shutter", position=None, current_tilt=None, tilt=25),
+                CoverOptions(device_class="roller_shutter", current_position=None, current_tilt=None, tilt=25),
                 CoverExpected(
                     tilt=None,
                     current_cover_state="stopped",
                     tilt_cover_state="stopped",
                     stop_cover_state="stopped",
                     tilt_changed=False,
+                    state_changed=True,
                 ),
             ),
         ],
@@ -360,8 +386,8 @@ class TestHappyPathCovers(TestCovers):
         cover.calibration.mode = False
         cover.current.tilt = options.current_tilt
         cover.status.tilt = options.current_tilt
-        cover.current.position = options.position
-        cover.status.position = options.position
+        cover.current.position = options.current_position
+        cover.status.position = options.current_position
         cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
         assert cover.status.state == expected.current_cover_state
@@ -383,7 +409,7 @@ class TestHappyPathCovers(TestCovers):
 
         assert cover.status.tilt == expected.tilt
         assert cover.status.state == expected.stop_cover_state
-        assert cover.state_changed is True
+        assert cover.state_changed == expected.state_changed
         assert cover.tilt_changed == expected.tilt_changed
 
     @pytest.mark.asyncio()
@@ -401,6 +427,7 @@ class TestHappyPathCovers(TestCovers):
                     position_cover_state="closing",
                     stop_cover_state="stopped",
                     position_changed=True,
+                    state_changed=True,
                 ),
             ),
             (
@@ -411,6 +438,7 @@ class TestHappyPathCovers(TestCovers):
                     position_cover_state="opening",
                     stop_cover_state="stopped",
                     position_changed=True,
+                    state_changed=True,
                 ),
             ),
             (
@@ -421,6 +449,7 @@ class TestHappyPathCovers(TestCovers):
                     position_cover_state="stopped",
                     stop_cover_state="stopped",
                     position_changed=False,
+                    state_changed=True,
                 ),
             ),
         ],
@@ -456,7 +485,7 @@ class TestHappyPathCovers(TestCovers):
 
         assert cover.status.position == expected.position
         assert cover.status.state == expected.stop_cover_state
-        assert cover.state_changed is True
+        assert cover.state_changed == expected.state_changed
         assert cover.position_changed == expected.position_changed
 
     @pytest.mark.parametrize(
@@ -532,6 +561,27 @@ class TestUnhappyPathCovers(TestCovers):
         cover.status.position = expected
 
         cover_run_time: Optional[float] = await cover.open_cover()
+
+        assert cover_run_time is None
+
+    @pytest.mark.asyncio()
+    @pytest.mark.parametrize(
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+    )
+    @pytest.mark.parametrize(("options", "expected"), [(CoverOptions(device_class="blind"), -5)])
+    async def test_close_cover_with_invalid_position(
+        self,
+        covers: CoverMap,
+        options: CoverOptions,
+        expected: int,
+    ) -> None:
+        """Test close cover when cover position has position lower than 0."""
+        cover: Cover = next(covers.by_device_classes([options.device_class]))
+        cover.calibration.mode = False
+        cover.current.position = expected
+        cover.status.position = expected
+
+        cover_run_time: Optional[float] = await cover.close_cover()
 
         assert cover_run_time is None
 

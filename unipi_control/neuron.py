@@ -213,6 +213,8 @@ class Neuron:
         await self.read_boards()
         await self.read_extensions()
 
+        root_logger.info("%s %s features initialized.", LogPrefix.CONFIG, len(self.features))
+
     @staticmethod
     def get_firmware(response: ModbusResponse) -> str:
         """Get the Unipi Neuron firmware version.
