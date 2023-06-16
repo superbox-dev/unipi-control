@@ -27,11 +27,14 @@ def create_evok_hardware_yaml(request: SubRequest, tmp_path: Path) -> Path:
 
 class TestHappyPathUnipiConfigConverter:
     @pytest.mark.parametrize("evok_hardware_yaml", [EVOK_MODEL_CONTENT], indirect=["evok_hardware_yaml"])
-    def test_unipi_config_converter(self, evok_hardware_yaml: Path) -> None:
+    def test_unipi_config_converter(self, evok_hardware_yaml: Path, caplog: LogCaptureFixture) -> None:
         """Test content output of converted yaml file."""
         hardware_data_file_path = evok_hardware_yaml.parent.parent / "MOCKED_MODEL.yaml"
         main([evok_hardware_yaml.as_posix(), hardware_data_file_path.parent.as_posix()])
 
+        logs: List[str] = [record.getMessage() for record in caplog.records]
+
+        assert f"YAML file written to: {hardware_data_file_path.as_posix()}" in logs
         assert hardware_data_file_path.read_text() == CONVERTED_MODEL_CONTENT
 
 
