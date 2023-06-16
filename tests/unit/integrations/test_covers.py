@@ -41,6 +41,7 @@ class CoverExpected(NamedTuple):
     stop_cover_state: Optional[str] = None
     position_changed: Optional[bool] = None
     tilt_changed: Optional[bool] = None
+    cover_run_time: Optional[float] = None
 
 
 class TestCovers:
@@ -100,7 +101,7 @@ class TestHappyPathCovers(TestCovers):
         ("options", "expected"),
         [
             (
-                CoverOptions(device_class="blind", position=0),
+                CoverOptions(device_class="blind", current_position=0, position=100),
                 CoverExpected(
                     position=100,
                     tilt=100,
@@ -108,10 +109,11 @@ class TestHappyPathCovers(TestCovers):
                     open_cover_state="opening",
                     stop_cover_state="open",
                     position_changed=True,
+                    cover_run_time=37.275,
                 ),
             ),
             (
-                CoverOptions(device_class="blind", position=50),
+                CoverOptions(device_class="blind", current_position=50, position=100),
                 CoverExpected(
                     position=100,
                     tilt=100,
@@ -119,10 +121,23 @@ class TestHappyPathCovers(TestCovers):
                     open_cover_state="opening",
                     stop_cover_state="open",
                     position_changed=True,
+                    cover_run_time=19.525,
                 ),
             ),
             (
-                CoverOptions(device_class="roller_shutter", position=None),
+                CoverOptions(device_class="blind", current_position=50, position=51),
+                CoverExpected(
+                    position=54,
+                    tilt=100,
+                    current_cover_state="stopped",
+                    open_cover_state="opening",
+                    stop_cover_state="stopped",
+                    position_changed=True,
+                    cover_run_time=1.5,  # Test minimum cover run time (tilt_change_time == 1.5)
+                ),
+            ),
+            (
+                CoverOptions(device_class="roller_shutter", current_position=None, position=None),
                 CoverExpected(
                     position=None,
                     tilt=None,
@@ -130,6 +145,7 @@ class TestHappyPathCovers(TestCovers):
                     open_cover_state="opening",
                     stop_cover_state="stopped",
                     position_changed=False,
+                    cover_run_time=None,
                 ),
             ),
         ],
@@ -144,16 +160,17 @@ class TestHappyPathCovers(TestCovers):
         """Test cover status and position when open the cover."""
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
-        cover.current.position = options.position
-        cover.status.position = options.position
+        cover.current.position = options.current_position
+        cover.status.position = options.current_position
         cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
         assert cover.status.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
+        cover_run_time = await cover.open_cover(position=options.position if options.position else 100)
 
-        if (cover_run_time := await cover.open_cover()) is not None:
+        if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
         assert cover.status.state == expected.open_cover_state
@@ -161,6 +178,7 @@ class TestHappyPathCovers(TestCovers):
         await cover.stop_cover()
         cover.read_position()
 
+        assert cover_run_time == expected.cover_run_time
         assert cover.status.position == expected.position
         assert cover.status.tilt == expected.tilt
         assert cover.status.state == expected.stop_cover_state
@@ -175,7 +193,7 @@ class TestHappyPathCovers(TestCovers):
         ("options", "expected"),
         [
             (
-                CoverOptions(device_class="blind", position=100),
+                CoverOptions(device_class="blind", current_position=100, position=0),
                 CoverExpected(
                     position=0,
                     tilt=0,
@@ -183,10 +201,11 @@ class TestHappyPathCovers(TestCovers):
                     close_cover_state="closing",
                     stop_cover_state="closed",
                     position_changed=True,
+                    cover_run_time=37.275,
                 ),
             ),
             (
-                CoverOptions(device_class="blind", position=50),
+                CoverOptions(device_class="blind", current_position=50, position=0),
                 CoverExpected(
                     position=0,
                     tilt=0,
@@ -194,10 +213,23 @@ class TestHappyPathCovers(TestCovers):
                     close_cover_state="closing",
                     stop_cover_state="closed",
                     position_changed=True,
+                    cover_run_time=19.525,
                 ),
             ),
             (
-                CoverOptions(device_class="roller_shutter", position=None),
+                CoverOptions(device_class="blind", current_position=50, position=49),
+                CoverExpected(
+                    position=46,
+                    tilt=0,
+                    current_cover_state="stopped",
+                    close_cover_state="closing",
+                    stop_cover_state="stopped",
+                    position_changed=True,
+                    cover_run_time=1.5,  # Test minimum cover run time (tilt_change_time == 1.5)
+                ),
+            ),
+            (
+                CoverOptions(device_class="roller_shutter", current_position=None, position=None),
                 CoverExpected(
                     position=None,
                     tilt=None,
@@ -205,6 +237,7 @@ class TestHappyPathCovers(TestCovers):
                     close_cover_state="closing",
                     stop_cover_state="stopped",
                     position_changed=False,
+                    cover_run_time=None,
                 ),
             ),
         ],
@@ -219,8 +252,8 @@ class TestHappyPathCovers(TestCovers):
         """Test cover status and position when close the cover."""
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
-        cover.current.position = options.position
-        cover.status.position = options.position
+        cover.current.position = options.current_position
+        cover.status.position = options.current_position
         cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
         assert cover.status.state == expected.current_cover_state
@@ -228,7 +261,7 @@ class TestHappyPathCovers(TestCovers):
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
 
         mock_monotonic.return_value = 0
-        cover_run_time: Optional[float] = await cover.close_cover()
+        cover_run_time: Optional[float] = await cover.close_cover(position=options.position if options.position else 0)
 
         assert cover.status.state == expected.close_cover_state
 
@@ -238,6 +271,7 @@ class TestHappyPathCovers(TestCovers):
         await cover.stop_cover()
         cover.read_position()
 
+        assert cover_run_time == expected.cover_run_time
         assert cover.status.position == expected.position
         assert cover.status.tilt == expected.tilt
         assert cover.status.state == expected.stop_cover_state
