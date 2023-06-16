@@ -25,7 +25,7 @@ class TestHappyPathUnipiConfigBackup:
         indirect=["config_loader"],
     )
     def test_unipi_config_backup(self, config_loader: ConfigLoader, caplog: LogCaptureFixture) -> None:
-        """Test for missing output directory."""
+        """Test for config backup."""
         backup_path: Path = config_loader.temp_path / "backup"
         backup_path.mkdir()
 
