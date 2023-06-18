@@ -24,7 +24,9 @@ from typing import Union
 
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import Config, root_logger, LogPrefix
+from unipi_control.config import Config
+from unipi_control.config import LogPrefix
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.map import FeatureMap
 from unipi_control.features.neuron import DigitalOutput
@@ -703,7 +705,12 @@ class CoverMap(Mapping[str, List[Cover]]):
         return iter(self.data)
 
     def __len__(self) -> int:
-        return len(self.data)
+        _length: int = 0
+
+        for data in self.data.values():
+            _length += len(data)
+
+        return _length
 
     def init(self) -> None:
         """Initialize covers from covers config."""
@@ -732,7 +739,7 @@ class CoverMap(Mapping[str, List[Cover]]):
 
                 self.data[device_class].append(_cover)
 
-        root_logger.info("%s %s covers initialized.", LogPrefix.CONFIG, len(self))
+        UNIPI_LOGGER.info("%s %s covers initialized.", LogPrefix.CONFIG, len(self))
 
     def by_device_classes(self, device_classes: List[str]) -> Iterator:
         """Filter covers by device classes.

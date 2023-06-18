@@ -13,7 +13,7 @@ from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import HardwareMap
 from unipi_control.config import LogPrefix
-from unipi_control.config import root_logger
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.helpers.typing import ModbusReadData
@@ -46,9 +46,9 @@ async def check_modbus_call(
         if response and response.isError():  # type: ignore[no-untyped-call]
             response = None
     except ModbusException as error:
-        root_logger.error("%s %s", LogPrefix.MODBUS, error)
+        UNIPI_LOGGER.error("%s %s", LogPrefix.MODBUS, error)
     except asyncio.exceptions.TimeoutError:
-        root_logger.error("%s Timeout on: %s", LogPrefix.MODBUS, data)
+        UNIPI_LOGGER.error("%s Timeout on: %s", LogPrefix.MODBUS, data)
 
     return response
 
@@ -124,7 +124,7 @@ class ModbusCacheData:
 
         for _address in range(address, address + index):
             if _address not in self.data[unit] or self.data[unit][_address] is None:
-                root_logger.error("%s Error on address %s (unit: %s)", LogPrefix.MODBUS, address, unit)
+                UNIPI_LOGGER.error("%s Error on address %s (unit: %s)", LogPrefix.MODBUS, address, unit)
             else:
                 ret += [self.data[unit][_address]]
 

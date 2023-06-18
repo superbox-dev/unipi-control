@@ -12,18 +12,18 @@ from typing import List
 from typing import Optional
 
 from unipi_control import __version__  # type: ignore[attr-defined]
-from unipi_control.config import root_logger
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.exception import UnexpectedError
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.yaml import yaml_dumper
 from unipi_control.helpers.yaml import yaml_loader_safe
 
-root_logger.setLevel(logging.INFO)
+UNIPI_LOGGER.setLevel(logging.INFO)
 
 stdout_handler: logging.Handler = logging.StreamHandler()
 stdout_handler.setFormatter(logging.Formatter(SIMPLE_LOG_FORMAT))
-root_logger.addHandler(stdout_handler)
+UNIPI_LOGGER.addHandler(stdout_handler)
 
 
 class UnipiConfigConverter:
@@ -46,7 +46,7 @@ class UnipiConfigConverter:
             raise UnexpectedError(exception_message)
 
         target.write_text(yaml_dumper(json.dumps(content)), encoding="utf-8")
-        root_logger.info("YAML file written to: %s", target.as_posix())
+        UNIPI_LOGGER.info("YAML file written to: %s", target.as_posix())
 
     @staticmethod
     def _parse_modbus_register_blocks(source_yaml: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -136,7 +136,7 @@ def main(argv: Optional[List[str]] = None) -> None:
         args: argparse.Namespace = parse_args(argv)
         UnipiConfigConverter(force=args.force).convert(source=Path(args.input), target=Path(args.output))
     except UnexpectedError as error:
-        root_logger.critical(error)
+        UNIPI_LOGGER.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
         ...

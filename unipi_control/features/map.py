@@ -31,7 +31,12 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         return iter(self.data)
 
     def __len__(self) -> int:
-        return len(self.data)
+        _length: int = 0
+
+        for data in self.data.values():
+            _length += len(data)
+
+        return _length
 
     def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]) -> None:
         """Add a feature to the data storage.

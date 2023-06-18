@@ -23,7 +23,7 @@ from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LogPrefix
 from unipi_control.config import MqttConfig
-from unipi_control.config import root_logger
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.exception import UnexpectedError
@@ -91,7 +91,7 @@ class UnipiControl:
         await self.modbus_client.tcp.connect()  # type: ignore[no-untyped-call]
 
         if self.modbus_client.tcp.connected:
-            root_logger.info(
+            UNIPI_LOGGER.info(
                 "%s TCP client connected to %s:%s",
                 LogPrefix.MODBUS,
                 self.modbus_client.tcp.params.host,
@@ -106,7 +106,7 @@ class UnipiControl:
         await self.modbus_client.serial.connect()  # type: ignore[no-untyped-call]
 
         if self.modbus_client.serial.connected:
-            root_logger.info(
+            UNIPI_LOGGER.info(
                 "%s Serial client connected to %s",
                 LogPrefix.MODBUS,
                 self.modbus_client.serial.params.port,
@@ -132,7 +132,7 @@ class UnipiControl:
         callback: Callback
             A callback function that executed after successful MQTT connect.
         """
-        root_logger.info("%s Client ID: %s", LogPrefix.MQTT, mqtt_client_id)
+        UNIPI_LOGGER.info("%s Client ID: %s", LogPrefix.MQTT, mqtt_client_id)
 
         reconnect_interval: int = mqtt_config.reconnect_interval
         retry_limit: Optional[int] = mqtt_config.retry_limit
@@ -140,7 +140,7 @@ class UnipiControl:
 
         while True:
             try:
-                root_logger.info("%s Connecting to broker ...", LogPrefix.MQTT)
+                UNIPI_LOGGER.info("%s Connecting to broker ...", LogPrefix.MQTT)
 
                 async with AsyncExitStack() as stack:
                     mqtt_client: Client = Client(
@@ -153,13 +153,13 @@ class UnipiControl:
                     await stack.enter_async_context(mqtt_client)
                     retry_reconnect = 0
 
-                    root_logger.info(
+                    UNIPI_LOGGER.info(
                         "%s Connected to broker at '%s:%s'", LogPrefix.MQTT, mqtt_config.host, mqtt_config.port
                     )
 
                     await callback(stack, mqtt_client)
             except MqttError as error:
-                root_logger.error(
+                UNIPI_LOGGER.error(
                     "%s Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
                     LogPrefix.MQTT,
                     error,
@@ -211,15 +211,18 @@ def parse_args(args: List[str]) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-def main() -> None:
+def main(argv: Optional[List[str]] = None) -> None:
     """Entrypoint for Unipi Control."""
+    if argv is None:
+        argv = sys.argv[1:]
+
     unipi_control: Optional[UnipiControl] = None
 
     try:
-        args: argparse.Namespace = parse_args(sys.argv[1:])
+        args: argparse.Namespace = parse_args(argv)
 
         config: Config = Config(config_base_path=Path(args.config))
-        config.logging.init(logger=root_logger, log=args.log, verbose=args.verbose)
+        config.logging.init(log=args.log, verbose=args.verbose)
 
         unipi_control = UnipiControl(
             config=config,
@@ -243,10 +246,10 @@ def main() -> None:
 
         asyncio.run(unipi_control.run())
     except ConfigError as error:
-        root_logger.critical("%s %s", LogPrefix.CONFIG, error)
+        UNIPI_LOGGER.critical("%s %s", LogPrefix.CONFIG, error)
         sys.exit(1)
     except UnexpectedError as error:
-        root_logger.critical(error)
+        UNIPI_LOGGER.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
         ...
@@ -254,4 +257,4 @@ def main() -> None:
         ...
     finally:
         if unipi_control:
-            root_logger.info("Successfully shutdown the Unipi Control service.")
+            UNIPI_LOGGER.info("Successfully shutdown the Unipi Control service.")

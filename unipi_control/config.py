@@ -24,16 +24,19 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
+from asyncio_mqtt.client import MQTT_LOGGER
+
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.exception import YamlError
 from unipi_control.helpers.log import LOG_FORMAT
 from unipi_control.helpers.log import LOG_LEVEL
+from unipi_control.helpers.log import LOG_NAME
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.log import SystemdHandler
 from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.helpers.yaml import yaml_loader_safe
 
-root_logger: logging.Logger = logging.getLogger()
+UNIPI_LOGGER: logging.Logger = logging.getLogger(LOG_NAME)
 
 DEFAULT_CONFIG_PATH: Final[Path] = Path("/etc/unipi")
 DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
@@ -350,49 +353,52 @@ class LoggingConfig(ConfigLoaderMixin):
         return list(LOG_LEVEL).index(self.level)
 
     def init(
-        self, logger: logging.Logger, log: Optional[str] = None, verbose: int = 0, fmt: Optional[str] = None
+        self,
+        log: Optional[str] = None,
+        verbose: int = 0,
+        fmt: Optional[str] = None,
     ) -> None:
         """Initialize logger handler and formatter.
 
         Parameters
         ----------
-        logger:
-            Logging handler.
         log: str
             set log handler to systemd or stdout.
         verbose: int
             Logging verbose level as integer.
         fmt: str, optional
-            Custom logging formater
+            Custom logging formatter
         """
-        logger.setLevel(LOG_LEVEL[self.level])
+        UNIPI_LOGGER.handlers.clear()
+        UNIPI_LOGGER.setLevel(LOG_LEVEL[self.level])
+        MQTT_LOGGER.handlers.clear()
 
         if log == "systemd":
             systemd_handler = SystemdHandler()
             systemd_handler.setFormatter(logging.Formatter(fmt or SIMPLE_LOG_FORMAT))
-            logger.addHandler(systemd_handler)
+            UNIPI_LOGGER.addHandler(systemd_handler)
+            MQTT_LOGGER.addHandler(systemd_handler)
         else:
             stdout_handler: logging.Handler = logging.StreamHandler()
             stdout_handler.setFormatter(logging.Formatter(fmt or LOG_FORMAT))
-            logger.addHandler(stdout_handler)
+            UNIPI_LOGGER.addHandler(stdout_handler)
+            MQTT_LOGGER.addHandler(stdout_handler)
 
         if verbose > 0:
-            self.update_level(logger, verbose)
+            self.update_level(verbose)
 
-    def update_level(self, logger: logging.Logger, verbose: int) -> None:
+    def update_level(self, verbose: int) -> None:
         """Update the logging level in config data class.
 
         Parameters
         ----------
-        logger:
-            Logging handler.
         verbose: int
             Logging verbose level as integer.
         """
         levels: List[int] = list(LOG_LEVEL.values())
         level: int = levels[min(max(verbose, self.verbose), len(levels) - 1)]
 
-        logger.setLevel(level)
+        UNIPI_LOGGER.setLevel(level)
 
     def _validate_level(self, value: str, name: str) -> str:
         if (value := value.lower()) not in LOG_LEVEL.keys():
@@ -583,7 +589,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                     modbus_register_blocks=yaml_content["modbus_register_blocks"],
                     modbus_features=yaml_content["modbus_features"],
                 )
-                root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+                UNIPI_LOGGER.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
             except KeyError as error:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
                 raise ConfigError(msg) from error
@@ -618,7 +624,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                         modbus_features=yaml_content["modbus_features"],
                     )
 
-                root_logger.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
+                UNIPI_LOGGER.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
             except KeyError as error:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
                 raise ConfigError(msg) from error

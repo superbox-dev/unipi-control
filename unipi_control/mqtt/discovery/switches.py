@@ -12,7 +12,7 @@ from typing import Union
 
 from asyncio_mqtt import Client
 
-from unipi_control.config import root_logger
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.features.neuron import DigitalOutput
 from unipi_control.features.neuron import Relay
 from unipi_control.features.utils import FeatureState
@@ -89,7 +89,7 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
 
                 json_data: str = json.dumps(message)
                 await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
-                root_logger.debug(LOG_MQTT_PUBLISH, topic, json_data)
+                UNIPI_LOGGER.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
 class HassSwitchesMqttPlugin:

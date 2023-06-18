@@ -19,7 +19,7 @@ from asyncio_mqtt import Client
 
 from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import LogPrefix
-from unipi_control.config import root_logger
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
@@ -60,7 +60,7 @@ class CoversMqttPlugin:
                 await queue.get()
                 queue.task_done()
 
-            root_logger.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
+            UNIPI_LOGGER.info("%s [%s] [Worker] %s task(s) canceled.", LogPrefix.COVER, cover.topic, size)
 
     async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         """Initialize MQTT tasks for subscribe and publish MQTT topics.
@@ -88,16 +88,16 @@ class CoversMqttPlugin:
             queue: Queue = self._queues[cover.topic]
 
             if queue.qsize() > 0:
-                root_logger.info("%s [%s] [Worker] %s task(s) in queue.", LogPrefix.COVER, cover.topic, queue.qsize())
+                UNIPI_LOGGER.info("%s [%s] [Worker] %s task(s) in queue.", LogPrefix.COVER, cover.topic, queue.qsize())
 
             subscribe_queue: SubscribeCommand = await queue.get()
             command: Callable[[int], Awaitable[Optional[float]]] = getattr(cover, subscribe_queue.command)
             cover_run_time: Optional[float] = await command(subscribe_queue.value)
 
-            root_logger.info(*subscribe_queue.log)
+            UNIPI_LOGGER.info(*subscribe_queue.log)
 
             if cover_run_time:
-                root_logger.debug(
+                UNIPI_LOGGER.debug(
                     "%s [%s] [Worker] Cover runtime: %s seconds.",
                     LogPrefix.COVER,
                     cover.topic,
@@ -122,7 +122,7 @@ class CoversMqttPlugin:
             tasks.add(task)
 
             await self.mqtt_client.subscribe(topic, qos=0)
-            root_logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
+            UNIPI_LOGGER.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
     async def _set_position_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
@@ -135,7 +135,7 @@ class CoversMqttPlugin:
             tasks.add(task)
 
             await self.mqtt_client.subscribe(topic, qos=0)
-            root_logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
+            UNIPI_LOGGER.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
     async def _tilt_command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
@@ -149,7 +149,7 @@ class CoversMqttPlugin:
                 tasks.add(task)
 
                 await self.mqtt_client.subscribe(topic, qos=0)
-                root_logger.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
+                UNIPI_LOGGER.debug(LOG_MQTT_SUBSCRIBE_TOPIC, topic)
 
     async def _subscribe_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
@@ -164,7 +164,7 @@ class CoversMqttPlugin:
             elif value == CoverDeviceState.STOP:
                 await cover.stop_cover()
 
-            root_logger.info(LOG_MQTT_SUBSCRIBE, topic, value)
+            UNIPI_LOGGER.info(LOG_MQTT_SUBSCRIBE, topic, value)
 
     async def _subscribe_set_position_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
@@ -180,7 +180,7 @@ class CoversMqttPlugin:
                     ),
                 )
             except ValueError as error:
-                root_logger.error(error)
+                UNIPI_LOGGER.error(error)
 
     async def _subscribe_tilt_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
@@ -196,7 +196,7 @@ class CoversMqttPlugin:
                     ),
                 )
             except ValueError as error:
-                root_logger.error(error)
+                UNIPI_LOGGER.error(error)
 
     async def _publish(self) -> None:
         while self.PUBLISH_RUNNING:
@@ -204,17 +204,17 @@ class CoversMqttPlugin:
                 if cover.position_changed:
                     position_topic: str = f"{cover.topic}/position"
                     await self.mqtt_client.publish(position_topic, cover.status.position, qos=1, retain=True)
-                    root_logger.info(LOG_MQTT_PUBLISH, position_topic, cover.status.position)
+                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, position_topic, cover.status.position)
 
                 if cover.tilt_changed:
                     tilt_topic: str = f"{cover.topic}/tilt"
                     await self.mqtt_client.publish(tilt_topic, cover.status.tilt, qos=1, retain=True)
-                    root_logger.info(LOG_MQTT_PUBLISH, tilt_topic, cover.status.tilt)
+                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, tilt_topic, cover.status.tilt)
 
                 if cover.state_changed:
                     state_topic: str = f"{cover.topic}/state"
                     await self.mqtt_client.publish(state_topic, cover.status.state, qos=1, retain=True)
-                    root_logger.info(LOG_MQTT_PUBLISH, state_topic, cover.status.state)
+                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, state_topic, cover.status.state)
 
                 await cover.calibrate()
             await asyncio.sleep(25e-3)

@@ -14,7 +14,7 @@ from unipi_control import __version__  # type: ignore[attr-defined]
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
 from unipi_control.config import LoggingConfig
-from unipi_control.config import root_logger
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.exception import UnexpectedError
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
@@ -51,7 +51,7 @@ class UnipiConfigBackup:
             exception_message = f"{error.strerror}: '{error.filename}'"
             raise UnexpectedError(exception_message) from error
 
-        root_logger.info("%s created!", tar_file.as_posix())
+        UNIPI_LOGGER.info("%s created!", tar_file.as_posix())
 
 
 def parse_args(args: List[str]) -> argparse.Namespace:
@@ -89,11 +89,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         args: argparse.Namespace = parse_args(argv)
 
         config: Config = Config(logging=LoggingConfig(level="info"), config_base_path=Path(args.config))
-        config.logging.init(logger=root_logger, log=args.log, verbose=args.verbose, fmt=SIMPLE_LOG_FORMAT)
+        config.logging.init(log=args.log, verbose=args.verbose, fmt=SIMPLE_LOG_FORMAT)
 
         UnipiConfigBackup(config=config).backup(target=Path(args.output))
     except UnexpectedError as error:
-        root_logger.critical(error)
+        UNIPI_LOGGER.critical(error)
         sys.exit(1)
     except KeyboardInterrupt:
         ...

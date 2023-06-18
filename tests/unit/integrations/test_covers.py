@@ -1,10 +1,14 @@
 """Unit tests MQTT for covers."""
-
+import asyncio
+import time
+from typing import List
 from typing import NamedTuple
 from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
+from _pytest.capture import CaptureFixture
+from _pytest.logging import LogCaptureFixture
 from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 
@@ -15,6 +19,7 @@ from tests.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.integrations.covers import CoverState
+from unipi_control.integrations.covers import CoverTimer
 
 
 class CoverOptions(NamedTuple):
@@ -78,6 +83,7 @@ class TestHappyPathCovers(TestCovers):
         self, covers: CoverMap, mocker: MockerFixture, options: CoverOptions, expected: CoverExpected
     ) -> None:
         """Test cover calibration start and finish."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = options.calibration_mode
 
@@ -163,6 +169,7 @@ class TestHappyPathCovers(TestCovers):
         expected: CoverExpected,
     ) -> None:
         """Test cover status and position when open the cover."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
         cover.current.position = options.current_position
@@ -273,6 +280,7 @@ class TestHappyPathCovers(TestCovers):
         expected: CoverExpected,
     ) -> None:
         """Test cover status and position when close the cover."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
         cover.current.position = options.current_position
@@ -321,6 +329,7 @@ class TestHappyPathCovers(TestCovers):
         expected: str,
     ) -> None:
         """Test cover status when stop the cover."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
         cover.status.position = options.position
@@ -382,6 +391,7 @@ class TestHappyPathCovers(TestCovers):
         expected: CoverExpected,
     ) -> None:
         """Test cover status and tilt when tilt the cover."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
         cover.current.tilt = options.current_tilt
@@ -458,6 +468,7 @@ class TestHappyPathCovers(TestCovers):
         self, covers: CoverMap, mocker: MockerFixture, options: CoverOptions, expected: CoverExpected
     ) -> None:
         """Test cover status when changed position for the cover."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
         cover.current.tilt = options.tilt
@@ -500,6 +511,7 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_friendly_name(self, covers: CoverMap, options: CoverOptions, expected: str) -> None:
         """Test friendly name for the cover."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
 
         assert str(cover) == expected
@@ -516,6 +528,7 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_state_changed(self, covers: CoverMap, options: CoverOptions, expected: bool) -> None:
         """Test cover state changed."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.current.state = options.current_cover_state
         cover.status.state = options.cover_state
@@ -535,11 +548,21 @@ class TestHappyPathCovers(TestCovers):
     )
     def test_position_changed(self, covers: CoverMap, options: CoverOptions, expected: bool) -> None:
         """Test cover position changed."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.current.position = options.current_position
         cover.status.position = options.position
 
         assert cover.position_changed == expected
+
+    @pytest.mark.parametrize(
+        "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
+    )
+    def test_covers_initialized_message(self, covers: CoverMap, caplog: LogCaptureFixture) -> None:
+        """Test covers length log message."""
+        covers.init()
+        logs: List[str] = [record.getMessage() for record in caplog.records]
+        assert "[CONFIG] 2 covers initialized." in logs
 
 
 class TestUnhappyPathCovers(TestCovers):
@@ -555,6 +578,7 @@ class TestUnhappyPathCovers(TestCovers):
         expected: int,
     ) -> None:
         """Test open cover when cover position has position greater than 100."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
         cover.current.position = expected
@@ -576,6 +600,7 @@ class TestUnhappyPathCovers(TestCovers):
         expected: int,
     ) -> None:
         """Test close cover when cover position has position lower than 0."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = False
         cover.current.position = expected
@@ -594,6 +619,7 @@ class TestUnhappyPathCovers(TestCovers):
         self, covers: CoverMap, options: CoverOptions, expected: int
     ) -> None:
         """Test open cover when calibration mode is enabled."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = True
         cover.current.position = expected
@@ -612,6 +638,7 @@ class TestUnhappyPathCovers(TestCovers):
         self, covers: CoverMap, options: CoverOptions, expected: int
     ) -> None:
         """Test close cover when calibration mode is enabled."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = True
         cover.current.position = expected
@@ -642,6 +669,7 @@ class TestUnhappyPathCovers(TestCovers):
         self, covers: CoverMap, mocker: MockerFixture, options: CoverOptions, expected: CoverExpected
     ) -> None:
         """Test calibration mode is stopped before finished."""
+        covers.init()
         cover: Cover = next(covers.by_device_classes([options.device_class]))
         cover.calibration.mode = options.calibration_mode
 
@@ -657,3 +685,20 @@ class TestUnhappyPathCovers(TestCovers):
         await cover.stop_cover()
 
         assert cover.calibration.mode == expected.calibration_mode
+
+
+class TestHappyPathCoverTimer:
+    @pytest.mark.asyncio()
+    async def test_cover_timer(self, capsys: CaptureFixture) -> None:
+        """Test cover timer callback."""
+
+        async def callback() -> None:
+            print("MOCKED CALLBACK")
+
+        timer: CoverTimer = CoverTimer(1, callback)
+        timer.start()
+
+        await asyncio.sleep(1)
+        timer.cancel()
+
+        assert "MOCKED CALLBACK" in capsys.readouterr().out

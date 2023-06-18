@@ -1,7 +1,6 @@
 """Unit test for configurations."""
 import logging
 import re
-import uuid
 from typing import Dict
 from typing import List
 from typing import NamedTuple
@@ -45,6 +44,7 @@ from tests.unit.test_config_data import HARDWARE_DATA_INVALID_KEY
 from tests.unit.test_config_data import HARDWARE_DATA_IS_INVALID_YAML
 from tests.unit.test_config_data import HARDWARE_DATA_IS_LIST
 from unipi_control.config import Config
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.typing import ModbusClient
@@ -132,14 +132,10 @@ class TestHappyPathConfig:
     )
     def test_logging_level(self, config_loader: ConfigLoader, params: LoggingLevelParams, expected: int) -> None:
         """Test verbose arguments change log level."""
-        uniqid = str(uuid.uuid4())
-        logger: logging.Logger = logging.getLogger(uniqid)
-
         config: Config = config_loader.get_config()
-        config.logging.init(logger=logger, log=params.log, verbose=params.verbose)
-        print(logger.level)
+        config.logging.init(log=params.log, verbose=params.verbose)
 
-        assert logger.level == expected
+        assert UNIPI_LOGGER.level == expected
 
     @pytest.mark.parametrize(
         ("config_loader", "params", "expected"),
@@ -188,13 +184,10 @@ class TestHappyPathConfig:
         self, config_loader: ConfigLoader, params: LoggingOutputParams, expected: str, capsys: CaptureFixture
     ) -> None:
         """Test log handler output."""
-        uniqid = str(uuid.uuid4())
-        logger: logging.Logger = logging.getLogger(uniqid)
-
         config: Config = config_loader.get_config()
-        config.logging.init(logger=logger, log=params.log, verbose=3, fmt=params.fmt)
+        config.logging.init(log=params.log, verbose=3, fmt=params.fmt)
 
-        logger.log(level=params.level, msg=params.message)
+        UNIPI_LOGGER.log(level=params.level, msg=params.message)
 
         assert re.compile(expected).search(capsys.readouterr().err)
 
@@ -211,6 +204,8 @@ class TestHappyPathConfig:
     ) -> None:
         """Test hardware definition found."""
         config: Config = config_loader.get_config()
+        config.logging.init()
+
         neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
         await neuron.init()
 

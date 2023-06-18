@@ -28,6 +28,7 @@ class TestHappyPathHassCoversMqttPlugin:
     )
     async def test_init_tasks(self, neuron: Neuron, covers: CoverMap, caplog: LogCaptureFixture) -> None:
         """Test MQTT output after initialize Home Assistant covers."""
+        covers.init()
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
 
@@ -81,7 +82,7 @@ class TestHappyPathHassCoversMqttPlugin:
             '"object_id": "mocked_roller_shutter_topic_name"'
             "}" in logs
         )
-        assert len(logs) == 2
+        assert len(logs) == 3
 
     @pytest.mark.parametrize(
         ("config_loader", "expected"),
@@ -138,6 +139,7 @@ class TestHappyPathHassCoversMqttPlugin:
     )
     def test_discovery_message(self, neuron: Neuron, covers: CoverMap, expected: List[Dict[str, Any]]) -> None:
         """Test MQTT topic and message when publish a feature."""
+        covers.init()
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
 

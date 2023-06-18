@@ -10,7 +10,7 @@ from unipi_control.config import Config
 from unipi_control.config import HardwareMap
 from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
-from unipi_control.config import root_logger
+from unipi_control.config import UNIPI_LOGGER
 from unipi_control.extensions.eastron import EastronSDM120M
 from unipi_control.features.map import FeatureMap
 from unipi_control.features.neuron import DigitalInput
@@ -208,12 +208,12 @@ class Neuron:
 
     async def init(self) -> None:
         """Initialize internal and external hardware."""
-        root_logger.info("%s %s hardware definition(s) found.", LogPrefix.CONFIG, len(self.hardware))
+        UNIPI_LOGGER.debug("%s %s hardware definition(s) found.", LogPrefix.CONFIG, len(self.hardware))
 
         await self.read_boards()
         await self.read_extensions()
 
-        root_logger.info("%s %s features initialized.", LogPrefix.CONFIG, len(self.features))
+        UNIPI_LOGGER.info("%s %s features initialized.", LogPrefix.CONFIG, len(self.features))
 
     @staticmethod
     def get_firmware(response: ModbusResponse) -> str:
@@ -234,7 +234,7 @@ class Neuron:
 
     async def read_boards(self) -> None:
         """Scan Modbus TCP and initialize Unipi Neuron board."""
-        root_logger.info("%s Reading SPI boards", LogPrefix.MODBUS)
+        UNIPI_LOGGER.info("%s Reading SPI boards", LogPrefix.MODBUS)
 
         for index in (1, 2, 3):
             data: ModbusReadData = {
@@ -263,13 +263,13 @@ class Neuron:
 
                 self.boards.append(board)
             else:
-                root_logger.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
+                UNIPI_LOGGER.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
 
         await self.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
 
     async def read_extensions(self) -> None:
         """Scan Modbus RTU and initialize extension classes."""
-        root_logger.info("%s Reading extensions", LogPrefix.MODBUS)
+        UNIPI_LOGGER.info("%s Reading extensions", LogPrefix.MODBUS)
 
         for key, definition in self.hardware.items():
             if (

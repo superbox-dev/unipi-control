@@ -1,11 +1,14 @@
 """Test configuration for pytest."""
-
+import asyncio
 import logging
+from asyncio import AbstractEventLoop
+from asyncio import AbstractEventLoopPolicy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from typing import AsyncGenerator
 from typing import Dict
+from typing import Generator
 from typing import List
 from typing import NamedTuple
 from typing import Optional
@@ -22,7 +25,6 @@ from pytest_mock import MockerFixture
 from tests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 from tests.conftest_data import NEURON_L203_MODBUS_REGISTER
 from unipi_control.config import Config
-from unipi_control.config import root_logger
 from unipi_control.extensions.eastron import EastronSDM120M
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.integrations.covers import CoverMap
@@ -32,11 +34,25 @@ from unipi_control.neuron import Neuron
 @pytest.fixture(autouse=True)
 def _logger() -> None:
     logging.getLogger("asyncio").setLevel(logging.WARNING)
-
-    root_logger.setLevel(logging.NOTSET)
-    root_logger.handlers.clear()
-
     logging.info("Initialized logging")
+
+
+@pytest.fixture(scope="session")
+def event_loop() -> Generator[AbstractEventLoop, None, None]:
+    """Modify the original pytest asyncio event loop.
+
+    INFO: https://pytest-asyncio.readthedocs.io/en/latest/reference/fixtures.html
+    """
+    policy: AbstractEventLoopPolicy = asyncio.get_event_loop_policy()
+    loop: AbstractEventLoop = policy.new_event_loop()
+
+    yield loop
+
+    pending = asyncio.all_tasks(loop=loop)
+    group = asyncio.gather(*pending)
+    loop.run_until_complete(group)
+
+    loop.close()
 
 
 class ConfigLoader:
@@ -204,7 +220,7 @@ async def init_neuron(config_loader: ConfigLoader, modbus_client: ModbusClient) 
         Mocked modbus client.
     """
     config: Config = config_loader.get_config()
-    config.logging.init(logger=root_logger)
+    config.logging.init()
 
     neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
     await neuron.init()
@@ -213,7 +229,7 @@ async def init_neuron(config_loader: ConfigLoader, modbus_client: ModbusClient) 
 
 
 @pytest_asyncio.fixture(name="covers")
-async def init_covers(config_loader: ConfigLoader, neuron: Neuron) -> AsyncGenerator[CoverMap, None]:
+async def create_cover_map(config_loader: ConfigLoader, neuron: Neuron) -> AsyncGenerator[CoverMap, None]:
     """Initialize cover map for tests.
 
     Parameters
@@ -224,9 +240,8 @@ async def init_covers(config_loader: ConfigLoader, neuron: Neuron) -> AsyncGener
         Initialized neuron device.
     """
     config: Config = config_loader.get_config()
-    config.logging.init(logger=root_logger)
+    config.logging.init()
     covers: CoverMap = CoverMap(config=config, features=neuron.features)
-    covers.init()
 
     yield covers
 
