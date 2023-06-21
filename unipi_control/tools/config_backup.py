@@ -39,10 +39,7 @@ class UnipiConfigBackup:
         datetime_now = datetime.now(tz=timezone.utc)
         tar_filename: str = f"config-{datetime_now.date()}-{datetime_now.strftime('%H%M%S')}.tar.gz"
         tar_file: Path = target / tar_filename
-
-        if tar_file.exists():
-            exception_message = f"{tar_file.as_posix()} already exists!"
-            raise UnexpectedError(exception_message)
+        tar_file.unlink(missing_ok=True)
 
         try:
             with tarfile.open(tar_file, "x:gz") as tar:

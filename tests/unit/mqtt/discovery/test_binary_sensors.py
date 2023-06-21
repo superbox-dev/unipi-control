@@ -649,6 +649,7 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
         """Test mqtt topic and message when publish a feature."""
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassBinarySensorsMqttPlugin = HassBinarySensorsMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
+
         features: Iterator[
             Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]
         ] = neuron.features.by_feature_types(HassBinarySensorsDiscovery.publish_feature_types)

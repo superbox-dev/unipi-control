@@ -1,6 +1,5 @@
 """Unit tests MQTT for covers."""
 import asyncio
-import time
 from typing import List
 from typing import NamedTuple
 from typing import Optional
@@ -176,7 +175,7 @@ class TestHappyPathCovers(TestCovers):
         cover.status.position = options.current_position
         cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
-        assert cover.status.state == expected.current_cover_state
+        assert cover.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
@@ -185,7 +184,7 @@ class TestHappyPathCovers(TestCovers):
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
 
-        assert cover.status.state == expected.open_cover_state
+        assert cover.state == expected.open_cover_state
 
         await cover.stop_cover()
         cover.read_position()
@@ -193,7 +192,7 @@ class TestHappyPathCovers(TestCovers):
         assert cover_run_time == expected.cover_run_time
         assert cover.status.position == expected.position
         assert cover.status.tilt == expected.tilt
-        assert cover.status.state == expected.stop_cover_state
+        assert cover.state == expected.stop_cover_state
         assert cover.state_changed == expected.state_changed
         assert cover.position_changed == expected.position_changed
 
@@ -287,14 +286,14 @@ class TestHappyPathCovers(TestCovers):
         cover.status.position = options.current_position
         cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
-        assert cover.status.state == expected.current_cover_state
+        assert cover.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
 
         mock_monotonic.return_value = 0
         cover_run_time: Optional[float] = await cover.close_cover(position=options.position if options.position else 0)
 
-        assert cover.status.state == expected.close_cover_state
+        assert cover.state == expected.close_cover_state
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
@@ -305,7 +304,7 @@ class TestHappyPathCovers(TestCovers):
         assert cover_run_time == expected.cover_run_time
         assert cover.status.position == expected.position
         assert cover.status.tilt == expected.tilt
-        assert cover.status.state == expected.stop_cover_state
+        assert cover.state == expected.stop_cover_state
         assert cover.state_changed == expected.state_changed
         assert cover.position_changed == expected.position_changed
 
@@ -339,7 +338,7 @@ class TestHappyPathCovers(TestCovers):
         mock_monotonic.return_value = 0
 
         await cover.stop_cover()
-        assert cover.status.state == expected
+        assert cover.state == expected
 
     @pytest.mark.asyncio()
     @pytest.mark.parametrize(
@@ -400,7 +399,7 @@ class TestHappyPathCovers(TestCovers):
         cover.status.position = options.current_position
         cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
-        assert cover.status.state == expected.current_cover_state
+        assert cover.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
@@ -409,7 +408,7 @@ class TestHappyPathCovers(TestCovers):
 
         cover_run_time: Optional[float] = await cover.set_tilt(options.tilt)
 
-        assert cover.status.state == expected.tilt_cover_state
+        assert cover.state == expected.tilt_cover_state
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
@@ -418,7 +417,7 @@ class TestHappyPathCovers(TestCovers):
         cover.read_position()
 
         assert cover.status.tilt == expected.tilt
-        assert cover.status.state == expected.stop_cover_state
+        assert cover.state == expected.stop_cover_state
         assert cover.state_changed == expected.state_changed
         assert cover.tilt_changed == expected.tilt_changed
 
@@ -477,7 +476,7 @@ class TestHappyPathCovers(TestCovers):
         cover.status.position = options.current_position
         cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
 
-        assert cover.status.state == expected.current_cover_state
+        assert cover.state == expected.current_cover_state
 
         mock_monotonic = mocker.patch("unipi_control.integrations.covers.time.monotonic", new_callable=MagicMock)
         mock_monotonic.return_value = 0
@@ -486,7 +485,7 @@ class TestHappyPathCovers(TestCovers):
 
         cover_run_time: Optional[float] = await cover.set_position(options.position)
 
-        assert cover.status.state == expected.position_cover_state
+        assert cover.state == expected.position_cover_state
 
         if cover_run_time is not None:
             mock_monotonic.return_value = cover_run_time
@@ -495,7 +494,7 @@ class TestHappyPathCovers(TestCovers):
         cover.read_position()
 
         assert cover.status.position == expected.position
-        assert cover.status.state == expected.stop_cover_state
+        assert cover.state == expected.stop_cover_state
         assert cover.state_changed == expected.state_changed
         assert cover.position_changed == expected.position_changed
 

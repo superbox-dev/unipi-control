@@ -148,6 +148,7 @@ ignore = [
     "D107", # undocumented-public-init
     "D203", # one-blank-line-before-class
     "D213", # multi-line-summary-second-line
+    "ERA001", # commented-out-code
     "FA100", # missing-future-annotations-import
     "FBT", # boolean-trap
     "S101", # assert-used

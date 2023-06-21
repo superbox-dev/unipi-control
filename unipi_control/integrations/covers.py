@@ -261,7 +261,7 @@ class Cover:
         bool:
             ``True`` if cover is opening else ``False``.
         """
-        return self.status.state == CoverState.OPENING
+        return self.state == CoverState.OPENING
 
     @property
     def is_closing(self) -> bool:
@@ -272,7 +272,7 @@ class Cover:
         bool:
             ``True`` if cover is closing else ``False``.
         """
-        return self.status.state == CoverState.CLOSING
+        return self.state == CoverState.CLOSING
 
     @property
     def state_changed(self) -> bool:
@@ -293,10 +293,15 @@ class Cover:
             covers.Cover.stop(): stop the cover.
             covers.Cover.set_position(): set the cover position.
         """
-        if changed := self.status.state != self.current.state:
-            self.current.state = self.status.state
+        if changed := self.state != self.current.state:
+            self.current.state = self.state
 
         return changed
+
+    @property
+    def state(self) -> Optional[str]:
+        """Return current status state."""
+        return self.status.state
 
     @property
     def position_changed(self) -> bool:

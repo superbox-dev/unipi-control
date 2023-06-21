@@ -84,29 +84,6 @@ class TestUnhappyPathUnipiConfigBackup:
         ],
         indirect=["config_loader"],
     )
-    def test_cli_backup_file_already_exists(self, config_loader: ConfigLoader, caplog: LogCaptureFixture) -> None:
-        """Test for backup file already exists."""
-        backup_path: Path = config_loader.temp_path / "backup"
-        backup_path.mkdir()
-
-        main([backup_path.as_posix(), "-c", config_loader.temp.as_posix()])
-
-        with pytest.raises(SystemExit) as error:
-            main([backup_path.as_posix(), "-c", config_loader.temp.as_posix()])
-
-        logs: List[str] = [record.getMessage() for record in caplog.records]
-
-        assert len(logs) == 2
-        assert ".tar.gz already exists!" in logs[1]
-        assert error.value.code == 1
-
-    @pytest.mark.parametrize(
-        "config_loader",
-        [
-            (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
-        ],
-        indirect=["config_loader"],
-    )
     def test_cli_tarfile_error(
         self, config_loader: ConfigLoader, caplog: LogCaptureFixture, mocker: MockerFixture
     ) -> None:

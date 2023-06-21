@@ -1,6 +1,6 @@
 """Initialize MQTT subscribe and publish for covers."""
-
 import asyncio
+import re
 from asyncio import Queue
 from asyncio import Task
 from contextlib import AsyncExitStack
@@ -38,7 +38,7 @@ class CoversMqttPlugin:
     """Provide cover control as MQTT commands."""
 
     PUBLISH_RUNNING: bool = True
-    SUBSCRIBE_COMMAND_WORKER_RUNNING: bool = True
+    SUBSCRIBE_RUNNING: bool = True
 
     def __init__(self, mqtt_client: Client, covers: CoverMap) -> None:
         self.mqtt_client: Client = mqtt_client
@@ -84,7 +84,7 @@ class CoversMqttPlugin:
             tasks.add(task)
 
     async def _subscribe_command_worker(self, cover: Cover) -> None:
-        while self.SUBSCRIBE_COMMAND_WORKER_RUNNING:
+        while self.SUBSCRIBE_RUNNING:
             queue: Queue = self._queues[cover.topic]
 
             if queue.qsize() > 0:
@@ -107,9 +107,7 @@ class CoversMqttPlugin:
                 while cover.is_closing or cover.is_opening:
                     await asyncio.sleep(25e-3)
 
-                queue.task_done()
-            else:
-                queue.task_done()
+            queue.task_done()
 
     async def _command_topic(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
@@ -168,8 +166,10 @@ class CoversMqttPlugin:
 
     async def _subscribe_set_position_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
-            try:
-                position: int = int(message.payload.decode())
+            value: str = message.payload.decode()
+
+            if re.match(r"[+-]?\d+$", value):
+                position: int = int(value)
                 queue: Queue = self._queues[cover.topic]
 
                 await queue.put(
@@ -179,13 +179,13 @@ class CoversMqttPlugin:
                         log=[LOG_MQTT_SUBSCRIBE, topic, position],
                     ),
                 )
-            except ValueError as error:
-                UNIPI_LOGGER.error(error)
 
     async def _subscribe_tilt_command_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
-            try:
-                tilt: int = int(message.payload.decode())
+            value: str = message.payload.decode()
+
+            if re.match(r"[+-]?\d+$", value):
+                tilt: int = int(value)
                 queue: Queue = self._queues[cover.topic]
 
                 await queue.put(
@@ -195,8 +195,6 @@ class CoversMqttPlugin:
                         log=[LOG_MQTT_SUBSCRIBE, topic, tilt],
                     ),
                 )
-            except ValueError as error:
-                UNIPI_LOGGER.error(error)
 
     async def _publish(self) -> None:
         while self.PUBLISH_RUNNING:
@@ -213,8 +211,7 @@ class CoversMqttPlugin:
 
                 if cover.state_changed:
                     state_topic: str = f"{cover.topic}/state"
-                    await self.mqtt_client.publish(state_topic, cover.status.state, qos=1, retain=True)
-                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, state_topic, cover.status.state)
-
+                    await self.mqtt_client.publish(state_topic, cover.state, qos=1, retain=True)
+                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, state_topic, cover.state)
                 await cover.calibrate()
             await asyncio.sleep(25e-3)
