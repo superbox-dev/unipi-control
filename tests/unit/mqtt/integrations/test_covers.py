@@ -65,15 +65,15 @@ class TestHappyPathCoversMqttPlugin:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 [
-                    MockMQTTMessages([b"""OPEN"""]),  # command
-                    MockMQTTMessages([]),  # position
+                    MockMQTTMessages([b"50"]),  # position
                     MockMQTTMessages([]),  # tilt
+                    MockMQTTMessages([b"""OPEN"""]),  # command
                 ],
             )
         ],
         indirect=["config_loader"],
     )
-    async def test_open_cover(
+    async def test_open_cover_with_cancel_other_task(
         self,
         covers: CoverMap,
         mqtt_messages: List[MockMQTTMessages],
@@ -84,18 +84,23 @@ class TestHappyPathCoversMqttPlugin:
         mock_open_cover = mocker.patch.object(Cover, "open_cover", new_callable=AsyncMock)
         mock_calibrate = mocker.patch.object(Cover, "calibrate", new_callable=AsyncMock)
 
+        mock_set_position = mocker.patch.object(Cover, "set_position", new_callable=AsyncMock)
+        mock_set_position.return_value = 10
+
         mocker.patch.object(Cover, "state_changed", new_callable=PropertyMock(return_value=True))
         mocker.patch.object(Cover, "state", new_callable=PropertyMock(return_value=CoverState.OPENING))
 
-        mock_open_cover.return_value = 10
+        # Disable endless waiting loop
+        mocker.patch.object(Cover, "is_closing", new_callable=PropertyMock(return_value=False))
 
         await init_tasks(covers=covers, mqtt_messages=mqtt_messages, subscribe_running=[False])
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert "[CONFIG] 1 covers initialized." in logs
-        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/position/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set" in logs
+        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
+        assert "[COVER] [mocked_unipi/mocked_blind_topic_name/cover/blind] [Worker] 1 task(s) canceled." in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/set] Subscribe message: OPEN" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/position] Publishing message: 0" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/tilt] Publishing message: 0" in logs
@@ -111,9 +116,9 @@ class TestHappyPathCoversMqttPlugin:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 [
-                    MockMQTTMessages([b"""CLOSE"""]),  # command
                     MockMQTTMessages([]),  # position
                     MockMQTTMessages([]),  # tilt
+                    MockMQTTMessages([b"""CLOSE"""]),  # command
                 ],
             )
         ],
@@ -127,21 +132,21 @@ class TestHappyPathCoversMqttPlugin:
         mocker: MockerFixture,
     ) -> None:
         """Test mqtt output after set cover command."""
-        mock_close_cover = mocker.patch.object(Cover, "close_cover", new_callable=AsyncMock)
         mock_calibrate = mocker.patch.object(Cover, "calibrate", new_callable=AsyncMock)
+
+        mock_close_cover = mocker.patch.object(Cover, "close_cover", new_callable=AsyncMock)
+        mock_close_cover.return_value = 10
 
         mocker.patch.object(Cover, "state_changed", new_callable=PropertyMock(return_value=True))
         mocker.patch.object(Cover, "state", new_callable=PropertyMock(return_value=CoverState.CLOSING))
-
-        mock_close_cover.return_value = 10
 
         await init_tasks(covers=covers, mqtt_messages=mqtt_messages, subscribe_running=[False])
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert "[CONFIG] 1 covers initialized." in logs
-        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/position/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set" in logs
+        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/set] Subscribe message: CLOSE" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/position] Publishing message: 0" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/tilt] Publishing message: 0" in logs
@@ -157,9 +162,9 @@ class TestHappyPathCoversMqttPlugin:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 [
-                    MockMQTTMessages([b"""STOP"""]),  # command
                     MockMQTTMessages([]),  # position
                     MockMQTTMessages([]),  # tilt
+                    MockMQTTMessages([b"""STOP"""]),  # command
                 ],
             )
         ],
@@ -183,9 +188,9 @@ class TestHappyPathCoversMqttPlugin:
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert "[CONFIG] 1 covers initialized." in logs
-        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/position/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set" in logs
+        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/set] Subscribe message: STOP" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/position] Publishing message: 0" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/tilt] Publishing message: 0" in logs
@@ -201,9 +206,9 @@ class TestHappyPathCoversMqttPlugin:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 [
-                    MockMQTTMessages([]),  # command
                     MockMQTTMessages([b"""50"""]),  # position
                     MockMQTTMessages([]),  # tilt
+                    MockMQTTMessages([]),  # command
                 ],
             )
         ],
@@ -218,12 +223,13 @@ class TestHappyPathCoversMqttPlugin:
     ) -> None:
         """Test mqtt output after set cover position."""
         mock_set_position = mocker.patch.object(Cover, "set_position", new_callable=AsyncMock)
+        mock_set_position.return_value = 10
 
         mocker.patch.object(Cover, "state_changed", new_callable=PropertyMock(return_value=True))
-        mocker.patch.object(Cover, "is_closing", new_callable=PropertyMock(return_value=False))
         mocker.patch.object(Cover, "state", new_callable=PropertyMock(return_value=CoverState.CLOSING))
 
-        mock_set_position.return_value = 10
+        # Disable endless waiting loop
+        mocker.patch.object(Cover, "is_closing", new_callable=PropertyMock(return_value=False))
 
         await init_tasks(covers=covers, mqtt_messages=mqtt_messages, subscribe_running=[True, False])
         logs: List[str] = [record.getMessage() for record in caplog.records]
@@ -231,9 +237,9 @@ class TestHappyPathCoversMqttPlugin:
         mock_set_position.assert_called_once_with(50)
 
         assert "[CONFIG] 1 covers initialized." in logs
-        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/position/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set" in logs
+        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/position] Publishing message: 0" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/tilt] Publishing message: 0" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/state] Publishing message: closing" in logs
@@ -248,9 +254,9 @@ class TestHappyPathCoversMqttPlugin:
             (
                 (CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 [
-                    MockMQTTMessages([]),  # command
                     MockMQTTMessages([]),  # position
                     MockMQTTMessages([b"""50"""]),  # tilt
+                    MockMQTTMessages([]),  # command
                 ],
             )
         ],
@@ -265,12 +271,13 @@ class TestHappyPathCoversMqttPlugin:
     ) -> None:
         """Test mqtt output after set cover tilt."""
         mock_set_tilt = mocker.patch.object(Cover, "set_tilt", new_callable=AsyncMock)
+        mock_set_tilt.return_value = 0.25
 
         mocker.patch.object(Cover, "state_changed", new_callable=PropertyMock(return_value=True))
-        mocker.patch.object(Cover, "is_opening", new_callable=PropertyMock(return_value=False))
         mocker.patch.object(Cover, "state", new_callable=PropertyMock(return_value=CoverState.OPENING))
 
-        mock_set_tilt.return_value = 0.25
+        # Disable endless waiting loop
+        mocker.patch.object(Cover, "is_opening", new_callable=PropertyMock(return_value=False))
 
         await init_tasks(covers=covers, mqtt_messages=mqtt_messages, subscribe_running=[True, False])
         logs: List[str] = [record.getMessage() for record in caplog.records]
@@ -278,9 +285,9 @@ class TestHappyPathCoversMqttPlugin:
         mock_set_tilt.assert_called_once_with(50)
 
         assert "[CONFIG] 1 covers initialized." in logs
-        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/position/set" in logs
         assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/tilt/set" in logs
+        assert "[MQTT] Subscribe topic mocked_unipi/mocked_blind_topic_name/cover/blind/set" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/position] Publishing message: 0" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/tilt] Publishing message: 0" in logs
         assert "[MQTT] [mocked_unipi/mocked_blind_topic_name/cover/blind/state] Publishing message: opening" in logs

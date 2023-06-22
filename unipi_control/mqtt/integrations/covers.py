@@ -72,9 +72,9 @@ class CoversMqttPlugin:
         tasks: set
             A set of all MQTT tasks.
         """
-        await self._command_topic(stack, tasks)
         await self._set_position_topic(stack, tasks)
         await self._tilt_command_topic(stack, tasks)
+        await self._command_topic(stack, tasks)
 
         task: Task = asyncio.create_task(self._publish())
         tasks.add(task)

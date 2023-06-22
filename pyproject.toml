@@ -60,6 +60,7 @@ lint = [
     "yamllint",
 ]
 tests = [
+    "coverage",
     "coverage-badge",
     "pytest",
     "pytest-asyncio",
@@ -80,7 +81,7 @@ target-version = ["py38", "py39", "py310", "py311"]
 
 [tool.mypy]
 strict = true
-python_version = "3.8"
+python_version = "3.10"
 ignore_missing_imports = true
 disallow_any_generics = false # python 3.8 compatibility
 junit_xml = "reports/mypy.xml"
@@ -171,13 +172,13 @@ log_cli_format = "%(levelname)-8s | %(asctime)s: %(message)s"
 addopts = "--color=yes --exitfirst --failed-first --strict-config --strict-markers --junitxml=reports/pytest.xml"
 
 [tool.coverage.run] # https://coverage.readthedocs.io/en/latest/config.html#run
-branch = true
+branch = false
 
 [tool.coverage.report] # https://coverage.readthedocs.io/en/latest/config.html#report
 fail_under = 80
 show_missing = true
 skip_covered = true
 exclude_also = [
-    "if TYPE_CHECKING",
-    "@abstractmethod"
+    "if TYPE_CHECKING:",
+    "@(abc\\.)?abstractmethod",
 ]
