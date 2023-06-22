@@ -3,7 +3,7 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
-from typing import Any
+from typing import Any, ClassVar
 from typing import AsyncIterable
 from typing import List
 from typing import Set
@@ -23,8 +23,8 @@ from unipi_control.neuron import Neuron
 
 class BaseFeaturesMqttPlugin:
     PUBLISH_RUNNING: bool = True
-    subscribe_feature_types: List[str] = []
-    publish_feature_types: List[str] = []
+    subscribe_feature_types: ClassVar[List[str]] = []
+    publish_feature_types: ClassVar[List[str]] = []
 
     def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
         self.neuron: Neuron = neuron
@@ -46,8 +46,8 @@ class BaseFeaturesMqttPlugin:
 class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     """Provide features control as MQTT commands."""
 
-    subscribe_feature_types: List[str] = ["DO", "RO"]
-    publish_feature_types: List[str] = ["DI", "DO", "RO"]
+    subscribe_feature_types: ClassVar[List[str]] = ["DO", "RO"]
+    publish_feature_types: ClassVar[List[str]] = ["DI", "DO", "RO"]
     scan_interval: float = 25e-3
 
     async def init_tasks(self, stack: AsyncExitStack, tasks: Set[Task]) -> None:
@@ -100,7 +100,7 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
 class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
     """Provide features control as MQTT commands."""
 
-    publish_feature_types: List[str] = ["METER"]
+    publish_feature_types: ClassVar[List[str]] = ["METER"]
     scan_interval: float = 25e-3
 
     async def init_tasks(self, tasks: Set[Task]) -> None:

@@ -3,7 +3,7 @@
 import asyncio
 import json
 from asyncio import Task
-from typing import Any
+from typing import Any, ClassVar
 from typing import Dict
 from typing import List
 from typing import Set
@@ -22,7 +22,7 @@ from unipi_control.neuron import Neuron
 class HassSensorsDiscovery(HassDiscoveryMixin):
     """Provide the sensors (e.g. meter) as Home Assistant MQTT discovery."""
 
-    publish_feature_types: List[str] = ["METER"]
+    publish_feature_types: ClassVar[List[str]] = ["METER"]
 
     def get_discovery(self, feature: Union[EastronMeter]) -> Tuple[str, Dict[str, Any]]:
         """Get Mqtt topic and message for publish with mqtt.

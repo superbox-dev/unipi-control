@@ -3,7 +3,7 @@
 import logging
 from collections import OrderedDict
 from logging import StreamHandler
-from typing import Dict
+from typing import Dict, ClassVar
 from typing import Final
 
 LOG_NAME: Final[str] = "unipi-control"
@@ -28,7 +28,7 @@ class SystemdHandler(StreamHandler):
     """Systemd handler with logging prefix for submit log level to journalcl."""
 
     # https://www.freedesktop.org/software/systemd/man/sd-daemon.html
-    PREFIX: Final[Dict[int, str]] = {
+    PREFIX: ClassVar[Dict[int, str]] = {
         logging.CRITICAL: "<2>",
         logging.ERROR: "<3>",
         logging.WARNING: "<4>",

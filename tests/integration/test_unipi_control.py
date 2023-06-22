@@ -1,12 +1,10 @@
 """Integration tests for unipi-config-backup cli command."""
-from typing import List, Dict
-from unittest.mock import PropertyMock
+from typing import List
 
 import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
-from pytest_mock import MockerFixture
 
-from tests.conftest import ConfigLoader, MockHardwareInfo
+from tests.conftest import ConfigLoader
 from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT

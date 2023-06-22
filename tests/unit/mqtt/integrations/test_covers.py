@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 from unittest.mock import PropertyMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
+from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from asyncio_mqtt import Client
 from pytest_mock import MockerFixture
 

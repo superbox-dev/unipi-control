@@ -6,8 +6,8 @@ from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
-from _pytest.capture import CaptureFixture
-from _pytest.logging import LogCaptureFixture
+from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
 from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 

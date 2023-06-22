@@ -87,20 +87,22 @@ disallow_any_generics = false # python 3.8 compatibility
 junit_xml = "reports/mypy.xml"
 
 [tool.pylint.master]
-# C0114: missing-module-docstring
-# C0115: missing-class-docstring
-# C0116: missing-function-docstring
-# C0411: wrong-import-order
-# E0401: import-error
-# R0801: duplicate-code
-# R0902: too-many-instance-attributes
-# R0903: too-few-public-methods
-# R0913: too-many-arguments
-# R6003: consider-alternative-union-syntax (python 3.8 compatibility)
-# W0212: protected-access (ruff lint this)
-# W6001: deprecated-typing-alias (python 3.8 compatibility)
-# W0613: unused-argument (ruff lint this)
-disable = ["C0114", "C0115", "C0116", "C0411", "E0401", "R0801", "R0902", "R0903", "R0913", "R6003", "W6001", "W0613"]
+disable = [
+    "C0114", # missing-module-docstring
+    "C0115", # missing-class-docstring
+    "C0116", # missing-function-docstring
+    "C0411", # wrong-import-order
+    "E0401", # import-error
+    "R0801", # duplicate-code
+    "R0902", # too-many-instance-attributes
+    "R0903", # too-few-public-methods
+    "R0913", # too-many-arguments
+    "R2044", # empty-comment
+    "R6003", # consider-alternative-union-syntax (python 3.8 compatibility)
+    "W0212", # protected-access (ruff lint this)
+    "W6001", # deprecated-typing-alias (python 3.8 compatibility)
+    "W0613" # unused-argument (ruff lint this)
+]
 notes = ["FIXME"]
 ignore-patterns = ["version.py"]
 
@@ -143,7 +145,6 @@ ignore = [
     "ANN002", # missing-type-args
     "ANN003", # missing-type-kwargs
     "COM", # trailing-comma
-    #"D100", # undocumented-public-module
     "D101", # undocumented-public-class
     "D104", # undocumented-public-package
     "D105", # undocumented-magic-method
