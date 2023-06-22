@@ -1,20 +1,12 @@
 """Collection of typed tuples and dicts."""
 
-from typing import Any
-from typing import ClassVar
-from typing import Dict
 from typing import List
 from typing import NamedTuple
 from typing import Optional
-from typing import Protocol
 from typing import TypedDict
 
 from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.client import AsyncModbusTcpClient
-
-
-class DataClassProtocol(Protocol):
-    __dataclass_fields__: ClassVar[Dict[str, Any]]
 
 
 class ModbusClient(NamedTuple):

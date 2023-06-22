@@ -1,8 +1,7 @@
 """Integration tests for unipi-config-backup cli command."""
 import re
 import tarfile
-from pathlib import Path
-from typing import List
+from typing import List, TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
@@ -14,6 +13,9 @@ from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.tools.config_backup import main
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestHappyPathUnipiConfigBackup:

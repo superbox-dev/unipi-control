@@ -2,7 +2,7 @@
 
 import asyncio
 from asyncio import Task
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from typing import Dict
 from typing import Iterator
 from typing import List
@@ -19,13 +19,15 @@ from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT
 from tests.unit.mqtt.discovery.test_sensors_data import discovery_message_expected
 from unipi_control.features.extensions import EastronMeter
-from unipi_control.features.neuron import DigitalInput
-from unipi_control.features.neuron import DigitalOutput
-from unipi_control.features.neuron import Led
-from unipi_control.features.neuron import Relay
 from unipi_control.mqtt.discovery.sensors import HassSensorsDiscovery
 from unipi_control.mqtt.discovery.sensors import HassSensorsMqttPlugin
 from unipi_control.neuron import Neuron
+
+if TYPE_CHECKING:
+    from unipi_control.features.neuron import DigitalInput
+    from unipi_control.features.neuron import DigitalOutput
+    from unipi_control.features.neuron import Led
+    from unipi_control.features.neuron import Relay
 
 
 class TestHappyPathHassSensorsMqttPlugin:

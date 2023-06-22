@@ -1,7 +1,7 @@
 """Feature mapping for all input and output features."""
 
 import itertools
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 from typing import Iterable
 from typing import Iterator
 from typing import List
@@ -15,8 +15,10 @@ from unipi_control.features.neuron import DigitalInput
 from unipi_control.features.neuron import DigitalOutput
 from unipi_control.features.neuron import Led
 from unipi_control.features.neuron import Relay
-from unipi_control.features.utils import FeatureType
 from unipi_control.helpers.exception import ConfigError
+
+if TYPE_CHECKING:
+    from unipi_control.features.utils import FeatureType
 
 
 class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]]):

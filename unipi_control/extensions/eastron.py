@@ -3,8 +3,7 @@
 import asyncio
 import typing
 from typing import Optional
-
-from pymodbus.pdu import ModbusResponse
+from typing import TYPE_CHECKING
 
 from unipi_control.config import Config
 from unipi_control.features.extensions import EastronMeter
@@ -19,6 +18,9 @@ from unipi_control.helpers.typing import ModbusClient
 from unipi_control.helpers.typing import ModbusReadData
 from unipi_control.modbus import ModbusCacheData
 from unipi_control.modbus import check_modbus_call
+
+if TYPE_CHECKING:
+    from pymodbus.pdu import ModbusResponse
 
 
 class EastronSDM120M:

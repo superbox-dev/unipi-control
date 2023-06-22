@@ -1,6 +1,6 @@
 """Unit tests for neuron device."""
 
-from typing import List
+from typing import List, TYPE_CHECKING
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
@@ -15,9 +15,11 @@ from tests.conftest import MockHardwareInfo
 from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.config import Config
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.neuron import Neuron
+
+if TYPE_CHECKING:
+    from unipi_control.config import Config
 
 
 class TestUnhappyPathNeuron:

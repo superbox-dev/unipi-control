@@ -31,7 +31,7 @@ requires-python = ">= 3.8"
 dependencies = [
     "asyncio-mqtt==0.16.1",
     "pymodbus[serial]==3.2.2",
-    "pyyaml~=6.0",
+    "pyyaml~=6.0"
 ]
 dynamic = ["version"]
 
@@ -96,6 +96,7 @@ junit_xml = "reports/mypy.xml"
 # R0903: too-few-public-methods
 # R0913: too-many-arguments
 # R6003: consider-alternative-union-syntax (python 3.8 compatibility)
+# W0212: protected-access (ruff lint this)
 # W6001: deprecated-typing-alias (python 3.8 compatibility)
 # W0613: unused-argument (ruff lint this)
 disable = ["C0114", "C0115", "C0116", "C0411", "E0401", "R0801", "R0902", "R0903", "R0913", "R6003", "W6001", "W0613"]
@@ -133,7 +134,7 @@ score = true
 max-line-length = 120
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py310"
 line-length = 120
 select = ["ALL"]
 ignore = [
@@ -152,11 +153,14 @@ ignore = [
     "FA100", # missing-future-annotations-import
     "FBT", # boolean-trap
     "S101", # assert-used
-    "TCH", # type-checking
     "T201", # print
     "PLR0913", # too-many-arguments
     "PLR2004", # magic-value-comparison
     "I001", # unsorted-imports
+    "UP006", # non-pep585-annotation (python 3.8 compatibility)
+    "UP007", # non-pep604-annotation (python 3.8 compatibility)
+    "UP035", # deprecated-import (python 3.8 compatibility)
+    "UP038", # non-pep604-isinstance (python 3.8 compatibility)
 ]
 
 [tool.pytest.ini_options]
@@ -173,3 +177,7 @@ branch = true
 fail_under = 80
 show_missing = true
 skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING",
+    "@abstractmethod"
+]

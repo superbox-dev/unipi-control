@@ -260,7 +260,7 @@ class ModbusUnitConfig(ConfigLoaderMixin):
     identifier: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
 
-    def _validate_device_name(self, value: str, name: str) -> str:  # ruff: noqa: ARG002
+    def _validate_device_name(self, value: str, name: str) -> str:  # noqa: ARG002
         if not value:
             msg = f"{LogPrefix.MODBUS} Device name for unit '{self.unit}' is missing!"
             raise ConfigError(msg)
@@ -290,7 +290,7 @@ class ModbusConfig(ConfigLoaderMixin):
         return (modbus_unit for modbus_unit in self.units if modbus_unit.identifier == identifier)
 
     @staticmethod
-    def _validate_units(value: List[ModbusUnitConfig], name: str) -> List[ModbusUnitConfig]:  # ruff: noqa: ARG004
+    def _validate_units(value: List[ModbusUnitConfig], name: str) -> List[ModbusUnitConfig]:  # noqa: ARG004
         unique_units: List[int] = []
 
         for unit in value:
@@ -303,7 +303,7 @@ class ModbusConfig(ConfigLoaderMixin):
         return value
 
     @staticmethod
-    def _validate_baud_rate(value: int, name: str) -> int:  # ruff: noqa: ARG004
+    def _validate_baud_rate(value: int, name: str) -> int:  # noqa: ARG004
         if value not in MODBUS_BAUD_RATES:
             exception_message: str = (
                 f"{LogPrefix.MODBUS} Invalid baud rate '{value}'. "
@@ -400,7 +400,7 @@ class LoggingConfig(ConfigLoaderMixin):
 
         UNIPI_LOGGER.setLevel(level)
 
-    def _validate_level(self, value: str, name: str) -> str:
+    def _validate_level(self, value: str, name: str) -> str:  # noqa: ARG002
         if (value := value.lower()) not in LOG_LEVEL.keys():
             exception_message: str = (
                 f"[{self.__class__.__name__.replace('Config', '').upper()}] "

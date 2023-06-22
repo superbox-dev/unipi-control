@@ -1,16 +1,18 @@
 """Helpers for MQTT subscribe and publish."""
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from typing import Union
 
 from asyncio_mqtt import Client
 
-from unipi_control.config import Config
-from unipi_control.config import HardwareMap
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.neuron import NeuronFeature
-from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.neuron import Neuron
+
+if TYPE_CHECKING:
+    from unipi_control.config import Config
+    from unipi_control.config import HardwareMap
+    from unipi_control.helpers.typing import HardwareDefinition
 
 
 class HassDiscoveryMixin:

@@ -12,7 +12,7 @@ from unipi_control.helpers.exception import YamlError
 class Dumper(yaml.Dumper):  # pylint: disable=too-many-ancestors
     """Custom dumper for correct indentation."""
 
-    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # ruff: noqa: ARG002
+    def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # noqa: ARG002
         """Disable indentless."""
         super().increase_indent(flow, indentless=False)  # type: ignore[no-untyped-call]
 

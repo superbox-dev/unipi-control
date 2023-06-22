@@ -173,7 +173,7 @@ class TestHappyPathCovers(TestCovers):
         cover.calibration.mode = False
         cover.current.position = options.current_position
         cover.status.position = options.current_position
-        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
+        cover._update_state()  # noqa: SLF001
 
         assert cover.state == expected.current_cover_state
 
@@ -284,7 +284,7 @@ class TestHappyPathCovers(TestCovers):
         cover.calibration.mode = False
         cover.current.position = options.current_position
         cover.status.position = options.current_position
-        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
+        cover._update_state()  # noqa: SLF001
 
         assert cover.state == expected.current_cover_state
 
@@ -397,7 +397,7 @@ class TestHappyPathCovers(TestCovers):
         cover.status.tilt = options.current_tilt
         cover.current.position = options.current_position
         cover.status.position = options.current_position
-        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
+        cover._update_state()  # noqa: SLF001
 
         assert cover.state == expected.current_cover_state
 
@@ -474,7 +474,7 @@ class TestHappyPathCovers(TestCovers):
         cover.status.tilt = options.tilt
         cover.current.position = options.current_position
         cover.status.position = options.current_position
-        cover._update_state()  # noqa: ruff: SLF001 pylint: disable=protected-access
+        cover._update_state()  # noqa: SLF001
 
         assert cover.state == expected.current_cover_state
 

@@ -1,3 +1,5 @@
+"""Data for covers unit tests."""
+
 from typing import Final
 
 CONFIG_CONTENT: Final[

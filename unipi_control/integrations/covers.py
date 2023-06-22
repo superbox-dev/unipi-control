@@ -11,7 +11,7 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from typing import Awaitable
 from typing import Callable
 from typing import Dict
@@ -22,17 +22,18 @@ from typing import NamedTuple
 from typing import Optional
 from typing import Union
 
-from pymodbus.pdu import ModbusResponse
-
 from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import UNIPI_LOGGER
-from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.map import FeatureMap
 from unipi_control.features.neuron import DigitalOutput
 from unipi_control.features.neuron import NeuronFeature
 from unipi_control.features.neuron import Relay
 from unipi_control.helpers.text import slugify
+
+if TYPE_CHECKING:
+    from pymodbus.pdu import ModbusResponse
+    from unipi_control.features.extensions import EastronMeter
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
 
