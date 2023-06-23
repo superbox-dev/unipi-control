@@ -37,7 +37,7 @@ def _logger() -> None:
     logging.info("Initialized logging")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def event_loop() -> Generator[AbstractEventLoop, None, None]:
     """Modify the original pytest asyncio event loop.
 
