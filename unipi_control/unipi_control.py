@@ -98,7 +98,10 @@ class UnipiControl:
                 self.modbus_client.tcp.params.port,
             )
         else:
-            exception_message_tcp: str = f"{LogPrefix.MODBUS} TCP client can't connect to {self.modbus_client.tcp.params.host}:{self.modbus_client.tcp.params.port}"
+            exception_message_tcp: str = (
+                f"{LogPrefix.MODBUS} TCP client can't connect to "
+                f"{self.modbus_client.tcp.params.host}:{self.modbus_client.tcp.params.port}"
+            )
             raise UnexpectedError(exception_message_tcp)
 
         await self.modbus_client.serial.connect()  # type: ignore[no-untyped-call]
