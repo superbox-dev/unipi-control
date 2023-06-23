@@ -16,8 +16,8 @@ from typing import Set
 
 from asyncio_mqtt import Client
 from asyncio_mqtt import MqttError
-from pymodbus.client import AsyncModbusSerialClient
-from pymodbus.client import AsyncModbusTcpClient
+from pymodbus.client.serial import AsyncModbusSerialClient
+from pymodbus.client.tcp import AsyncModbusTcpClient
 
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_PATH
