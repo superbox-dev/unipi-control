@@ -5,7 +5,6 @@ on:
     inputs:
       build-python-package:
         description: Build python package
-        required: True
         type: boolean
   pull_request:
   push:
@@ -58,13 +57,12 @@ jobs:
   build-python-package:
     name: Build python package
     if: |
-      (
-        contains(fromJSON('["tag", "branch"]'), github.ref_type)
-        && !endsWith(github.ref_name, '/merge')
-      ) || (
+      github.ref_type == 'tag'
+      || (
         github.ref_type == 'branch'
         && inputs.build-python-package
       )
+      && !endsWith(github.ref_name, '/merge')
     uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
     needs:
       - parameters
@@ -77,13 +75,12 @@ jobs:
   build-binary-files:
     name: Build binary files
     if: |
-      (
-        contains(fromJSON('["tag", "branch"]'), github.ref_type)
-        && !endsWith(github.ref_name, '/merge')
-      ) || (
+      github.ref_type == 'tag'
+      || (
         github.ref_type == 'branch'
         && inputs.build-python-package
       )
+      && !endsWith(github.ref_name, '/merge')
     uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
     needs:
       - parameters
