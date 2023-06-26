@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Bump pymodbus to version 3.3.2
+
 ## [2.0.0] - 2023-06-23
 
 ### Added
