@@ -63,7 +63,7 @@ jobs:
         && !endsWith(github.ref_name, '/merge')
       ) || (
         github.ref_type == 'branch'
-        && build-python-package
+        && inputs.build-python-package
       )
     uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
     needs:
@@ -82,7 +82,7 @@ jobs:
         && !endsWith(github.ref_name, '/merge')
       ) || (
         github.ref_type == 'branch'
-        && build-python-package
+        && inputs.build-python-package
       )
     uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
     needs:
