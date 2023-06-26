@@ -87,7 +87,7 @@ class ModbusCacheData:
             response = await check_modbus_call(self.modbus_client.serial.read_input_registers, data)
 
         if response:
-            register = response.registers  # type: ignore[attr-defined]
+            register: List[int] = response.registers
             for index in range(data["count"]):
                 self.data[definition.unit][data["address"] + index] = register[index]
 
