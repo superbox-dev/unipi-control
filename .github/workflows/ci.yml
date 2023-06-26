@@ -62,7 +62,7 @@ jobs:
         contains(fromJSON('["tag", "branch"]'), github.ref_type)
         && !endsWith(github.ref_name, '/merge')
       ) || (
-        github.ref_type == "branch"
+        github.ref_type == 'branch'
         && build-python-package
       )
     uses: superbox-dev/python-package-workflows/.github/workflows/build-python-package.yml@main
@@ -81,7 +81,7 @@ jobs:
         contains(fromJSON('["tag", "branch"]'), github.ref_type)
         && !endsWith(github.ref_name, '/merge')
       ) || (
-        github.ref_type == "branch"
+        github.ref_type == 'branch'
         && build-python-package
       )
     uses: superbox-dev/python-package-workflows/.github/workflows/build-binary-files.yml@main
