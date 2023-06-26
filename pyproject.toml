@@ -31,7 +31,7 @@ requires-python = ">= 3.8"
 dependencies = [
     "asyncio-mqtt==0.16.1",
     "pymodbus[serial]==3.3.2",
-    "pyyaml~=6.0"
+    "pyyaml==6.0"
 ]
 dynamic = ["version"]
 
@@ -48,25 +48,29 @@ unipi-model-info = "unipi_control.tools.model_info:main"
 [project.optional-dependencies]
 build = [
     "setuptools>=65.5.1",
-    "build"
+    "build==0.10.0",
 ]
-audit = ["pip-audit"]
-format = ["black"]
+audit = [
+    "pip-audit==2.5.6",
+]
+format = [
+    "black==23.3.0",
+]
 lint = [
-    "mypy",
-    "pylint",
-    "ruff",
-    "types-PyYAML",
-    "yamllint",
+    "mypy==1.4.1",
+    "pylint==2.17.4",
+    "ruff==0.0.275",
+    "types-PyYAML==6.0.12.10",
+    "yamllint==1.32.0",
 ]
 tests = [
-    "coverage",
-    "coverage-badge",
-    "pytest",
-    "pytest-asyncio",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-xdist[psutil]",
+    "coverage==7.2.7",
+    "coverage-badge==1.1.0",
+    "pytest==7.4.0",
+    "pytest-asyncio==0.21.0",
+    "pytest-cov==4.1.0",
+    "pytest-mock==3.11.1",
+    "pytest-xdist[psutil]==3.3.1",
 ]
 
 [tool.setuptools]
