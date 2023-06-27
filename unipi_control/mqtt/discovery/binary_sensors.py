@@ -9,7 +9,7 @@ from typing import List
 from typing import Set
 from typing import Tuple
 
-from asyncio_mqtt import Client
+from aiomqtt import Client
 
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.features.neuron import DigitalInput

@@ -14,8 +14,8 @@ from typing import NoReturn
 from typing import Optional
 from typing import Set
 
-from asyncio_mqtt import Client
-from asyncio_mqtt import MqttError
+from aiomqtt import Client
+from aiomqtt import MqttError
 from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 

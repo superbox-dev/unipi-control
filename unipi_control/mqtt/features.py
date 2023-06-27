@@ -9,7 +9,7 @@ from typing import List
 from typing import Set
 from typing import Union
 
-from asyncio_mqtt import Client
+from aiomqtt import Client
 
 from unipi_control.config import HardwareType
 from unipi_control.config import UNIPI_LOGGER

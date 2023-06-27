@@ -3,7 +3,7 @@
 from typing import Optional, TYPE_CHECKING
 from typing import Union
 
-from asyncio_mqtt import Client
+from aiomqtt import Client
 
 from unipi_control.features.extensions import EastronMeter
 from unipi_control.features.neuron import NeuronFeature

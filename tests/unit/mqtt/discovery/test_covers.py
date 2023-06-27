@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
-from asyncio_mqtt import Client
+from aiomqtt import Client
 
 from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT

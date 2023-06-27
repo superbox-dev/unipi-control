@@ -15,7 +15,7 @@ from typing import Optional
 from typing import Set
 from typing import Union
 
-from asyncio_mqtt import Client
+from aiomqtt import Client
 
 from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import LogPrefix

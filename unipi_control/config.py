@@ -24,7 +24,7 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
-from asyncio_mqtt.client import MQTT_LOGGER
+from aiomqtt.client import MQTT_LOGGER
 
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.exception import YamlError

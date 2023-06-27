@@ -9,7 +9,7 @@ from typing import Optional
 from typing import Set
 from typing import Tuple
 
-from asyncio_mqtt import Client
+from aiomqtt import Client
 
 from unipi_control.config import Config
 from unipi_control.config import DEVICE_CLASSES
