@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Bump pymodbus to version 3.3.2
+- Bump ayncio-mqtt to version 1.0.0 (the package name changed to aiomqtt)
 
 ## [2.0.0] - 2023-06-23
 
