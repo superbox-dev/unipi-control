@@ -1,5 +1,6 @@
 # Configuration
 
+<!-- content start -->
 This are the configuration settings for the `/etc/unipi/control.yaml`.
 
 ## Device
@@ -153,3 +154,5 @@ When the Unipi Control starts in calibration mode, the cover fully open and disa
 logging:
   level: info
 ```
+
+<!-- content end -->

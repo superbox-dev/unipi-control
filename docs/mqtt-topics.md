@@ -1,5 +1,6 @@
 # MQTT topics
 
+<!-- content start -->
 Available MQTT topics:
 
 ## Features
@@ -51,3 +52,5 @@ Available MQTT topics:
 | `[device_name]/[object_id]/cover/[device_class]/position/set` | `0` to `100`                                 | Send an integer to set the cover position.                           |
 | `[device_name]/[object_id]/cover/[device_class]/tilt`         | `0` to `100`                                 | Get the tilt position. `100` is fully open and `0` is fully closed.  |
 | `[device_name]/[object_id]/cover/[device_class]/tilt/set`     | `0` to `100`                                 | Send an integer to set the cover position.                           |
+
+<!-- content end -->

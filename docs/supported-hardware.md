@@ -1,5 +1,6 @@
 # Supported hardware
 
+<!-- content start -->
 > If you have an Unipi device, that is not supported, then contact us and [create a issue](https://github.com/superbox-dev/unipi-control/issues).
 
 ## Tested devices
@@ -31,3 +32,5 @@
   * Patron L527
 
 If you tried an untested Unipi device then please let us know the result to update this page.
+
+<!-- content end -->

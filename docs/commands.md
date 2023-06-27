@@ -1,5 +1,6 @@
 # Commands
 
+<!-- content start -->
 ## unipi-control
 
 **Usage:**
@@ -49,3 +50,5 @@ unipi-config-converter [--log {systemd,stdout,file}] [-v] [--force] input output
 | `--force`  | overwrite output YAML file if already exists                               |          |
 | `--log`    | set log handler to file or systemd (choices: `systemd`, `stdout` or `file` |          |
 | `-v`       | verbose mode: multiple -v options increase the verbosity (maximum: 4)      |          |
+
+<!-- content end -->

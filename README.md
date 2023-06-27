@@ -51,7 +51,7 @@ Install `unipi-control` with pip:
 pip install unipi-control
 ```
 
-Copy the [config files](data/opkg/data/local/etc/unipi) to `/etc/unipi` and configurate the `/etc/unipi/control.yaml`.
+Copy the [config files](https://github.com/superbox-dev/unipi-control/data/opkg/data/local/etc/unipi) to `/etc/unipi` and configurate the `/etc/unipi/control.yaml`.
 
 Create the systemd service `/etc/systemd/system/unipi-control.service` with following content:
 
@@ -76,7 +76,7 @@ systemctl --system daemon-reload
 systemctl enable unipi-control.service
 systemctl start unipi-control.service
 ```
-<!-- quickstart start -->
+<!-- quickstart end -->
 
 ## Changelog
 
