@@ -251,7 +251,7 @@ class Cover:
         Path:
             Path to temporary cover file.
         """
-        return self.config.temp_path / self.topic.replace("/", "__")
+        return self.config.persistent_tmp_dir / self.topic.replace("/", "__")
 
     @property
     def is_opening(self) -> bool:

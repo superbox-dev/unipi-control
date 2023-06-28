@@ -343,7 +343,7 @@ class TestUnhappyPathConfig:
         with pytest.raises(ConfigError) as error:
             Neuron(config=config, modbus_client=modbus_client)
 
-        assert str(error.value) == f"[CONFIG] Definition is invalid: {config_loader.hardware_data_file_path}{expected}"
+        assert str(error.value) == f"[CONFIG] Definition is invalid: {config_loader.hardware_data_file}{expected}"
 
     @pytest.mark.parametrize(
         ("config_loader", "expected"),
@@ -375,7 +375,7 @@ class TestUnhappyPathConfig:
 
         assert (
             str(error.value)
-            == f"[CONFIG] Definition is invalid: {config_loader.extension_hardware_data_file_path}{expected}"
+            == f"[CONFIG] Definition is invalid: {config_loader.extension_hardware_data_file}{expected}"
         )
 
     @pytest.mark.parametrize(

@@ -159,6 +159,7 @@ ignore = [
     "FA100", # missing-future-annotations-import
     "FBT", # boolean-trap
     "S101", # assert-used
+    "S108", # hardcoded-temp-file
     "T201", # print
     "PLR0913", # too-many-arguments
     "PLR2004", # magic-value-comparison

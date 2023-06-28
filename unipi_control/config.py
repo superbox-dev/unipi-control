@@ -11,7 +11,6 @@ from dataclasses import field
 from dataclasses import is_dataclass
 from functools import cached_property
 from pathlib import Path
-from tempfile import gettempdir
 from typing import Any
 from typing import Dict
 from typing import Final
@@ -38,7 +37,7 @@ from unipi_control.helpers.yaml import yaml_loader_safe
 
 UNIPI_LOGGER: logging.Logger = logging.getLogger(LOG_NAME)
 
-DEFAULT_CONFIG_PATH: Final[Path] = Path("/etc/unipi")
+DEFAULT_CONFIG_DIR: Final[Path] = Path("/etc/unipi")
 DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
 
 MODBUS_BAUD_RATES: Final[List[int]] = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
@@ -133,17 +132,17 @@ class ConfigLoaderMixin:
 
         self.validate()
 
-    def update_from_yaml_file(self, config_path: Path) -> None:
+    def update_from_yaml_file(self, config_file: Path) -> None:
         """Update and validate config data class with settings from a YAML file.
 
         Parameters
         ----------
-        config_path: Path
+        config_file: Path
             Path to the YAML file.
         """
-        if config_path.is_file() and config_path.exists():
+        if config_file.is_file() and config_file.exists():
             try:
-                yaml_data: Dict[str, Any] = yaml_loader_safe(config_path)
+                yaml_data: Dict[str, Any] = yaml_loader_safe(config_file)
             except YamlError as error:
                 raise ConfigError(error) from error
 
@@ -420,18 +419,18 @@ class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
     features: Dict[str, FeatureConfig] = field(init=False, default_factory=dict)
     covers: List[CoverConfig] = field(init=False, default_factory=list)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
-    config_base_path: Path = field(default=DEFAULT_CONFIG_PATH)
-    temp_path: Path = field(default=Path(gettempdir()) / "unipi")
+    config_base_dir: Path = field(default=DEFAULT_CONFIG_DIR)
+    persistent_tmp_dir: Path = field(default=Path("/var/tmp/unipi"))
     sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
 
     @cached_property
-    def hardware_path(self) -> Path:
+    def hardware_dir(self) -> Path:
         """Return hardware path to neuron devices and extensions."""
-        return self.config_base_path / "hardware"
+        return self.config_base_dir / "hardware"
 
     def __post_init__(self) -> None:
-        self.temp_path.mkdir(exist_ok=True)
-        self.update_from_yaml_file(config_path=self.config_base_path / "control.yaml")
+        self.persistent_tmp_dir.mkdir(exist_ok=True)
+        self.update_from_yaml_file(config_file=self.config_base_dir / "control.yaml")
 
         self._validate_feature_object_ids()
         self._validate_covers_circuits()
@@ -573,7 +572,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
         return len(self.data)
 
     def _read_neuron_definition(self) -> None:
-        definition_file: Path = Path(f"{self.config.hardware_path}/neuron/{self.info.model}.yaml")
+        definition_file: Path = Path(f"{self.config.hardware_dir}/neuron/{self.info.model}.yaml")
 
         if definition_file.is_file():
             try:
@@ -604,7 +603,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
             raise ConfigError(msg)
 
     def _read_extension_definitions(self) -> None:
-        for definition_file in Path(f"{self.config.hardware_path}/extensions").glob("*.yaml"):
+        for definition_file in Path(f"{self.config.hardware_dir}/extensions").glob("*.yaml"):
             try:
                 yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 

@@ -12,7 +12,7 @@ from typing import Optional
 
 from unipi_control import __version__  # type: ignore[attr-defined]
 from unipi_control.config import Config
-from unipi_control.config import DEFAULT_CONFIG_PATH
+from unipi_control.config import DEFAULT_CONFIG_DIR
 from unipi_control.config import LoggingConfig
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.argparse import init_argparse
@@ -43,7 +43,7 @@ class UnipiConfigBackup:
 
         try:
             with tarfile.open(tar_file, "x:gz") as tar:
-                tar.add(self.config.config_base_path / "control.yaml", arcname=self.config.config_base_path)
+                tar.add(self.config.config_base_dir / "control.yaml", arcname=self.config.config_base_dir)
         except OSError as error:
             exception_message = f"{error.strerror}: '{error.filename}'"
             raise UnexpectedError(exception_message) from error
@@ -69,8 +69,8 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         "-c",
         "--config",
         action="store",
-        default=DEFAULT_CONFIG_PATH,
-        help=f"path to the configuration (default: {DEFAULT_CONFIG_PATH})",
+        default=DEFAULT_CONFIG_DIR,
+        help=f"path to the configuration (default: {DEFAULT_CONFIG_DIR})",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
@@ -85,7 +85,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     try:
         args: argparse.Namespace = parse_args(argv)
 
-        config: Config = Config(logging=LoggingConfig(level="info"), config_base_path=Path(args.config))
+        config: Config = Config(logging=LoggingConfig(level="info"), config_base_dir=Path(args.config))
         config.logging.init(log=args.log, verbose=args.verbose, fmt=SIMPLE_LOG_FORMAT)
 
         UnipiConfigBackup(config=config).backup(target=Path(args.output))

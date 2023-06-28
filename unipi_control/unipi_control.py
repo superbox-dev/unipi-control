@@ -20,7 +20,7 @@ from pymodbus.client.serial import AsyncModbusSerialClient
 from pymodbus.client.tcp import AsyncModbusTcpClient
 
 from unipi_control.config import Config
-from unipi_control.config import DEFAULT_CONFIG_PATH
+from unipi_control.config import DEFAULT_CONFIG_DIR
 from unipi_control.config import LogPrefix
 from unipi_control.config import MqttConfig
 from unipi_control.config import UNIPI_LOGGER
@@ -206,8 +206,8 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         "-c",
         "--config",
         action="store",
-        default=DEFAULT_CONFIG_PATH,
-        help=f"path to the configuration (default: {DEFAULT_CONFIG_PATH})",
+        default=DEFAULT_CONFIG_DIR,
+        help=f"path to the configuration (default: {DEFAULT_CONFIG_DIR})",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
@@ -224,7 +224,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     try:
         args: argparse.Namespace = parse_args(argv)
 
-        config: Config = Config(config_base_path=Path(args.config))
+        config: Config = Config(config_base_dir=Path(args.config))
         config.logging.init(log=args.log, verbose=args.verbose)
 
         unipi_control = UnipiControl(

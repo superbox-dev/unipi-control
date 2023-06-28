@@ -58,18 +58,18 @@ def event_loop() -> Generator[AbstractEventLoop, None, None]:
 class ConfigLoader:
     def __init__(self, temp: Path) -> None:
         self.temp: Path = temp
-        self.config_file_path: Path = self.temp / "control.yaml"
+        self.config_file: Path = self.temp / "control.yaml"
 
-        hardware_data_path: Path = self.temp / "hardware/neuron"
-        hardware_data_path.mkdir(parents=True)
-        self.hardware_data_file_path = hardware_data_path / "MOCKED_MODEL.yaml"
+        hardware_data_dir: Path = self.temp / "hardware/neuron"
+        hardware_data_dir.mkdir(parents=True)
+        self.hardware_data_file = hardware_data_dir / "MOCKED_MODEL.yaml"
 
-        extension_hardware_data_path: Path = self.temp / "hardware/extensions"
-        extension_hardware_data_path.mkdir(parents=True)
-        self.extension_hardware_data_file_path = extension_hardware_data_path / "MOCKED_EASTRON.yaml"
+        extension_hardware_data_dir: Path = self.temp / "hardware/extensions"
+        extension_hardware_data_dir.mkdir(parents=True)
+        self.extension_hardware_data_file = extension_hardware_data_dir / "MOCKED_EASTRON.yaml"
 
-        self.temp_path: Path = self.temp / "unipi"
-        self.temp_path.mkdir(parents=True)
+        self.persistent_tmp_dir: Path = self.temp / "unipi"
+        self.persistent_tmp_dir.mkdir(parents=True)
 
     def write_config(self, content: str) -> None:
         """Write config yaml file to temporary directory.
@@ -79,7 +79,7 @@ class ConfigLoader:
         content: str
             Content for the config yaml file
         """
-        with self.config_file_path.open("w", encoding="utf-8") as _file:
+        with self.config_file.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
     def write_hardware_data(self, content: str) -> None:
@@ -90,7 +90,7 @@ class ConfigLoader:
         content: str
             Content for the hardware yaml file
         """
-        with self.hardware_data_file_path.open("w", encoding="utf-8") as _file:
+        with self.hardware_data_file.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
     def write_extension_hardware_data(self, content: str) -> None:
@@ -101,15 +101,15 @@ class ConfigLoader:
         content: str
             Content for extension the hardware yaml file
         """
-        with self.extension_hardware_data_file_path.open("w", encoding="utf-8") as _file:
+        with self.extension_hardware_data_file.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def get_config(self, config_base_path: Optional[Path] = None) -> Config:
+    def get_config(self, config_base_dir: Optional[Path] = None) -> Config:
         """Get the config dataclass."""
-        if not config_base_path:
-            config_base_path = self.temp
+        if not config_base_dir:
+            config_base_dir = self.temp
 
-        return Config(config_base_path=config_base_path, temp_path=self.temp_path)
+        return Config(config_base_dir=config_base_dir, persistent_tmp_dir=self.persistent_tmp_dir)
 
 
 @pytest.fixture(name="config_loader")
