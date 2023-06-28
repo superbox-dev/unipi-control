@@ -421,7 +421,7 @@ class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_dir: Path = field(default=DEFAULT_CONFIG_DIR)
     persistent_tmp_dir: Path = field(default=Path("/var/tmp/unipi"))
-    sys_bus: Path = field(default=Path("/sys/bus/i2c/devices"))
+    sys_bus_dir: Path = field(default=Path("/sys/bus/i2c/devices"))
 
     @cached_property
     def hardware_dir(self) -> Path:
@@ -487,7 +487,7 @@ class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
 
 @dataclass
 class HardwareInfo:
-    sys_bus: Path
+    sys_bus_dir: Path
     name: str = field(default="unknown")
     model: str = field(default="unknown", init=False)
     version: str = field(default="unknown", init=False)
@@ -496,10 +496,10 @@ class HardwareInfo:
     def __post_init__(self) -> None:  # pragma: no cover
         # Can't unit testing the hardware info.
         # This code only works on the real hardware!
-        unipi_1: Path = self.sys_bus / "1-0050/eeprom"
-        unipi_patron: Path = self.sys_bus / "2-0057/eeprom"
-        unipi_neuron_1: Path = self.sys_bus / "1-0057/eeprom"
-        unipi_neuron_0: Path = self.sys_bus / "0-0057/eeprom"
+        unipi_1: Path = self.sys_bus_dir / "1-0050/eeprom"
+        unipi_patron: Path = self.sys_bus_dir / "2-0057/eeprom"
+        unipi_neuron_1: Path = self.sys_bus_dir / "1-0057/eeprom"
+        unipi_neuron_0: Path = self.sys_bus_dir / "0-0057/eeprom"
 
         if unipi_1.is_file():
             with unipi_1.open("rb") as _file:
@@ -552,7 +552,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
         self.config = config
 
         self.data: Dict[str, HardwareDefinition] = {}
-        self.info: HardwareInfo = HardwareInfo(sys_bus=config.sys_bus)
+        self.info: HardwareInfo = HardwareInfo(sys_bus_dir=config.sys_bus_dir)
 
         if self.info.model == "unknown":
             msg = "Hardware is not supported!"
