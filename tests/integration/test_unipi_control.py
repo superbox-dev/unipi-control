@@ -29,7 +29,7 @@ class TestUnhappyPathUnipiControl:
     def test_hardware_is_not_supported(self, config_loader: ConfigLoader, caplog: LogCaptureFixture) -> None:
         """Test for hardware is not supported."""
         with pytest.raises(SystemExit) as error:
-            main(["-c", config_loader.temp.as_posix()])
+            main(["-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
@@ -69,7 +69,7 @@ class TestUnhappyPathUnipiControl:
         mock_modbus_client_tcp.connected = False
 
         with pytest.raises(SystemExit) as error:
-            main(["-c", config_loader.temp.as_posix()])
+            main(["-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
@@ -120,7 +120,7 @@ class TestUnhappyPathUnipiControl:
         mock_modbus_client_serial.connected = False
 
         with pytest.raises(SystemExit) as error:
-            main(["-c", config_loader.temp.as_posix()])
+            main(["-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 

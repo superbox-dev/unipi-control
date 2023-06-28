@@ -31,8 +31,8 @@ class UnipiConfigConverter:
         self.force: bool = force
 
     @staticmethod
-    def _read_source_yaml(source: Path) -> Dict[str, Any]:
-        source_yaml: Dict[str, Any] = yaml_loader_safe(source)
+    def _read_source_yaml(source_file: Path) -> Dict[str, Any]:
+        source_yaml: Dict[str, Any] = yaml_loader_safe(source_file)
 
         if isinstance(source_yaml, dict):
             return source_yaml

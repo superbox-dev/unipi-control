@@ -31,7 +31,7 @@ class TestHappyPathUnipiConfigBackup:
         backup_dir: Path = config_loader.persistent_tmp_dir / "backup"
         backup_dir.mkdir()
 
-        main([backup_dir.as_posix(), "-c", config_loader.temp.as_posix()])
+        main([backup_dir.as_posix(), "-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
         files: List[Path] = list(backup_dir.glob("*.tar.gz"))
@@ -53,7 +53,7 @@ class TestUnhappyPathUnipiConfigBackup:
     def test_cli_output_directory_not_exists(self, config_loader: ConfigLoader, caplog: LogCaptureFixture) -> None:
         """Test for missing output directory."""
         with pytest.raises(SystemExit) as error:
-            main([(config_loader.persistent_tmp_dir / "not_exists").as_posix(), "-c", config_loader.temp.as_posix()])
+            main([(config_loader.persistent_tmp_dir / "not_exists").as_posix(), "-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
@@ -71,7 +71,7 @@ class TestUnhappyPathUnipiConfigBackup:
     def test_cli_output_is_not_a_directory(self, config_loader: ConfigLoader, caplog: LogCaptureFixture) -> None:
         """Test for output is not a directory."""
         with pytest.raises(SystemExit) as error:
-            main([config_loader.config_file.as_posix(), "-c", config_loader.temp.as_posix()])
+            main([config_loader.config_file.as_posix(), "-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
@@ -99,7 +99,7 @@ class TestUnhappyPathUnipiConfigBackup:
         backup_dir.mkdir()
 
         with pytest.raises(SystemExit) as error:
-            main([backup_dir.as_posix(), "-c", config_loader.temp.as_posix()])
+            main([backup_dir.as_posix(), "-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 

@@ -24,13 +24,13 @@ class UnipiConfigBackup:
     def __init__(self, config: Config) -> None:
         self.config: Config = config
 
-    def backup(self, target: Path) -> None:
+    def backup(self, target_dir: Path) -> None:
         """Backup configuration file."""
         exception_message: Optional[str] = None
 
-        if target.is_file():
+        if target_dir.is_file():
             exception_message = "OUTPUT is a file not a directory!"
-        elif not target.is_dir():
+        elif not target_dir.is_dir():
             exception_message = "OUTPUT directory not exists!"
 
         if exception_message:
@@ -38,7 +38,7 @@ class UnipiConfigBackup:
 
         datetime_now = datetime.now(tz=timezone.utc)
         tar_filename: str = f"config-{datetime_now.date()}-{datetime_now.strftime('%H%M%S')}.tar.gz"
-        tar_file: Path = target / tar_filename
+        tar_file: Path = target_dir / tar_filename
         tar_file.unlink(missing_ok=True)
 
         try:
@@ -88,7 +88,7 @@ def main(argv: Optional[List[str]] = None) -> None:
         config: Config = Config(logging=LoggingConfig(level="info"), config_base_dir=Path(args.config))
         config.logging.init(log=args.log, verbose=args.verbose, fmt=SIMPLE_LOG_FORMAT)
 
-        UnipiConfigBackup(config=config).backup(target=Path(args.output))
+        UnipiConfigBackup(config=config).backup(target_dir=Path(args.output))
     except UnexpectedError as error:
         UNIPI_LOGGER.critical(error)
         sys.exit(1)

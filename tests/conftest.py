@@ -57,18 +57,18 @@ def event_loop() -> Generator[AbstractEventLoop, None, None]:
 
 class ConfigLoader:
     def __init__(self, temp: Path) -> None:
-        self.temp: Path = temp
-        self.config_file: Path = self.temp / "control.yaml"
+        self.tmp_dir: Path = temp
+        self.config_file: Path = self.tmp_dir / "control.yaml"
 
-        hardware_data_dir: Path = self.temp / "hardware/neuron"
+        hardware_data_dir: Path = self.tmp_dir / "hardware/neuron"
         hardware_data_dir.mkdir(parents=True)
         self.hardware_data_file = hardware_data_dir / "MOCKED_MODEL.yaml"
 
-        extension_hardware_data_dir: Path = self.temp / "hardware/extensions"
+        extension_hardware_data_dir: Path = self.tmp_dir / "hardware/extensions"
         extension_hardware_data_dir.mkdir(parents=True)
         self.extension_hardware_data_file = extension_hardware_data_dir / "MOCKED_EASTRON.yaml"
 
-        self.persistent_tmp_dir: Path = self.temp / "unipi"
+        self.persistent_tmp_dir: Path = self.tmp_dir / "unipi"
         self.persistent_tmp_dir.mkdir(parents=True)
 
     def write_config(self, content: str) -> None:
@@ -107,7 +107,7 @@ class ConfigLoader:
     def get_config(self, config_base_dir: Optional[Path] = None) -> Config:
         """Get the config dataclass."""
         if not config_base_dir:
-            config_base_dir = self.temp
+            config_base_dir = self.tmp_dir
 
         return Config(config_base_dir=config_base_dir, persistent_tmp_dir=self.persistent_tmp_dir)
 
