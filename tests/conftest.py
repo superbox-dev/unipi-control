@@ -68,8 +68,8 @@ class ConfigLoader:
         extension_hardware_data_dir.mkdir(parents=True)
         self.extension_hardware_data_file = extension_hardware_data_dir / "MOCKED_EASTRON.yaml"
 
-        self.persistent_tmp_dir: Path = self.tmp_dir / "unipi"
-        self.persistent_tmp_dir.mkdir(parents=True)
+        self.unipi_tmp_dir: Path = self.tmp_dir / "unipi"
+        self.unipi_tmp_dir.mkdir(parents=True)
 
     def write_config(self, content: str) -> None:
         """Write config yaml file to temporary directory.
@@ -104,12 +104,19 @@ class ConfigLoader:
         with self.extension_hardware_data_file.open("w", encoding="utf-8") as _file:
             _file.write(content)
 
-    def get_config(self, config_base_dir: Optional[Path] = None) -> Config:
+    def get_config(self, config_base_dir: Optional[Path] = None, set_unipi_tmp_dir: bool = True) -> Config:
         """Get the config dataclass."""
         if not config_base_dir:
             config_base_dir = self.tmp_dir
 
-        return Config(config_base_dir=config_base_dir, persistent_tmp_dir=self.persistent_tmp_dir)
+        config: dict = {
+            "config_base_dir": config_base_dir
+        }
+
+        if set_unipi_tmp_dir:
+            config["unipi_tmp_dir"] = self.unipi_tmp_dir
+
+        return Config(**config)
 
 
 @pytest.fixture(name="config_loader")

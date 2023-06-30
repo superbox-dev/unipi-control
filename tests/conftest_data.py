@@ -83,6 +83,26 @@ logging:
   level: debug
 """
 
+CONFIG_CONTENT_WITH_PERSISTENT_TMP_DIR: Final[
+    str
+] = """device_info:
+  name: MOCKED UNIPI
+advanced:
+  persistent_tmp_dir: True
+logging:
+  level: debug
+"""
+
+CONFIG_CONTENT_WITHOUT_PERSISTENT_TMP_DIR: Final[
+    str
+] = """device_info:
+  name: MOCKED UNIPI
+advanced:
+  persistent_tmp_dir: False
+logging:
+  level: debug
+"""
+
 HARDWARE_DATA_CONTENT: Final[
     str
 ] = """modbus_register_blocks:

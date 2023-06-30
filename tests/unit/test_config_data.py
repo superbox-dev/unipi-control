@@ -266,6 +266,13 @@ modbus:
 logging:
   level: debug"""
 
+CONFIG_INVALID_PERSISTENT_TMP_DIR: Final[
+    str
+] = """device_info:
+  name: MOCKED UNIPI
+advanced:
+  persistent_tmp_dir: invalid
+"""
 
 HARDWARE_DATA_INVALID_KEY: Final[
     str

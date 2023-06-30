@@ -343,6 +343,11 @@ class HomeAssistantConfig(ConfigLoaderMixin):
 
 
 @dataclass
+class AdvancedConfig(ConfigLoaderMixin):
+    persistent_tmp_dir: bool = False
+
+
+@dataclass
 class LoggingConfig(ConfigLoaderMixin):
     level: str = field(default="error")
 
@@ -418,9 +423,10 @@ class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: Dict[str, FeatureConfig] = field(init=False, default_factory=dict)
     covers: List[CoverConfig] = field(init=False, default_factory=list)
+    advanced: AdvancedConfig = field(default_factory=AdvancedConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     config_base_dir: Path = field(default=DEFAULT_CONFIG_DIR)
-    persistent_tmp_dir: Path = field(default=Path("/var/tmp/unipi"))
+    unipi_tmp_dir: Path = field(default=Path("/tmp/unipi"))
     sys_bus_dir: Path = field(default=Path("/sys/bus/i2c/devices"))
 
     @cached_property
@@ -429,8 +435,11 @@ class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
         return self.config_base_dir / "hardware"
 
     def __post_init__(self) -> None:
-        self.persistent_tmp_dir.mkdir(exist_ok=True)
+        self.unipi_tmp_dir.mkdir(exist_ok=True)
         self.update_from_yaml_file(config_file=self.config_base_dir / "control.yaml")
+
+        if self.advanced.persistent_tmp_dir:
+            self.unipi_tmp_dir = Path("/var/tmp/unipi")
 
         self._validate_feature_object_ids()
         self._validate_covers_circuits()

@@ -209,6 +209,7 @@ def parse_args(args: List[str]) -> argparse.Namespace:
         default=DEFAULT_CONFIG_DIR,
         help=f"path to the configuration (default: {DEFAULT_CONFIG_DIR})",
     )
+
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
     return parser.parse_args(args)

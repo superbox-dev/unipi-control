@@ -28,7 +28,7 @@ class TestHappyPathUnipiConfigBackup:
     )
     def test_unipi_config_backup(self, config_loader: ConfigLoader, caplog: LogCaptureFixture) -> None:
         """Test for config backup."""
-        backup_dir: Path = config_loader.persistent_tmp_dir / "backup"
+        backup_dir: Path = config_loader.unipi_tmp_dir / "backup"
         backup_dir.mkdir()
 
         main([backup_dir.as_posix(), "-c", config_loader.tmp_dir.as_posix()])
@@ -53,7 +53,7 @@ class TestUnhappyPathUnipiConfigBackup:
     def test_cli_output_directory_not_exists(self, config_loader: ConfigLoader, caplog: LogCaptureFixture) -> None:
         """Test for missing output directory."""
         with pytest.raises(SystemExit) as error:
-            main([(config_loader.persistent_tmp_dir / "not_exists").as_posix(), "-c", config_loader.tmp_dir.as_posix()])
+            main([(config_loader.unipi_tmp_dir / "not_exists").as_posix(), "-c", config_loader.tmp_dir.as_posix()])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
@@ -95,7 +95,7 @@ class TestUnhappyPathUnipiConfigBackup:
         mock_tarfile_open = mocker.patch.object(tarfile, "open")
         mock_tarfile_open.return_value.__enter__.return_value.add = mock_tar_add
 
-        backup_dir: Path = config_loader.persistent_tmp_dir / "backup"
+        backup_dir: Path = config_loader.unipi_tmp_dir / "backup"
         backup_dir.mkdir()
 
         with pytest.raises(SystemExit) as error:

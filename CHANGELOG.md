@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added `advanced` section in `control.yaml` with the option `persistent_tmp_dir`.
+- Added documentation in [configuration.md](docs/configuration.md) for the `advanced` section.
+
 ### Changed
 
-- Changed temporary directory from `/tmp/unipi` to the persistent `/var/tmp/unipi` directory.
 - Bump pymodbus to version 3.3.2
 - Bump ayncio-mqtt to version 1.0.0 (the package name changed to aiomqtt)
 

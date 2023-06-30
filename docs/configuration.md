@@ -143,6 +143,21 @@ covers:
 The covers save its cover and tilt position in a temporary file each time a stop command is executed. If the Unipi Control is interrupted, and a command (open/closing) is currently being executed, or the system is restarted, the calibration mode is enabled.
 When the Unipi Control starts in calibration mode, the cover fully open and disable calibration mode. This is required for the correct cover and tilt position.
 
+> Cover calibration mode is disabled when `persistent_tmp_dir` is enabled! To manualy reset the covers you must delete all files under `/var/tmp/unipi`.
+
+## Advanced
+
+| Key                  | Value                                                                                                                                                                                               |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `persistent_tmp_dir` | Enable persistent temporary directory. All temporary files are written to `/var/tmp/unipi` instead of `/tmp/unipi`. Default is `false`. If this is enabled then cover calibration mode is disabled! |
+
+```yaml
+# control.yaml
+advanced:
+  persistent_tmp_dir: True
+```
+
+
 ## Logging
 
 | Key     | Value                                                                  |
