@@ -109,7 +109,7 @@ class ConfigLoader:
         if not config_base_dir:
             config_base_dir = self.tmp_dir
 
-        config: dict = {"config_base_dir": config_base_dir}
+        config: Dict[str, Any] = {"config_base_dir": config_base_dir}
 
         if set_unipi_tmp_dir:
             config["unipi_tmp_dir"] = self.unipi_tmp_dir
