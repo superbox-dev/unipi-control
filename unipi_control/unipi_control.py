@@ -77,15 +77,15 @@ class UnipiControl:
 
     @staticmethod
     async def _cancel_tasks(tasks: Set[Task]) -> None:
-        for task in tasks:
-            if task.done():
-                continue
+        try:
+            for task in tasks:
+                if task.done():
+                    continue
 
-            try:
                 task.cancel()
                 await task
-            except asyncio.CancelledError:
-                ...
+        except asyncio.CancelledError:
+            ...
 
     async def _modbus_connect(self) -> None:
         await self.modbus_client.tcp.connect()  # type: ignore[no-untyped-call]
@@ -161,7 +161,7 @@ class UnipiControl:
                     )
 
                     await callback(stack, mqtt_client)
-            except MqttError as error:
+            except MqttError as error:  # ruff: noqa: PERF203
                 UNIPI_LOGGER.error(
                     "%s Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
                     LogPrefix.MQTT,

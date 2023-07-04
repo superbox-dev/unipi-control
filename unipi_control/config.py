@@ -633,7 +633,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                     )
 
                 UNIPI_LOGGER.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
-            except KeyError as error:
+            except KeyError as error:  # ruff: noqa: PERF203
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
                 raise ConfigError(msg) from error
             except TypeError as error:
