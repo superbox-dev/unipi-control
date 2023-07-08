@@ -10,6 +10,7 @@ Conflicts=unipi-control-dev.service
 Type=simple
 ExecStart=/usr/local/bin/unipi-control --config /usr/local/etc/unipi --log systemd
 Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target

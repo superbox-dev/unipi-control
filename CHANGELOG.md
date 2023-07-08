@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Added `Restart=on-failure` for systemd service, in the OPKG package, to prevent unwanted crashes.
 - Repair the OPKG package for the Unipi Control OS. Added the missing control files to the package. 
 
 ## [2.0.0] - 2023-06-23
