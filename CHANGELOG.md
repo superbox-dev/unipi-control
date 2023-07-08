@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
+- Fixed crashing Unipi Control service after reinstall/update `unipi-modbus-tools` OPKG package.
 - Added `Restart=on-failure` for systemd service, in the OPKG package, to prevent unwanted crashes.
 - Repair the OPKG package for the Unipi Control OS. Added the missing control files to the package. 
 
