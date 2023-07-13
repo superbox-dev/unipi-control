@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Read model informations from /sys path."""
 
 import struct
