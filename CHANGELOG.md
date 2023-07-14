@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2023-07-14
+
 ### Added
 
 - Added `advanced` section in `control.yaml` with the option `persistent_tmp_dir`.
