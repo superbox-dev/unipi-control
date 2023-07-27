@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added `modbus_tcp` as a new section in the config file.
+- Added `modbus_tcp` documentation to [configuration.md](docs/configuration.md)
+
+### Changed
+
+- **BREAKING CHANGE** in the config file: the section `modbus` was renamed to `modbus_serial`.
+- Bump pymodbus to version 3.4.0
+
+## Fixed
+
+- Fixed mypy errors
+
 ## [2.1.0] - 2023-07-14
 
 ### Added
@@ -82,7 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update systemd service for Unipi Control OS.
 - Updated packages version.
-- Updated install process and README.md.
+- Updated install process and [README.md](README.md).
 
 ### Fixed
 
