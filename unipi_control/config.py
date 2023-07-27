@@ -357,6 +357,9 @@ class AdvancedConfig(ConfigLoaderMixin):
 @dataclass
 class LoggingConfig(ConfigLoaderMixin):
     level: str = field(default="error")
+    mqtt_meters_level: str = field(default="error")
+    mqtt_features_level: str = field(default="error")
+    mqtt_covers_level: str = field(default="error")
 
     @property
     def verbose(self) -> int:
