@@ -54,6 +54,7 @@ covers:
     cover_down: ro_2_12
 logging:
   level: info
-  mqtt_meters_level: error
-  mqtt_features_level: info
-  mqtt_covers_level: info
+  mqtt:
+    meters_level: error
+    features_level: info
+    covers_level: info

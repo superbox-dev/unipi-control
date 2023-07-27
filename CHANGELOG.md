@@ -10,12 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added `modbus_tcp` as a new section in the config file.
-- Added `modbus_tcp` documentation to [configuration.md](docs/configuration.md)
+- Added MQTT logging options to set `meters_level`,  `features_level` and `covers_level` in the config file.
 
 ### Changed
 
 - **BREAKING CHANGE** in the config file: the section `modbus` was renamed to `modbus_serial`.
 - Bump pymodbus to version 3.4.0
+- Updated [configuration.md](docs/configuration.md)
 
 ## Fixed
 

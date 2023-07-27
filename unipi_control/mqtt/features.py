@@ -3,8 +3,9 @@
 import asyncio
 from asyncio import Task
 from contextlib import AsyncExitStack
-from typing import Any, ClassVar
+from typing import Any
 from typing import AsyncIterable
+from typing import ClassVar
 from typing import List
 from typing import Set
 from typing import Union
@@ -13,8 +14,12 @@ from aiomqtt import Client
 
 from unipi_control.config import HardwareType
 from unipi_control.config import UNIPI_LOGGER
+from unipi_control.features.extensions import EastronMeter
+from unipi_control.features.neuron import DigitalInput
 from unipi_control.features.neuron import DigitalOutput
+from unipi_control.features.neuron import Led
 from unipi_control.features.neuron import Relay
+from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
@@ -37,8 +42,19 @@ class BaseFeaturesMqttPlugin:
             for feature in self.neuron.features.by_feature_types(feature_types):
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
-                    await self.mqtt_client.publish(topic, feature.payload, qos=1, retain=True)
-                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, topic, feature.payload)
+                    await self.mqtt_client.publish(topic=topic, payload=feature.payload, qos=1, retain=True)
+
+                    if (
+                        isinstance(feature, EastronMeter)
+                        and LOG_LEVEL[self.neuron.config.logging.mqtt.meters_level] <= LOG_LEVEL["info"]
+                    ) or (
+                        isinstance(feature, (DigitalInput, DigitalOutput, Led, Relay))
+                        and LOG_LEVEL[self.neuron.config.logging.mqtt.features_level] <= LOG_LEVEL["info"]
+                    ):
+                        UNIPI_LOGGER.log(
+                            level=LOG_LEVEL["info"],
+                            msg=LOG_MQTT_PUBLISH % (topic, feature.payload),
+                        )
 
             await asyncio.sleep(sleep)
 
@@ -84,17 +100,23 @@ class NeuronFeaturesMqttPlugin(BaseFeaturesMqttPlugin):
 
         tasks.add(task)
 
-    @staticmethod
-    async def _subscribe(feature: Union[DigitalOutput, Relay], topic: str, messages: AsyncIterable[Any]) -> None:
+    async def _subscribe(self, feature: Union[DigitalOutput, Relay], topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
             value: str = message.payload.decode()
 
             if value == "ON":
                 await feature.set_state(True)
-                UNIPI_LOGGER.info(LOG_MQTT_SUBSCRIBE, topic, value)
             elif value == "OFF":
                 await feature.set_state(False)
-                UNIPI_LOGGER.info(LOG_MQTT_SUBSCRIBE, topic, value)
+
+            if (
+                value in {"ON", "OFF"}
+                and LOG_LEVEL[self.neuron.config.logging.mqtt.features_level] <= LOG_LEVEL["info"]
+            ):
+                UNIPI_LOGGER.log(
+                    level=LOG_LEVEL["info"],
+                    msg=LOG_MQTT_SUBSCRIBE % (topic, value),
+                )
 
 
 class MeterFeaturesMqttPlugin(BaseFeaturesMqttPlugin):

@@ -3,7 +3,8 @@
 import asyncio
 import json
 from asyncio import Task
-from typing import Any, ClassVar
+from typing import Any
+from typing import ClassVar
 from typing import Dict
 from typing import List
 from typing import Set
@@ -84,7 +85,7 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
             if isinstance(feature, EastronMeter):
                 topic, message = self.get_discovery(feature)
                 json_data: str = json.dumps(message)
-                await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
+                await self.mqtt_client.publish(topic=topic, payload=json_data, qos=2, retain=True)
                 UNIPI_LOGGER.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 

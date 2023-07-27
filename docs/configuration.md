@@ -178,14 +178,21 @@ advanced:
 
 ## Logging
 
-| Key     | Value                                                                  |
-|---------|------------------------------------------------------------------------|
-| `level` | Set level to `debug`, `info`, `warning` or `error`. Default is `info`. |
+| Key                       | Value                                                                               |
+|---------------------------|-------------------------------------------------------------------------------------|
+| `level`                   | Set level to `debug`, `info`, `warning` or `error`. Default is `error`.             |
+| `mqtt` » `meters_level`   | Show meter MQTT messages only for this log level or greater. Default is `error`.    |
+| `mqtt` » `features_level` | Show features MQTT messages only for this log level or greater. Default is `error`. |
+| `mqtt` » `covers_level`   | Show covers MQTT messages only for this log level or greater. Default is `error`.   |
 
 ```yaml
 # control.yaml
 logging:
   level: info
+  mqtt:
+    meters_level: error
+    features_level: info
+    covers_level: info
 ```
 
 <!-- content end -->

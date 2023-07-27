@@ -38,4 +38,6 @@ covers:
     cover_down: ro_3_02
 logging:
   level: debug
+  mqtt:
+    covers_level: info
 """

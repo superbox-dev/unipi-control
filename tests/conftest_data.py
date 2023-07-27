@@ -85,6 +85,10 @@ covers:
     cover_down: ro_3_04
 logging:
   level: debug
+  mqtt:
+    meters_level: info
+    features_level: info
+    covers_level: info
 """
 
 CONFIG_CONTENT_WITH_PERSISTENT_TMP_DIR: Final[

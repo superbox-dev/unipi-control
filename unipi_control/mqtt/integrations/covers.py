@@ -9,17 +9,17 @@ from typing import AsyncIterable
 from typing import Awaitable
 from typing import Callable
 from typing import Dict
-from typing import List
 from typing import NamedTuple
 from typing import Optional
 from typing import Set
-from typing import Union
 
 from aiomqtt import Client
 
+from unipi_control.config import Config
 from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import LogPrefix
 from unipi_control.config import UNIPI_LOGGER
+from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE_TOPIC
@@ -31,7 +31,7 @@ from unipi_control.integrations.covers import CoverMap
 class SubscribeCommand(NamedTuple):
     command: str
     value: int
-    log: List[Union[str, int]]
+    log: str
 
 
 class CoversMqttPlugin:
@@ -41,6 +41,7 @@ class CoversMqttPlugin:
     SUBSCRIBE_RUNNING: bool = True
 
     def __init__(self, mqtt_client: Client, covers: CoverMap) -> None:
+        self.config: Config = covers.config
         self.mqtt_client: Client = mqtt_client
         self.covers: CoverMap = covers
 
@@ -94,7 +95,11 @@ class CoversMqttPlugin:
             command: Callable[[int], Awaitable[Optional[float]]] = getattr(cover, subscribe_queue.command)
             cover_run_time: Optional[float] = await command(subscribe_queue.value)
 
-            UNIPI_LOGGER.info(*subscribe_queue.log)
+            if LOG_LEVEL[self.config.logging.mqtt.covers_level] <= LOG_LEVEL["info"]:
+                UNIPI_LOGGER.log(
+                    level=LOG_LEVEL["info"],
+                    msg=subscribe_queue.log,
+                )
 
             if cover_run_time:
                 UNIPI_LOGGER.debug(
@@ -162,7 +167,11 @@ class CoversMqttPlugin:
             elif value == CoverDeviceState.STOP:
                 await cover.stop_cover()
 
-            UNIPI_LOGGER.info(LOG_MQTT_SUBSCRIBE, topic, value)
+            if LOG_LEVEL[self.config.logging.mqtt.covers_level] <= LOG_LEVEL["info"]:
+                UNIPI_LOGGER.log(
+                    level=LOG_LEVEL["info"],
+                    msg=LOG_MQTT_SUBSCRIBE % (topic, value),
+                )
 
     async def _subscribe_set_position_topic(self, cover: Cover, topic: str, messages: AsyncIterable[Any]) -> None:
         async for message in messages:
@@ -176,7 +185,7 @@ class CoversMqttPlugin:
                     SubscribeCommand(
                         command="set_position",
                         value=position,
-                        log=[LOG_MQTT_SUBSCRIBE, topic, position],
+                        log=LOG_MQTT_SUBSCRIBE % (topic, position),
                     ),
                 )
 
@@ -192,7 +201,7 @@ class CoversMqttPlugin:
                     SubscribeCommand(
                         command="set_tilt",
                         value=tilt,
-                        log=[LOG_MQTT_SUBSCRIBE, topic, tilt],
+                        log=LOG_MQTT_SUBSCRIBE % (topic, tilt),
                     ),
                 )
 
@@ -204,16 +213,32 @@ class CoversMqttPlugin:
                     await self.mqtt_client.publish(
                         topic=position_topic, payload=cover.status.position, qos=1, retain=True
                     )
-                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, position_topic, cover.status.position)
+
+                    if LOG_LEVEL[self.config.logging.mqtt.covers_level] <= LOG_LEVEL["info"]:
+                        UNIPI_LOGGER.log(
+                            level=LOG_LEVEL["info"],
+                            msg=LOG_MQTT_PUBLISH % (position_topic, cover.status.position),
+                        )
 
                 if cover.tilt_changed:
                     tilt_topic: str = f"{cover.topic}/tilt"
                     await self.mqtt_client.publish(topic=tilt_topic, payload=cover.status.tilt, qos=1, retain=True)
-                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, tilt_topic, cover.status.tilt)
+
+                    if LOG_LEVEL[self.config.logging.mqtt.covers_level] <= LOG_LEVEL["info"]:
+                        UNIPI_LOGGER.log(
+                            level=LOG_LEVEL["info"],
+                            msg=LOG_MQTT_PUBLISH % (tilt_topic, cover.status.tilt),
+                        )
 
                 if cover.state_changed:
                     state_topic: str = f"{cover.topic}/state"
                     await self.mqtt_client.publish(topic=state_topic, payload=cover.state, qos=1, retain=True)
-                    UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, state_topic, cover.state)
+
+                    if LOG_LEVEL[self.config.logging.mqtt.covers_level] <= LOG_LEVEL["info"]:
+                        UNIPI_LOGGER.log(
+                            level=LOG_LEVEL["info"],
+                            msg=LOG_MQTT_PUBLISH % (state_topic, cover.state),
+                        )
+
                 await cover.calibrate()
             await asyncio.sleep(25e-3)

@@ -355,11 +355,16 @@ class AdvancedConfig(ConfigLoaderMixin):
 
 
 @dataclass
+class MqttLoggingConfig(ConfigLoaderMixin):
+    meters_level: str = field(default="error")
+    features_level: str = field(default="error")
+    covers_level: str = field(default="error")
+
+
+@dataclass
 class LoggingConfig(ConfigLoaderMixin):
     level: str = field(default="error")
-    mqtt_meters_level: str = field(default="error")
-    mqtt_features_level: str = field(default="error")
-    mqtt_covers_level: str = field(default="error")
+    mqtt: MqttLoggingConfig = field(default_factory=MqttLoggingConfig)
 
     @property
     def verbose(self) -> int:
