@@ -201,17 +201,19 @@ class CoversMqttPlugin:
             for cover in self.covers.by_device_classes(DEVICE_CLASSES):
                 if cover.position_changed:
                     position_topic: str = f"{cover.topic}/position"
-                    await self.mqtt_client.publish(position_topic, cover.status.position, qos=1, retain=True)
+                    await self.mqtt_client.publish(
+                        topic=position_topic, payload=cover.status.position, qos=1, retain=True
+                    )
                     UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, position_topic, cover.status.position)
 
                 if cover.tilt_changed:
                     tilt_topic: str = f"{cover.topic}/tilt"
-                    await self.mqtt_client.publish(tilt_topic, cover.status.tilt, qos=1, retain=True)
+                    await self.mqtt_client.publish(topic=tilt_topic, payload=cover.status.tilt, qos=1, retain=True)
                     UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, tilt_topic, cover.status.tilt)
 
                 if cover.state_changed:
                     state_topic: str = f"{cover.topic}/state"
-                    await self.mqtt_client.publish(state_topic, cover.state, qos=1, retain=True)
+                    await self.mqtt_client.publish(topic=state_topic, payload=cover.state, qos=1, retain=True)
                     UNIPI_LOGGER.info(LOG_MQTT_PUBLISH, state_topic, cover.state)
                 await cover.calibrate()
             await asyncio.sleep(25e-3)

@@ -89,7 +89,7 @@ class HassCoversDiscovery:
         for cover in self.covers.by_device_classes(DEVICE_CLASSES):
             topic, message = self.get_discovery(cover)
             json_data: str = json.dumps(message)
-            await self.mqtt_client.publish(topic, json_data, qos=2, retain=True)
+            await self.mqtt_client.publish(topic=topic, payload=json_data, qos=2, retain=True)
             UNIPI_LOGGER.debug(LOG_MQTT_PUBLISH, topic, json_data)
 
 
