@@ -38,18 +38,36 @@ mqtt:
 
 ## Modbus
 
-| Key                       | Value                                               |
-|---------------------------|-----------------------------------------------------|
-| `baud_rate`               | The baud rate for modbus RTU. Default is `2400`.    |
-| `parity`                  | The parity for modbus RTU. Default is `N`.          |
-| `unit`                    | A list of all modbus RTU devices.                   |
-| `unit` » `unit`          | The unique modbus RTU unit ID.                       |
-| `unit` » `device_name`    | Custom device name. Used for the Home Assistant UI. |
-| `unit` » `suggested_area` | Used as entity area in Home Assistant.              |
+### TCP
+
+| Key    | Value                                        |
+|--------|----------------------------------------------|
+| `host` | The modbus TCP host. Default is `localhost`. |
+| `port` | The modbus TCP port. Default is `502`.       |
 
 ```yaml
 # control.yaml
-modbus:
+modbus_tcp:
+  host: localhost
+  port: 502
+```
+
+### Serial
+
+| Key                       | Value                                                 |
+|---------------------------|-------------------------------------------------------|
+| `port`                    | The modbus RTU device. Default is `/dev/extcomm/0/0`. |
+| `baud_rate`               | The baud rate for modbus RTU. Default is `2400`.      |
+| `parity`                  | The parity for modbus RTU. Default is `N`.            |
+| `unit`                    | A list of all modbus RTU devices.                     |
+| `unit` » `unit`           | The unique modbus RTU unit ID.                        |
+| `unit` » `device_name`    | Custom device name. Used for the Home Assistant UI.   |
+| `unit` » `suggested_area` | Used as entity area in Home Assistant.                |
+
+```yaml
+# control.yaml
+modbus_serial:
+  port: /dev/extcomm/0/0
   baud_rate: 9600
   parity: N
   units:

@@ -268,7 +268,14 @@ class ModbusUnitConfig(ConfigLoaderMixin):
 
 
 @dataclass
-class ModbusConfig(ConfigLoaderMixin):
+class ModbusTCPConfig(ConfigLoaderMixin):
+    host: str = field(default="localhost")
+    port: int = field(default=502)
+
+
+@dataclass
+class ModbusSerialConfig(ConfigLoaderMixin):
+    port: str = field(default="/dev/extcomm/0/0")
     baud_rate: int = field(default=2400)
     parity: str = field(default="N")
     units: List[ModbusUnitConfig] = field(init=False, default_factory=list)
@@ -419,7 +426,8 @@ class LoggingConfig(ConfigLoaderMixin):
 class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
     device_info: DeviceInfo = field(default_factory=DeviceInfo)
     mqtt: MqttConfig = field(default_factory=MqttConfig)
-    modbus: ModbusConfig = field(default_factory=ModbusConfig)
+    modbus_tcp: ModbusTCPConfig = field(default_factory=ModbusTCPConfig)
+    modbus_serial: ModbusSerialConfig = field(default_factory=ModbusSerialConfig)
     homeassistant: HomeAssistantConfig = field(default_factory=HomeAssistantConfig)
     features: Dict[str, FeatureConfig] = field(init=False, default_factory=dict)
     covers: List[CoverConfig] = field(init=False, default_factory=list)
@@ -616,7 +624,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
             try:
                 yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
-                units: Iterator[ModbusUnitConfig] = self.config.modbus.get_units_by_identifier(
+                units: Iterator[ModbusUnitConfig] = self.config.modbus_serial.get_units_by_identifier(
                     identifier=definition_file.stem
                 )
 

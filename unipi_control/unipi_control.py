@@ -88,33 +88,33 @@ class UnipiControl:
             ...
 
     async def _modbus_connect(self) -> None:
-        await self.modbus_client.tcp.connect()  # type: ignore[no-untyped-call]
+        await self.modbus_client.tcp.connect()
 
         if self.modbus_client.tcp.connected:
             UNIPI_LOGGER.info(
                 "%s TCP client connected to %s:%s",
                 LogPrefix.MODBUS,
-                self.modbus_client.tcp.params.host,
-                self.modbus_client.tcp.params.port,
+                "localhost",
+                502,
             )
         else:
             exception_message_tcp: str = (
                 f"{LogPrefix.MODBUS} TCP client can't connect to "
-                f"{self.modbus_client.tcp.params.host}:{self.modbus_client.tcp.params.port}"
+                f"{self.config.modbus_tcp.host}:{self.config.modbus_tcp.port}"
             )
             raise UnexpectedError(exception_message_tcp)
 
-        await self.modbus_client.serial.connect()  # type: ignore[no-untyped-call]
+        await self.modbus_client.serial.connect()
 
         if self.modbus_client.serial.connected:
             UNIPI_LOGGER.info(
                 "%s Serial client connected to %s",
                 LogPrefix.MODBUS,
-                self.modbus_client.serial.params.port,
+                self.config.modbus_serial.port,
             )
         else:
             exception_message_serial: str = (
-                f"{LogPrefix.MODBUS} Serial client can't connect to {self.modbus_client.serial.params.port}"
+                f"{LogPrefix.MODBUS} Serial client can't connect to {self.config.modbus_serial.port}"
             )
             raise UnexpectedError(exception_message_serial)
 
@@ -232,15 +232,16 @@ def main(argv: Optional[List[str]] = None) -> None:
             config=config,
             modbus_client=ModbusClient(
                 tcp=AsyncModbusTcpClient(
-                    host="localhost",
+                    host=config.modbus_tcp.host,
+                    port=config.modbus_tcp.port,
                     timeout=0.5,
                     retries=3,
                     retry_on_empty=True,
                 ),
                 serial=AsyncModbusSerialClient(
-                    port="/dev/extcomm/0/0",
-                    baudrate=config.modbus.baud_rate,
-                    parity=config.modbus.parity,
+                    port=config.modbus_serial.port,
+                    baudrate=config.modbus_serial.baud_rate,
+                    parity=config.modbus_serial.parity,
                     timeout=1,
                     retries=3,
                     retry_on_empty=True,

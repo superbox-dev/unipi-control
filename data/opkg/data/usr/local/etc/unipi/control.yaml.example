@@ -7,7 +7,11 @@ mqtt:
     keepalive: 15
     retry_limit: 30
     reconnect_interval: 10
-modbus:
+modbus_tcp:
+  host: localhost
+  port: 502
+modbus_serial:
+  port: /dev/extcomm/0/0
   baud_rate: 2400
   parity: N
   units:

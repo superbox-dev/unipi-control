@@ -222,7 +222,7 @@ CONFIG_INVALID_MODBUS_BAUD_RATE: Final[
     str
 ] = """device_info:
   name: MOCKED UNIPI
-modbus:
+modbus_serial:
   baud_rate: 2401
   parity: N
 logging:
@@ -232,7 +232,7 @@ CONFIG_INVALID_MODBUS_PARITY: Final[
     str
 ] = """device_info:
   name: MOCKED UNIPI
-modbus:
+modbus_serial:
   baud_rate: 2400
   parity: S
 logging:
@@ -242,7 +242,7 @@ CONFIG_DUPLICATE_MODBUS_UNIT: Final[
     str
 ] = """device_info:
   name: MOCKED UNIPI
-modbus:
+modbus_serial:
   baud_rate: 2400
   units:
     - unit: 1
@@ -258,7 +258,7 @@ CONFIG_MISSING_DEVICE_NAME: Final[
     str
 ] = """device_info:
   name: MOCKED UNIPI
-modbus:
+modbus_serial:
   baud_rate: 2400
   units:
     - unit: 1

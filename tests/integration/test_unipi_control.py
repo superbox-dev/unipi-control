@@ -64,8 +64,6 @@ class TestUnhappyPathUnipiControl:
 
         mock_modbus_tcp: AsyncMock = mocker.patch("unipi_control.unipi_control.AsyncModbusTcpClient", autospec=True)
         mock_modbus_client_tcp: AsyncMock = mocker.patch.object(ModbusClient, "tcp", new_callable=AsyncMock)
-        mock_modbus_client_tcp.params.host = "MOCKED_MODBUS_HOST"
-        mock_modbus_client_tcp.params.port = "502"
         mock_modbus_client_tcp.connected = False
 
         with pytest.raises(SystemExit) as error:
@@ -74,10 +72,10 @@ class TestUnhappyPathUnipiControl:
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert mock_modbus_tcp.mock_calls == [
-            call(host="localhost", timeout=0.5, retries=3, retry_on_empty=True),
+            call(host="MOCKED_MODBUS_HOST", port=123, timeout=0.5, retries=3, retry_on_empty=True),
         ]
 
-        assert "[MODBUS] TCP client can't connect to MOCKED_MODBUS_HOST:502" in logs
+        assert "[MODBUS] TCP client can't connect to MOCKED_MODBUS_HOST:123" in logs
         assert error.value.code == 1
 
     @pytest.mark.parametrize(
@@ -108,15 +106,12 @@ class TestUnhappyPathUnipiControl:
 
         mock_modbus_tcp: AsyncMock = mocker.patch("unipi_control.unipi_control.AsyncModbusTcpClient", autospec=True)
         mock_modbus_client_tcp: AsyncMock = mocker.patch.object(ModbusClient, "tcp", new_callable=AsyncMock)
-        mock_modbus_client_tcp.params.host = "MOCKED_MODBUS_HOST"
-        mock_modbus_client_tcp.params.port = "502"
         mock_modbus_client_tcp.connected = True
 
         mock_modbus_serial: AsyncMock = mocker.patch(
             "unipi_control.unipi_control.AsyncModbusSerialClient", autospec=True
         )
         mock_modbus_client_serial: AsyncMock = mocker.patch.object(ModbusClient, "serial", new_callable=AsyncMock)
-        mock_modbus_client_serial.params.port = "/dev/MOCKED"
         mock_modbus_client_serial.connected = False
 
         with pytest.raises(SystemExit) as error:
@@ -125,11 +120,11 @@ class TestUnhappyPathUnipiControl:
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert mock_modbus_tcp.mock_calls == [
-            call(host="localhost", timeout=0.5, retries=3, retry_on_empty=True),
+            call(host="MOCKED_MODBUS_HOST", port=123, timeout=0.5, retries=3, retry_on_empty=True),
         ]
 
         assert mock_modbus_serial.mock_calls == [
-            call(port="/dev/extcomm/0/0", baudrate=2400, parity="N", timeout=1, retries=3, retry_on_empty=True),
+            call(port="/dev/MOCKED", baudrate=2400, parity="N", timeout=1, retries=3, retry_on_empty=True),
         ]
 
         assert "[MODBUS] Serial client can't connect to /dev/MOCKED" in logs

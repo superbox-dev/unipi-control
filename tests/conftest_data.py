@@ -17,7 +17,11 @@ mqtt:
     keepalive: 15
     retry_limit: 30
     reconnect_interval: 10
-modbus:
+modbus_tcp:
+  host: MOCKED_MODBUS_HOST
+  port: 123
+modbus_serial:
+  port: /dev/MOCKED
   baud_rate: 2400
   parity: N
   units:
