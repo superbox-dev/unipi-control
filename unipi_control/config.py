@@ -6,6 +6,7 @@ import re
 import socket
 import struct
 import typing
+from aiomqtt.client import MQTT_LOGGER
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import is_dataclass
@@ -22,8 +23,6 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 from typing import Union
-
-from aiomqtt.client import MQTT_LOGGER
 
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.exception import YamlError
@@ -420,7 +419,7 @@ class LoggingConfig(ConfigLoaderMixin):
         UNIPI_LOGGER.setLevel(level)
 
     def _validate_level(self, value: str, name: str) -> str:  # noqa: ARG002
-        if (value := value.lower()) not in LOG_LEVEL.keys():
+        if (value := value.lower()) not in LOG_LEVEL:
             exception_message: str = (
                 f"[{self.__class__.__name__.replace('Config', '').upper()}] "
                 f"Invalid log level '{self.level}'. The following log levels are allowed: {' '.join(LOG_LEVEL.keys())}."
@@ -649,7 +648,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                     )
 
                 UNIPI_LOGGER.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
-            except KeyError as error:  # ruff: noqa: PERF203
+            except KeyError as error:
                 msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
                 raise ConfigError(msg) from error
             except TypeError as error:

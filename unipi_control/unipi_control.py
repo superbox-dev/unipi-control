@@ -4,20 +4,19 @@ import argparse
 import asyncio
 import sys
 import uuid
+from aiomqtt import Client
+from aiomqtt import MqttError
 from asyncio import Task
 from contextlib import AsyncExitStack
 from pathlib import Path
+from pymodbus.client.serial import AsyncModbusSerialClient
+from pymodbus.client.tcp import AsyncModbusTcpClient
 from typing import Awaitable
 from typing import Callable
 from typing import List
 from typing import NoReturn
 from typing import Optional
 from typing import Set
-
-from aiomqtt import Client
-from aiomqtt import MqttError
-from pymodbus.client.serial import AsyncModbusSerialClient
-from pymodbus.client.tcp import AsyncModbusTcpClient
 
 from unipi_control.config import Config
 from unipi_control.config import DEFAULT_CONFIG_DIR
@@ -161,7 +160,7 @@ class UnipiControl:
                     )
 
                     await callback(stack, mqtt_client)
-            except MqttError as error:  # ruff: noqa: PERF203
+            except MqttError as error:
                 UNIPI_LOGGER.error(
                     "%s Error '%s'. Connecting attempt #%s. Reconnecting in %s seconds.",
                     LogPrefix.MQTT,
