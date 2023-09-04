@@ -75,7 +75,7 @@ class EastronMeter:
             round(
                 float(
                     BinaryPayloadDecoder.fromRegisters(  # type: ignore[no-untyped-call]
-                        _reg_value, byteorder=Endian.Big, wordorder=Endian.Big
+                        _reg_value, byteorder=Endian.BIG, wordorder=Endian.BIG
                     ).decode_32bit_float()
                 ),
                 2,
