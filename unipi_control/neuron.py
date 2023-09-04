@@ -77,7 +77,7 @@ class Board:
 
     def _parse_feature_ro(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
-            for index in range(0, max_count):
+            for index in range(max_count):
                 relay: Relay = Relay(
                     config=self.config,
                     modbus=Modbus(
@@ -99,7 +99,7 @@ class Board:
 
     def _parse_feature_di(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
-            for index in range(0, max_count):
+            for index in range(max_count):
                 digital_input: DigitalInput = DigitalInput(
                     config=self.config,
                     modbus=Modbus(
@@ -120,7 +120,7 @@ class Board:
 
     def _parse_feature_do(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
-            for index in range(0, max_count):
+            for index in range(max_count):
                 digital_output: DigitalOutput = DigitalOutput(
                     config=self.config,
                     modbus=Modbus(
@@ -142,7 +142,7 @@ class Board:
 
     def _parse_feature_led(self, max_count: int, modbus_feature: ModbusFeature) -> None:
         if modbus_feature["major_group"] == self.board_config.major_group:
-            for index in range(0, max_count):
+            for index in range(max_count):
                 led: Led = Led(
                     config=self.config,
                     modbus=Modbus(
