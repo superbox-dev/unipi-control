@@ -66,7 +66,7 @@ lint = [
 tests = [
     "coverage==7.3.0",
     "coverage-badge==1.1.0",
-    "pytest==7.4.0",
+    "pytest==7.4.1",
     "pytest-asyncio==0.21.1",
     "pytest-cov==4.1.0",
     "pytest-mock==3.11.1",
