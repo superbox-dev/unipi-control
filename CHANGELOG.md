@@ -15,7 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **BREAKING CHANGE** in the config file: the section `modbus` was renamed to `modbus_serial`.
-- Bump pymodbus to version 3.4.1
+- Bump pymodbus to version 3.5.0
+- Bump aiomqtt to version 1.2.0
+- Bump build to version 1.0.0
+- Bump pytest to version to 7.4.1
+- Bump mypy to version 1.5.1
+- Bump coverage to version 7.3.0
+- Bump ruff to version 0.0.284 
 - Updated [configuration.md](docs/configuration.md)
 
 ## Fixed
