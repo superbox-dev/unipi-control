@@ -84,16 +84,19 @@ class NeuronFeature:
     @cached_property
     def object_id(self) -> Optional[str]:
         """Return object id for Home Assistant."""
-        if self.features_config and self.features_config.object_id:
-            return self.features_config.object_id.lower()
+        if self.features_config:
+            if self.features_config.object_id:
+                return self.features_config.object_id.lower()
 
-        return None
+            if self.features_config.friendly_name:
+                return slugify(self.features_config.friendly_name)
+
+        return self.feature_id
 
     @cached_property
     def unique_id(self) -> str:
         """Return unique id for Home Assistant."""
-        _unique_id: str = f"{slugify(self.config.device_info.name)}_"
-        _unique_id += self.object_id if self.object_id else self.feature_id
+        _unique_id: str = f"{slugify(self.config.device_info.name)}_{self.object_id}"
 
         return _unique_id
 
@@ -107,10 +110,7 @@ class NeuronFeature:
     @cached_property
     def friendly_name(self) -> str:
         """Return friendly name for Home Assistant."""
-        _friendly_name: str = f"{self.config.device_info.name}: {self.base_friendly_name}"
-
-        if self.suggested_area:
-            _friendly_name = f"{self.config.device_info.name} - {self.suggested_area}: {self.base_friendly_name}"
+        _friendly_name: str = self.base_friendly_name
 
         if self.features_config and self.features_config.friendly_name:
             _friendly_name = self.features_config.friendly_name

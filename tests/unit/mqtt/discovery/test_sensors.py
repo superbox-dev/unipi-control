@@ -2,11 +2,12 @@
 
 import asyncio
 from asyncio import Task
-from typing import Any, TYPE_CHECKING
+from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import Union
 from unittest.mock import AsyncMock
 
@@ -51,9 +52,9 @@ class TestHappyPathHassSensorsMqttPlugin:
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_voltage_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/voltage_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Voltage", '
+            '"name": "Workspace: Voltage", '
             '"unique_id": "mocked_unipi_voltage_1", '
             '"state_topic": "mocked_unipi/meter/voltage_1/get", '
             '"qos": 2, '
@@ -64,18 +65,19 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"model": "SDM120M", '
             '"sw_version": "202.04", '
             '"manufacturer": "Eastron", '
-            '"suggested_area": "Workspace", "via_device": '
-            '"MOCKED UNIPI"'
+            '"suggested_area": "Workspace", '
+            '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "voltage_1", '
             '"device_class": "voltage", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "V"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_current_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/current_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Current", '
+            '"name": "Workspace: Current", '
             '"unique_id": "mocked_unipi_current_1", '
             '"state_topic": "mocked_unipi/meter/current_1/get", '
             '"qos": 2, '
@@ -89,15 +91,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "current_1", '
             '"device_class": "current", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "A"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_active_power_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/active_power_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Active Power", '
+            '"name": "Workspace: Active Power", '
             '"unique_id": "mocked_unipi_active_power_1", '
             '"state_topic": "mocked_unipi/meter/active_power_1/get", '
             '"qos": 2, '
@@ -111,13 +114,14 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "active_power_1", '
             '"device_class": "power", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_mocked_id_apparent_power/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/mocked_id_apparent_power/config] "
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - APPARENT_POWER", '
             '"unique_id": "mocked_unipi_mocked_id_apparent_power", '
@@ -141,9 +145,9 @@ class TestHappyPathHassSensorsMqttPlugin:
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_reactive_power_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/reactive_power_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Reactive Power", '
+            '"name": "Workspace: Reactive Power", '
             '"unique_id": "mocked_unipi_reactive_power_1", '
             '"state_topic": "mocked_unipi/meter/reactive_power_1/get", '
             '"qos": 2, '
@@ -157,15 +161,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "reactive_power_1", '
             '"device_class": "power", '
             '"state_class": "total", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_power_factor_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/power_factor_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Power Factor", '
+            '"name": "Workspace: Power Factor", '
             '"unique_id": "mocked_unipi_power_factor_1", '
             '"state_topic": "mocked_unipi/meter/power_factor_1/get", '
             '"qos": 2, '
@@ -179,14 +184,15 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "power_factor_1", '
             '"device_class": "power_factor", '
             '"state_class": "measurement"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_phase_angle_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/phase_angle_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Phase Angle", '
+            '"name": "Workspace: Phase Angle", '
             '"unique_id": "mocked_unipi_phase_angle_1", '
             '"state_topic": "mocked_unipi/meter/phase_angle_1/get", '
             '"qos": 2, '
@@ -200,13 +206,14 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "phase_angle_1", '
             '"state_class": "measurement"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_frequency_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/frequency_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Frequency", '
+            '"name": "Workspace: Frequency", '
             '"unique_id": "mocked_unipi_frequency_1", '
             '"state_topic": "mocked_unipi/meter/frequency_1/get", '
             '"qos": 2, '
@@ -220,15 +227,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "frequency_1", '
             '"device_class": "frequency", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "Hz"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_import_active_energy_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/import_active_energy_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Import Active Energy", '
+            '"name": "Workspace: Import Active Energy", '
             '"unique_id": "mocked_unipi_import_active_energy_1", '
             '"state_topic": "mocked_unipi/meter/import_active_energy_1/get", '
             '"qos": 2, '
@@ -242,15 +250,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "import_active_energy_1", '
             '"device_class": "energy", '
             '"state_class": "total", '
             '"unit_of_measurement": "kWh"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_export_active_energy_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/export_active_energy_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Export Active Energy", '
+            '"name": "Workspace: Export Active Energy", '
             '"unique_id": "mocked_unipi_export_active_energy_1", '
             '"state_topic": "mocked_unipi/meter/export_active_energy_1/get", '
             '"qos": 2, '
@@ -264,15 +273,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "export_active_energy_1", '
             '"device_class": "energy", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "kWh"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_import_reactive_energy_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/import_reactive_energy_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Import Reactive Energy", '
+            '"name": "Workspace: Import Reactive Energy", '
             '"unique_id": "mocked_unipi_import_reactive_energy_1", '
             '"state_topic": "mocked_unipi/meter/import_reactive_energy_1/get", '
             '"qos": 2, '
@@ -286,14 +296,15 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "import_reactive_energy_1", '
             '"state_class": "total", '
             '"unit_of_measurement": "kvarh"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_export_reactive_energy_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/export_reactive_energy_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Export Reactive Energy", '
+            '"name": "Workspace: Export Reactive Energy", '
             '"unique_id": "mocked_unipi_export_reactive_energy_1", '
             '"state_topic": "mocked_unipi/meter/export_reactive_energy_1/get", '
             '"qos": 2, '
@@ -307,14 +318,15 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "export_reactive_energy_1", '
             '"state_class": "total", '
             '"unit_of_measurement": "kvarh"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_total_system_power_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/total_system_power_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Total System Power Demand", '
+            '"name": "Workspace: Total System Power Demand", '
             '"unique_id": "mocked_unipi_total_system_power_demand_1", '
             '"state_topic": "mocked_unipi/meter/total_system_power_demand_1/get", '
             '"qos": 2, '
@@ -329,15 +341,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "total_system_power_demand_1", '
             '"device_class": "power", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_maximum_total_system_power_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/maximum_total_system_power_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Maximum Total System Power Demand", '
+            '"name": "Workspace: Maximum Total System Power Demand", '
             '"unique_id": "mocked_unipi_maximum_total_system_power_demand_1", '
             '"state_topic": "mocked_unipi/meter/maximum_total_system_power_demand_1/get", '
             '"qos": 2, '
@@ -351,15 +364,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "maximum_total_system_power_demand_1", '
             '"device_class": "power", '
             '"state_class": "total", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_import_system_power_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/import_system_power_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Import System Power Demand", '
+            '"name": "Workspace: Import System Power Demand", '
             '"unique_id": "mocked_unipi_import_system_power_demand_1", '
             '"state_topic": "mocked_unipi/meter/import_system_power_demand_1/get", '
             '"qos": 2, '
@@ -373,15 +387,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "import_system_power_demand_1", '
             '"device_class": "power", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_maximum_import_system_power_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/maximum_import_system_power_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Maximum Import System Power Demand", '
+            '"name": "Workspace: Maximum Import System Power Demand", '
             '"unique_id": "mocked_unipi_maximum_import_system_power_demand_1", '
             '"state_topic": "mocked_unipi/meter/maximum_import_system_power_demand_1/get", '
             '"qos": 2, '
@@ -395,15 +410,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "maximum_import_system_power_demand_1", '
             '"device_class": "power", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_export_system_power_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/export_system_power_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Export System Power Demand", '
+            '"name": "Workspace: Export System Power Demand", '
             '"unique_id": "mocked_unipi_export_system_power_demand_1", '
             '"state_topic": "mocked_unipi/meter/export_system_power_demand_1/get", '
             '"qos": 2, '
@@ -417,15 +433,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "export_system_power_demand_1", '
             '"device_class": "power", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_maximum_export_system_power_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/maximum_export_system_power_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Maximum Export System Power Demand", '
+            '"name": "Workspace: Maximum Export System Power Demand", '
             '"unique_id": "mocked_unipi_maximum_export_system_power_demand_1", '
             '"state_topic": "mocked_unipi/meter/maximum_export_system_power_demand_1/get", '
             '"qos": 2, '
@@ -439,15 +456,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "maximum_export_system_power_demand_1", '
             '"device_class": "power", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "W"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_current_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/current_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Current Demand", '
+            '"name": "Workspace: Current Demand", '
             '"unique_id": "mocked_unipi_current_demand_1", '
             '"state_topic": "mocked_unipi/meter/current_demand_1/get", '
             '"qos": 2, '
@@ -461,15 +479,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "current_demand_1", '
             '"device_class": "current", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "A"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_maximum_current_demand_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/maximum_current_demand_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Maximum Current Demand", '
+            '"name": "Workspace: Maximum Current Demand", '
             '"unique_id": "mocked_unipi_maximum_current_demand_1", '
             '"state_topic": "mocked_unipi/meter/maximum_current_demand_1/get", '
             '"qos": 2, '
@@ -483,15 +502,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "maximum_current_demand_1", '
             '"device_class": "current", '
             '"state_class": "measurement", '
             '"unit_of_measurement": "A"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_total_active_energy_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/total_active_energy_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Total Active Energy", '
+            '"name": "Workspace: Total Active Energy", '
             '"unique_id": "mocked_unipi_total_active_energy_1", '
             '"state_topic": "mocked_unipi/meter/total_active_energy_1/get", '
             '"qos": 2, '
@@ -505,15 +525,16 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "total_active_energy_1", '
             '"device_class": "energy", '
             '"state_class": "total", '
             '"unit_of_measurement": "kWh"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/sensor/mocked_unipi_total_reactive_energy_1/config] "
+            "[MQTT] [homeassistant/sensor/mocked_unipi/total_reactive_energy_1/config] "
             "Publishing message: {"
-            '"name": "MOCKED Eastron SDM120M - Workspace: Total Reactive Energy", '
+            '"name": "Workspace: Total Reactive Energy", '
             '"unique_id": "mocked_unipi_total_reactive_energy_1", '
             '"state_topic": "mocked_unipi/meter/total_reactive_energy_1/get", '
             '"qos": 2, '
@@ -527,6 +548,7 @@ class TestHappyPathHassSensorsMqttPlugin:
             '"suggested_area": "Workspace", '
             '"via_device": "MOCKED UNIPI"'
             "}, "
+            '"object_id": "total_reactive_energy_1", '
             '"state_class": "total", '
             '"unit_of_measurement": "kvarh"'
             "}" in logs

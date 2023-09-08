@@ -5,7 +5,6 @@ import json
 from asyncio import Task
 from typing import Any
 from typing import Dict
-from typing import Optional
 from typing import Set
 from typing import Tuple
 
@@ -16,6 +15,7 @@ from unipi_control.config import DEVICE_CLASSES
 from unipi_control.config import HardwareMap
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
+from unipi_control.helpers.text import slugify
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.neuron import Neuron
@@ -44,12 +44,13 @@ class HassCoversDiscovery:
         tuple:
             Return MQTT topic and message as tuple.
         """
-        topic: str = f"{self.config.homeassistant.discovery_prefix}/cover/{cover.unique_id}/config"
+        topic: str = (
+            f"{self.config.homeassistant.discovery_prefix}/cover"
+            f"/{slugify(self.config.device_info.name)}/{cover.settings.object_id}/config"
+        )
         device_name: str = self.config.device_info.name
-        via_device: Optional[str] = None
 
         if cover.settings.suggested_area:
-            via_device = device_name
             device_name = f"{device_name} - {cover.settings.suggested_area}"
 
         message: Dict[str, Any] = {
@@ -70,9 +71,6 @@ class HassCoversDiscovery:
 
         if cover.settings.suggested_area:
             message["device"]["suggested_area"] = cover.settings.suggested_area
-
-        if via_device:
-            message["device"]["via_device"] = via_device
 
         if cover.properties.set_position:
             message["position_topic"] = f"{cover.topic}/position"

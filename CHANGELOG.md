@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING CHANGE** MQTT topics updated to work with Home Assistant 2023.8.0 ([#95159](https://github.com/home-assistant/core/pull/95159))
 - **BREAKING CHANGE** in the config file: the section `modbus` was renamed to `modbus_serial`.
 - Bump pymodbus to version 3.5.0
 - Bump aiomqtt to version 1.2.0

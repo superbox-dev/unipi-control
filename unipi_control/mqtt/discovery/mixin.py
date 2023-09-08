@@ -23,12 +23,6 @@ class HassDiscoveryMixin:
         self.config: Config = neuron.config
         self.hardware: HardwareMap = neuron.hardware
 
-    def _get_via_device(self, feature: Union[NeuronFeature, EastronMeter]) -> Optional[str]:
-        if (device_name := self.config.device_info.name) != self._get_device_name(feature):
-            return device_name
-
-        return None
-
     def _get_device_name(self, feature: Union[NeuronFeature, EastronMeter]) -> str:
         suggested_area: Optional[str] = feature.suggested_area
         device_name: str = self.config.device_info.name

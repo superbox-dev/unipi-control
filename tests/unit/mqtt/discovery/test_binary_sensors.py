@@ -2,11 +2,12 @@
 
 import asyncio
 from asyncio import Task
-from typing import Any, TYPE_CHECKING
+from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import Union
 from unittest.mock import AsyncMock
 
@@ -51,7 +52,7 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_mocked_id_di_1_01/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/mocked_id_di_1_01/config] "
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - DI_1_01", '
             '"unique_id": "mocked_unipi_mocked_id_di_1_01", '
@@ -71,7 +72,7 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"}' in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_mocked_id_di_1_02/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/mocked_id_di_1_02/config] "
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - DI_1_02", '
             '"unique_id": "mocked_unipi_mocked_id_di_1_02", '
@@ -83,17 +84,16 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology", '
-            '"suggested_area": "MOCKED AREA 2", '
-            '"via_device": "MOCKED UNIPI'
-            '"}, '
+            '"suggested_area": "MOCKED AREA 2"'
+            "}, "
             '"object_id": "mocked_id_di_1_02", '
-            '"device_class": "heat'
-            '"}' in logs
+            '"device_class": "heat"'
+            "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_1_03/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_1_03/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 1.03", '
+            '"name": "Digital Input 1.03", '
             '"unique_id": "mocked_unipi_di_1_03", '
             '"state_topic": "mocked_unipi/input/di_1_03/get", '
             '"qos": 2, '
@@ -103,13 +103,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_1_03"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_1_04/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_1_04/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 1.04", '
+            '"name": "Digital Input 1.04", '
             '"unique_id": "mocked_unipi_di_1_04", '
             '"state_topic": "mocked_unipi/input/di_1_04/get", '
             '"qos": 2, '
@@ -119,13 +120,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_1_04"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_01/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_01/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.01", '
+            '"name": "Digital Input 2.01", '
             '"unique_id": "mocked_unipi_di_2_01", '
             '"state_topic": "mocked_unipi/input/di_2_01/get", '
             '"qos": 2, '
@@ -135,13 +137,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_01"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_02/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_02/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.02", '
+            '"name": "Digital Input 2.02", '
             '"unique_id": "mocked_unipi_di_2_02", '
             '"state_topic": "mocked_unipi/input/di_2_02/get", '
             '"qos": 2, "device": {'
@@ -150,13 +153,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_02"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_03/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_03/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.03", '
+            '"name": "Digital Input 2.03", '
             '"unique_id": "mocked_unipi_di_2_03", '
             '"state_topic": "mocked_unipi/input/di_2_03/get", '
             '"qos": 2, '
@@ -166,13 +170,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_03"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_04/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_04/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.04", '
+            '"name": "Digital Input 2.04", '
             '"unique_id": "mocked_unipi_di_2_04", '
             '"state_topic": "mocked_unipi/input/di_2_04/get", '
             '"qos": 2, '
@@ -182,13 +187,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_04"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_05/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_05/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.05", '
+            '"name": "Digital Input 2.05", '
             '"unique_id": "mocked_unipi_di_2_05", '
             '"state_topic": "mocked_unipi/input/di_2_05/get", '
             '"qos": 2, '
@@ -198,13 +204,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_05"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_06/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_06/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.06", '
+            '"name": "Digital Input 2.06", '
             '"unique_id": "mocked_unipi_di_2_06", '
             '"state_topic": "mocked_unipi/input/di_2_06/get", '
             '"qos": 2, '
@@ -214,13 +221,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_06"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_07/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_07/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.07", '
+            '"name": "Digital Input 2.07", '
             '"unique_id": "mocked_unipi_di_2_07", '
             '"state_topic": "mocked_unipi/input/di_2_07/get", '
             '"qos": 2, '
@@ -230,13 +238,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_07"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_08/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_08/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.08", '
+            '"name": "Digital Input 2.08", '
             '"unique_id": "mocked_unipi_di_2_08", '
             '"state_topic": "mocked_unipi/input/di_2_08/get", '
             '"qos": 2, '
@@ -246,13 +255,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_08"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_09/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_09/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.09", '
+            '"name": "Digital Input 2.09", '
             '"unique_id": "mocked_unipi_di_2_09", '
             '"state_topic": "mocked_unipi/input/di_2_09/get", '
             '"qos": 2, '
@@ -262,13 +272,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_09"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_10/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_10/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.10", '
+            '"name": "Digital Input 2.10", '
             '"unique_id": "mocked_unipi_di_2_10", '
             '"state_topic": "mocked_unipi/input/di_2_10/get", '
             '"qos": 2, '
@@ -278,13 +289,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_10"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_11/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_11/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.11", '
+            '"name": "Digital Input 2.11", '
             '"unique_id": "mocked_unipi_di_2_11", '
             '"state_topic": "mocked_unipi/input/di_2_11/get", '
             '"qos": 2, '
@@ -294,13 +306,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_11"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_12/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_12/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.12", '
+            '"name": "Digital Input 2.12", '
             '"unique_id": "mocked_unipi_di_2_12", '
             '"state_topic": "mocked_unipi/input/di_2_12/get", '
             '"qos": 2, '
@@ -310,13 +323,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_12"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_13/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_13/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.13", '
+            '"name": "Digital Input 2.13", '
             '"unique_id": "mocked_unipi_di_2_13", '
             '"state_topic": "mocked_unipi/input/di_2_13/get", '
             '"qos": 2, '
@@ -326,13 +340,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_13"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_14/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_14/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.14", '
+            '"name": "Digital Input 2.14", '
             '"unique_id": "mocked_unipi_di_2_14", '
             '"state_topic": "mocked_unipi/input/di_2_14/get", '
             '"qos": 2, '
@@ -342,13 +357,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_14"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_15/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_15/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.15", '
+            '"name": "Digital Input 2.15", '
             '"unique_id": "mocked_unipi_di_2_15", '
             '"state_topic": "mocked_unipi/input/di_2_15/get", '
             '"qos": 2, "device": {'
@@ -357,13 +373,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_15"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_2_16/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_2_16/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 2.16", '
+            '"name": "Digital Input 2.16", '
             '"unique_id": "mocked_unipi_di_2_16", '
             '"state_topic": "mocked_unipi/input/di_2_16/get", '
             '"qos": 2, '
@@ -373,14 +390,15 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_2_16"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_01/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/mocked_friendly_name_di_3_01/config] "
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - DI_3_01", '
-            '"unique_id": "mocked_unipi_di_3_01", '
+            '"unique_id": "mocked_unipi_mocked_friendly_name_di_3_01", '
             '"state_topic": "mocked_unipi/input/di_3_01/get", '
             '"qos": 2, '
             '"device": {'
@@ -389,16 +407,16 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology", '
-            '"suggested_area": "MOCKED AREA 1", '
-            '"via_device": "MOCKED UNIPI"'
-            "}"
+            '"suggested_area": "MOCKED AREA 1"'
+            "}, "
+            '"object_id": "mocked_friendly_name_di_3_01"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_02/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/mocked_friendly_name_di_3_02/config] "
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - DI_3_02", '
-            '"unique_id": "mocked_unipi_di_3_02", '
+            '"unique_id": "mocked_unipi_mocked_friendly_name_di_3_02", '
             '"state_topic": "mocked_unipi/input/di_3_02/get", '
             '"qos": 2, '
             '"device": {'
@@ -407,15 +425,15 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology", '
-            '"suggested_area": "MOCKED AREA 1", '
-            '"via_device": "MOCKED UNIPI"'
-            "}"
+            '"suggested_area": "MOCKED AREA 1"'
+            "}, "
+            '"object_id": "mocked_friendly_name_di_3_02"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_03/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_03/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.03", '
+            '"name": "Digital Input 3.03", '
             '"unique_id": "mocked_unipi_di_3_03", '
             '"state_topic": "mocked_unipi/input/di_3_03/get", '
             '"qos": 2, '
@@ -425,13 +443,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_03"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_04/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_04/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.04", '
+            '"name": "Digital Input 3.04", '
             '"unique_id": "mocked_unipi_di_3_04", '
             '"state_topic": "mocked_unipi/input/di_3_04/get", '
             '"qos": 2, '
@@ -441,13 +460,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_04"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_05/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_05/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.05", '
+            '"name": "Digital Input 3.05", '
             '"unique_id": "mocked_unipi_di_3_05", '
             '"state_topic": "mocked_unipi/input/di_3_05/get", '
             '"qos": 2, '
@@ -457,13 +477,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_05"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_06/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_06/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.06", '
+            '"name": "Digital Input 3.06", '
             '"unique_id": "mocked_unipi_di_3_06", '
             '"state_topic": "mocked_unipi/input/di_3_06/get", '
             '"qos": 2, '
@@ -473,13 +494,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_06"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_07/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_07/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.07", '
+            '"name": "Digital Input 3.07", '
             '"unique_id": "mocked_unipi_di_3_07", '
             '"state_topic": "mocked_unipi/input/di_3_07/get", '
             '"qos": 2, '
@@ -489,13 +511,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_07"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_08/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_08/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.08", '
+            '"name": "Digital Input 3.08", '
             '"unique_id": "mocked_unipi_di_3_08", '
             '"state_topic": "mocked_unipi/input/di_3_08/get", '
             '"qos": 2, '
@@ -505,13 +528,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_08"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_09/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_09/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.09", '
+            '"name": "Digital Input 3.09", '
             '"unique_id": "mocked_unipi_di_3_09", '
             '"state_topic": "mocked_unipi/input/di_3_09/get", '
             '"qos": 2, '
@@ -521,13 +545,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_09"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_10/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_10/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.10", '
+            '"name": "Digital Input 3.10", '
             '"unique_id": "mocked_unipi_di_3_10", '
             '"state_topic": "mocked_unipi/input/di_3_10/get", '
             '"qos": 2, '
@@ -537,13 +562,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_10"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_11/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_11/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.11", '
+            '"name": "Digital Input 3.11", '
             '"unique_id": "mocked_unipi_di_3_11", '
             '"state_topic": "mocked_unipi/input/di_3_11/get", '
             '"qos": 2, '
@@ -553,13 +579,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_11"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_12/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_12/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.12", '
+            '"name": "Digital Input 3.12", '
             '"unique_id": "mocked_unipi_di_3_12", '
             '"state_topic": "mocked_unipi/input/di_3_12/get", '
             '"qos": 2, '
@@ -569,13 +596,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_12"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_13/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_13/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.13", '
+            '"name": "Digital Input 3.13", '
             '"unique_id": "mocked_unipi_di_3_13", '
             '"state_topic": "mocked_unipi/input/di_3_13/get", '
             '"qos": 2, '
@@ -585,13 +613,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_13"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_14/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_14/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.14", '
+            '"name": "Digital Input 3.14", '
             '"unique_id": "mocked_unipi_di_3_14", '
             '"state_topic": "mocked_unipi/input/di_3_14/get", '
             '"qos": 2, '
@@ -601,13 +630,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_14"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_15/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_15/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.15", '
+            '"name": "Digital Input 3.15", '
             '"unique_id": "mocked_unipi_di_3_15", '
             '"state_topic": "mocked_unipi/input/di_3_15/get", '
             '"qos": 2, '
@@ -617,13 +647,14 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_15"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/binary_sensor/mocked_unipi_di_3_16/config] "
+            "[MQTT] [homeassistant/binary_sensor/mocked_unipi/di_3_16/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Input 3.16", '
+            '"name": "Digital Input 3.16", '
             '"unique_id": "mocked_unipi_di_3_16", '
             '"state_topic": "mocked_unipi/input/di_3_16/get", '
             '"qos": 2, '
@@ -633,7 +664,8 @@ class TestHappyPathHassBinarySensorsMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "di_3_16"'
             "}" in logs
         )
 

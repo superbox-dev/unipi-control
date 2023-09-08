@@ -2,11 +2,12 @@
 
 import asyncio
 from asyncio import Task
-from typing import Any, TYPE_CHECKING
+from typing import Any
 from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import Union
 from unittest.mock import AsyncMock
 
@@ -51,7 +52,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
         logs: List[str] = [record.getMessage() for record in caplog.records]
 
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_mocked_id_ro_2_01/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/mocked_id_ro_2_01/config] "
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - RO_2_01", '
             '"unique_id": "mocked_unipi_mocked_id_ro_2_01", '
@@ -64,8 +65,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology", '
-            '"suggested_area": "MOCKED AREA 2", '
-            '"via_device": "MOCKED UNIPI"'
+            '"suggested_area": "MOCKED AREA 2"'
             "}, "
             '"object_id": "mocked_id_ro_2_01", '
             '"payload_on": "OFF", '
@@ -73,7 +73,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_mocked_id_ro_2_02/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/mocked_id_ro_2_02/config] "
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - RO_2_02", '
             '"unique_id": "mocked_unipi_mocked_id_ro_2_02", '
@@ -86,8 +86,7 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology", '
-            '"suggested_area": "MOCKED AREA 2", '
-            '"via_device": "MOCKED UNIPI"'
+            '"suggested_area": "MOCKED AREA 2"'
             "}, "
             '"object_id": "mocked_id_ro_2_02", '
             '"icon": "mdi:power-standby", '
@@ -95,9 +94,9 @@ class TestHappyPathHassSwitchesMqttPlugin:
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_03/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_03/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.03", '
+            '"name": "Relay 2.03", '
             '"unique_id": "mocked_unipi_ro_2_03", '
             '"command_topic": "mocked_unipi/relay/ro_2_03/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_03/get", '
@@ -109,13 +108,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"sw_version": "0.0", '
             '"manufacturer": '
             '"Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_03"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_04/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_04/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.04", '
+            '"name": "Relay 2.04", '
             '"unique_id": "mocked_unipi_ro_2_04", '
             '"command_topic": "mocked_unipi/relay/ro_2_04/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_04/get", '
@@ -126,13 +126,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_04"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_05/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_05/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.05", '
+            '"name": "Relay 2.05", '
             '"unique_id": "mocked_unipi_ro_2_05", '
             '"command_topic": "mocked_unipi/relay/ro_2_05/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_05/get", '
@@ -143,13 +144,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_05"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_06/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_06/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.06", '
+            '"name": "Relay 2.06", '
             '"unique_id": "mocked_unipi_ro_2_06", '
             '"command_topic": "mocked_unipi/relay/ro_2_06/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_06/get", '
@@ -160,13 +162,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_06"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_07/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_07/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.07", '
+            '"name": "Relay 2.07", '
             '"unique_id": "mocked_unipi_ro_2_07", '
             '"command_topic": "mocked_unipi/relay/ro_2_07/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_07/get", '
@@ -177,13 +180,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_07"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_08/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_08/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.08", '
+            '"name": "Relay 2.08", '
             '"unique_id": "mocked_unipi_ro_2_08", '
             '"command_topic": "mocked_unipi/relay/ro_2_08/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_08/get", '
@@ -194,13 +198,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_08"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_09/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_09/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.09", '
+            '"name": "Relay 2.09", '
             '"unique_id": "mocked_unipi_ro_2_09", '
             '"command_topic": "mocked_unipi/relay/ro_2_09/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_09/get", '
@@ -211,13 +216,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_09"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_10/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_10/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.10", '
+            '"name": "Relay 2.10", '
             '"unique_id": "mocked_unipi_ro_2_10", '
             '"command_topic": "mocked_unipi/relay/ro_2_10/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_10/get", '
@@ -228,13 +234,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_10"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_11/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_11/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.11", '
+            '"name": "Relay 2.11", '
             '"unique_id": "mocked_unipi_ro_2_11", '
             '"command_topic": "mocked_unipi/relay/ro_2_11/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_11/get", '
@@ -245,13 +252,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_11"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_12/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_12/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.12", '
+            '"name": "Relay 2.12", '
             '"unique_id": "mocked_unipi_ro_2_12", '
             '"command_topic": "mocked_unipi/relay/ro_2_12/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_12/get", '
@@ -262,13 +270,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_12"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_13/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_13/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.13", '
+            '"name": "Relay 2.13", '
             '"unique_id": "mocked_unipi_ro_2_13", '
             '"command_topic": "mocked_unipi/relay/ro_2_13/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_13/get", '
@@ -279,13 +288,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_13"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_2_14/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_2_14/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 2.14", '
+            '"name": "Relay 2.14", '
             '"unique_id": "mocked_unipi_ro_2_14", '
             '"command_topic": "mocked_unipi/relay/ro_2_14/set", '
             '"state_topic": "mocked_unipi/relay/ro_2_14/get", '
@@ -296,13 +306,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_2_14"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_05/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_05/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.05", '
+            '"name": "Relay 3.05", '
             '"unique_id": "mocked_unipi_ro_3_05", '
             '"command_topic": "mocked_unipi/relay/ro_3_05/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_05/get", '
@@ -313,13 +324,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_05"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_06/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_06/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.06", '
+            '"name": "Relay 3.06", '
             '"unique_id": "mocked_unipi_ro_3_06", '
             '"command_topic": "mocked_unipi/relay/ro_3_06/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_06/get", '
@@ -330,13 +342,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_06"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_07/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_07/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.07", '
+            '"name": "Relay 3.07", '
             '"unique_id": "mocked_unipi_ro_3_07", '
             '"command_topic": "mocked_unipi/relay/ro_3_07/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_07/get", '
@@ -347,13 +360,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_07"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_08/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_08/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.08", '
+            '"name": "Relay 3.08", '
             '"unique_id": "mocked_unipi_ro_3_08", '
             '"command_topic": "mocked_unipi/relay/ro_3_08/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_08/get", '
@@ -364,13 +378,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_08"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_09/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_09/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.09", '
+            '"name": "Relay 3.09", '
             '"unique_id": "mocked_unipi_ro_3_09", '
             '"command_topic": "mocked_unipi/relay/ro_3_09/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_09/get", '
@@ -381,13 +396,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_09"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_10/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_10/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.10", '
+            '"name": "Relay 3.10", '
             '"unique_id": "mocked_unipi_ro_3_10",'
             ' "command_topic": "mocked_unipi/relay/ro_3_10/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_10/get", '
@@ -398,13 +414,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_10"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_11/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_11/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.11", '
+            '"name": "Relay 3.11", '
             '"unique_id": "mocked_unipi_ro_3_11", '
             '"command_topic": "mocked_unipi/relay/ro_3_11/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_11/get", '
@@ -415,13 +432,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_11"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_12/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_12/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.12", '
+            '"name": "Relay 3.12", '
             '"unique_id": "mocked_unipi_ro_3_12", '
             '"command_topic": "mocked_unipi/relay/ro_3_12/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_12/get", '
@@ -432,13 +450,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_12"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_13/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_13/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.13", '
+            '"name": "Relay 3.13", '
             '"unique_id": "mocked_unipi_ro_3_13", '
             '"command_topic": "mocked_unipi/relay/ro_3_13/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_13/get", '
@@ -449,13 +468,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_13"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_ro_3_14/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/ro_3_14/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Relay 3.14", '
+            '"name": "Relay 3.14", '
             '"unique_id": "mocked_unipi_ro_3_14", '
             '"command_topic": "mocked_unipi/relay/ro_3_14/set", '
             '"state_topic": "mocked_unipi/relay/ro_3_14/get", '
@@ -466,13 +486,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "ro_3_14"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_do_1_01/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/do_1_01/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Output 1.01", '
+            '"name": "Digital Output 1.01", '
             '"unique_id": "mocked_unipi_do_1_01", '
             '"command_topic": "mocked_unipi/relay/do_1_01/set", '
             '"state_topic": "mocked_unipi/relay/do_1_01/get", '
@@ -483,13 +504,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "do_1_01"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_do_1_02/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/do_1_02/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Output 1.02", '
+            '"name": "Digital Output 1.02", '
             '"unique_id": "mocked_unipi_do_1_02", '
             '"command_topic": "mocked_unipi/relay/do_1_02/set", '
             '"state_topic": "mocked_unipi/relay/do_1_02/get", '
@@ -500,13 +522,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "do_1_02"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_do_1_03/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/do_1_03/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Output 1.03", '
+            '"name": "Digital Output 1.03", '
             '"unique_id": "mocked_unipi_do_1_03", '
             '"command_topic": "mocked_unipi/relay/do_1_03/set", '
             '"state_topic": "mocked_unipi/relay/do_1_03/get", '
@@ -517,13 +540,14 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "do_1_03"'
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/switch/mocked_unipi_do_1_04/config] "
+            "[MQTT] [homeassistant/switch/mocked_unipi/do_1_04/config] "
             "Publishing message: {"
-            '"name": "MOCKED UNIPI: Digital Output 1.04", '
+            '"name": "Digital Output 1.04", '
             '"unique_id": "mocked_unipi_do_1_04", '
             '"command_topic": "mocked_unipi/relay/do_1_04/set", '
             '"state_topic": "mocked_unipi/relay/do_1_04/get", '
@@ -534,7 +558,8 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology"'
-            "}"
+            "}, "
+            '"object_id": "do_1_04"'
             "}" in logs
         )
         assert len(logs) == 28

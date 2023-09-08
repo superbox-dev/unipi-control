@@ -3,7 +3,8 @@
 import asyncio
 import json
 from asyncio import Task
-from typing import Any, ClassVar
+from typing import Any
+from typing import ClassVar
 from typing import Dict
 from typing import List
 from typing import Set
@@ -15,6 +16,7 @@ from unipi_control.config import UNIPI_LOGGER
 from unipi_control.features.neuron import DigitalInput
 from unipi_control.features.utils import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
+from unipi_control.helpers.text import slugify
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
 
@@ -37,7 +39,10 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
         tuple:
             Return mqtt topic and message as tuple.
         """
-        topic: str = f"{self.config.homeassistant.discovery_prefix}/binary_sensor/{feature.unique_id}/config"
+        topic: str = (
+            f"{self.config.homeassistant.discovery_prefix}/binary_sensor"
+            f"/{slugify(self.config.device_info.name)}/{feature.object_id}/config"
+        )
         device_name: str = self._get_device_name(feature)
 
         message: Dict[str, Any] = {
@@ -69,9 +74,6 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
 
         if feature.suggested_area:
             message["device"]["suggested_area"] = feature.suggested_area
-
-        if via_device := self._get_via_device(feature):
-            message["device"]["via_device"] = via_device
 
         return topic, message
 

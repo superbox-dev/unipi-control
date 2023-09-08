@@ -18,6 +18,7 @@ from unipi_control.features.neuron import DigitalOutput
 from unipi_control.features.neuron import Relay
 from unipi_control.features.utils import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
+from unipi_control.helpers.text import slugify
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
 
@@ -40,7 +41,10 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
         tuple:
             Return mqtt topic and message as tuple.
         """
-        topic: str = f"{self.config.homeassistant.discovery_prefix}/switch/{feature.unique_id}/config"
+        topic: str = (
+            f"{self.config.homeassistant.discovery_prefix}/switch"
+            f"/{slugify(self.config.device_info.name)}/{feature.object_id}/config"
+        )
         device_name: str = self._get_device_name(feature)
 
         message: Dict[str, Any] = {
@@ -73,9 +77,6 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
 
         if feature.suggested_area:
             message["device"]["suggested_area"] = feature.suggested_area
-
-        if via_device := self._get_via_device(feature):
-            message["device"]["via_device"] = via_device
 
         return topic, message
 
