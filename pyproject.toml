@@ -48,7 +48,7 @@ unipi-model-info = "unipi_control.tools.model_info:main"
 [project.optional-dependencies]
 build = [
     "setuptools>=65.5.1",
-    "build==1.0.0",
+    "build==1.0.3",
 ]
 audit = [
     "pip-audit==2.6.1",
