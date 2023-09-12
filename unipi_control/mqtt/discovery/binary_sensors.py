@@ -52,7 +52,7 @@ class HassBinarySensorsDiscovery(HassDiscoveryMixin):
             "qos": 2,
             "device": {
                 "name": device_name,
-                "identifiers": device_name,
+                "identifiers": slugify(device_name),
                 "model": self._get_device_model(feature),
                 "sw_version": feature.sw_version,
                 "manufacturer": self._get_device_manufacturer(feature),

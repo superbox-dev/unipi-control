@@ -62,7 +62,7 @@ class HassCoversDiscovery:
             "optimistic": False,
             "device": {
                 "name": device_name,
-                "identifiers": device_name,
+                "identifiers": slugify(device_name),
                 "model": f"{self.hardware.info.name} {self.hardware.info.model}",
                 "manufacturer": self.config.device_info.manufacturer,
             },
