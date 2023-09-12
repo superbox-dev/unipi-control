@@ -20,12 +20,10 @@ features:
   ro_2_01:
     object_id: MOCKED_ID_RO_2_01
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_01
-    suggested_area: MOCKED AREA 2
     invert_state: True
   ro_2_02:
     object_id: MOCKED_ID_RO_2_02
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
-    suggested_area: MOCKED AREA 2
     icon: mdi:power-standby
     device_class: switch
 covers:

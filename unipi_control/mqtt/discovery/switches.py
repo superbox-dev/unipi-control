@@ -8,6 +8,7 @@ from typing import ClassVar
 from typing import Dict
 from typing import List
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
 
@@ -15,6 +16,7 @@ from aiomqtt import Client
 
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.features.neuron import DigitalOutput
+from unipi_control.features.neuron import NeuronFeature
 from unipi_control.features.neuron import Relay
 from unipi_control.features.utils import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
@@ -22,11 +24,23 @@ from unipi_control.helpers.text import slugify
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
 
+if TYPE_CHECKING:
+    from unipi_control.helpers.typing import HardwareDefinition
+
 
 class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
     """Provide the switches (e.g. relay) as Home Assistant MQTT discovery."""
 
     publish_feature_types: ClassVar[List[str]] = ["DO", "RO"]
+
+    def _get_device_name(self, feature: NeuronFeature) -> str:
+        device_name: str = self.config.device_info.name
+        definition: HardwareDefinition = feature.hardware.definition
+
+        if definition.device_name:
+            device_name = definition.device_name
+
+        return device_name
 
     def get_discovery(self, feature: Union[DigitalOutput, Relay]) -> Tuple[str, Dict[str, Any]]:
         """Get Mqtt topic and message for publish with mqtt.
@@ -75,8 +89,8 @@ class HassSwitchesDiscoveryMixin(HassDiscoveryMixin):
             message["payload_on"] = FeatureState.OFF
             message["payload_off"] = FeatureState.ON
 
-        if feature.suggested_area:
-            message["device"]["suggested_area"] = feature.suggested_area
+        if self.config.device_info.suggested_area:
+            message["device"]["suggested_area"] = self.config.device_info.suggested_area
 
         return topic, message
 

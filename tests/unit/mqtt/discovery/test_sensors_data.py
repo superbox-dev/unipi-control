@@ -7,13 +7,13 @@ from typing import List
 discovery_message_expected: List[Dict[str, Any]] = [
     {
         "message": {
-            "name": "Workspace: Voltage",
+            "name": "Voltage",
             "unique_id": "mocked_unipi_voltage_1",
             "state_topic": "mocked_unipi/meter/voltage_1/get",
             "qos": 2,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -30,13 +30,13 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Current",
+            "name": "Current",
             "unique_id": "mocked_unipi_current_1",
             "state_topic": "mocked_unipi/meter/current_1/get",
             "qos": 2,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -53,14 +53,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Active Power",
+            "name": "Active Power",
             "unique_id": "mocked_unipi_active_power_1",
             "state_topic": "mocked_unipi/meter/active_power_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -82,13 +82,13 @@ discovery_message_expected: List[Dict[str, Any]] = [
             "qos": 2,
             "force_update": True,
             "device": {
-                "name": "MOCKED Eastron SDM120M - MOCKED AREA 3",
-                "identifiers": "MOCKED Eastron SDM120M - MOCKED AREA 3",
+                "name": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
                 "via_device": "MOCKED UNIPI",
-                "suggested_area": "MOCKED AREA 3",
+                "suggested_area": "Workspace",
             },
             "object_id": "mocked_id_apparent_power",
             "icon": "mdi:power-standby",
@@ -100,14 +100,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Reactive Power",
+            "name": "Reactive Power",
             "unique_id": "mocked_unipi_reactive_power_1",
             "state_topic": "mocked_unipi/meter/reactive_power_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -123,14 +123,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Power Factor",
+            "name": "Power Factor",
             "unique_id": "mocked_unipi_power_factor_1",
             "state_topic": "mocked_unipi/meter/power_factor_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -145,14 +145,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Phase Angle",
+            "name": "Phase Angle",
             "unique_id": "mocked_unipi_phase_angle_1",
             "state_topic": "mocked_unipi/meter/phase_angle_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -166,14 +166,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Frequency",
+            "name": "Frequency",
             "unique_id": "mocked_unipi_frequency_1",
             "state_topic": "mocked_unipi/meter/frequency_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -189,14 +189,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Import Active Energy",
+            "name": "Import Active Energy",
             "unique_id": "mocked_unipi_import_active_energy_1",
             "state_topic": "mocked_unipi/meter/import_active_energy_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -212,14 +212,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Export Active Energy",
+            "name": "Export Active Energy",
             "unique_id": "mocked_unipi_export_active_energy_1",
             "state_topic": "mocked_unipi/meter/export_active_energy_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -235,14 +235,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Import Reactive Energy",
+            "name": "Import Reactive Energy",
             "unique_id": "mocked_unipi_import_reactive_energy_1",
             "state_topic": "mocked_unipi/meter/import_reactive_energy_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -257,14 +257,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Export Reactive Energy",
+            "name": "Export Reactive Energy",
             "unique_id": "mocked_unipi_export_reactive_energy_1",
             "state_topic": "mocked_unipi/meter/export_reactive_energy_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -279,14 +279,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Total System Power Demand",
+            "name": "Total System Power Demand",
             "unique_id": "mocked_unipi_total_system_power_demand_1",
             "state_topic": "mocked_unipi/meter/total_system_power_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -302,14 +302,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Maximum Total System Power Demand",
+            "name": "Maximum Total System Power Demand",
             "unique_id": "mocked_unipi_maximum_total_system_power_demand_1",
             "state_topic": "mocked_unipi/meter/maximum_total_system_power_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -325,14 +325,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Import System Power Demand",
+            "name": "Import System Power Demand",
             "unique_id": "mocked_unipi_import_system_power_demand_1",
             "state_topic": "mocked_unipi/meter/import_system_power_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -348,14 +348,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Maximum Import System Power Demand",
+            "name": "Maximum Import System Power Demand",
             "unique_id": "mocked_unipi_maximum_import_system_power_demand_1",
             "state_topic": "mocked_unipi/meter/maximum_import_system_power_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -371,14 +371,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Export System Power Demand",
+            "name": "Export System Power Demand",
             "unique_id": "mocked_unipi_export_system_power_demand_1",
             "state_topic": "mocked_unipi/meter/export_system_power_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -394,14 +394,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Maximum Export System Power Demand",
+            "name": "Maximum Export System Power Demand",
             "unique_id": "mocked_unipi_maximum_export_system_power_demand_1",
             "state_topic": "mocked_unipi/meter/maximum_export_system_power_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -417,14 +417,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Current Demand",
+            "name": "Current Demand",
             "unique_id": "mocked_unipi_current_demand_1",
             "state_topic": "mocked_unipi/meter/current_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -440,14 +440,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Maximum Current Demand",
+            "name": "Maximum Current Demand",
             "unique_id": "mocked_unipi_maximum_current_demand_1",
             "state_topic": "mocked_unipi/meter/maximum_current_demand_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -463,14 +463,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Total Active Energy",
+            "name": "Total Active Energy",
             "unique_id": "mocked_unipi_total_active_energy_1",
             "state_topic": "mocked_unipi/meter/total_active_energy_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",
@@ -486,14 +486,14 @@ discovery_message_expected: List[Dict[str, Any]] = [
     },
     {
         "message": {
-            "name": "Workspace: Total Reactive Energy",
+            "name": "Total Reactive Energy",
             "unique_id": "mocked_unipi_total_reactive_energy_1",
             "state_topic": "mocked_unipi/meter/total_reactive_energy_1/get",
             "qos": 2,
             "force_update": True,
             "device": {
                 "name": "MOCKED Eastron SDM120M - Workspace",
-                "identifiers": "MOCKED Eastron SDM120M - Workspace",
+                "identifiers": "mocked_eastron_sdm120m_workspace",
                 "model": "SDM120M",
                 "sw_version": "202.04",
                 "manufacturer": "Eastron",

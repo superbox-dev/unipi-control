@@ -60,12 +60,12 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"state_topic": "mocked_unipi/relay/ro_2_01/get", '
             '"qos": 2, '
             '"device": {'
-            '"name": "MOCKED UNIPI - MOCKED AREA 2", '
-            '"identifiers": "MOCKED UNIPI - MOCKED AREA 2", '
+            '"name": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology", '
-            '"suggested_area": "MOCKED AREA 2"'
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "mocked_id_ro_2_01", '
             '"payload_on": "OFF", '
@@ -81,12 +81,12 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"state_topic": "mocked_unipi/relay/ro_2_02/get", '
             '"qos": 2, '
             '"device": {'
-            '"name": "MOCKED UNIPI - MOCKED AREA 2", '
-            '"identifiers": "MOCKED UNIPI - MOCKED AREA 2", '
+            '"name": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
             '"manufacturer": "Unipi technology", '
-            '"suggested_area": "MOCKED AREA 2"'
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "mocked_id_ro_2_02", '
             '"icon": "mdi:power-standby", '
@@ -103,11 +103,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": '
-            '"Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_03"'
             "}" in logs
@@ -122,10 +122,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_04"'
             "}" in logs
@@ -140,10 +141,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_05"'
             "}" in logs
@@ -158,10 +160,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_06"'
             "}" in logs
@@ -176,10 +179,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_07"'
             "}" in logs
@@ -194,10 +198,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_08"'
             "}" in logs
@@ -212,10 +217,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_09"'
             "}" in logs
@@ -230,10 +236,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_10"'
             "}" in logs
@@ -248,10 +255,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_11"'
             "}" in logs
@@ -266,10 +274,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_12"'
             "}" in logs
@@ -284,10 +293,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_13"'
             "}" in logs
@@ -302,10 +312,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_2_14"'
             "}" in logs
@@ -320,10 +331,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_05"'
             "}" in logs
@@ -338,10 +350,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_06"'
             "}" in logs
@@ -356,10 +369,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_07"'
             "}" in logs
@@ -374,10 +388,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_08"'
             "}" in logs
@@ -392,10 +407,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_09"'
             "}" in logs
@@ -410,10 +426,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_10"'
             "}" in logs
@@ -428,10 +445,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_11"'
             "}" in logs
@@ -446,10 +464,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_12"'
             "}" in logs
@@ -464,10 +483,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_13"'
             "}" in logs
@@ -482,10 +502,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "ro_3_14"'
             "}" in logs
@@ -500,10 +521,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "do_1_01"'
             "}" in logs
@@ -518,10 +540,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "do_1_02"'
             "}" in logs
@@ -536,10 +559,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "do_1_03"'
             "}" in logs
@@ -554,10 +578,11 @@ class TestHappyPathHassSwitchesMqttPlugin:
             '"qos": 2, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"sw_version": "0.0", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "do_1_04"'
             "}" in logs

@@ -6,7 +6,6 @@ import re
 import socket
 import struct
 import typing
-from aiomqtt.client import MQTT_LOGGER
 from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import is_dataclass
@@ -23,6 +22,8 @@ from typing import Optional
 from typing import Tuple
 from typing import Type
 from typing import Union
+
+from aiomqtt.client import MQTT_LOGGER
 
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.exception import YamlError
@@ -169,6 +170,7 @@ class ConfigLoaderMixin:
 class DeviceInfo(ConfigLoaderMixin):
     name: str = field(default=socket.gethostname())
     manufacturer: str = field(default="Unipi technology")
+    suggested_area: str = field(default_factory=str)
 
     @staticmethod
     def _validate_name(value: str, name: str) -> str:

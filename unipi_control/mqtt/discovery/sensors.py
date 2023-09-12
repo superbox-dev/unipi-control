@@ -9,6 +9,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
 
@@ -21,6 +22,9 @@ from unipi_control.helpers.text import slugify
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
 
+if TYPE_CHECKING:
+    from unipi_control.helpers.typing import HardwareDefinition
+
 
 class HassSensorsDiscovery(HassDiscoveryMixin):
     """Provide the sensors (e.g. meter) as Home Assistant MQTT discovery."""
@@ -32,6 +36,19 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
             return device_name
 
         return None
+
+    def _get_device_name(self, feature: EastronMeter) -> str:
+        suggested_area: Optional[str] = feature.hardware.definition.suggested_area
+        device_name: str = self.config.device_info.name
+        definition: HardwareDefinition = feature.hardware.definition
+
+        if definition.device_name:
+            device_name = definition.device_name
+
+        if suggested_area:
+            device_name = f"{device_name} - {suggested_area}"
+
+        return device_name
 
     def get_discovery(self, feature: Union[EastronMeter]) -> Tuple[str, Dict[str, Any]]:
         """Get Mqtt topic and message for publish with mqtt.
@@ -51,6 +68,7 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
             f"/{slugify(self.config.device_info.name)}"
             f"/{feature.object_id}/config"
         )
+
         device_name: str = self._get_device_name(feature)
 
         message: Dict[str, Any] = {
@@ -83,8 +101,8 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
         if feature.unit_of_measurement:
             message["unit_of_measurement"] = feature.unit_of_measurement
 
-        if feature.suggested_area:
-            message["device"]["suggested_area"] = feature.suggested_area
+        if feature.hardware.definition.suggested_area:
+            message["device"]["suggested_area"] = feature.hardware.definition.suggested_area
 
         if via_device := self._get_via_device(feature):
             message["device"]["via_device"] = via_device

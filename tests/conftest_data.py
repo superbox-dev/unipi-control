@@ -10,6 +10,7 @@ CONFIG_CONTENT: Final[
     str
 ] = """device_info:
   name: MOCKED UNIPI
+  suggested_area: MOCKED AREA
 mqtt:
   host: localhost
   port: 1883
@@ -41,29 +42,23 @@ features:
   di_1_02:
     object_id: MOCKED_ID_DI_1_02
     friendly_name: MOCKED_FRIENDLY_NAME - DI_1_02
-    suggested_area: MOCKED AREA 2
     device_class: heat
   di_3_01:
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
-    suggested_area: MOCKED AREA 1
   di_3_02:
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_02
-    suggested_area: MOCKED AREA 1
   ro_2_01:
     object_id: MOCKED_ID_RO_2_01
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_01
-    suggested_area: MOCKED AREA 2
     invert_state: True
   ro_2_02:
     object_id: MOCKED_ID_RO_2_02
     friendly_name: MOCKED_FRIENDLY_NAME - RO_2_02
-    suggested_area: MOCKED AREA 2
     icon: mdi:power-standby
     device_class: switch
   apparent_power_1:
     object_id: MOCKED_ID_APPARENT_POWER
     friendly_name: MOCKED_FRIENDLY_NAME - APPARENT_POWER
-    suggested_area: MOCKED AREA 3
     icon: mdi:power-standby
   reactive_power_1:
     device_class: power
@@ -79,7 +74,6 @@ covers:
     cover_down: ro_3_02
   - object_id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
     friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
-    suggested_area: MOCKED AREA
     device_class: roller_shutter
     cover_up: ro_3_03
     cover_down: ro_3_04

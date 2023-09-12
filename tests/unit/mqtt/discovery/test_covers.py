@@ -53,9 +53,10 @@ class TestHappyPathHassCoversMqttPlugin:
             '"optimistic": false, '
             '"device": {'
             '"name": "MOCKED UNIPI", '
-            '"identifiers": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
-            '"manufacturer": "Unipi technology"'
+            '"manufacturer": "Unipi technology", '
+            '"suggested_area": "MOCKED AREA"'
             "}, "
             '"object_id": "mocked_blind_topic_name", '
             '"position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", '
@@ -74,8 +75,8 @@ class TestHappyPathHassCoversMqttPlugin:
             '"qos": 2, '
             '"optimistic": false, '
             '"device": {'
-            '"name": "MOCKED UNIPI - MOCKED AREA", '
-            '"identifiers": "MOCKED UNIPI - MOCKED AREA", '
+            '"name": "MOCKED UNIPI", '
+            '"identifiers": "mocked_unipi", '
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"manufacturer": "Unipi technology", '
             '"suggested_area": "MOCKED AREA"'
@@ -101,9 +102,10 @@ class TestHappyPathHassCoversMqttPlugin:
                             "optimistic": False,
                             "device": {
                                 "name": "MOCKED UNIPI",
-                                "identifiers": "MOCKED UNIPI",
+                                "identifiers": "mocked_unipi",
                                 "model": "MOCKED_NAME MOCKED_MODEL",
                                 "manufacturer": "Unipi technology",
+                                "suggested_area": "MOCKED AREA",
                             },
                             "object_id": "mocked_blind_topic_name",
                             "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position",
@@ -122,8 +124,8 @@ class TestHappyPathHassCoversMqttPlugin:
                             "qos": 2,
                             "optimistic": False,
                             "device": {
-                                "name": "MOCKED UNIPI - MOCKED AREA",
-                                "identifiers": "MOCKED UNIPI - MOCKED AREA",
+                                "name": "MOCKED UNIPI",
+                                "identifiers": "mocked_unipi",
                                 "model": "MOCKED_NAME MOCKED_MODEL",
                                 "manufacturer": "Unipi technology",
                                 "suggested_area": "MOCKED AREA",

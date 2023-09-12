@@ -70,7 +70,6 @@ CONFIG_INVALID_FEATURE_PROPERTY: Final[
 features:
   di_3_01:
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
-    suggested_area: MOCKED AREA 1
     invalid_property: INVALID
 logging:
   level: debug"""
@@ -198,11 +197,9 @@ features:
   di_3_01:
     object_id: MOCKED_DUPLICATE_ID
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
-    suggested_area: MOCKED AREA 1
   di_3_02:
     object_id: MOCKED_DUPLICATE_ID
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_02
-    suggested_area: MOCKED AREA 1
 logging:
   level: debug"""
 
@@ -214,7 +211,6 @@ features:
   di_3_01:
     object_id: INVALID ID
     friendly_name: MOCKED_FRIENDLY_NAME - DI_3_01
-    suggested_area: MOCKED AREA 1
 logging:
   level: debug"""
 

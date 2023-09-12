@@ -122,29 +122,12 @@ class EastronMeter:
     @cached_property
     def friendly_name(self) -> str:
         """Return friendly name for Home Assistant."""
-        definition: HardwareDefinition = self.hardware.definition
-        _friendly_name: str = f"{self.props.friendly_name} ({definition.unit})"
-
-        if self.suggested_area:
-            _friendly_name = f"{self.suggested_area}: {self.props.friendly_name}"
+        _friendly_name: str = self.props.friendly_name
 
         if self.features_config and self.features_config.friendly_name:
             _friendly_name = self.features_config.friendly_name
 
         return _friendly_name
-
-    @cached_property
-    def suggested_area(self) -> Optional[str]:
-        """Return suggested area for Home Assistant from hardware definition or custom feature configuration."""
-        _suggested_area: Optional[str] = None
-
-        if self.hardware.definition.suggested_area:
-            _suggested_area = self.hardware.definition.suggested_area
-
-        if self.features_config and self.features_config.suggested_area:
-            _suggested_area = self.features_config.suggested_area
-
-        return _suggested_area
 
     @cached_property
     def topic(self) -> str:

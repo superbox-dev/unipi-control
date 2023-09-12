@@ -1,5 +1,4 @@
 """Helpers for MQTT subscribe and publish."""
-from typing import Optional
 from typing import TYPE_CHECKING
 from typing import Union
 
@@ -10,7 +9,6 @@ from unipi_control.features.neuron import NeuronFeature
 from unipi_control.neuron import Neuron
 
 if TYPE_CHECKING:
-    from unipi_control.helpers.typing import HardwareDefinition
     from unipi_control.config import Config
     from unipi_control.config import HardwareMap
 
@@ -22,19 +20,6 @@ class HassDiscoveryMixin:
 
         self.config: Config = neuron.config
         self.hardware: HardwareMap = neuron.hardware
-
-    def _get_device_name(self, feature: Union[NeuronFeature, EastronMeter]) -> str:
-        suggested_area: Optional[str] = feature.suggested_area
-        device_name: str = self.config.device_info.name
-        definition: HardwareDefinition = feature.hardware.definition
-
-        if definition.device_name:
-            device_name = definition.device_name
-
-        if suggested_area:
-            device_name = f"{device_name} - {suggested_area}"
-
-        return device_name
 
     @staticmethod
     def _get_device_model(feature: Union[NeuronFeature, EastronMeter]) -> str:

@@ -118,14 +118,6 @@ class NeuronFeature:
         return _friendly_name
 
     @cached_property
-    def suggested_area(self) -> Optional[str]:
-        """Return suggested area for Home Assistant from hardware definition or custom feature configuration."""
-        if self.features_config and self.features_config.suggested_area:
-            return self.features_config.suggested_area
-
-        return None
-
-    @cached_property
     def topic(self) -> str:
         """Return Unique name for the MQTT topic."""
         return f"{slugify(self.config.device_info.name)}/{self.hardware.feature_type.topic_name}/{self.feature_id}"

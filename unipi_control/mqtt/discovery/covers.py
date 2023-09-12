@@ -50,9 +50,6 @@ class HassCoversDiscovery:
         )
         device_name: str = self.config.device_info.name
 
-        if cover.settings.suggested_area:
-            device_name = f"{device_name} - {cover.settings.suggested_area}"
-
         message: Dict[str, Any] = {
             "name": cover.settings.friendly_name,
             "unique_id": f"{cover.unique_id}",
@@ -69,8 +66,8 @@ class HassCoversDiscovery:
             "object_id": cover.settings.object_id,
         }
 
-        if cover.settings.suggested_area:
-            message["device"]["suggested_area"] = cover.settings.suggested_area
+        if self.config.device_info.suggested_area:
+            message["device"]["suggested_area"] = self.config.device_info.suggested_area
 
         if cover.properties.set_position:
             message["position_topic"] = f"{cover.topic}/position"
