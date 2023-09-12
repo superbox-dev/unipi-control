@@ -8,6 +8,7 @@ from typing import ClassVar
 from typing import Dict
 from typing import List
 from typing import Set
+from typing import TYPE_CHECKING
 from typing import Tuple
 
 from aiomqtt import Client
@@ -18,9 +19,11 @@ from unipi_control.features.neuron import NeuronFeature
 from unipi_control.features.utils import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.text import slugify
-from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 from unipi_control.neuron import Neuron
+
+if TYPE_CHECKING:
+    from unipi_control.helpers.typing import HardwareDefinition
 
 
 class HassBinarySensorsDiscovery(HassDiscoveryMixin):
