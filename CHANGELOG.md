@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2023-09-15
+
 ### Added
 
 - Added `modbus_tcp` as a new section in the config file.
