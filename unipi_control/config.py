@@ -38,7 +38,17 @@ from unipi_control.helpers.yaml import yaml_loader_safe
 UNIPI_LOGGER: logging.Logger = logging.getLogger(LOG_NAME)
 
 DEFAULT_CONFIG_DIR: Final[Path] = Path("/etc/unipi")
-DEVICE_CLASSES: Final[List[str]] = ["blind", "roller_shutter", "garage_door"]
+DEVICE_CLASSES: Final[List[str]] = [
+    "awning",
+    "curtain",
+    "door",
+    "garage",
+    "gate",
+    "shade",
+    "blind",
+    "shutter",
+    "window",
+]
 
 MODBUS_BAUD_RATES: Final[List[int]] = [2400, 4800, 9600, 19200, 38400, 57600, 115200]
 MODBUS_PARITY: Final[List[str]] = ["E", "O", "N"]

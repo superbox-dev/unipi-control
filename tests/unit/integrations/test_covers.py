@@ -73,7 +73,7 @@ class TestHappyPathCovers(TestCovers):
                 CoverExpected(calibration_started=True, calibration_mode=False),
             ),
             (
-                CoverOptions(device_class="roller_shutter", calibration_mode=False),
+                CoverOptions(device_class="shutter", calibration_mode=False),
                 CoverExpected(calibration_started=False, calibration_mode=False),
             ),
         ],
@@ -146,7 +146,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(device_class="roller_shutter", current_position=None, position=None),
+                CoverOptions(device_class="shutter", current_position=None, position=None),
                 CoverExpected(
                     position=None,
                     tilt=None,
@@ -257,7 +257,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(device_class="roller_shutter", current_position=None, position=None),
+                CoverOptions(device_class="shutter", current_position=None, position=None),
                 CoverExpected(
                     position=None,
                     tilt=None,
@@ -370,7 +370,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(device_class="roller_shutter", current_position=None, current_tilt=None, tilt=25),
+                CoverOptions(device_class="shutter", current_position=None, current_tilt=None, tilt=25),
                 CoverExpected(
                     tilt=None,
                     current_cover_state="stopped",
@@ -451,7 +451,7 @@ class TestHappyPathCovers(TestCovers):
                 ),
             ),
             (
-                CoverOptions(device_class="roller_shutter", current_position=None, tilt=None, position=25),
+                CoverOptions(device_class="shutter", current_position=None, tilt=None, position=25),
                 CoverExpected(
                     position=None,
                     current_cover_state="stopped",
@@ -505,7 +505,7 @@ class TestHappyPathCovers(TestCovers):
         ("options", "expected"),
         [
             (CoverOptions(device_class="blind"), "MOCKED_FRIENDLY_NAME - BLIND"),
-            (CoverOptions(device_class="roller_shutter"), "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER"),
+            (CoverOptions(device_class="shutter"), "MOCKED_FRIENDLY_NAME - SHUTTER"),
         ],
     )
     def test_friendly_name(self, covers: CoverMap, options: CoverOptions, expected: str) -> None:
@@ -542,7 +542,7 @@ class TestHappyPathCovers(TestCovers):
         [
             (CoverOptions(device_class="blind", current_position=0, position=50), True),
             (CoverOptions(device_class="blind", current_position=50, position=50), False),
-            (CoverOptions(device_class="roller_shutter", current_position=None, position=None), False),
+            (CoverOptions(device_class="shutter", current_position=None, position=None), False),
         ],
     )
     def test_position_changed(self, covers: CoverMap, options: CoverOptions, expected: bool) -> None:
@@ -659,7 +659,7 @@ class TestUnhappyPathCovers(TestCovers):
                 CoverExpected(calibration_started=True, calibration_mode=True),
             ),
             (
-                CoverOptions(device_class="roller_shutter", calibration_mode=False),
+                CoverOptions(device_class="shutter", calibration_mode=False),
                 CoverExpected(calibration_started=False, calibration_mode=False),
             ),
         ],

@@ -52,7 +52,9 @@ class HassCoversDiscovery:
 
         message: Dict[str, Any] = {
             "name": cover.settings.friendly_name,
-            "unique_id": f"{cover.unique_id}",
+            "unique_id": cover.unique_id,
+            "object_id": cover.settings.object_id,
+            "device_class": cover.settings.device_class,
             "command_topic": f"{cover.topic}/set",
             "state_topic": f"{cover.topic}/state",
             "qos": 2,
@@ -63,7 +65,6 @@ class HassCoversDiscovery:
                 "model": f"{self.hardware.info.name} {self.hardware.info.model}",
                 "manufacturer": self.config.device_info.manufacturer,
             },
-            "object_id": cover.settings.object_id,
         }
 
         if self.config.device_info.suggested_area:

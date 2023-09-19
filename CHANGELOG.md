@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added support for more Home Assistant cover [device classes](https://www.home-assistant.io/integrations/cover/).
+
 ## [3.0.0] - 2023-09-15
 
 ### Added

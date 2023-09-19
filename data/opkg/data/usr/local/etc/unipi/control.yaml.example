@@ -31,9 +31,9 @@ features:
     object_id: workspace_blind_down
     friendly_name: Workspace - Blind down
   di_2_07:
-    friendly_name: Bedroom - Rolling shutter down
+    friendly_name: Bedroom - Shutter down
   di_2_08:
-    friendly_name: Bedroom - Rolling shutter up
+    friendly_name: Bedroom - Shutter up
  overs:
   - object_id: workspace
     friendly_name: Workspace
@@ -44,7 +44,7 @@ features:
     cover_down: ro_3_06
   - object_id: bedroom
     friendly_name: Bedroom
-    device_class: roller_shutter
+    device_class: shutter
     cover_up: ro_2_11
     cover_down: ro_2_12
 logging:

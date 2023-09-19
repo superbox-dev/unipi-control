@@ -135,7 +135,7 @@ The Home Assistant Discovery for the covers is optionally. Covers can be control
 |--------------------|--------------------------------------------------------------------------------------------------------------------------------------------|------------|
 | `object_id`        | Used as entity ID in Home Assistant.                                                                                                       |            |
 | `friendly_name`    | Used as entity name in Home Assistant.                                                                                                     | optionally |
-| `device_class`     | Device class can be "blind", "roller_shutter", or "garage_door".                                                                           | optionally |
+| `device_class`     | Device class can be "awning", "curtain", "door", "garage", "gate", "shade", "blind", "shutter" or "window"                                 | optionally |
 | `cover_run_time`   | Define the time (in seconds) it takes for the cover to fully open or close.                                                                |            |
 | `tilt_change_time` | Define the time (in seconds) that the tilt changes from fully open to fully closed state. Tilt is only available for device class "blind". | optionally |
 | `cover_up`         | Output circuit name from a relay or digital output.                                                                                        |            |

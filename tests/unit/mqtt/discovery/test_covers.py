@@ -47,6 +47,8 @@ class TestHappyPathHassCoversMqttPlugin:
             "Publishing message: {"
             '"name": "MOCKED_FRIENDLY_NAME - BLIND", '
             '"unique_id": "mocked_unipi_mocked_blind_topic_name", '
+            '"object_id": "mocked_blind_topic_name", '
+            '"device_class": "blind", '
             '"command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set", '
             '"state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state", '
             '"qos": 2, '
@@ -58,7 +60,6 @@ class TestHappyPathHassCoversMqttPlugin:
             '"manufacturer": "Unipi technology", '
             '"suggested_area": "MOCKED AREA"'
             "}, "
-            '"object_id": "mocked_blind_topic_name", '
             '"position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position", '
             '"set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set", '
             '"tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt", '
@@ -66,12 +67,14 @@ class TestHappyPathHassCoversMqttPlugin:
             "}" in logs
         )
         assert (
-            "[MQTT] [homeassistant/cover/mocked_unipi/mocked_roller_shutter_topic_name/config] "
+            "[MQTT] [homeassistant/cover/mocked_unipi/mocked_shutter_topic_name/config] "
             "Publishing message: {"
-            '"name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER", '
-            '"unique_id": "mocked_unipi_mocked_roller_shutter_topic_name", '
-            '"command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set", '
-            '"state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state", '
+            '"name": "MOCKED_FRIENDLY_NAME - SHUTTER", '
+            '"unique_id": "mocked_unipi_mocked_shutter_topic_name", '
+            '"object_id": "mocked_shutter_topic_name", '
+            '"device_class": "shutter", '
+            '"command_topic": "mocked_unipi/mocked_shutter_topic_name/cover/shutter/set", '
+            '"state_topic": "mocked_unipi/mocked_shutter_topic_name/cover/shutter/state", '
             '"qos": 2, '
             '"optimistic": false, '
             '"device": {'
@@ -80,8 +83,7 @@ class TestHappyPathHassCoversMqttPlugin:
             '"model": "MOCKED_NAME MOCKED_MODEL", '
             '"manufacturer": "Unipi technology", '
             '"suggested_area": "MOCKED AREA"'
-            "}, "
-            '"object_id": "mocked_roller_shutter_topic_name"'
+            "}"
             "}" in logs
         )
         assert len(logs) == 3
@@ -96,6 +98,8 @@ class TestHappyPathHassCoversMqttPlugin:
                         "message": {
                             "name": "MOCKED_FRIENDLY_NAME - BLIND",
                             "unique_id": "mocked_unipi_mocked_blind_topic_name",
+                            "object_id": "mocked_blind_topic_name",
+                            "device_class": "blind",
                             "command_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/set",
                             "state_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/state",
                             "qos": 2,
@@ -107,7 +111,6 @@ class TestHappyPathHassCoversMqttPlugin:
                                 "manufacturer": "Unipi technology",
                                 "suggested_area": "MOCKED AREA",
                             },
-                            "object_id": "mocked_blind_topic_name",
                             "position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position",
                             "set_position_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/position/set",
                             "tilt_status_topic": "mocked_unipi/mocked_blind_topic_name/cover/blind/tilt",
@@ -117,10 +120,12 @@ class TestHappyPathHassCoversMqttPlugin:
                     },
                     {
                         "message": {
-                            "name": "MOCKED_FRIENDLY_NAME - ROLLER SHUTTER",
-                            "unique_id": "mocked_unipi_mocked_roller_shutter_topic_name",
-                            "command_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/set",
-                            "state_topic": "mocked_unipi/mocked_roller_shutter_topic_name/cover/roller_shutter/state",
+                            "name": "MOCKED_FRIENDLY_NAME - SHUTTER",
+                            "unique_id": "mocked_unipi_mocked_shutter_topic_name",
+                            "object_id": "mocked_shutter_topic_name",
+                            "device_class": "shutter",
+                            "command_topic": "mocked_unipi/mocked_shutter_topic_name/cover/shutter/set",
+                            "state_topic": "mocked_unipi/mocked_shutter_topic_name/cover/shutter/state",
                             "qos": 2,
                             "optimistic": False,
                             "device": {
@@ -130,9 +135,8 @@ class TestHappyPathHassCoversMqttPlugin:
                                 "manufacturer": "Unipi technology",
                                 "suggested_area": "MOCKED AREA",
                             },
-                            "object_id": "mocked_roller_shutter_topic_name",
                         },
-                        "topic": "homeassistant/cover/mocked_unipi/mocked_roller_shutter_topic_name/config",
+                        "topic": "homeassistant/cover/mocked_unipi/mocked_shutter_topic_name/config",
                     },
                 ],
             ),

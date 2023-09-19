@@ -11,7 +11,7 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any
 from typing import Awaitable
 from typing import Callable
 from typing import Dict
@@ -20,6 +20,7 @@ from typing import List
 from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
+from typing import TYPE_CHECKING
 from typing import Union
 
 from unipi_control.config import Config
@@ -69,9 +70,15 @@ class CoverProperty(NamedTuple):
 
 
 class CoverProperties:
+    awning: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
+    curtain: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
+    door: CoverProperty = CoverProperty(set_tilt=False, set_position=False)
+    garage: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
+    gate: CoverProperty = CoverProperty(set_tilt=False, set_position=False)
+    shade: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
     blind: CoverProperty = CoverProperty(set_tilt=True, set_position=True)
-    roller_shutter: CoverProperty = CoverProperty(set_tilt=False, set_position=False)
-    garage_door: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
+    shutter: CoverProperty = CoverProperty(set_tilt=False, set_position=False)
+    window: CoverProperty = CoverProperty(set_tilt=True, set_position=True)
 
 
 class CoverState:
@@ -172,7 +179,8 @@ class Cover:
     suggested_area: str, optional
         Suggest an area. Used for ``Area`` in Home Assistant.
     device_class: str
-        Device class can be ``blind``, ``roller_shutter``, or ``garage_door``.
+        Device class can be ``awning``, ``curtain``, ``door``,
+        ``garage``, ``gate``, ``shade``, ``blind``, ``shutter`` or ``window``.
     cover_run_time: float or int, optional
         Define the time (in seconds) it takes for the cover to fully open or close.
     tilt_change_time: float or int, optional

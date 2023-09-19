@@ -277,7 +277,7 @@ class TestUnhappyPathConfig:
             (
                 (CONFIG_INVALID_DEVICE_CLASS, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),
                 "[COVER] Invalid value 'INVALID' in 'device_class'. "
-                "The following values are allowed: blind roller_shutter garage_door.",
+                "The following values are allowed: awning curtain door garage gate shade blind shutter window.",
             ),
             (
                 (CONFIG_MISSING_COVER_KEY, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT),

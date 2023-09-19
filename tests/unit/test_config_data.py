@@ -147,9 +147,9 @@ covers:
     tilt_change_time: 1.5
     cover_up: ro_3_01
     cover_down: ro_3_02
-  - object_id: MOCKED_ROLLER_SHUTTER_TOPIC_NAME
-    friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
-    device_class: roller_shutter
+  - object_id: MOCKED_SHUTTER_TOPIC_NAME
+    friendly_name: MOCKED_FRIENDLY_NAME - SHUTTER
+    device_class: shutter
     cover_up: ro_3_01
     cover_down: ro_3_02
 logging:
@@ -182,8 +182,8 @@ covers:
     cover_up: ro_3_01
     cover_down: ro_3_02
   - object_id: MOCKED_DUPLICATE_ID
-    friendly_name: MOCKED_FRIENDLY_NAME - ROLLER SHUTTER
-    device_class: roller_shutter
+    friendly_name: MOCKED_FRIENDLY_NAME - SHUTTER
+    device_class: shutter
     cover_up: ro_3_03
     cover_down: ro_3_04
 logging:
