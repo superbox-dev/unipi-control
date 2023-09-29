@@ -29,7 +29,7 @@ classifiers = [
 ]
 requires-python = ">= 3.8"
 dependencies = [
-    "aiomqtt==1.2.0",
+    "aiomqtt==1.2.1",
     "pymodbus[serial]==3.5.2",
     "pyyaml==6.0.1"
 ]
@@ -59,7 +59,7 @@ format = [
 lint = [
     "mypy==1.5.1",
     "pylint==2.17.6",
-    "ruff==0.0.290",
+    "ruff==0.0.291",
     "types-PyYAML==6.0.12.12",
     "yamllint==1.32.0",
 ]
