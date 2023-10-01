@@ -10,11 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added support for more Home Assistant cover [device classes](https://www.home-assistant.io/integrations/cover/).
+- Added support for cover position to all [device classes](https://www.home-assistant.io/integrations/cover/).
 
 ### Changed
 
+- Bump aiomqtt to version 1.2.1
 - Bump pymodbus to version 3.5.2
-- Bump ruff to version 0.0.290 
 
 ## [3.0.0] - 2023-09-15
 

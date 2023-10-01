@@ -233,6 +233,9 @@ class CoverConfig(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attri
     cover_up: str = field(default_factory=str)
     cover_down: str = field(default_factory=str)
 
+    def __post_init__(self) -> None:
+        self.cover_run_time = float(self.cover_run_time)
+
     def validate(self) -> None:
         """Validate cover configuration."""
         for _field in ("object_id", "friendly_name", "device_class", "cover_up", "cover_down"):

@@ -56,8 +56,8 @@ class CoverSettings(NamedTuple):
     friendly_name: str
     suggested_area: str
     device_class: str
-    cover_run_time: Union[float, int]
-    tilt_change_time: Union[float, int]
+    cover_run_time: float
+    tilt_change_time: float
     cover_up: str
     cover_down: str
     cover_up_feature: Union[DigitalOutput, Relay]
@@ -66,19 +66,18 @@ class CoverSettings(NamedTuple):
 
 class CoverProperty(NamedTuple):
     set_tilt: bool
-    set_position: bool
 
 
 class CoverProperties:
-    awning: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
-    curtain: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
-    door: CoverProperty = CoverProperty(set_tilt=False, set_position=False)
-    garage: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
-    gate: CoverProperty = CoverProperty(set_tilt=False, set_position=False)
-    shade: CoverProperty = CoverProperty(set_tilt=False, set_position=True)
-    blind: CoverProperty = CoverProperty(set_tilt=True, set_position=True)
-    shutter: CoverProperty = CoverProperty(set_tilt=False, set_position=False)
-    window: CoverProperty = CoverProperty(set_tilt=True, set_position=True)
+    awning: CoverProperty = CoverProperty(set_tilt=False)
+    curtain: CoverProperty = CoverProperty(set_tilt=False)
+    door: CoverProperty = CoverProperty(set_tilt=False)
+    garage: CoverProperty = CoverProperty(set_tilt=False)
+    gate: CoverProperty = CoverProperty(set_tilt=False)
+    shade: CoverProperty = CoverProperty(set_tilt=False)
+    blind: CoverProperty = CoverProperty(set_tilt=True)
+    shutter: CoverProperty = CoverProperty(set_tilt=False)
+    window: CoverProperty = CoverProperty(set_tilt=False)
 
 
 class CoverState:
@@ -166,40 +165,7 @@ class CoverStatus:
 
 
 class Cover:
-    """Class to control a cover and get the state of it.
-
-    Attributes
-    ----------
-    calibrate_mode: bool
-        Set the cover in calibration mode.
-    object_id: str, optional
-        ID. Used for ``Entity ID`` in Home Assistant.
-    friendly_name: str
-        Friendly name of the cover. Used for ``Name`` in Home Assistant.
-    suggested_area: str, optional
-        Suggest an area. Used for ``Area`` in Home Assistant.
-    device_class: str
-        Device class can be ``awning``, ``curtain``, ``door``,
-        ``garage``, ``gate``, ``shade``, ``blind``, ``shutter`` or ``window``.
-    cover_run_time: float or int, optional
-        Define the time (in seconds) it takes for the cover to fully open or close.
-    tilt_change_time: float or int, optional
-        Define the time (in seconds) that the tilt changes from fully open to fully closed state.
-    cover_up: str
-        Output circuit name from a relay or digital output.
-    cover_down: str
-        Output circuit name from a relay or digital output.
-    state: str, optional
-        Current cover state defined in the ``CoverState()`` class.
-    position: int, optional
-        Current cover position.
-    tilt: int, optional
-        Current tilt position.
-    cover_up_feature: Feature
-        The feature for opening the cover.
-    cover_down_feature: Feature
-        The feature for closing the cover.
-    """
+    """Class to control a cover and get the state of it."""
 
     def __init__(
         self,
@@ -331,7 +297,7 @@ class Cover:
             covers.Cover.close(): close the cover.
             covers.Cover.set_position(): set the cover position.
         """
-        if self.properties.set_position is True:
+        if self.settings.cover_run_time:
             changed: bool = self.status.position != self.current.position
 
             if changed and self.current.device_state == CoverDeviceState.IDLE:
@@ -374,7 +340,7 @@ class Cover:
         self.timer.start = None
 
     def _update_state(self) -> None:
-        if self.properties.set_position is True:
+        if self.settings.cover_run_time:
             if self.status.position is not None:
                 if self.status.position <= CoverState.CLOSED_IN_PERCENT:
                     self.status.state = CoverState.CLOSED
@@ -386,7 +352,7 @@ class Cover:
             self.status.state = CoverState.STOPPED
 
     def _update_position(self) -> None:
-        if not self.properties.set_position:
+        if not self.settings.cover_run_time:
             return
 
         if self.timer.start is None:
@@ -408,17 +374,17 @@ class Cover:
                 self.status.position = CoverState.OPEN_IN_PERCENT
 
     def _delete_position(self) -> None:
-        if self.properties.set_position is True:
+        if self.settings.cover_run_time:
             self.position_file.unlink(missing_ok=True)
 
     @run_in_executor
     def _write_position(self) -> None:
-        if self.properties.set_position is True:
+        if self.settings.cover_run_time:
             self.position_file.write_text(f"{self.status.position}/{self.status.tilt}")
 
     def read_position(self) -> None:
         """Read the cover position and tilt from the temporary cover file."""
-        if self.properties.set_position is True:
+        if self.settings.cover_run_time:
             try:
                 data: List[str] = self.position_file.read_text().split("/")
                 self.status.position = int(data[0])
@@ -467,7 +433,7 @@ class Cover:
             Cover run time in seconds.
         """
         if (
-            self.properties.set_position is True
+            self.settings.cover_run_time
             and self.status.position is not None
             and self.status.position >= CoverState.OPEN_IN_PERCENT
         ):
@@ -487,21 +453,20 @@ class Cover:
                 self.status.state = CoverState.OPENING
                 self.timer.start = time.monotonic()
 
-                if self.properties.set_position is True:
-                    if self.settings.tilt_change_time:
-                        self.status.tilt = CoverState.OPEN_IN_PERCENT
+                if self.settings.tilt_change_time:
+                    self.status.tilt = CoverState.OPEN_IN_PERCENT
 
-                    if self.status.position is not None and self.settings.cover_run_time:
-                        position = 105 if position == CoverState.OPEN_IN_PERCENT else position
-                        cover_run_time = (position - self.status.position) * self.settings.cover_run_time / 100
+                if self.status.position is not None and self.settings.cover_run_time:
+                    position = 105 if position == CoverState.OPEN_IN_PERCENT else position
+                    cover_run_time = (position - self.status.position) * self.settings.cover_run_time / 100
 
-                        if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
-                            cover_run_time = self.settings.tilt_change_time
+                    if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
+                        cover_run_time = self.settings.tilt_change_time
 
-                        self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
-                        self.timer.timer.start()
+                    self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
+                    self.timer.timer.start()
 
-                        self._delete_position()
+                    self._delete_position()
 
         return cover_run_time
 
@@ -529,7 +494,7 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if self.properties.set_position is True and (
+        if self.settings.cover_run_time and (
             self.status.position is None
             or (self.status.position is not None and self.status.position <= CoverState.CLOSED_IN_PERCENT)
         ):
@@ -549,21 +514,20 @@ class Cover:
                 self.status.state = CoverState.CLOSING
                 self.timer.start = time.monotonic()
 
-                if self.properties.set_position is True:
-                    if self.settings.tilt_change_time:
-                        self.status.tilt = CoverState.CLOSED_IN_PERCENT
+                if self.settings.tilt_change_time:
+                    self.status.tilt = CoverState.CLOSED_IN_PERCENT
 
-                    if self.status.position is not None and self.settings.cover_run_time:
-                        position = position if position else -5
-                        cover_run_time = (self.status.position - position) * self.settings.cover_run_time / 100
+                if self.status.position is not None and self.settings.cover_run_time:
+                    position = position if position else -5
+                    cover_run_time = (self.status.position - position) * self.settings.cover_run_time / 100
 
-                        if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
-                            cover_run_time = self.settings.tilt_change_time
+                    if self.settings.tilt_change_time and cover_run_time < self.settings.tilt_change_time:
+                        cover_run_time = self.settings.tilt_change_time
 
-                        self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
-                        self.timer.timer.start()
+                    self.timer.timer = CoverTimer(cover_run_time, self.stop_cover)
+                    self.timer.timer.start()
 
-                        self._delete_position()
+                    self._delete_position()
 
         return cover_run_time
 
@@ -659,7 +623,7 @@ class Cover:
         float, optional
             Cover run time in seconds.
         """
-        if not self.properties.set_position:
+        if not self.settings.cover_run_time:
             return None
 
         cover_run_time: Optional[float] = None

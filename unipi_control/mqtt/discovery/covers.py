@@ -70,7 +70,7 @@ class HassCoversDiscovery:
         if self.config.device_info.suggested_area:
             message["device"]["suggested_area"] = self.config.device_info.suggested_area
 
-        if cover.properties.set_position:
+        if cover.settings.cover_run_time:
             message["position_topic"] = f"{cover.topic}/position"
             message["set_position_topic"] = f"{cover.topic}/position/set"
 
