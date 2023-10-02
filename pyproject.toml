@@ -58,7 +58,7 @@ format = [
 ]
 lint = [
     "mypy==1.5.1",
-    "pylint==2.17.6",
+    "pylint==3.0.0",
     "ruff==0.0.291",
     "types-PyYAML==6.0.12.12",
     "yamllint==1.32.0",
