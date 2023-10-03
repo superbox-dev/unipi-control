@@ -14,7 +14,7 @@ class Dumper(yaml.Dumper):  # pylint: disable=too-many-ancestors
 
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # noqa: ARG002
         """Disable indentless."""
-        super().increase_indent(flow, indentless=False)  # type: ignore[no-untyped-call]
+        super().increase_indent(flow, indentless=False)
 
 
 def yaml_dumper(content: str) -> str:

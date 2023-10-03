@@ -58,7 +58,6 @@ format = [
 ]
 lint = [
     "mypy==1.5.1",
-    "pylint==2.17.6",
     "ruff==0.0.291",
     "types-PyYAML==6.0.12.12",
     "yamllint==1.32.0",
@@ -89,57 +88,6 @@ python_version = "3.10"
 ignore_missing_imports = true
 disallow_any_generics = false # python 3.8 compatibility
 junit_xml = "reports/mypy.xml"
-
-[tool.pylint.master]
-disable = [
-    "C0103",  # invalid-name
-    "C0114",  # missing-module-docstring
-    "C0115",  # missing-class-docstring
-    "C0116",  # missing-function-docstring
-    "C0411",  # wrong-import-order
-    "E0401",  # import-error
-    "R0801",  # duplicate-code
-    "R0902",  # too-many-instance-attributes
-    "R0903",  # too-few-public-methods
-    "R0913",  # too-many-arguments
-    "R2044",  # empty-comment
-    "R6003",  # consider-alternative-union-syntax (python 3.8 compatibility)
-    "W0212",  # protected-access (ruff lint this)
-    "W6001",  # deprecated-typing-alias (python 3.8 compatibility)
-    "W0613"   # unused-argument (ruff lint this)
-]
-notes = ["FIXME"]
-ignore-patterns = ["version.py"]
-
-load-plugins = [
-    "pylint.extensions.bad_builtin",
-    "pylint.extensions.check_elif",
-    "pylint.extensions.code_style",
-    "pylint.extensions.comparetozero",
-    "pylint.extensions.comparison_placement",
-    "pylint.extensions.confusing_elif",
-    "pylint.extensions.consider_ternary_expression",
-    "pylint.extensions.docparams",
-    "pylint.extensions.docstyle",
-    "pylint.extensions.empty_comment",
-    "pylint.extensions.emptystring",
-    "pylint.extensions.eq_without_hash",
-    "pylint.extensions.for_any_all",
-    "pylint.extensions.mccabe",
-    "pylint.extensions.overlapping_exceptions",
-    "pylint.extensions.private_import",
-    "pylint.extensions.redefined_variable_type",
-    "pylint.extensions.set_membership",
-    "pylint.extensions.typing"
-]
-
-[tool.pylint.reports]
-output-format = "colorized"
-reports = false
-score = true
-
-[tool.pylint.format]
-max-line-length = 120
 
 [tool.ruff]
 target-version = "py310"
