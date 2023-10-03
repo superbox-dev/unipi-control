@@ -1,6 +1,6 @@
 """Integration tests for unipi-model-info cli command."""
 
-from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
+from _pytest.capture import CaptureFixture
 
 from unipi_control.tools.model_info import main
 

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 from unittest.mock import PropertyMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture
 from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 

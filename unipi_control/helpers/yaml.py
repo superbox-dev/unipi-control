@@ -9,7 +9,7 @@ import yaml
 from unipi_control.helpers.exception import YamlError
 
 
-class Dumper(yaml.Dumper):  # pylint: disable=too-many-ancestors
+class Dumper(yaml.Dumper):
     """Custom dumper for correct indentation."""
 
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # noqa: ARG002

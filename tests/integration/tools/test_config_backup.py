@@ -5,7 +5,7 @@ from typing import List, TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture
 from pytest_mock import MockerFixture
 
 from tests.conftest import ConfigLoader

@@ -3,14 +3,12 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture
 from pytest_asyncio.plugin import SubRequest
 
-from tests.integration.tools.test_config_converter_data import (
-    EVOK_MODEL_CONTENT,
-    CONVERTED_MODEL_CONTENT,
-    INVALID_EVOK_MODEL_CONTENT,
-)
+from tests.integration.tools.test_config_converter_data import CONVERTED_MODEL_CONTENT
+from tests.integration.tools.test_config_converter_data import EVOK_MODEL_CONTENT
+from tests.integration.tools.test_config_converter_data import INVALID_EVOK_MODEL_CONTENT
 from unipi_control.tools.config_converter import main
 
 

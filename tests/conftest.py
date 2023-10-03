@@ -18,7 +18,7 @@ from unittest.mock import PropertyMock
 
 import pytest
 import pytest_asyncio
-from _pytest.fixtures import SubRequest  # pylint: disable=import-private-name
+from _pytest.fixtures import SubRequest
 from pymodbus.pdu import ModbusResponse
 from pytest_mock import MockerFixture
 

@@ -9,7 +9,7 @@ from typing import Set
 from unittest.mock import AsyncMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture
 from aiomqtt import Client
 
 from tests.conftest_data import CONFIG_CONTENT

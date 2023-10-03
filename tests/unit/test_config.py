@@ -9,8 +9,8 @@ from typing import Optional
 from unittest.mock import PropertyMock
 
 import pytest
-from _pytest.capture import CaptureFixture  # pylint: disable=import-private-name
-from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from _pytest.capture import CaptureFixture
+from _pytest.logging import LogCaptureFixture
 from pytest_mock import MockerFixture
 
 from tests.conftest import ConfigLoader

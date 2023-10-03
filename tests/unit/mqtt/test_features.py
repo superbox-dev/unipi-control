@@ -11,7 +11,7 @@ from unittest.mock import PropertyMock
 from unittest.mock import call
 
 import pytest
-from _pytest.logging import LogCaptureFixture  # pylint: disable=import-private-name
+from _pytest.logging import LogCaptureFixture
 from aiomqtt import Client
 from pytest_mock import MockerFixture
 

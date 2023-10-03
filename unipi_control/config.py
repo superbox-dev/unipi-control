@@ -201,7 +201,7 @@ class MqttConfig(ConfigLoaderMixin):
 
 
 @dataclass
-class FeatureConfig(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
+class FeatureConfig(ConfigLoaderMixin):
     object_id: str = field(default_factory=str)
     friendly_name: str = field(default_factory=str)
     icon: str = field(default_factory=str)
@@ -223,8 +223,8 @@ class FeatureConfig(ConfigLoaderMixin):  # pylint: disable=too-many-instance-att
 
 
 @dataclass
-class CoverConfig(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
-    object_id: str = field(default_factory=str)  # pylint: disable=invalid-name
+class CoverConfig(ConfigLoaderMixin):
+    object_id: str = field(default_factory=str)
     friendly_name: str = field(default_factory=str)
     suggested_area: str = field(default_factory=str)
     device_class: str = field(default_factory=str)
@@ -445,7 +445,7 @@ class LoggingConfig(ConfigLoaderMixin):
 
 
 @dataclass
-class Config(ConfigLoaderMixin):  # pylint: disable=too-many-instance-attributes
+class Config(ConfigLoaderMixin):
     device_info: DeviceInfo = field(default_factory=DeviceInfo)
     mqtt: MqttConfig = field(default_factory=MqttConfig)
     modbus_tcp: ModbusTCPConfig = field(default_factory=ModbusTCPConfig)
