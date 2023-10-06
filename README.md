@@ -4,7 +4,6 @@
 ![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
-![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
 
 [![license-url](https://img.shields.io/badge/license-Apache%202-yellowgreen)](https://opensource.org/license/apache-2-0/)
 ![PyPi downloads](https://img.shields.io/pypi/dm/unipi-control)
