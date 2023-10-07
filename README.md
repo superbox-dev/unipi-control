@@ -1,11 +1,8 @@
 ![coverage-badge](https://raw.githubusercontent.com/superbox-dev/unipi-control/main/coverage.svg)
 [![CI](https://github.com/superbox-dev/unipi-control/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/superbox-dev/unipi-control/actions/workflows/ci.yml)
-![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)
-![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)
-![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
-![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
+[![Version](https://img.shields.io/pypi/pyversions/unipi-control.svg)](https://pypi.python.org/pypi/unipi-control)
 
-[![license-url](https://img.shields.io/badge/license-Apache%202-yellowgreen)](https://opensource.org/license/apache-2-0/)
+[![license-url](https://img.shields.io/pypi/l/unipi-control.svg)](https://github.com/superbox-dev/unipi-control/blob/main/LICENSE)
 ![PyPi downloads](https://img.shields.io/pypi/dm/unipi-control)
 ![Typing: strict](https://img.shields.io/badge/typing-strict-green.svg)
 ![Code style: black](https://img.shields.io/badge/code%20style-black-black)
