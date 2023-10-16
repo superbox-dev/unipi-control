@@ -57,7 +57,7 @@ format = [
     "black==23.9.1",
 ]
 lint = [
-    "mypy==1.5.1",
+    "mypy==1.6.0",
     "ruff==0.0.292",
     "types-PyYAML==6.0.12.12",
     "yamllint==1.32.0",
