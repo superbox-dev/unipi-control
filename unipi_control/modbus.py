@@ -43,7 +43,7 @@ async def check_modbus_call(
     try:
         response = await callback(**data)
 
-        if response and response.isError():  # type: ignore[no-untyped-call]
+        if response and response.isError():
             response = None
     except ModbusException as error:
         UNIPI_LOGGER.error("%s %s", LogPrefix.MODBUS, error)

@@ -30,7 +30,7 @@ classifiers = [
 requires-python = ">= 3.8"
 dependencies = [
     "aiomqtt==1.2.1",
-    "pymodbus[serial]==3.5.2",
+    "pymodbus[serial]==3.5.4",
     "pyyaml==6.0.1"
 ]
 dynamic = ["version"]
