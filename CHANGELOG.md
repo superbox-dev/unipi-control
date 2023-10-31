@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump ruff to version 0.0.284 
 - Updated [configuration.md](docs/configuration.md)
 
-## Fixed
+### Fixed
 
 - Fixed mypy errors
 
@@ -55,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump pymodbus to version 3.3.2
 - Bump ayncio-mqtt to version 1.0.0 (the package name changed to aiomqtt)
 
-## Fixed
+### Fixed
 
 - Fixed crashing Unipi Control service after reinstall/update `unipi-modbus-tools` OPKG package.
 - Added `Restart=on-failure` for systemd service, in the OPKG package, to prevent unwanted crashes.
