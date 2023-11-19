@@ -198,6 +198,8 @@ class MqttConfig(ConfigLoaderMixin):
     keepalive: int = field(default=15)
     retry_limit: int = field(default=30)
     reconnect_interval: int = field(default=10)
+    username: str = field(default_factory=str)
+    password: str = field(default_factory=str)
 
 
 @dataclass

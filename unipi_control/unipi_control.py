@@ -150,6 +150,8 @@ class UnipiControl:
                         mqtt_config.port,
                         client_id=mqtt_client_id,
                         keepalive=mqtt_config.keepalive,
+                        username=mqtt_config.username,
+                        password=mqtt_config.password,
                     )
 
                     await stack.enter_async_context(mqtt_client)

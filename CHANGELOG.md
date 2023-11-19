@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Bump pymodbus to version 3.5.4
+- Added support for MQTT broker authentication with username and password
 
 ## [3.1.0] - 2023-10-03
 

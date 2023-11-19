@@ -27,6 +27,8 @@ device_info:
 | `keepalive`          | Maximum period in seconds allowed between communications with the broker. If no other messages are being exchanged, this controls the rate at which the client will send ping messages to the broker. Default is `15`. |
 | `retry_limit`        | Number of attempts to connect to the MQTT broker. Default to `30` (Disable with `False`).                                                                                                                              |
 | `reconnect_interval` | Time between connection attempts. Default is `10`.                                                                                                                                                                     |
+| `username`           | Username to use for MQTT authentication. Default is `None` (for brokers without authentication set).                                                                                                                   |
+| `password`           | Password to use for MQTT authentication. Default is `None` (for brokers without authentication set).                                                                                                                   |
 
 ```yaml
 # control.yaml
