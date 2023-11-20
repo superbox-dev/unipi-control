@@ -39,7 +39,7 @@ jobs:
       # Workaround: coverage-badge not working with Python 3.12
       # Maybe we need an alternative package in the future!
       # latest-python-version: ${{ needs.parameters.outputs.latest-python-version }}
-      latest-python-version: "3.8"
+      latest-python-version: '3.8'
 
   code-analyse:
     name: Code analyse
