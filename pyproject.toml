@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3 :: Only",
     "Operating System :: POSIX :: Linux",
     "Topic :: System :: Networking",
@@ -80,17 +81,17 @@ write_to = "unipi_control/version.py"
 
 [tool.black]
 line-length = 120
-target-version = ["py38", "py39", "py310", "py311"]
+target-version = ["py38", "py39", "py310", "py311", "py312"]
 
 [tool.mypy]
 strict = true
-python_version = "3.10"
+python_version = "3.8"
 ignore_missing_imports = true
 disallow_any_generics = false # python 3.8 compatibility
 junit_xml = "reports/mypy.xml"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py38"
 line-length = 120
 select = ["ALL"]
 ignore = [
