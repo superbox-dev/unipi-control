@@ -66,7 +66,7 @@ class EastronSDM120M:
         if func := getattr(self, f"_parse_feature_{feature_type}", None):
             func(modbus_feature)
 
-    async def _get_sw_version(self) -> Optional[str]:
+    def _get_sw_version(self) -> Optional[str]:
         sw_version: str = "Unknown"
 
         data: ModbusReadData = {
@@ -93,12 +93,12 @@ class EastronSDM120M:
         for modbus_feature in self.definition.modbus_features:
             self._parse_feature(typing.cast(EastronModbusFeature, modbus_feature))
 
-    async def init(self) -> None:
+    def init(self) -> None:
         """Initialize Eastron SDM120M device class.
 
         Read Firmware version from Modbus RTU and parse features.
         """
-        self._sw_version = await self._get_sw_version()
+        self._sw_version = self._get_sw_version()
         UNIPI_LOGGER.debug("%s Firmware version on Eastron SDM120 is %s", LogPrefix.MODBUS, self._sw_version)
 
         self.parse_features()

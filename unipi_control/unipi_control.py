@@ -73,7 +73,7 @@ class UnipiControl:
 
     async def run(self) -> None:
         """Connect to Modbus/MQTT and initialize hardware features."""
-        modbus_helper: ModbusHelper = await self.unipi.init()
+        modbus_helper: ModbusHelper = self.unipi.init()
         mqtt_helper: MqttHelper = MqttHelper(unipi=self.unipi)
 
         tasks: Set[Task] = set()

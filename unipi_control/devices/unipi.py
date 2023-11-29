@@ -53,12 +53,12 @@ class Unipi:
             hardware=self.hardware,
         )
 
-    async def init(self) -> ModbusHelper:
+    def init(self) -> ModbusHelper:
         """Initialize internal and external hardware."""
         UNIPI_LOGGER.debug("%s %s hardware definition(s) found.", LogPrefix.CONFIG, len(self.hardware))
 
-        await self.read_boards()
-        await self.read_extensions()
+        self.read_boards()
+        self.read_extensions()
 
         UNIPI_LOGGER.info("%s %s features initialized.", LogPrefix.CONFIG, len(self.features))
 
@@ -81,7 +81,7 @@ class Unipi:
         versions = getattr(response, "registers", [0, 0])
         return f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
 
-    async def read_boards(self) -> None:
+    def read_boards(self) -> None:
         """Initialize Unipi PLC boards on Modbus TCP."""
         UNIPI_LOGGER.info("%s Reading SPI boards", LogPrefix.MODBUS)
 
@@ -121,7 +121,7 @@ class Unipi:
 
         self._modbus_helper.close_tcp()
 
-    async def read_extensions(self) -> None:
+    def read_extensions(self) -> None:
         """Initialize extensions and other devices on Modbus RTU."""
         UNIPI_LOGGER.info("%s Reading extensions", LogPrefix.MODBUS)
 
@@ -142,7 +142,7 @@ class Unipi:
             if (definition.manufacturer and definition.manufacturer.lower() == "eastron") and (
                 definition.model and definition.model == "SDM120M"
             ):
-                await EastronSDM120M(
+                EastronSDM120M(
                     config=self.config,
                     modbus_helper=self._modbus_helper,
                     definition=definition,
