@@ -1,4 +1,4 @@
-"""Neuron features classes."""
+"""Unipi features classes."""
 
 from dataclasses import dataclass
 from functools import cached_property
@@ -14,22 +14,20 @@ from unipi_control.features.utils import FeatureState
 from unipi_control.features.utils import FeatureType
 from unipi_control.helpers.text import slugify
 from unipi_control.helpers.typing import HardwareDefinition
-from unipi_control.helpers.typing import ModbusClient
 from unipi_control.helpers.typing import ModbusWriteData
-from unipi_control.modbus import ModbusCacheData
-from unipi_control.modbus import check_modbus_call
+from unipi_control.modbus.helper import check_modbus_call
+from unipi_control.modbus.helper import ModbusHelper
 
 
 @dataclass
-class Modbus:
-    client: ModbusClient
-    cache: ModbusCacheData
+class UnipiModbus:
+    helper: ModbusHelper
     val_reg: int
     val_coil: Optional[int] = None
 
 
 @dataclass
-class Hardware:
+class UnipiHardware:
     major_group: int
     feature_type: FeatureType
     feature_index: int
@@ -37,23 +35,25 @@ class Hardware:
     firmware: Optional[str] = None
 
 
-class NeuronFeature:
+class UnipiFeature:
+    feature_type: Optional[FeatureType] = None
+
     def __init__(
         self,
         config: Config,
-        modbus: Modbus,
-        hardware: Hardware,
+        modbus: UnipiModbus,
+        hardware: UnipiHardware,
     ) -> None:
         self.config: Config = config
-        self.modbus: Modbus = modbus
-        self.hardware: Hardware = hardware
+        self.modbus: UnipiModbus = modbus
+        self.hardware: UnipiHardware = hardware
 
         self.features_config: Optional[FeatureConfig] = config.features.get(self.feature_id)
 
         self.val_coil: Optional[int] = (
             None if modbus.val_coil is None else modbus.val_coil + self.hardware.feature_index
         )
-        self._reg_value: Callable[..., int] = lambda: modbus.cache.get_register(
+        self._reg_value: Callable[..., Optional[int]] = lambda: modbus.helper.get_register(
             address=modbus.val_reg, index=1, unit=0
         )[0]
         self.saved_value: Optional[Union[float, int]] = None
@@ -128,10 +128,15 @@ class NeuronFeature:
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     @property
-    def value(self) -> int:
+    def value(self) -> Optional[int]:
         """Return the feature state as integer."""
         mask: int = 0x1 << (self.hardware.feature_index % 16)
-        return 1 if self._reg_value() & mask else 0
+        reg_value: Optional[int] = self._reg_value()
+
+        if reg_value is None:
+            return None
+
+        return 1 if reg_value & mask else 0
 
     @cached_property
     def icon(self) -> Optional[str]:
@@ -145,14 +150,16 @@ class NeuronFeature:
 
     @cached_property
     def sw_version(self) -> Optional[str]:
-        """Return software version from the Unipi Neuron."""
+        """Return software version from the Unipi PLC."""
         return self.hardware.firmware
 
 
-class Relay(NeuronFeature):
-    """Class for the relay feature from the Unipi Neuron."""
+class Relay(UnipiFeature):
+    """Class for the relay feature from the Unipi PLC."""
 
-    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
+    feature_type = FeatureType.RO
+
+    def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for relay feature.
 
         Parameters
@@ -170,13 +177,15 @@ class Relay(NeuronFeature):
             "slave": 0,
         }
 
-        return await check_modbus_call(self.modbus.client.tcp.write_coil, data)
+        return check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)
 
 
-class DigitalOutput(NeuronFeature):
-    """Class for the digital output feature from the Unipi Neuron."""
+class DigitalOutput(UnipiFeature):
+    """Class for the digital output feature from the Unipi PLC."""
 
-    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
+    feature_type = FeatureType.DI
+
+    def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for digital output feature.
 
         Parameters
@@ -194,17 +203,17 @@ class DigitalOutput(NeuronFeature):
             "slave": 0,
         }
 
-        return await check_modbus_call(self.modbus.client.tcp.write_coil, data)
+        return check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)
 
 
-class DigitalInput(NeuronFeature):
-    """Class for the digital input feature from the Unipi Neuron."""
+class DigitalInput(UnipiFeature):
+    """Class for the digital input feature from the Unipi PLC."""
 
 
-class Led(NeuronFeature):
-    """Class for the LED feature from the Unipi Neuron."""
+class Led(UnipiFeature):
+    """Class for the LED feature from the Unipi PLC."""
 
-    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
+    def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for LED feature.
 
         Parameters
@@ -222,4 +231,4 @@ class Led(NeuronFeature):
             "slave": 0,
         }
 
-        return await check_modbus_call(self.modbus.client.tcp.write_coil, data)
+        return check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)

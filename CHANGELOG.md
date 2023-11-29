@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Faster reading from Modbus RTU/TCP
+- Use "Unipi" as name instead of "Neuron"
+- Refactor deprecated aiomqtt code
+
+### Changed
+
 - Bump pymodbus to version 3.5.4
 
 ## [3.1.0] - 2023-10-03

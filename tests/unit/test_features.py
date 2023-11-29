@@ -12,13 +12,13 @@ from tests.conftest import MockModbusClient
 from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT
-from unipi_control.features.extensions import EastronMeter
-from unipi_control.features.neuron import DigitalInput
-from unipi_control.features.neuron import DigitalOutput
-from unipi_control.features.neuron import Led
-from unipi_control.features.neuron import Relay
+from unipi_control.features.eastron import Eastron
+from unipi_control.features.unipi import DigitalInput
+from unipi_control.features.unipi import DigitalOutput
+from unipi_control.features.unipi import Led
+from unipi_control.features.unipi import Relay
 from unipi_control.helpers.exception import ConfigError
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 
 class FeatureOptions(NamedTuple):
@@ -72,7 +72,7 @@ class TestHappyPathFeatures:
         indirect=["config_loader"],
     )
     async def test_output_features(
-        self, modbus_client: MockModbusClient, neuron: Neuron, options: FeatureOptions, expected: FeatureExpected
+        self, modbus_client: MockModbusClient, neuron: Unipi, options: FeatureOptions, expected: FeatureExpected
     ) -> None:
         """Test values from the output features."""
         mock_response = MagicMock(spec=ModbusResponse)
@@ -80,7 +80,7 @@ class TestHappyPathFeatures:
 
         modbus_client.tcp.write_coil.return_value = mock_response
 
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = neuron.features.by_feature_id(
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, Eastron] = neuron.features.by_feature_id(
             options.feature_id, feature_types=[options.feature_type]
         )
 
@@ -96,7 +96,7 @@ class TestHappyPathFeatures:
             assert feature.val_coil == expected.coil
             assert feature.payload == ("ON" if expected.value == 1 else "OFF")
             assert await feature.set_state(False)
-        elif isinstance(feature, EastronMeter):
+        elif isinstance(feature, Eastron):
             assert feature.payload == expected.value
 
     @pytest.mark.asyncio()
@@ -116,9 +116,9 @@ class TestHappyPathFeatures:
         ],
         indirect=["config_loader", "modbus_client"],
     )
-    async def test_eastron_sw_version(self, neuron: Neuron, expected: str) -> None:
+    async def test_eastron_sw_version(self, neuron: Unipi, expected: str) -> None:
         """Test eastron software version."""
-        feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = neuron.features.by_feature_id(
+        feature: Union[DigitalInput, DigitalOutput, Led, Relay, Eastron] = neuron.features.by_feature_id(
             "active_power_1", feature_types=["METER"]
         )
 
@@ -137,7 +137,7 @@ class TestUnhappyPathFeatures:
         ],
         indirect=["config_loader"],
     )
-    def test_invalid_feature_by_feature_id(self, neuron: Neuron, feature_id: str, expected: str) -> None:
+    def test_invalid_feature_by_feature_id(self, neuron: Unipi, feature_id: str, expected: str) -> None:
         """Test that invalid feature id raises ConfigError when reading feature by feature id."""
         with pytest.raises(ConfigError) as error:
             neuron.features.by_feature_id(feature_id, feature_types=["DO", "RO"])

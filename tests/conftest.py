@@ -25,10 +25,10 @@ from pytest_mock import MockerFixture
 from tests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 from tests.conftest_data import NEURON_L203_MODBUS_REGISTER
 from unipi_control.config import Config
-from unipi_control.extensions.eastron import EastronSDM120M
+from unipi_control.devices.eastron import EastronSDM120M
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 
 @pytest.fixture(autouse=True)
@@ -214,7 +214,7 @@ def mock_modbus_client(request: SubRequest, mocker: MockerFixture) -> MockModbus
 
 
 @pytest_asyncio.fixture(name="neuron")
-async def init_neuron(config_loader: ConfigLoader, modbus_client: ModbusClient) -> AsyncGenerator[Neuron, None]:
+async def init_neuron(config_loader: ConfigLoader, modbus_client: ModbusClient) -> AsyncGenerator[Unipi, None]:
     """Initialize neuron device for tests.
 
     Parameters
@@ -227,21 +227,21 @@ async def init_neuron(config_loader: ConfigLoader, modbus_client: ModbusClient) 
     config: Config = config_loader.get_config()
     config.logging.init()
 
-    neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+    neuron: Unipi = Unipi(config=config, modbus_client=modbus_client)
     await neuron.init()
 
     yield neuron
 
 
 @pytest_asyncio.fixture(name="covers")
-async def create_cover_map(config_loader: ConfigLoader, neuron: Neuron) -> AsyncGenerator[CoverMap, None]:
+async def create_cover_map(config_loader: ConfigLoader, neuron: Unipi) -> AsyncGenerator[CoverMap, None]:
     """Initialize cover map for tests.
 
     Parameters
     ----------
     config_loader: ConfigLoader
         Config loader class with helper methods.
-    neuron: Neuron
+    neuron: Unipi
         Initialized neuron device.
     """
     config: Config = config_loader.get_config()

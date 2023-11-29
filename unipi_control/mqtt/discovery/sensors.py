@@ -1,26 +1,18 @@
 """Initialize MQTT subscribe and publish for Home Assistant sensors."""
 
-import asyncio
 import json
-from asyncio import Task
 from typing import Any
-from typing import ClassVar
 from typing import Dict
-from typing import List
 from typing import Optional
-from typing import Set
 from typing import TYPE_CHECKING
 from typing import Tuple
 from typing import Union
 
-from aiomqtt import Client
-
 from unipi_control.config import UNIPI_LOGGER
-from unipi_control.features.extensions import EastronMeter
+from unipi_control.features.eastron import Eastron
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.text import slugify
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
-from unipi_control.neuron import Neuron
 
 if TYPE_CHECKING:
     from unipi_control.helpers.typing import HardwareDefinition
@@ -29,15 +21,13 @@ if TYPE_CHECKING:
 class HassSensorsDiscovery(HassDiscoveryMixin):
     """Provide the sensors (e.g. meter) as Home Assistant MQTT discovery."""
 
-    publish_feature_types: ClassVar[List[str]] = ["METER"]
-
-    def _get_via_device(self, feature: EastronMeter) -> Optional[str]:
+    def _get_via_device(self, feature: Eastron) -> Optional[str]:
         if (device_name := self.config.device_info.name) != self._get_device_name(feature):
             return device_name
 
         return None
 
-    def _get_device_name(self, feature: EastronMeter) -> str:
+    def _get_device_name(self, feature: Eastron) -> str:
         suggested_area: Optional[str] = feature.hardware.definition.suggested_area
         device_name: str = self.config.device_info.name
         definition: HardwareDefinition = feature.hardware.definition
@@ -50,8 +40,8 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
 
         return device_name
 
-    def get_discovery(self, feature: Union[EastronMeter]) -> Tuple[str, Dict[str, Any]]:
-        """Get Mqtt topic and message for publish with mqtt.
+    def get_discovery(self, feature: Union[Eastron]) -> Tuple[str, Dict[str, Any]]:
+        """Get MQTT topic and message for publish with mqtt.
 
         Parameters
         ----------
@@ -109,29 +99,10 @@ class HassSensorsDiscovery(HassDiscoveryMixin):
 
         return topic, message
 
-    async def publish(self) -> None:
+    async def publish(self, feature: Eastron) -> None:
         """Publish MQTT Home Assistant discovery topics for sensors."""
-        for feature in self.neuron.features.by_feature_types(self.publish_feature_types):
-            if isinstance(feature, EastronMeter):
-                topic, message = self.get_discovery(feature)
-                json_data: str = json.dumps(message)
-                await self.mqtt_client.publish(topic=topic, payload=json_data, qos=2, retain=True)
-                UNIPI_LOGGER.debug(LOG_MQTT_PUBLISH, topic, json_data)
-
-
-class HassSensorsMqttPlugin:
-    """Provide Home Assistant MQTT commands for sensors."""
-
-    def __init__(self, neuron: Neuron, mqtt_client: Client) -> None:
-        self.hass = HassSensorsDiscovery(neuron, mqtt_client)
-
-    async def init_tasks(self, tasks: Set[Task]) -> None:
-        """Initialize MQTT tasks for publish MQTT topics.
-
-        Parameters
-        ----------
-        tasks: set
-            A set of all MQTT tasks.
-        """
-        task: Task = asyncio.create_task(self.hass.publish())
-        tasks.add(task)
+        if isinstance(feature, Eastron):
+            topic, message = self.get_discovery(feature)
+            json_data: str = json.dumps(message)
+            await self.client.publish(topic=topic, payload=json_data, qos=2, retain=True)
+            UNIPI_LOGGER.debug(LOG_MQTT_PUBLISH, topic, json_data)

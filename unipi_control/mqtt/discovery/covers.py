@@ -18,18 +18,18 @@ from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.text import slugify
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 
 class HassCoversDiscovery:
     """Provide the covers as Home Assistant MQTT discovery."""
 
-    def __init__(self, covers: CoverMap, neuron: Neuron, mqtt_client: Client) -> None:
+    def __init__(self, covers: CoverMap, unipi: Unipi, mqtt_client: Client) -> None:
         self.mqtt_client: Client = mqtt_client
         self.covers: CoverMap = covers
 
-        self.config: Config = neuron.config
-        self.hardware: HardwareMap = neuron.hardware
+        self.config: Config = unipi.config
+        self.hardware: HardwareMap = unipi.hardware
 
     def get_discovery(self, cover: Cover) -> Tuple[str, Dict[str, Any]]:
         """Get MQTT topic and message for publish with MQTT.
@@ -92,8 +92,8 @@ class HassCoversDiscovery:
 class HassCoversMqttPlugin:
     """Provide Home Assistant MQTT commands for covers."""
 
-    def __init__(self, neuron: Neuron, mqtt_client: Client, covers: CoverMap) -> None:
-        self.hass = HassCoversDiscovery(covers, neuron, mqtt_client)
+    def __init__(self, unipi: Unipi, mqtt_client: Client, covers: CoverMap) -> None:
+        self.hass = HassCoversDiscovery(covers, unipi, mqtt_client)
 
     async def init_tasks(self, tasks: Set[Task]) -> None:
         """Initialize MQTT tasks for publish MQTT topics.

@@ -20,14 +20,14 @@ from tests.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import Config
 from unipi_control.config import HardwareType
 from unipi_control.helpers.typing import ModbusClient
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 
 class TestUnhappyPathModbus:
     @pytest.mark.parametrize(
         "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    def test_modbus_error(self, neuron: Neuron, caplog: LogCaptureFixture) -> None:
+    def test_modbus_error(self, neuron: Unipi, caplog: LogCaptureFixture) -> None:
         """Test modbus error logging if read register failed."""
         neuron.modbus_cache_data.get_register(index=3, address=0, unit=1)
         logs: List[str] = [record.getMessage() for record in caplog.records]
@@ -78,9 +78,9 @@ class TestUnhappyPathModbus:
         mock_hardware_info.return_value = MockHardwareInfo()
 
         modbus_client = ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
-        neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+        neuron: Unipi = Unipi(config=config, modbus_client=modbus_client)
 
-        await neuron.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.NEURON])
+        await neuron.modbus_cache_data.scan("tcp", hardware_types=[HardwareType.PLC])
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
 

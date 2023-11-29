@@ -16,7 +16,7 @@ from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.helpers.typing import ModbusClient
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 if TYPE_CHECKING:
     from unipi_control.config import Config
@@ -48,7 +48,7 @@ class TestUnhappyPathNeuron:
         mock_hardware_info.return_value = MockHardwareInfo()
 
         modbus_client = ModbusClient(tcp=mock_modbus_tcp_client, serial=mock_modbus_tcp_client)
-        neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+        neuron: Unipi = Unipi(config=config, modbus_client=modbus_client)
 
         await neuron.read_boards()
 

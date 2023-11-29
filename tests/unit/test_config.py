@@ -52,7 +52,7 @@ from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.exception import ConfigError
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.typing import ModbusClient
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 
 class LoggingLevelParams(NamedTuple):
@@ -210,7 +210,7 @@ class TestHappyPathConfig:
         config: Config = config_loader.get_config()
         config.logging.init()
 
-        neuron: Neuron = Neuron(config=config, modbus_client=modbus_client)
+        neuron: Unipi = Unipi(config=config, modbus_client=modbus_client)
         await neuron.init()
 
         logs: List[str] = [record.getMessage() for record in caplog.records]
@@ -371,7 +371,7 @@ class TestUnhappyPathConfig:
         config: Config = config_loader.get_config()
 
         with pytest.raises(ConfigError) as error:
-            Neuron(config=config, modbus_client=modbus_client)
+            Unipi(config=config, modbus_client=modbus_client)
 
         assert str(error.value) == f"[CONFIG] Definition is invalid: {config_loader.hardware_data_file}{expected}"
 
@@ -401,7 +401,7 @@ class TestUnhappyPathConfig:
         config: Config = config_loader.get_config()
 
         with pytest.raises(ConfigError) as error:
-            Neuron(config=config, modbus_client=modbus_client)
+            Unipi(config=config, modbus_client=modbus_client)
 
         assert (
             str(error.value)
@@ -451,6 +451,6 @@ class TestUnhappyPathConfig:
         config: Config = config_loader.get_config()
 
         with pytest.raises(ConfigError) as error:
-            Neuron(config=config, modbus_client=modbus_client)
+            Unipi(config=config, modbus_client=modbus_client)
 
         assert str(error.value) == expected

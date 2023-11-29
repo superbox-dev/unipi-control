@@ -18,7 +18,7 @@ from tests.conftest_data import HARDWARE_DATA_CONTENT
 from unipi_control.config import DEVICE_CLASSES
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.mqtt.discovery.covers import HassCoversMqttPlugin
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 
 class TestHappyPathHassCoversMqttPlugin:
@@ -26,11 +26,11 @@ class TestHappyPathHassCoversMqttPlugin:
     @pytest.mark.parametrize(
         "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    async def test_init_tasks(self, neuron: Neuron, covers: CoverMap, caplog: LogCaptureFixture) -> None:
+    async def test_init_tasks(self, neuron: Unipi, covers: CoverMap, caplog: LogCaptureFixture) -> None:
         """Test MQTT output after initialize Home Assistant covers."""
         covers.init()
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-        plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
+        plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(unipi=neuron, mqtt_client=mock_mqtt_client, covers=covers)
 
         tasks: Set[Task] = set()
 
@@ -143,11 +143,11 @@ class TestHappyPathHassCoversMqttPlugin:
         ],
         indirect=["config_loader"],
     )
-    def test_discovery_message(self, neuron: Neuron, covers: CoverMap, expected: List[Dict[str, Any]]) -> None:
+    def test_discovery_message(self, neuron: Unipi, covers: CoverMap, expected: List[Dict[str, Any]]) -> None:
         """Test MQTT topic and message when publish a feature."""
         covers.init()
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
-        plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client, covers=covers)
+        plugin: HassCoversMqttPlugin = HassCoversMqttPlugin(unipi=neuron, mqtt_client=mock_mqtt_client, covers=covers)
 
         for index, cover in enumerate(covers.by_device_classes(DEVICE_CLASSES)):
             topic, message = plugin.hass.get_discovery(cover)

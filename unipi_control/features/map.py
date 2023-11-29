@@ -1,7 +1,7 @@
 """Feature mapping for all input and output features."""
 
 import itertools
-from typing import Dict, TYPE_CHECKING
+from typing import Dict
 from typing import Iterable
 from typing import Iterator
 from typing import List
@@ -10,23 +10,22 @@ from typing import Optional
 from typing import Union
 
 from unipi_control.config import LogPrefix
-from unipi_control.features.extensions import EastronMeter
-from unipi_control.features.neuron import DigitalInput
-from unipi_control.features.neuron import DigitalOutput
-from unipi_control.features.neuron import Led
-from unipi_control.features.neuron import Relay
+from unipi_control.features.eastron import Eastron
+from unipi_control.features.unipi import DigitalInput
+from unipi_control.features.unipi import DigitalOutput
+from unipi_control.features.unipi import Led
+from unipi_control.features.unipi import Relay
 from unipi_control.helpers.exception import ConfigError
 
-if TYPE_CHECKING:
-    from unipi_control.features.utils import FeatureType
+from unipi_control.features.utils import FeatureType
 
 
-class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]]):
+class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]]]):
     def __init__(self) -> None:
-        self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]] = {}
+        self.data: Dict[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]]] = {}
 
-    def __getitem__(self, key: str) -> List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]:
-        data: List[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]] = self.data[key]
+    def __getitem__(self, key: str) -> List[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]]:
+        data: List[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]] = self.data[key]
         return data
 
     def __iter__(self) -> Iterator[str]:
@@ -40,7 +39,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
 
         return _length
 
-    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]) -> None:
+    def register(self, feature: Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]) -> None:
         """Add a feature to the data storage.
 
         Parameters
@@ -56,8 +55,8 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         self.data[feature_type.short_name].append(feature)
 
     def by_feature_id(
-        self, feature_id: str, feature_types: Optional[List[str]] = None
-    ) -> Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]:
+        self, feature_id: str, feature_types: Optional[List[FeatureType]] = None
+    ) -> Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]:
         """Get feature by object id.
 
         Parameters
@@ -76,7 +75,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         ConfigError
             Get an exception if feature type not found.
         """
-        data: Iterable[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]] = itertools.chain.from_iterable(
+        data: Iterable[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]] = itertools.chain.from_iterable(
             self.values()
         )
 
@@ -84,7 +83,7 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
             data = self.by_feature_types(feature_types)
 
         try:
-            features: Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter] = next(
+            features: Union[DigitalInput, DigitalOutput, Led, Relay, Eastron] = next(
                 d for d in data if d.feature_id == feature_id
             )
         except StopIteration as error:
@@ -94,8 +93,8 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
         return features
 
     def by_feature_types(
-        self, feature_types: List[str]
-    ) -> Iterator[Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]]:
+        self, feature_types: List[FeatureType]
+    ) -> Iterator[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]]:
         """Filter features by feature type.
 
         Parameters
@@ -109,5 +108,5 @@ class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay
             A list of features filtered by feature type.
         """
         return itertools.chain.from_iterable(
-            [item for item in (self.get(feature_type) for feature_type in feature_types) if item is not None]
+            [item for item in (self.get(feature_type.name) for feature_type in feature_types) if item is not None]
         )

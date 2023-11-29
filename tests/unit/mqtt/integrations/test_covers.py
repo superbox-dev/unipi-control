@@ -19,7 +19,7 @@ from tests.unit.mqtt.integrations.test_covers_data import CONFIG_CONTENT
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
 from unipi_control.integrations.covers import CoverState
-from unipi_control.mqtt.integrations.covers import CoversMqttPlugin
+from unipi_control.mqtt.integrations.covers import CoversMqttHelper
 
 
 async def init_tasks(covers: CoverMap, mqtt_messages: List[MockMQTTMessages], subscribe_running: List[bool]) -> None:
@@ -41,10 +41,10 @@ async def init_tasks(covers: CoverMap, mqtt_messages: List[MockMQTTMessages], su
     mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
     mock_mqtt_client.filtered_messages.return_value = mock_mqtt_messages
 
-    CoversMqttPlugin.PUBLISH_RUNNING = PropertyMock(side_effect=[True, False])
-    CoversMqttPlugin.SUBSCRIBE_RUNNING = PropertyMock(side_effect=subscribe_running)
+    CoversMqttHelper.PUBLISH_RUNNING = PropertyMock(side_effect=[True, False])
+    CoversMqttHelper.SUBSCRIBE_RUNNING = PropertyMock(side_effect=subscribe_running)
 
-    plugin: CoversMqttPlugin = CoversMqttPlugin(mqtt_client=mock_mqtt_client, covers=covers)
+    plugin: CoversMqttHelper = CoversMqttHelper(client=mock_mqtt_client, covers=covers)
 
     async with AsyncExitStack() as stack:
         tasks: Set[Task] = set()

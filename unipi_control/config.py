@@ -463,7 +463,7 @@ class Config(ConfigLoaderMixin):
 
     @cached_property
     def hardware_dir(self) -> Path:
-        """Return hardware path to neuron devices and extensions."""
+        """Return hardware path to Unipi devices and extensions."""
         return self.config_base_dir / "hardware"
 
     def __post_init__(self) -> None:
@@ -584,7 +584,7 @@ class HardwareInfo:
 
 
 class HardwareType:
-    NEURON: Final[str] = "Neuron"
+    PLC: Final[str] = "PLC"
     EXTENSION: Final[str] = "Extension"
 
 
@@ -599,7 +599,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
             msg = "Hardware is not supported!"
             raise ConfigError(msg)
 
-        self._read_neuron_definition()
+        self._read_plc_definition()
         self._read_extension_definitions()
 
     def __getitem__(self, key: str) -> HardwareDefinition:
@@ -612,16 +612,16 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
     def __len__(self) -> int:
         return len(self.data)
 
-    def _read_neuron_definition(self) -> None:
+    def _read_plc_definition(self) -> None:
         definition_file: Path = Path(f"{self.config.hardware_dir}/neuron/{self.info.model}.yaml")
 
         if definition_file.is_file():
             try:
                 yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
 
-                self.data["neuron"] = HardwareDefinition(
+                self.data[HardwareType.PLC] = HardwareDefinition(
                     unit=0,
-                    hardware_type=HardwareType.NEURON,
+                    hardware_type=HardwareType.PLC,
                     device_name=None,
                     suggested_area=None,
                     manufacturer=None,
@@ -653,7 +653,7 @@ class HardwareMap(Mapping[str, HardwareDefinition]):
                 )
 
                 for unit in units:
-                    self.data[f"modbus_rtu_{unit.unit}"] = HardwareDefinition(
+                    self.data[f"{HardwareType.EXTENSION}_{unit.unit}"] = HardwareDefinition(
                         unit=unit.unit,
                         hardware_type=HardwareType.EXTENSION,
                         device_name=unit.device_name,

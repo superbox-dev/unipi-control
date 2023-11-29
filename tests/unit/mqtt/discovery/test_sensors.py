@@ -19,16 +19,16 @@ from tests.conftest_data import CONFIG_CONTENT
 from tests.conftest_data import EXTENSION_HARDWARE_DATA_CONTENT
 from tests.conftest_data import HARDWARE_DATA_CONTENT
 from tests.unit.mqtt.discovery.test_sensors_data import discovery_message_expected
-from unipi_control.features.extensions import EastronMeter
+from unipi_control.features.eastron import Eastron
 from unipi_control.mqtt.discovery.sensors import HassSensorsDiscovery
 from unipi_control.mqtt.discovery.sensors import HassSensorsMqttPlugin
-from unipi_control.neuron import Neuron
+from unipi_control.devices.unipi import Unipi
 
 if TYPE_CHECKING:
-    from unipi_control.features.neuron import DigitalInput
-    from unipi_control.features.neuron import DigitalOutput
-    from unipi_control.features.neuron import Led
-    from unipi_control.features.neuron import Relay
+    from unipi_control.features.unipi import DigitalInput
+    from unipi_control.features.unipi import DigitalOutput
+    from unipi_control.features.unipi import Led
+    from unipi_control.features.unipi import Relay
 
 
 class TestHappyPathHassSensorsMqttPlugin:
@@ -36,8 +36,8 @@ class TestHappyPathHassSensorsMqttPlugin:
     @pytest.mark.parametrize(
         "config_loader", [(CONFIG_CONTENT, HARDWARE_DATA_CONTENT, EXTENSION_HARDWARE_DATA_CONTENT)], indirect=True
     )
-    async def test_init_tasks(self, neuron: Neuron, caplog: LogCaptureFixture) -> None:
-        """Test mqtt output after initialize Home Assistant sensors."""
+    async def test_init_tasks(self, neuron: Unipi, caplog: LogCaptureFixture) -> None:
+        """Test MQTT output after initialize Home Assistant sensors."""
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassSensorsMqttPlugin = HassSensorsMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
 
@@ -563,16 +563,16 @@ class TestHappyPathHassSensorsMqttPlugin:
         ],
         indirect=["config_loader"],
     )
-    def test_discovery_message(self, neuron: Neuron, expected: List[Dict[str, Any]]) -> None:
+    def test_discovery_message(self, neuron: Unipi, expected: List[Dict[str, Any]]) -> None:
         """Test mqtt topic and message when publish a feature."""
         mock_mqtt_client: AsyncMock = AsyncMock(spec=Client)
         plugin: HassSensorsMqttPlugin = HassSensorsMqttPlugin(neuron=neuron, mqtt_client=mock_mqtt_client)
-        features: Iterator[
-            Union[DigitalInput, DigitalOutput, Led, Relay, EastronMeter]
-        ] = neuron.features.by_feature_types(HassSensorsDiscovery.publish_feature_types)
+        features: Iterator[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]] = neuron.features.by_feature_types(
+            HassSensorsDiscovery.publish_feature_types
+        )
 
         for index, feature in enumerate(features):
-            if isinstance(feature, EastronMeter):
+            if isinstance(feature, Eastron):
                 topic, message = plugin.hass.get_discovery(feature)
 
                 assert message == expected[index]["message"]

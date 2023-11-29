@@ -27,14 +27,14 @@ from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.features.map import FeatureMap
-from unipi_control.features.neuron import DigitalOutput
-from unipi_control.features.neuron import NeuronFeature
-from unipi_control.features.neuron import Relay
+from unipi_control.features.unipi import DigitalOutput
+from unipi_control.features.unipi import UnipiFeature
+from unipi_control.features.unipi import Relay
 from unipi_control.helpers.text import slugify
 
 if TYPE_CHECKING:
     from pymodbus.pdu import ModbusResponse
-    from unipi_control.features.extensions import EastronMeter
+    from unipi_control.features.eastron import Eastron
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
 
@@ -443,11 +443,11 @@ class Cover:
 
         if (self.calibration.mode is True and calibrate) or self.calibration.mode is False:
             self._update_position()
-            response: Optional[ModbusResponse] = await self.settings.cover_down_feature.set_state(False)
+            response: Optional[ModbusResponse] = self.settings.cover_down_feature.set_state(False)
             self._stop_timer()
 
             if response:
-                await self.settings.cover_up_feature.set_state(True)
+                self.settings.cover_up_feature.set_state(True)
 
                 self.current.device_state = CoverDeviceState.OPEN
                 self.status.state = CoverState.OPENING
@@ -504,11 +504,11 @@ class Cover:
 
         if self.calibration.mode is False:
             self._update_position()
-            response: Optional[ModbusResponse] = await self.settings.cover_up_feature.set_state(False)
+            response: Optional[ModbusResponse] = self.settings.cover_up_feature.set_state(False)
             self._stop_timer()
 
             if response:
-                await self.settings.cover_down_feature.set_state(True)
+                self.settings.cover_down_feature.set_state(True)
 
                 self.current.device_state = CoverDeviceState.CLOSE
                 self.status.state = CoverState.CLOSING
@@ -553,8 +553,8 @@ class Cover:
                 self.status.position = CoverState.CLOSED_IN_PERCENT
                 return
 
-        await self.settings.cover_down_feature.set_state(False)
-        await self.settings.cover_up_feature.set_state(False)
+        self.settings.cover_down_feature.set_state(False)
+        self.settings.cover_up_feature.set_state(False)
 
         await self._write_position()
         self._stop_timer()
@@ -567,11 +567,11 @@ class Cover:
 
         if self.status.tilt is not None and self.settings.tilt_change_time:
             self._update_position()
-            response: Optional[ModbusResponse] = await self.settings.cover_down_feature.set_state(False)
+            response: Optional[ModbusResponse] = self.settings.cover_down_feature.set_state(False)
             self._stop_timer()
 
             if response:
-                await self.settings.cover_up_feature.set_state(True)
+                self.settings.cover_up_feature.set_state(True)
 
                 self.current.device_state = CoverDeviceState.OPEN
                 self.status.state = CoverState.OPENING
@@ -591,11 +591,11 @@ class Cover:
 
         if self.status.tilt is not None and self.settings.tilt_change_time:
             self._update_position()
-            response: Optional[ModbusResponse] = await self.settings.cover_up_feature.set_state(False)
+            response: Optional[ModbusResponse] = self.settings.cover_up_feature.set_state(False)
             self._stop_timer()
 
             if response:
-                await self.settings.cover_down_feature.set_state(True)
+                self.settings.cover_down_feature.set_state(True)
 
                 self.current.device_state = CoverDeviceState.CLOSE
                 self.status.state = CoverState.CLOSING
@@ -693,8 +693,8 @@ class CoverMap(Mapping[str, List[Cover]]):
     def init(self) -> None:
         """Initialize covers from covers config."""
         for cover in self.config.covers:
-            cover_up_feature: Union[NeuronFeature, EastronMeter] = self.features.by_feature_id(cover.cover_up)
-            cover_down_feature: Union[NeuronFeature, EastronMeter] = self.features.by_feature_id(cover.cover_down)
+            cover_up_feature: Union[UnipiFeature, Eastron] = self.features.by_feature_id(cover.cover_up)
+            cover_down_feature: Union[UnipiFeature, Eastron] = self.features.by_feature_id(cover.cover_down)
 
             if isinstance(cover_up_feature, (DigitalOutput, Relay)) and isinstance(
                 cover_down_feature, (DigitalOutput, Relay)

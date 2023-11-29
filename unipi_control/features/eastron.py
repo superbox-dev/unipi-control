@@ -2,8 +2,7 @@
 
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable
-from typing import Iterable
+from typing import Callable, List
 from typing import Optional
 from typing import Union
 
@@ -15,45 +14,45 @@ from unipi_control.config import FeatureConfig
 from unipi_control.features.utils import FeatureType
 from unipi_control.helpers.text import slugify
 from unipi_control.helpers.typing import HardwareDefinition
-from unipi_control.modbus import ModbusCacheData
+from unipi_control.modbus.helper import ModbusHelper
 
 
 @dataclass
-class Modbus:
-    cache: ModbusCacheData
+class EastronModbus:
+    helper: ModbusHelper
     val_reg: int
 
 
 @dataclass
-class Hardware:
+class EastronHardware:
     feature_type: FeatureType
     definition: HardwareDefinition
     version: Optional[str] = None
 
 
 @dataclass
-class MeterProps:
+class EastronProps:
     friendly_name: str
     device_class: Optional[str] = None
     state_class: Optional[str] = None
     unit_of_measurement: Optional[str] = None
 
 
-class EastronMeter:
+class Eastron:
     def __init__(
         self,
         config: Config,
-        modbus: Modbus,
-        hardware: Hardware,
-        props: MeterProps,
+        modbus: EastronModbus,
+        hardware: EastronHardware,
+        props: EastronProps,
     ) -> None:
         self.config: Config = config
-        self.hardware: Hardware = hardware
-        self.props: MeterProps = props
+        self.hardware: EastronHardware = hardware
+        self.props: EastronProps = props
 
         self.features_config: Optional[FeatureConfig] = config.features.get(self.feature_id)
 
-        self._reg_value: Callable[..., Iterable[int]] = lambda: modbus.cache.get_register(
+        self._reg_value: Callable[..., List[Optional[int]]] = lambda: modbus.helper.get_register(
             address=modbus.val_reg, index=2, unit=hardware.definition.unit
         )
         self.saved_value: Optional[Union[float, int]] = None
@@ -69,18 +68,18 @@ class EastronMeter:
     @property
     def value(self) -> Optional[float]:
         """Return Eastron meter value."""
-        _reg_value: Iterable[int] = self._reg_value()
+        reg_value: List[Optional[int]] = self._reg_value()
 
         return (
             round(
                 float(
                     BinaryPayloadDecoder.fromRegisters(  # type: ignore[no-untyped-call]
-                        _reg_value, byteorder=Endian.BIG, wordorder=Endian.BIG
+                        reg_value, byteorder=Endian.BIG, wordorder=Endian.BIG
                     ).decode_32bit_float()
                 ),
                 2,
             )
-            if _reg_value
+            if reg_value
             else None
         )
 

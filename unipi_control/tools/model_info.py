@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def main() -> None:
-    """Tiny script to detect the Unipi Neuron model."""
+    """Tiny script to detect the Unipi PLC model."""
     unipi_1_file: Path = Path("/sys/bus/i2c/devices/1-0050/eeprom")
     unipi_patron_file: Path = Path("/sys/bus/i2c/devices/2-0057/eeprom")
     unipi_neuron_1_file: Path = Path("/sys/bus/i2c/devices/1-0057/eeprom")

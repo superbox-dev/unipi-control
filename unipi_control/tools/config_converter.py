@@ -54,7 +54,7 @@ class UnipiConfigConverter:
 
         for modbus_register_block in source_yaml["modbus_register_blocks"]:
             _modbus_register_block: Dict[str, Any] = {
-                "slave": modbus_register_block["board_index"],
+                "unit": modbus_register_block["board_index"],
                 "start_reg": modbus_register_block["start_reg"],
                 "count": modbus_register_block["count"],
             }

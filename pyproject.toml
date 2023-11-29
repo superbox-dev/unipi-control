@@ -96,6 +96,7 @@ line-length = 120
 select = ["ALL"]
 ignore = [
     "ANN101",  # missing-type-self
+    "ANN102",  # missing-type-cls
     "ANN002",  # missing-type-args
     "ANN003",  # missing-type-kwargs
     "COM",     # trailing-comma
