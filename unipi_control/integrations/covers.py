@@ -20,6 +20,7 @@ from typing import Optional
 from typing import TYPE_CHECKING
 from typing import Union
 
+from unipi_control.helpers.decorators import run_in_executor
 from unipi_control.config import Config
 from unipi_control.config import LogPrefix
 from unipi_control.config import UNIPI_LOGGER
@@ -34,18 +35,6 @@ if TYPE_CHECKING:
     from unipi_control.features.eastron import Eastron
 
 ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
-
-
-def run_in_executor(_func: Callable[..., Any]) -> Callable[..., Any]:
-    """Run blocking code async."""
-
-    @functools.wraps(_func)
-    def wrapped(*args, **kwargs) -> Future:  # type: ignore[no-untyped-def]
-        loop = asyncio.get_running_loop()
-        func = functools.partial(_func, *args, **kwargs)
-        return loop.run_in_executor(executor=None, func=func)
-
-    return wrapped
 
 
 class CoverSettings(NamedTuple):
