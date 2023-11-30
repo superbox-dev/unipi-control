@@ -1,11 +1,8 @@
 """Initialize MQTT subscribe and publish for Home Assistant covers."""
 
-import asyncio
 import json
-from asyncio import Task
 from typing import Any
 from typing import Dict
-from typing import Set
 from typing import Tuple
 
 from aiomqtt import Client
@@ -87,21 +84,3 @@ class HassCoversDiscovery:
             json_data: str = json.dumps(message)
             await self.mqtt_client.publish(topic=topic, payload=json_data, qos=2, retain=True)
             UNIPI_LOGGER.debug(LOG_MQTT_PUBLISH, topic, json_data)
-
-
-class HassCoversMqttPlugin:
-    """Provide Home Assistant MQTT commands for covers."""
-
-    def __init__(self, unipi: Unipi, mqtt_client: Client, covers: CoverMap) -> None:
-        self.hass = HassCoversDiscovery(covers, unipi, mqtt_client)
-
-    async def init_tasks(self, tasks: Set[Task]) -> None:
-        """Initialize MQTT tasks for publish MQTT topics.
-
-        Parameters
-        ----------
-        tasks: set
-            A set of all MQTT tasks.
-        """
-        task: Task = asyncio.create_task(self.hass.publish())
-        tasks.add(task)
