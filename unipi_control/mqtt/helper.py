@@ -113,7 +113,7 @@ class MqttHelper:
                     covers_mqtt_helper = CoversMqttHelper(
                         client=mqtt_client, covers=covers, scan_interval=self.fast_scan_invertal
                     )
-                    await covers_mqtt_helper.init(tasks=tasks)
+                    covers_mqtt_helper.init(tasks=tasks)
 
                     await asyncio.gather(*tasks)
             except MqttError as error:

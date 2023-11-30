@@ -3,7 +3,6 @@ import asyncio
 import re
 from asyncio import Queue
 from asyncio import Task
-from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import NamedTuple
@@ -115,7 +114,7 @@ class CoversMqttHelper:
                 cover.calibrate()
             await asyncio.sleep(self.scan_interval)
 
-    async def init(self, tasks: Set[Task]) -> None:
+    def init(self, tasks: Set[Task]) -> None:
         """Initialize covers MQTT subscribe and publish."""
         tasks.add(asyncio.create_task(self._subscribe()))
         tasks.add(asyncio.create_task(self._publish()))
@@ -131,8 +130,8 @@ class CoversMqttHelper:
                 UNIPI_LOGGER.info("%s [%s] [Worker] %s task(s) in queue.", LogPrefix.COVER, cover.topic, queue.qsize())
 
             subscribe_queue: SubscribeCommand = await queue.get()
-            command: Callable[[int], Awaitable[Optional[float]]] = getattr(cover, subscribe_queue.command)
-            cover_run_time: Optional[float] = await command(subscribe_queue.value)
+            command: Callable[[int], Optional[float]] = getattr(cover, subscribe_queue.command)
+            cover_run_time: Optional[float] = command(subscribe_queue.value)
 
             if LOG_LEVEL[self.config.logging.mqtt.covers_level] <= LOG_LEVEL["info"]:
                 UNIPI_LOGGER.log(
