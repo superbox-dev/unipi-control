@@ -3,9 +3,7 @@
 import argparse
 import asyncio
 import sys
-from asyncio import Task
 from pathlib import Path
-from typing import Set
 
 from pymodbus.client.serial import ModbusSerialClient
 from pymodbus.client.tcp import ModbusTcpClient
@@ -76,12 +74,11 @@ class UnipiControl:
         modbus_helper: ModbusHelper = self.unipi.init()
         mqtt_helper: MqttHelper = MqttHelper(unipi=self.unipi)
 
-        tasks: Set[Task] = set()
-
-        tasks.add(asyncio.create_task(modbus_helper.scan_tcp()))
-        tasks.add(asyncio.create_task(modbus_helper.scan_serial()))
-        tasks.add(asyncio.create_task(mqtt_helper.run()))
-        await asyncio.gather(*tasks)
+        await asyncio.gather(
+            asyncio.create_task(modbus_helper.scan_tcp()),
+            asyncio.create_task(modbus_helper.scan_serial()),
+            asyncio.create_task(mqtt_helper.run()),
+        )
 
 
 def main(argv: Optional[List[str]] = None) -> None:
