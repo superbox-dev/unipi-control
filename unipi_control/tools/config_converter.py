@@ -14,7 +14,7 @@ from typing import Optional
 from unipi_control import __version__  # type: ignore[attr-defined]
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.argparse import init_argparse
-from unipi_control.helpers.exception import UnexpectedError
+from unipi_control.helpers.exceptions import UnexpectedError
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.yaml import yaml_dumper
 from unipi_control.helpers.yaml import yaml_loader_safe

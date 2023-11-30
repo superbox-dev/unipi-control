@@ -25,8 +25,8 @@ from typing import Union
 
 from aiomqtt.client import MQTT_LOGGER
 
-from unipi_control.helpers.exception import ConfigError
-from unipi_control.helpers.exception import YamlError
+from unipi_control.helpers.exceptions import ConfigError
+from unipi_control.helpers.exceptions import YamlError
 from unipi_control.helpers.log import LOG_FORMAT
 from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import LOG_NAME

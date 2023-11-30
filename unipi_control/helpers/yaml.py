@@ -6,7 +6,7 @@ from typing import Dict
 
 import yaml
 
-from unipi_control.helpers.exception import YamlError
+from unipi_control.helpers.exceptions import YamlError
 
 
 class Dumper(yaml.Dumper):

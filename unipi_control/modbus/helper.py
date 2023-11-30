@@ -15,7 +15,7 @@ from unipi_control.config import HardwareMap
 from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
 from unipi_control.config import UNIPI_LOGGER
-from unipi_control.helpers.exception import UnexpectedError
+from unipi_control.helpers.exceptions import UnexpectedError
 from unipi_control.helpers.typing import ModbusClient
 from unipi_control.helpers.typing import ModbusReadData
 from unipi_control.helpers.typing import ModbusWriteData

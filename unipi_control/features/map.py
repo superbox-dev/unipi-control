@@ -15,7 +15,7 @@ from unipi_control.features.unipi import DigitalInput
 from unipi_control.features.unipi import DigitalOutput
 from unipi_control.features.unipi import Led
 from unipi_control.features.unipi import Relay
-from unipi_control.helpers.exception import ConfigError
+from unipi_control.helpers.exceptions import ConfigError
 
 from unipi_control.features.utils import FeatureType
 

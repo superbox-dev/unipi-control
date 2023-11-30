@@ -16,7 +16,7 @@ from unipi_control.config import DEFAULT_CONFIG_DIR
 from unipi_control.config import LoggingConfig
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.argparse import init_argparse
-from unipi_control.helpers.exception import UnexpectedError
+from unipi_control.helpers.exceptions import UnexpectedError
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 
 

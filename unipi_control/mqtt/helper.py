@@ -20,7 +20,7 @@ from unipi_control.features.unipi import DigitalOutput
 from unipi_control.features.unipi import Led
 from unipi_control.features.unipi import Relay
 from unipi_control.features.utils import FeatureType
-from unipi_control.helpers.exception import UnexpectedError
+from unipi_control.helpers.exceptions import UnexpectedError
 from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.log import LOG_MQTT_SUBSCRIBE
