@@ -112,7 +112,7 @@ class CoversMqttHelper:
                             msg=LOG_MQTT_PUBLISH % (state_topic, cover.state),
                         )
 
-                await cover.calibrate()
+                cover.calibrate()
             await asyncio.sleep(self.scan_interval)
 
     async def init(self, tasks: Set[Task]) -> None:
@@ -159,9 +159,9 @@ class CoversMqttHelper:
         await self._clear_queue(cover)
 
         if value == CoverDeviceState.OPEN:
-            await cover.open_cover()
+            cover.open_cover()
         elif value == CoverDeviceState.CLOSE:
-            await cover.close_cover()
+            cover.close_cover()
         elif value == CoverDeviceState.STOP:
             await cover.stop_cover()
 
