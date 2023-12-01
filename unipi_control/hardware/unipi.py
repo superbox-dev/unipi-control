@@ -2,22 +2,25 @@
 
 from typing import List
 from typing import Optional
+from typing import TYPE_CHECKING
 
 from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
-from unipi_control.config import HardwareMap
-from unipi_control.config import HardwareType
+from unipi_control.hardware.map import HardwareMap
+from unipi_control.hardware.constants import HardwareType
 from unipi_control.config import LogPrefix
 from unipi_control.config import UNIPI_LOGGER
-from unipi_control.devices.unipi_board import UnipiBoard
-from unipi_control.devices.unipi_board import UnipiBoardConfig
-from unipi_control.devices.eastron import EastronSDM120M
+from unipi_control.hardware.unipi_board import UnipiBoard
+from unipi_control.hardware.unipi_board import UnipiBoardConfig
+from unipi_control.hardware.eastron import EastronSDM120M
 from unipi_control.features.map import FeatureMap
-from unipi_control.helpers.typing import ModbusClient
-from unipi_control.helpers.typing import ModbusReadData
-from unipi_control.modbus.helper import check_modbus_call
-from unipi_control.modbus.helper import ModbusHelper
+from unipi_control.modbus.helpers import ModbusClient
+from unipi_control.modbus.helpers import check_modbus_call
+from unipi_control.modbus.helpers import ModbusHelper
+
+if TYPE_CHECKING:
+    from unipi_control.modbus.helpers import ModbusReadData
 
 
 class Unipi:

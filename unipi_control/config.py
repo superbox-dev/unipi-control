@@ -4,7 +4,6 @@ import dataclasses
 import logging
 import re
 import socket
-import struct
 import typing
 from dataclasses import dataclass
 from dataclasses import field
@@ -16,7 +15,6 @@ from typing import Dict
 from typing import Final
 from typing import Iterator
 from typing import List
-from typing import Mapping
 from typing import NamedTuple
 from typing import Optional
 from typing import Tuple
@@ -32,7 +30,6 @@ from unipi_control.helpers.log import LOG_LEVEL
 from unipi_control.helpers.log import LOG_NAME
 from unipi_control.helpers.log import SIMPLE_LOG_FORMAT
 from unipi_control.helpers.log import SystemdHandler
-from unipi_control.helpers.typing import HardwareDefinition
 from unipi_control.helpers.yaml import yaml_loader_safe
 
 UNIPI_LOGGER: logging.Logger = logging.getLogger(LOG_NAME)
@@ -287,6 +284,7 @@ class ModbusUnitConfig(ConfigLoaderMixin):
 class ModbusTCPConfig(ConfigLoaderMixin):
     host: str = field(default="localhost")
     port: int = field(default=502)
+    scan_interval: float = field(default=0.02)
 
 
 @dataclass
@@ -294,6 +292,7 @@ class ModbusSerialConfig(ConfigLoaderMixin):
     port: str = field(default="/dev/extcomm/0/0")
     baud_rate: int = field(default=2400)
     parity: str = field(default="N")
+    scan_interval: float = field(default=0.02)
     units: List[ModbusUnitConfig] = field(init=False, default_factory=list)
 
     def get_units_by_identifier(self, identifier: str) -> Iterator[ModbusUnitConfig]:
@@ -524,168 +523,3 @@ class Config(ConfigLoaderMixin):
                 raise ConfigError(msg)
 
             object_ids.append(cover.object_id)
-
-
-@dataclass
-class HardwareInfo:
-    sys_bus_dir: Path
-    name: str = field(default="unknown")
-    model: str = field(default="unknown", init=False)
-    version: str = field(default="unknown", init=False)
-    serial: str = field(default="unknown", init=False)
-
-    def __post_init__(self) -> None:  # pragma: no cover
-        # Can't unit testing the hardware info.
-        # This code only works on the real hardware!
-        unipi_1_file: Path = self.sys_bus_dir / "1-0050/eeprom"
-        unipi_patron_file: Path = self.sys_bus_dir / "2-0057/eeprom"
-        unipi_neuron_1_file: Path = self.sys_bus_dir / "1-0057/eeprom"
-        unipi_neuron_0_file: Path = self.sys_bus_dir / "0-0057/eeprom"
-
-        if unipi_1_file.is_file():
-            with unipi_1_file.open("rb") as _file:
-                ee_bytes = _file.read(256)
-
-                if ee_bytes[226] == 1 and ee_bytes[227] == 1:
-                    self.name = "Unipi"
-                    self.version = "1.1"
-                elif ee_bytes[226] == 11 and ee_bytes[227] == 1:
-                    self.name = "Unipi Lite"
-                    self.version = "1.1"
-                else:
-                    self.name = "Unipi"
-                    self.version = "1.0"
-
-                self.serial = struct.unpack("i", ee_bytes[228:232])[0]
-        elif unipi_patron_file.is_file():
-            with unipi_patron_file.open("rb") as _file:
-                ee_bytes = _file.read(128)
-
-                self.name = "Unipi Patron"
-                self.model = f"{ee_bytes[106:110].decode()}"
-                self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
-                self.serial = struct.unpack("i", ee_bytes[100:104])[0]
-        elif unipi_neuron_1_file.is_file():
-            with unipi_neuron_1_file.open("rb") as _file:
-                ee_bytes = _file.read(128)
-
-                self.name = "Unipi Neuron"
-                self.model = f"{ee_bytes[106:110].decode()}"
-                self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
-                self.serial = struct.unpack("i", ee_bytes[100:104])[0]
-        elif unipi_neuron_0_file.is_file():
-            with unipi_neuron_0_file.open("rb") as _file:
-                ee_bytes = _file.read(128)
-
-                self.name = "Unipi Neuron"
-                self.model = f"{ee_bytes[106:110].decode()}"
-                self.version = f"{ee_bytes[99]}.{ee_bytes[98]}"
-                self.serial = struct.unpack("i", ee_bytes[100:104])[0]
-
-
-class HardwareType:
-    PLC: Final[str] = "PLC"
-    EXTENSION: Final[str] = "Extension"
-
-
-class HardwareMap(Mapping[str, HardwareDefinition]):
-    def __init__(self, config: Config) -> None:
-        self.config = config
-
-        self.data: Dict[str, HardwareDefinition] = {}
-        self.info: HardwareInfo = HardwareInfo(sys_bus_dir=config.sys_bus_dir)
-
-        if self.info.model == "unknown":
-            msg = "Hardware is not supported!"
-            raise ConfigError(msg)
-
-        self._read_plc_definition()
-        self._read_extension_definitions()
-
-    def __getitem__(self, key: str) -> HardwareDefinition:
-        data: HardwareDefinition = self.data[key]
-        return data
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self.data)
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-    def _read_plc_definition(self) -> None:
-        definition_file: Path = Path(f"{self.config.hardware_dir}/neuron/{self.info.model}.yaml")
-
-        if definition_file.is_file():
-            try:
-                yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
-
-                self.data[HardwareType.PLC] = HardwareDefinition(
-                    unit=0,
-                    hardware_type=HardwareType.PLC,
-                    device_name=None,
-                    suggested_area=None,
-                    manufacturer=None,
-                    model=f"{self.info.name} {self.info.model}",
-                    modbus_register_blocks=yaml_content["modbus_register_blocks"],
-                    modbus_features=yaml_content["modbus_features"],
-                )
-                UNIPI_LOGGER.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
-            except KeyError as error:
-                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
-                raise ConfigError(msg) from error
-            except TypeError as error:
-                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
-                raise ConfigError(msg) from error
-            except YamlError as error:
-                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
-                raise ConfigError(msg) from error
-        else:
-            msg = "No valid YAML definition found for this device!"
-            raise ConfigError(msg)
-
-    def _read_extension_definitions(self) -> None:
-        for definition_file in Path(f"{self.config.hardware_dir}/extensions").glob("*.yaml"):
-            try:
-                yaml_content: Dict[str, Any] = yaml_loader_safe(definition_file)
-
-                units: Iterator[ModbusUnitConfig] = self.config.modbus_serial.get_units_by_identifier(
-                    identifier=definition_file.stem
-                )
-
-                for unit in units:
-                    self.data[f"{HardwareType.EXTENSION}_{unit.unit}"] = HardwareDefinition(
-                        unit=unit.unit,
-                        hardware_type=HardwareType.EXTENSION,
-                        device_name=unit.device_name,
-                        suggested_area=unit.suggested_area,
-                        manufacturer=yaml_content["manufacturer"],
-                        model=yaml_content["model"],
-                        modbus_register_blocks=yaml_content["modbus_register_blocks"],
-                        modbus_features=yaml_content["modbus_features"],
-                    )
-
-                UNIPI_LOGGER.debug("%s Definition loaded: %s", LogPrefix.CONFIG, definition_file)
-            except KeyError as error:
-                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\nKeyError: {error}"
-                raise ConfigError(msg) from error
-            except TypeError as error:
-                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}"
-                raise ConfigError(msg) from error
-            except YamlError as error:
-                msg = f"{LogPrefix.CONFIG} Definition is invalid: {definition_file}\n{error}"
-                raise ConfigError(msg) from error
-
-    def get_definition_by_hardware_types(self, hardware_types: List[str]) -> Iterator[HardwareDefinition]:
-        """Filter hardware definitions by hardware types.
-
-        Parameters
-        ----------
-        hardware_types: list
-            A list of hardware types to filter hardware definitions.
-
-        Returns
-        -------
-        Iterator:
-            Filtered hardware definitions.
-        """
-        return (definition for definition in self.data.values() if definition.hardware_type in hardware_types)

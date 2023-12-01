@@ -4,18 +4,21 @@ import json
 from typing import Any
 from typing import Dict
 from typing import Tuple
+from typing import TYPE_CHECKING
 
 from aiomqtt import Client
 
 from unipi_control.config import Config
 from unipi_control.config import DEVICE_CLASSES
-from unipi_control.config import HardwareMap
-from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.text import slugify
 from unipi_control.integrations.covers import Cover
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.devices.unipi import Unipi
+from unipi_control.hardware.unipi import Unipi
+from unipi_control.config import UNIPI_LOGGER
+
+if TYPE_CHECKING:
+    from unipi_control.hardware.map import HardwareMap
 
 
 class HassCoversDiscovery:

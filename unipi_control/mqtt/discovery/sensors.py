@@ -15,7 +15,7 @@ from unipi_control.helpers.text import slugify
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 if TYPE_CHECKING:
-    from unipi_control.helpers.typing import HardwareDefinition
+    from unipi_control.hardware.map import HardwareDefinition
 
 
 class HassSensorsDiscovery(HassDiscoveryMixin):

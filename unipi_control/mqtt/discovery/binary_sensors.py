@@ -9,13 +9,13 @@ from typing import Tuple
 from unipi_control.config import UNIPI_LOGGER
 from unipi_control.features.unipi import DigitalInput
 from unipi_control.features.unipi import UnipiFeature
-from unipi_control.features.utils import FeatureState
+from unipi_control.features.constants import FeatureState
 from unipi_control.helpers.log import LOG_MQTT_PUBLISH
 from unipi_control.helpers.text import slugify
 from unipi_control.mqtt.discovery.mixin import HassDiscoveryMixin
 
 if TYPE_CHECKING:
-    from unipi_control.helpers.typing import HardwareDefinition
+    from unipi_control.hardware.map import HardwareDefinition
 
 
 class HassBinarySensorsDiscovery(HassDiscoveryMixin):

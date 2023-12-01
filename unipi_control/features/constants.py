@@ -1,4 +1,4 @@
-"""Collection of feature classes."""
+"""Feature constants."""
 
 from enum import Enum
 from typing import Final

@@ -25,10 +25,10 @@ from pytest_mock import MockerFixture
 from tests.conftest_data import EXTENSION_EASTRON_SDM120M_MODBUS_REGISTER
 from tests.conftest_data import NEURON_L203_MODBUS_REGISTER
 from unipi_control.config import Config
-from unipi_control.devices.eastron import EastronSDM120M
-from unipi_control.helpers.typing import ModbusClient
+from unipi_control.hardware.eastron import EastronSDM120M
+from unipi_control.modbus.helpers import ModbusClient
 from unipi_control.integrations.covers import CoverMap
-from unipi_control.devices.unipi import Unipi
+from unipi_control.hardware.unipi import Unipi
 
 
 @pytest.fixture(autouse=True)

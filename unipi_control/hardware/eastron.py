@@ -12,12 +12,12 @@ from unipi_control.features.eastron import EastronHardware
 from unipi_control.features.eastron import EastronProps
 from unipi_control.features.eastron import EastronModbus
 from unipi_control.features.map import FeatureMap
-from unipi_control.features.utils import FeatureType
-from unipi_control.helpers.typing import EastronModbusFeature
-from unipi_control.helpers.typing import HardwareDefinition
-from unipi_control.helpers.typing import ModbusReadData
-from unipi_control.modbus.helper import check_modbus_call
-from unipi_control.modbus.helper import ModbusHelper
+from unipi_control.features.constants import FeatureType
+from unipi_control.hardware.map import EastronModbusFeature
+from unipi_control.hardware.map import HardwareDefinition
+from unipi_control.modbus.helpers import ModbusReadData
+from unipi_control.modbus.helpers import check_modbus_call
+from unipi_control.modbus.helpers import ModbusHelper
 
 if TYPE_CHECKING:
     from pymodbus.pdu import ModbusResponse
