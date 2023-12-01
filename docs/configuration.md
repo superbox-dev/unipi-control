@@ -45,10 +45,12 @@ mqtt:
 
 ### TCP
 
-| Key    | Value                                        |
-|--------|----------------------------------------------|
-| `host` | The modbus TCP host. Default is `localhost`. |
-| `port` | The modbus TCP port. Default is `502`.       |
+| Key             | Value                                            |
+|-----------------|--------------------------------------------------|
+| `host`          | The modbus TCP host. Default is `localhost`.     |
+| `port`          | The modbus TCP port. Default is `502`.           |
+| `scan_interval` | Modbus register scan interval. Default is `0.2`. |
+
 
 ```yaml
 # control.yaml
@@ -64,6 +66,7 @@ modbus_tcp:
 | `port`                    | The modbus RTU device. Default is `/dev/extcomm/0/0`. |
 | `baud_rate`               | The baud rate for modbus RTU. Default is `2400`.      |
 | `parity`                  | The parity for modbus RTU. Default is `N`.            |
+| `scan_interval`           | Modbus register scan interval. Default is `0.2`.      |
 | `unit`                    | A list of all modbus RTU devices.                     |
 | `unit` » `unit`           | The unique modbus RTU unit ID.                        |
 | `unit` » `device_name`    | Custom device name. Used for the Home Assistant UI.   |

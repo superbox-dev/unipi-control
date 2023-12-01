@@ -10,13 +10,13 @@ from pymodbus.pdu import ModbusResponse
 
 from unipi_control.config import Config
 from unipi_control.config import FeatureConfig
-from unipi_control.features.utils import FeatureState
-from unipi_control.features.utils import FeatureType
+from unipi_control.features.constants import FeatureState
+from unipi_control.features.constants import FeatureType
 from unipi_control.helpers.text import slugify
-from unipi_control.helpers.typing import HardwareDefinition
-from unipi_control.helpers.typing import ModbusWriteData
-from unipi_control.modbus.helper import check_modbus_call
-from unipi_control.modbus.helper import ModbusHelper
+from unipi_control.hardware.map import HardwareDefinition
+from unipi_control.modbus.helpers import ModbusWriteData
+from unipi_control.modbus.helpers import check_modbus_call
+from unipi_control.modbus.helpers import ModbusHelper
 
 
 @dataclass

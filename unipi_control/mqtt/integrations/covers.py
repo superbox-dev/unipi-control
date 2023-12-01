@@ -5,6 +5,7 @@ from asyncio import Queue
 from asyncio import Task
 from typing import Awaitable
 from typing import Callable
+from typing import ClassVar
 from typing import Dict
 from typing import NamedTuple
 from typing import Optional
@@ -34,14 +35,14 @@ class SubscribeCommand(NamedTuple):
 class CoversMqttHelper:
     """Provide cover control as MQTT commands."""
 
-    PUBLISH_RUNNING: bool = True
-    SUBSCRIBE_RUNNING: bool = True
+    PUBLISH_RUNNING: ClassVar[bool] = True
+    SUBSCRIBE_RUNNING: ClassVar[bool] = True
+    SCAN_INTERVAL: ClassVar[float] = 0.02
 
-    def __init__(self, client: Client, covers: CoverMap, scan_interval: float) -> None:
+    def __init__(self, client: Client, covers: CoverMap) -> None:
         self.config: Config = covers.config
         self.client: Client = client
         self.covers: CoverMap = covers
-        self.scan_interval: float = scan_interval
 
         self._queues: Dict[str, Queue] = {}
 
@@ -113,7 +114,7 @@ class CoversMqttHelper:
                         )
 
                 await cover.calibrate()
-            await asyncio.sleep(self.scan_interval)
+            await asyncio.sleep(self.SCAN_INTERVAL)
 
     def init(self, tasks: Set[Task]) -> None:
         """Initialize covers MQTT subscribe and publish."""
@@ -149,12 +150,12 @@ class CoversMqttHelper:
                 )
 
                 while cover.is_closing or cover.is_opening:
-                    await asyncio.sleep(self.scan_interval)
+                    await asyncio.sleep(self.SCAN_INTERVAL)
 
             queue.task_done()
 
     async def _subscribe_command_topic(self, cover: Cover, topic: str, payload: bytes) -> None:
-        value = payload.decode()
+        value: str = payload.decode()
 
         await self._clear_queue(cover)
 

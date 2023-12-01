@@ -6,11 +6,11 @@ from aiomqtt import Client
 
 from unipi_control.features.eastron import Eastron
 from unipi_control.features.unipi import UnipiFeature
-from unipi_control.devices.unipi import Unipi
+from unipi_control.hardware.unipi import Unipi
 
 if TYPE_CHECKING:
     from unipi_control.config import Config
-    from unipi_control.config import HardwareMap
+    from unipi_control.hardware.map import HardwareMap
 
 
 class HassDiscoveryMixin:

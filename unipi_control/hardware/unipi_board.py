@@ -8,11 +8,11 @@ from unipi_control.features.unipi import UnipiHardware
 from unipi_control.features.unipi import Led
 from unipi_control.features.unipi import UnipiModbus
 from unipi_control.features.unipi import Relay
-from unipi_control.features.utils import FeatureType
-from unipi_control.helpers.typing import HardwareDefinition
-from unipi_control.helpers.typing import ModbusClient
-from unipi_control.helpers.typing import ModbusFeature
-from unipi_control.modbus.helper import ModbusHelper
+from unipi_control.features.constants import FeatureType
+from unipi_control.hardware.map import HardwareDefinition
+from unipi_control.modbus.helpers import ModbusClient
+from unipi_control.hardware.map import ModbusFeature
+from unipi_control.modbus.helpers import ModbusHelper
 from typing import Optional
 from typing import NamedTuple
 

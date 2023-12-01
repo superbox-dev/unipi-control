@@ -5,21 +5,39 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import NamedTuple
 from typing import Optional
+from typing import TypedDict
 from typing import Union
 
+from pymodbus.client import AsyncModbusSerialClient
+from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ModbusResponse
 
-from unipi_control.config import HardwareMap
-from unipi_control.config import HardwareType
 from unipi_control.config import LogPrefix
 from unipi_control.config import UNIPI_LOGGER
+from unipi_control.hardware.map import HardwareMap
+from unipi_control.hardware.constants import HardwareType
 from unipi_control.helpers.exceptions import UnexpectedError
-from unipi_control.helpers.typing import ModbusClient
-from unipi_control.helpers.typing import ModbusReadData
-from unipi_control.helpers.typing import ModbusWriteData
 from unipi_control.config import Config
+
+
+class ModbusClient(NamedTuple):
+    tcp: AsyncModbusTcpClient
+    serial: AsyncModbusSerialClient
+
+
+class ModbusReadData(TypedDict):
+    address: int
+    count: int
+    slave: Optional[int]
+
+
+class ModbusWriteData(TypedDict):
+    address: Optional[int]
+    value: bool
+    slave: int
 
 
 class ModbusHelper:

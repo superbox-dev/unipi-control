@@ -11,13 +11,12 @@ from typing import Union
 
 from unipi_control.config import LogPrefix
 from unipi_control.features.eastron import Eastron
+from unipi_control.features.constants import FeatureType
 from unipi_control.features.unipi import DigitalInput
 from unipi_control.features.unipi import DigitalOutput
 from unipi_control.features.unipi import Led
 from unipi_control.features.unipi import Relay
 from unipi_control.helpers.exceptions import ConfigError
-
-from unipi_control.features.utils import FeatureType
 
 
 class FeatureMap(Mapping[str, List[Union[DigitalInput, DigitalOutput, Led, Relay, Eastron]]]):

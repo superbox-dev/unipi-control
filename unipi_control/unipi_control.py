@@ -17,10 +17,10 @@ from unipi_control.config import UNIPI_LOGGER
 from unipi_control.helpers.argparse import init_argparse
 from unipi_control.helpers.exceptions import ConfigError
 from unipi_control.helpers.exceptions import UnexpectedError
+from unipi_control.modbus.helpers import ModbusClient
 
-from unipi_control.helpers.typing import ModbusClient
-from unipi_control.mqtt.helper import MqttHelper
-from unipi_control.devices.unipi import Unipi
+from unipi_control.mqtt.helpers import MqttHelper
+from unipi_control.hardware.unipi import Unipi
 
 from unipi_control.version import __version__
 
