@@ -34,8 +34,6 @@ if TYPE_CHECKING:
     from pymodbus.pdu import ModbusResponse
     from unipi_control.features.eastron import Eastron
 
-ASYNCIO_SLEEP_DELAY_FIX: Final[float] = 0.04
-
 
 class CoverSettings(NamedTuple):
     object_id: str
@@ -110,7 +108,7 @@ class CoverTimer:
         self._task: Optional[Task] = None
 
     async def _job(self) -> None:
-        await asyncio.sleep(self._timeout - ASYNCIO_SLEEP_DELAY_FIX)
+        await asyncio.sleep(self._timeout)
         await self._callback()
 
     def start(self) -> None:
