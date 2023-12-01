@@ -3,6 +3,7 @@ import asyncio
 import re
 from asyncio import Queue
 from asyncio import Task
+from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import NamedTuple
@@ -111,7 +112,7 @@ class CoversMqttHelper:
                             msg=LOG_MQTT_PUBLISH % (state_topic, cover.state),
                         )
 
-                cover.calibrate()
+                await cover.calibrate()
             await asyncio.sleep(self.scan_interval)
 
     def init(self, tasks: Set[Task]) -> None:
@@ -130,8 +131,8 @@ class CoversMqttHelper:
                 UNIPI_LOGGER.info("%s [%s] [Worker] %s task(s) in queue.", LogPrefix.COVER, cover.topic, queue.qsize())
 
             subscribe_queue: SubscribeCommand = await queue.get()
-            command: Callable[[int], Optional[float]] = getattr(cover, subscribe_queue.command)
-            cover_run_time: Optional[float] = command(subscribe_queue.value)
+            command: Callable[[int], Awaitable[Optional[float]]] = getattr(cover, subscribe_queue.command)
+            cover_run_time: Optional[float] = await command(subscribe_queue.value)
 
             if LOG_LEVEL[self.config.logging.mqtt.covers_level] <= LOG_LEVEL["info"]:
                 UNIPI_LOGGER.log(
@@ -158,9 +159,9 @@ class CoversMqttHelper:
         await self._clear_queue(cover)
 
         if value == CoverDeviceState.OPEN:
-            cover.open_cover()
+            await cover.open_cover()
         elif value == CoverDeviceState.CLOSE:
-            cover.close_cover()
+            await cover.close_cover()
         elif value == CoverDeviceState.STOP:
             await cover.stop_cover()
 

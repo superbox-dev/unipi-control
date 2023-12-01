@@ -5,8 +5,8 @@ import asyncio
 import sys
 from pathlib import Path
 
-from pymodbus.client.serial import ModbusSerialClient
-from pymodbus.client.tcp import ModbusTcpClient
+from pymodbus.client.tcp import AsyncModbusTcpClient
+from pymodbus.client.serial import AsyncModbusSerialClient
 from typing import List
 from typing import Optional
 from unipi_control.config import Config
@@ -23,10 +23,6 @@ from unipi_control.mqtt.helper import MqttHelper
 from unipi_control.devices.unipi import Unipi
 
 from unipi_control.version import __version__
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from unipi_control.modbus.helper import ModbusHelper
 
 
 class UnipiControl:
@@ -71,14 +67,8 @@ class UnipiControl:
 
     async def run(self) -> None:
         """Connect to Modbus/MQTT and initialize hardware features."""
-        modbus_helper: ModbusHelper = self.unipi.init()
-        mqtt_helper: MqttHelper = MqttHelper(unipi=self.unipi)
-
-        await asyncio.gather(
-            asyncio.create_task(modbus_helper.scan_tcp()),
-            asyncio.create_task(modbus_helper.scan_serial()),
-            asyncio.create_task(mqtt_helper.run()),
-        )
+        await self.unipi.init()
+        await MqttHelper(unipi=self.unipi).run()
 
 
 def main(argv: Optional[List[str]] = None) -> None:
@@ -96,11 +86,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         unipi_control = UnipiControl(
             config=config,
             modbus_client=ModbusClient(
-                tcp=ModbusTcpClient(
+                tcp=AsyncModbusTcpClient(
                     host=config.modbus_tcp.host,
                     port=config.modbus_tcp.port,
                 ),
-                serial=ModbusSerialClient(
+                serial=AsyncModbusSerialClient(
                     port=config.modbus_serial.port,
                     baudrate=config.modbus_serial.baud_rate,
                     parity=config.modbus_serial.parity,

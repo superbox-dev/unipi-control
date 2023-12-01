@@ -47,22 +47,20 @@ class Unipi:
         self.features = FeatureMap()
         self.unipi_boards: List[UnipiBoard] = []
 
-        self._modbus_helper: ModbusHelper = ModbusHelper(
+        self.modbus_helper: ModbusHelper = ModbusHelper(
             self.config,
             client=modbus_client,
             hardware=self.hardware,
         )
 
-    def init(self) -> ModbusHelper:
+    async def init(self) -> None:
         """Initialize internal and external hardware."""
         UNIPI_LOGGER.debug("%s %s hardware definition(s) found.", LogPrefix.CONFIG, len(self.hardware))
 
-        self.read_boards()
-        self.read_extensions()
+        await self.read_boards()
+        await self.read_extensions()
 
         UNIPI_LOGGER.info("%s %s features initialized.", LogPrefix.CONFIG, len(self.features))
-
-        return self._modbus_helper
 
     @staticmethod
     def get_firmware(response: ModbusResponse) -> str:
@@ -81,11 +79,11 @@ class Unipi:
         versions = getattr(response, "registers", [0, 0])
         return f"{(versions[0] & 0xff00) >> 8}.{(versions[0] & 0x00ff)}"
 
-    def read_boards(self) -> None:
+    async def read_boards(self) -> None:
         """Initialize Unipi PLC boards on Modbus TCP."""
         UNIPI_LOGGER.info("%s Reading SPI boards", LogPrefix.MODBUS)
 
-        self._modbus_helper.connect_tcp()
+        await self.modbus_helper.connect_tcp()
 
         for index in (1, 2, 3):
             data: ModbusReadData = {
@@ -94,7 +92,9 @@ class Unipi:
                 "slave": index,
             }
 
-            response: Optional[ModbusResponse] = check_modbus_call(self.modbus_client.tcp.read_input_registers, data)
+            response: Optional[ModbusResponse] = await check_modbus_call(
+                self.modbus_client.tcp.read_input_registers, data
+            )
 
             if response:
                 firmware: str = self.get_firmware(response)
@@ -106,7 +106,7 @@ class Unipi:
                     config=self.config,
                     modbus_client=self.modbus_client,
                     definition=self.hardware[HardwareType.PLC],
-                    modbus_helper=self._modbus_helper,
+                    modbus_helper=self.modbus_helper,
                     features=self.features,
                     board_config=UnipiBoardConfig(
                         firmware=firmware,
@@ -119,17 +119,13 @@ class Unipi:
             else:
                 UNIPI_LOGGER.info("%s No board on SPI %s", LogPrefix.MODBUS, index)
 
-        self._modbus_helper.close_tcp()
-
-    def read_extensions(self) -> None:
+    async def read_extensions(self) -> None:
         """Initialize extensions and other devices on Modbus RTU."""
         UNIPI_LOGGER.info("%s Reading extensions", LogPrefix.MODBUS)
 
-        self._modbus_helper.connect_serial()
-
-        for key, definition in self.hardware.items():
-            if key == HardwareType.PLC:
-                continue
+        for definition in self.hardware.get_definition_by_hardware_types([HardwareType.EXTENSION]):
+            if not self.modbus_client.serial.connected:
+                await self.modbus_helper.connect_serial()
 
             UNIPI_LOGGER.info(
                 "%s [RTU] Found device with unit %s (manufacturer: %s, model: %s)",
@@ -142,11 +138,9 @@ class Unipi:
             if (definition.manufacturer and definition.manufacturer.lower() == "eastron") and (
                 definition.model and definition.model == "SDM120M"
             ):
-                EastronSDM120M(
+                await EastronSDM120M(
                     config=self.config,
-                    modbus_helper=self._modbus_helper,
+                    modbus_helper=self.modbus_helper,
                     definition=definition,
                     features=self.features,
                 ).init()
-
-        self._modbus_helper.close_serial()

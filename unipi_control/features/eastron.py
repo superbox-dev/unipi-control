@@ -52,7 +52,7 @@ class Eastron:
 
         self.features_config: Optional[FeatureConfig] = config.features.get(self.feature_id)
 
-        self._reg_value: Callable[..., List[Optional[int]]] = lambda: modbus.helper.get_register(
+        self._reg_value: Callable[..., List[int]] = lambda: modbus.helper.get_register(
             address=modbus.val_reg, index=2, unit=hardware.definition.unit
         )
         self.saved_value: Optional[Union[float, int]] = None
@@ -68,7 +68,7 @@ class Eastron:
     @property
     def value(self) -> Optional[float]:
         """Return Eastron meter value."""
-        reg_value: List[Optional[int]] = self._reg_value()
+        reg_value: List[int] = self._reg_value()
 
         return (
             round(

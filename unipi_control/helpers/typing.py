@@ -5,13 +5,13 @@ from typing import NamedTuple
 from typing import Optional
 from typing import TypedDict
 
-from pymodbus.client import ModbusSerialClient
-from pymodbus.client import ModbusTcpClient
+from pymodbus.client.tcp import AsyncModbusTcpClient
+from pymodbus.client.serial import AsyncModbusSerialClient
 
 
 class ModbusClient(NamedTuple):
-    tcp: ModbusTcpClient
-    serial: ModbusSerialClient
+    tcp: AsyncModbusTcpClient
+    serial: AsyncModbusSerialClient
 
 
 class ModbusRegisterBlock(TypedDict):

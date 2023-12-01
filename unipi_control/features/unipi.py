@@ -53,7 +53,7 @@ class UnipiFeature:
         self.val_coil: Optional[int] = (
             None if modbus.val_coil is None else modbus.val_coil + self.hardware.feature_index
         )
-        self._reg_value: Callable[..., Optional[int]] = lambda: modbus.helper.get_register(
+        self._reg_value: Callable[..., int] = lambda: modbus.helper.get_register(
             address=modbus.val_reg, index=1, unit=0
         )[0]
         self.saved_value: Optional[Union[float, int]] = None
@@ -128,13 +128,10 @@ class UnipiFeature:
         return FeatureState.ON if self.value == 1 else FeatureState.OFF
 
     @property
-    def value(self) -> Optional[int]:
+    def value(self) -> int:
         """Return the feature state as integer."""
         mask: int = 0x1 << (self.hardware.feature_index % 16)
-        reg_value: Optional[int] = self._reg_value()
-
-        if reg_value is None:
-            return None
+        reg_value: int = self._reg_value()
 
         return 1 if reg_value & mask else 0
 
@@ -159,7 +156,7 @@ class Relay(UnipiFeature):
 
     feature_type = FeatureType.RO
 
-    def set_state(self, value: bool) -> Optional[ModbusResponse]:
+    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for relay feature.
 
         Parameters
@@ -177,7 +174,7 @@ class Relay(UnipiFeature):
             "slave": 0,
         }
 
-        return check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)
+        return await check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)
 
 
 class DigitalOutput(UnipiFeature):
@@ -185,7 +182,7 @@ class DigitalOutput(UnipiFeature):
 
     feature_type = FeatureType.DI
 
-    def set_state(self, value: bool) -> Optional[ModbusResponse]:
+    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for digital output feature.
 
         Parameters
@@ -203,7 +200,7 @@ class DigitalOutput(UnipiFeature):
             "slave": 0,
         }
 
-        return check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)
+        return await check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)
 
 
 class DigitalInput(UnipiFeature):
@@ -213,7 +210,7 @@ class DigitalInput(UnipiFeature):
 class Led(UnipiFeature):
     """Class for the LED feature from the Unipi PLC."""
 
-    def set_state(self, value: bool) -> Optional[ModbusResponse]:
+    async def set_state(self, value: bool) -> Optional[ModbusResponse]:
         """Set state for LED feature.
 
         Parameters
@@ -231,4 +228,4 @@ class Led(UnipiFeature):
             "slave": 0,
         }
 
-        return check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)
+        return await check_modbus_call(self.modbus.helper.client.tcp.write_coil, data)

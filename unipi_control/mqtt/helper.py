@@ -37,27 +37,24 @@ from unipi_control.mqtt.integrations.covers import CoversMqttHelper
 
 
 class MqttHelper:
-    PUBLISH_RUNNING: bool = True
-    subscribe_feature_types: ClassVar[List[FeatureType]] = [FeatureType.DO, FeatureType.RO]
-    fast_scan_publish_feature_types: ClassVar[List[FeatureType]] = [
-        FeatureType.DI,
+    PUBLISH_RUNNING: ClassVar[bool] = True
+
+    subscribe_feature_types: ClassVar[List[FeatureType]] = [
         FeatureType.DO,
         FeatureType.RO,
     ]
-    slow_scan_publish_feature_types: ClassVar[List[FeatureType]] = [
+    publish_feature_types: ClassVar[List[FeatureType]] = [
+        FeatureType.DI,
+        FeatureType.DO,
+        FeatureType.RO,
         FeatureType.METER,
     ]
 
-    fast_scan_invertal: ClassVar[float] = 1 / 50
-    slow_scan_invertal: ClassVar[float] = 20
+    scan_interval: ClassVar[float] = 0.02
 
     def __init__(self, unipi: Unipi) -> None:
         self.config: Config = unipi.config
         self.unipi: Unipi = unipi
-
-        self.publish_feature_types: List[FeatureType] = (
-            self.fast_scan_publish_feature_types + self.slow_scan_publish_feature_types
-        )
 
     async def run(self) -> None:
         """Connect/reconnect to MQTT and start publish/subscribe."""
@@ -95,25 +92,16 @@ class MqttHelper:
                         asyncio.create_task(
                             self.publish(
                                 client=mqtt_client,
-                                feature_types=self.fast_scan_publish_feature_types,
-                                scan_interval=self.fast_scan_invertal,
-                            )
-                        )
-                    )
-                    tasks.add(
-                        asyncio.create_task(
-                            self.publish(
-                                client=mqtt_client,
-                                feature_types=self.slow_scan_publish_feature_types,
-                                scan_interval=self.slow_scan_invertal,
+                                feature_types=self.publish_feature_types,
                             )
                         )
                     )
 
-                    covers_mqtt_helper = CoversMqttHelper(
-                        client=mqtt_client, covers=covers, scan_interval=self.fast_scan_invertal
-                    )
-                    covers_mqtt_helper.init(tasks=tasks)
+                    CoversMqttHelper(
+                        client=mqtt_client,
+                        covers=covers,
+                        scan_interval=self.scan_interval,
+                    ).init(tasks=tasks)
 
                     await asyncio.gather(*tasks)
             except MqttError as error:
@@ -148,9 +136,9 @@ class MqttHelper:
 
                         if isinstance(feature, (DigitalOutput, Relay)):
                             if value == "ON":
-                                feature.set_state(True)
+                                await feature.set_state(True)
                             elif value == "OFF":
-                                feature.set_state(False)
+                                await feature.set_state(False)
 
                             if (
                                 value in {"ON", "OFF"}
@@ -161,11 +149,18 @@ class MqttHelper:
                                     msg=LOG_MQTT_SUBSCRIBE % (topic, value),
                                 )
 
-        await asyncio.sleep(self.fast_scan_invertal)
+        await asyncio.sleep(self.scan_interval)
 
-    async def publish(self, client: MqttClient, feature_types: List[FeatureType], scan_interval: float) -> None:
+    async def publish(
+        self,
+        client: MqttClient,
+        feature_types: List[FeatureType],
+    ) -> None:
         """Publish feature changes to MQTT."""
         while self.PUBLISH_RUNNING:
+            await self.unipi.modbus_helper.scan_tcp()
+            await self.unipi.modbus_helper.scan_serial()
+
             for feature in self.unipi.features.by_feature_types(feature_types):
                 if feature.changed:
                     topic: str = f"{feature.topic}/get"
@@ -183,7 +178,7 @@ class MqttHelper:
                             msg=LOG_MQTT_PUBLISH % (topic, feature.payload),
                         )
 
-            await asyncio.sleep(scan_interval)
+            await asyncio.sleep(self.scan_interval)
 
     async def discovery(self, client: MqttClient) -> None:
         """Publish MQTT Home Assistant discovery topics."""
