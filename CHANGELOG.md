@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added support for MQTT broker authentication with username and password
 - Added support for Python 3.12
+- Added support for Unipi Extensions
+- Added a lot of debug log messages for better Modbus RTU/TCP debugging
 
 ### Changed
 
